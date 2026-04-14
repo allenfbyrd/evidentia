@@ -1,0 +1,177 @@
+# =====================================================================
+# Meridian Financial — Control Inventory
+# =====================================================================
+# Fictional B2C fintech SaaS processing cardholder data and PII.
+# Target frameworks: NIST SP 800-53 Moderate, SOC 2 Trust Services Criteria.
+#
+# Status values:
+#   implemented            - control is fully operational
+#   partially_implemented  - control is in place but with known gaps
+#   planned                - roadmapped, not yet started
+#   not_implemented        - no work in progress
+#   not_applicable         - does not apply to this environment
+# =====================================================================
+
+organization: "Meridian Financial"
+
+controls:
+  # ── Access Control ───────────────────────────────────────────────────
+  - id: AC-2
+    title: "Account Management"
+    status: implemented
+    implementation_notes: |
+      Okta handles joiner/mover/leaver. Access reviews run quarterly
+      via Vanta. Terraform manages Okta groups and SCIM to production.
+    owner: "IAM Team"
+    tags: ["iam", "okta"]
+
+  - id: AC-3
+    title: "Access Enforcement"
+    status: partially_implemented
+    implementation_notes: |
+      RBAC enforced in production APIs; data warehouse still uses
+      a flat role model that needs migration to row-level security.
+    owner: "IAM Team"
+
+  - id: AC-6
+    title: "Least Privilege"
+    status: implemented
+    implementation_notes: |
+      Production access is time-bound via Teleport. All privileged
+      actions require approval from on-call engineer.
+    owner: "SRE"
+
+  # ── Audit and Accountability ─────────────────────────────────────────
+  - id: AU-2
+    title: "Audit Events"
+    status: planned
+    implementation_notes: |
+      Centralized logging via Datadog is scoped; SIEM selection
+      in progress. Target go-live Q3 2026.
+    owner: "Security Engineering"
+
+  - id: AU-6
+    title: "Audit Record Review, Analysis, and Reporting"
+    status: not_implemented
+    implementation_notes: |
+      No regular log review process. Ad-hoc only during incidents.
+    owner: "Security Engineering"
+
+  # ── Configuration Management ─────────────────────────────────────────
+  - id: CM-2
+    title: "Baseline Configuration"
+    status: implemented
+    implementation_notes: |
+      Infrastructure-as-code via Terraform. Golden AMIs rebuilt
+      weekly via Packer. Drift detection via AWS Config.
+    owner: "Platform Team"
+
+  - id: CM-6
+    title: "Configuration Settings"
+    status: partially_implemented
+    implementation_notes: |
+      CIS hardening applied to Linux hosts; Windows workstations
+      still use default MDM profile (Jamf). Remediation planned.
+    owner: "Platform Team"
+
+  # ── Identification and Authentication ────────────────────────────────
+  - id: IA-2
+    title: "Identification and Authentication"
+    status: implemented
+    implementation_notes: |
+      MFA enforced on all employee accounts via Okta. Hardware
+      security keys required for admins.
+    owner: "IAM Team"
+
+  - id: IA-5
+    title: "Authenticator Management"
+    status: implemented
+    implementation_notes: |
+      Password rotation enforced. Secrets in AWS Secrets Manager
+      with automatic rotation for DB credentials.
+    owner: "IAM Team"
+
+  # ── Incident Response ────────────────────────────────────────────────
+  - id: IR-4
+    title: "Incident Handling"
+    status: partially_implemented
+    implementation_notes: |
+      Runbooks exist for common scenarios; no formal IRT drills
+      in the last 12 months. Tabletop exercise scheduled Q2.
+    owner: "Security Engineering"
+
+  # ── Risk Assessment ──────────────────────────────────────────────────
+  - id: RA-5
+    title: "Vulnerability Monitoring and Scanning"
+    status: partially_implemented
+    implementation_notes: |
+      Snyk for code and containers. Wiz for cloud. No authenticated
+      scanning of the corporate network yet.
+    owner: "Security Engineering"
+
+  # ── System and Communications Protection ─────────────────────────────
+  - id: SC-7
+    title: "Boundary Protection"
+    status: implemented
+    implementation_notes: |
+      AWS VPC with WAF at the edge, private subnets for data tier,
+      Cloudflare in front of public endpoints.
+    owner: "Platform Team"
+
+  - id: SC-13
+    title: "Cryptographic Protection"
+    status: implemented
+    implementation_notes: |
+      TLS 1.2+ everywhere. AES-256 at rest (KMS-managed keys).
+      FIPS 140-2 validated modules in the PCI scope.
+    owner: "Platform Team"
+
+  - id: SC-28
+    title: "Protection of Information at Rest"
+    status: implemented
+    implementation_notes: |
+      All RDS, S3, and EBS volumes encrypted with customer-managed
+      KMS keys. Automatic key rotation enabled.
+    owner: "Platform Team"
+
+  # ── System and Information Integrity ─────────────────────────────────
+  - id: SI-2
+    title: "Flaw Remediation"
+    status: partially_implemented
+    implementation_notes: |
+      Critical CVEs patched within 7 days per policy; high-severity
+      patching on production still manual and sometimes misses SLA.
+    owner: "Platform Team"
+
+  - id: SI-4
+    title: "System Monitoring"
+    status: not_implemented
+    implementation_notes: |
+      Relying on vendor (Datadog) for APM alerting. No dedicated
+      IDS/IPS or user behavior analytics in place.
+    owner: "Security Engineering"
+
+  # ── SOC 2 Trust Services Criteria (direct implementations) ───────────
+  - id: CC6.1
+    title: "Logical and Physical Access Controls"
+    status: implemented
+    implementation_notes: |
+      Satisfied by the AC-2, AC-3, and IA-2 implementations above.
+
+  - id: CC6.6
+    title: "Network Boundary Protection"
+    status: implemented
+    implementation_notes: |
+      Satisfied by the SC-7 implementation above.
+
+  - id: CC6.7
+    title: "Data in Transit"
+    status: implemented
+    implementation_notes: |
+      Satisfied by the SC-13 implementation above.
+
+  - id: CC7.1
+    title: "Detection and Monitoring"
+    status: not_implemented
+    implementation_notes: |
+      Blocked on SI-4 / AU-6 remediation.

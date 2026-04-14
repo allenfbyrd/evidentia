@@ -1,0 +1,87 @@
+{
+  "framework_id": "soc2-tsc",
+  "framework_name": "SOC 2 Trust Services Criteria 2017",
+  "version": "2017",
+  "source": "AICPA Trust Services Criteria 2017 (paraphrased summary). Replace with the AICPA-published criteria for production use.",
+  "families": [
+    "Common Criteria",
+    "Availability",
+    "Confidentiality",
+    "Processing Integrity",
+    "Privacy"
+  ],
+  "controls": [
+    {
+      "id": "CC1.1",
+      "title": "COSO Principle 1: Demonstrates Commitment to Integrity and Ethical Values",
+      "description": "The entity demonstrates a commitment to integrity and ethical values.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC2.1",
+      "title": "COSO Principle 13: Generates Relevant Information",
+      "description": "The entity obtains or generates and uses relevant, quality information to support the functioning of internal control.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC5.1",
+      "title": "Control Activities",
+      "description": "The entity selects and develops control activities that contribute to the mitigation of risks to the achievement of objectives to acceptable levels.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC6.1",
+      "title": "Logical and Physical Access Controls — Software, Infrastructure, and Architectures",
+      "description": "The entity implements logical access security software, infrastructure, and architectures over protected information assets to protect them from security events to meet the entity's objectives.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC6.2",
+      "title": "Logical and Physical Access Controls — User Authentication",
+      "description": "Prior to issuing system credentials and granting system access, the entity registers and authorizes new internal and external users whose access is administered by the entity. For those users whose access is administered by the entity, user system credentials are removed when user access is no longer authorized.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC6.3",
+      "title": "Logical and Physical Access Controls — Role-Based Access",
+      "description": "The entity authorizes, modifies, or removes access to data, software, functions, and other protected information assets based on roles, responsibilities, or the system design and changes, giving consideration to the concepts of least privilege and segregation of duties.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC6.6",
+      "title": "Logical and Physical Access Controls — External User Authentication",
+      "description": "The entity implements logical access security measures to protect against threats from sources outside its system boundaries.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC6.7",
+      "title": "Logical and Physical Access Controls — Restriction and Disposal of Information",
+      "description": "The entity restricts the transmission, movement, and removal of information to authorized internal and external users and processes, and protects it during transmission, movement, or removal to meet the entity's objectives.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC7.1",
+      "title": "System Operations — Detection and Monitoring",
+      "description": "To meet its objectives, the entity uses detection and monitoring procedures to identify (1) changes to configurations that result in the introduction of new vulnerabilities, and (2) susceptibilities to newly discovered vulnerabilities.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC7.2",
+      "title": "System Operations — Anomaly Monitoring",
+      "description": "The entity monitors system components and the operation of those components for anomalies that are indicative of malicious acts, natural disasters, and errors affecting the entity's ability to meet its objectives; anomalies are analyzed to determine whether they represent security events.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC7.3",
+      "title": "System Operations — Security Incident Evaluation",
+      "description": "The entity evaluates security events to determine whether they could or have resulted in a failure of the entity to meet its objectives (security incidents) and, if so, takes actions to prevent or address such failures.",
+      "family": "Common Criteria"
+    },
+    {
+      "id": "CC8.1",
+      "title": "Change Management",
+      "description": "The entity authorizes, designs, develops or acquires, configures, documents, tests, approves, and implements changes to infrastructure, data, software, and procedures to meet its objectives.",
+      "family": "Common Criteria"
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "source_framework": "nist-800-53-mod",
+  "target_framework": "soc2-tsc",
+  "version": "1.0",
+  "generated_at": "2026-04-09",
+  "source": "Sample mapping for NIST SP 800-53 Rev 5 Moderate baseline ↔ SOC 2 Trust Services Criteria 2017. Hand-curated; replace with the AICPA-maintained crosswalk for production use.",
+  "mappings": [
+    {
+      "source_control_id": "AC-2",
+      "source_control_title": "Account Management",
+      "target_control_id": "CC6.1",
+      "target_control_title": "Logical and Physical Access Controls — Software, Infrastructure, and Architectures",
+      "relationship": "related",
+      "notes": "AC-2 covers user account lifecycle management; CC6.1 addresses logical access controls broadly."
+    },
+    {
+      "source_control_id": "AC-2",
+      "source_control_title": "Account Management",
+      "target_control_id": "CC6.2",
+      "target_control_title": "Logical and Physical Access Controls — User Authentication",
+      "relationship": "related",
+      "notes": "AC-2 user provisioning/deprovisioning supports CC6.2 registration and authorization requirements."
+    },
+    {
+      "source_control_id": "AC-3",
+      "source_control_title": "Access Enforcement",
+      "target_control_id": "CC6.3",
+      "target_control_title": "Logical and Physical Access Controls — Role-Based Access",
+      "relationship": "related",
+      "notes": "AC-3 enforces approved authorizations; CC6.3 grants access based on roles and least privilege."
+    },
+    {
+      "source_control_id": "AC-6",
+      "source_control_title": "Least Privilege",
+      "target_control_id": "CC6.3",
+      "target_control_title": "Logical and Physical Access Controls — Role-Based Access",
+      "relationship": "equivalent",
+      "notes": "Both controls require enforcing least privilege via role-based access."
+    },
+    {
+      "source_control_id": "AU-2",
+      "source_control_title": "Event Logging",
+      "target_control_id": "CC7.2",
+      "target_control_title": "System Operations — Anomaly Monitoring",
+      "relationship": "related",
+      "notes": "AU-2 establishes the events to log that feed CC7.2 anomaly monitoring."
+    },
+    {
+      "source_control_id": "AU-6",
+      "source_control_title": "Audit Record Review, Analysis, and Reporting",
+      "target_control_id": "CC7.2",
+      "target_control_title": "System Operations — Anomaly Monitoring",
+      "relationship": "related",
+      "notes": "AU-6 review/analysis of audit records is the analytical step in CC7.2 monitoring."
+    },
+    {
+      "source_control_id": "CM-2",
+      "source_control_title": "Baseline Configuration",
+      "target_control_id": "CC8.1",
+      "target_control_title": "Change Management",
+      "relationship": "related",
+      "notes": "CM-2 baseline configurations are the starting point for CC8.1 change management."
+    },
+    {
+      "source_control_id": "CM-6",
+      "source_control_title": "Configuration Settings",
+      "target_control_id": "CC7.1",
+      "target_control_title": "System Operations — Detection and Monitoring",
+      "relationship": "related",
+      "notes": "CM-6 configuration settings drift detection feeds CC7.1 vulnerability detection."
+    },
+    {
+      "source_control_id": "IA-2",
+      "source_control_title": "Identification and Authentication (Organizational Users)",
+      "target_control_id": "CC6.2",
+      "target_control_title": "Logical and Physical Access Controls — User Authentication",
+      "relationship": "equivalent",
+      "notes": "IA-2 and CC6.2 both require uniquely identifying and authenticating users."
+    },
+    {
+      "source_control_id": "IA-5",
+      "source_control_title": "Authenticator Management",
+      "target_control_id": "CC6.1",
+      "target_control_title": "Logical and Physical Access Controls — Software, Infrastructure, and Architectures",
+      "relationship": "partial",
+      "notes": "IA-5 authenticator content protections support CC6.1 logical access security."
+    },
+    {
+      "source_control_id": "IR-4",
+      "source_control_title": "Incident Handling",
+      "target_control_id": "CC7.3",
+      "target_control_title": "System Operations — Security Incident Evaluation",
+      "relationship": "equivalent",
+      "notes": "IR-4 incident handling and CC7.3 incident evaluation cover the same lifecycle."
+    },
+    {
+      "source_control_id": "RA-5",
+      "source_control_title": "Vulnerability Monitoring and Scanning",
+      "target_control_id": "CC7.1",
+      "target_control_title": "System Operations — Detection and Monitoring",
+      "relationship": "equivalent",
+      "notes": "Both controls require ongoing vulnerability detection and reporting."
+    },
+    {
+      "source_control_id": "SC-7",
+      "source_control_title": "Boundary Protection",
+      "target_control_id": "CC6.6",
+      "target_control_title": "Logical and Physical Access Controls — External User Authentication",
+      "relationship": "related",
+      "notes": "SC-7 boundary protection enforces external access controls in CC6.6."
+    },
+    {
+      "source_control_id": "SC-13",
+      "source_control_title": "Cryptographic Protection",
+      "target_control_id": "CC6.7",
+      "target_control_title": "Logical and Physical Access Controls — Restriction and Disposal of Information",
+      "relationship": "related",
+      "notes": "SC-13 cryptographic protection secures data in transit covered by CC6.7."
+    },
+    {
+      "source_control_id": "SC-28",
+      "source_control_title": "Protection of Information at Rest",
+      "target_control_id": "CC6.7",
+      "target_control_title": "Logical and Physical Access Controls — Restriction and Disposal of Information",
+      "relationship": "related",
+      "notes": "SC-28 encryption at rest protects information that CC6.7 governs movement and disposal of."
+    },
+    {
+      "source_control_id": "SI-2",
+      "source_control_title": "Flaw Remediation",
+      "target_control_id": "CC7.1",
+      "target_control_title": "System Operations — Detection and Monitoring",
+      "relationship": "related",
+      "notes": "SI-2 flaw remediation is the response activity for vulnerabilities detected per CC7.1."
+    },
+    {
+      "source_control_id": "SI-4",
+      "source_control_title": "System Monitoring",
+      "target_control_id": "CC7.2",
+      "target_control_title": "System Operations — Anomaly Monitoring",
+      "relationship": "equivalent",
+      "notes": "SI-4 and CC7.2 both require continuous monitoring for security-relevant events."
+    }
+  ]
+}

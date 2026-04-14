@@ -1,0 +1,21 @@
+control_id,title,status,implementation_notes,owner
+AC-2,Account Management,implemented,Okta with quarterly access reviews via Vanta,IAM Team
+AC-3,Access Enforcement,partial,RBAC on APIs; warehouse row-level security pending,IAM Team
+AC-6,Least Privilege,implemented,Time-bound production access via Teleport,SRE
+AU-2,Audit Events,planned,SIEM selection in progress; target Q3 2026,Security Engineering
+AU-6,Audit Record Review,not_implemented,No regular log review process in place,Security Engineering
+CM-2,Baseline Configuration,implemented,Terraform IaC with weekly rebuilt AMIs,Platform Team
+CM-6,Configuration Settings,partial,CIS on Linux; Windows on default profile,Platform Team
+IA-2,Identification and Authentication,implemented,MFA via Okta with hardware keys for admins,IAM Team
+IA-5,Authenticator Management,implemented,Secrets Manager with automatic rotation,IAM Team
+IR-4,Incident Handling,partial,Runbooks exist; no recent IRT drills,Security Engineering
+RA-5,Vulnerability Scanning,partial,Snyk + Wiz; corporate network not scanned,Security Engineering
+SC-7,Boundary Protection,implemented,VPC segmentation with WAF at edge,Platform Team
+SC-13,Cryptographic Protection,implemented,TLS 1.2+ and AES-256 with KMS,Platform Team
+SC-28,Protection of Information at Rest,implemented,All RDS/S3/EBS encrypted with CMK,Platform Team
+SI-2,Flaw Remediation,partial,Critical within 7 days; high-severity sometimes misses SLA,Platform Team
+SI-4,System Monitoring,not_implemented,No IDS/IPS or UBA in place,Security Engineering
+CC6.1,Logical and Physical Access Controls,implemented,Covered by AC-2/AC-3/IA-2,IAM Team
+CC6.6,Network Boundary Protection,implemented,Covered by SC-7,Platform Team
+CC6.7,Data in Transit,implemented,Covered by SC-13,Platform Team
+CC7.1,Detection and Monitoring,not_implemented,Blocked on SI-4 and AU-6,Security Engineering

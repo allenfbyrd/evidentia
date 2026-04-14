@@ -1,0 +1,41 @@
+organization: "Acme Corporation"
+system_name: "Acme Customer Portal"
+system_description: |
+  SaaS B2C platform serving customers across the United States.
+  Processes account information, billing data, and support tickets.
+data_classification:
+  - PII
+  - PCI-CDE
+hosting: "AWS (us-east-1, us-west-2)"
+risk_tolerance: "low"
+regulatory_requirements:
+  - PCI DSS
+  - GDPR
+  - CCPA
+employee_count: 200
+customer_count: 50000
+threat_actors:
+  - "External threat actors (financial)"
+  - "Insider"
+  - "Opportunistic ransomware groups"
+existing_controls:
+  - AC-2
+  - AC-3
+  - IA-2
+  - SC-13
+components:
+  - name: "Web Application"
+    type: web_app
+    technology: "React + Node.js"
+    data_handled: ["PII"]
+    location: "AWS us-east-1"
+  - name: "Payment Service"
+    type: api
+    technology: "Python + FastAPI"
+    data_handled: ["PCI-CDE"]
+    location: "AWS us-east-1 (PCI scope)"
+  - name: "Customer Database"
+    type: database
+    technology: "Amazon RDS PostgreSQL"
+    data_handled: ["PII", "PCI-CDE"]
+    location: "AWS us-east-1"

@@ -1,0 +1,146 @@
+{
+  "framework_id": "nist-800-53-mod",
+  "framework_name": "NIST SP 800-53 Rev 5 Moderate Baseline (sample subset)",
+  "version": "Rev 5",
+  "source": "NIST SP 800-53 Rev 5 (paraphrased subset for bootstrapping). Replace with the full usnistgov/oscal-content moderate baseline JSON in production.",
+  "families": [
+    "Access Control",
+    "Audit and Accountability",
+    "Configuration Management",
+    "Identification and Authentication",
+    "Incident Response",
+    "Risk Assessment",
+    "System and Communications Protection",
+    "System and Information Integrity"
+  ],
+  "controls": [
+    {
+      "id": "AC-2",
+      "title": "Account Management",
+      "description": "Manage system accounts, including establishing, activating, modifying, reviewing, disabling, and removing accounts. Specify authorized users, group and role membership, and access authorizations for each account.",
+      "family": "Access Control",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "AC-3",
+      "title": "Access Enforcement",
+      "description": "Enforce approved authorizations for logical access to information and system resources in accordance with applicable access control policies.",
+      "family": "Access Control",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "AC-6",
+      "title": "Least Privilege",
+      "description": "Employ the principle of least privilege, allowing only authorized accesses for users (or processes acting on behalf of users) which are necessary to accomplish assigned organizational tasks.",
+      "family": "Access Control",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "AU-2",
+      "title": "Event Logging",
+      "description": "Identify the types of events that the system is capable of logging in support of the audit function. Coordinate the event logging function with other organizational entities requiring audit-related information.",
+      "family": "Audit and Accountability",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "AU-6",
+      "title": "Audit Record Review, Analysis, and Reporting",
+      "description": "Review and analyze system audit records for indications of inappropriate or unusual activity and report findings to designated personnel.",
+      "family": "Audit and Accountability",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "CM-2",
+      "title": "Baseline Configuration",
+      "description": "Develop, document, and maintain under configuration control, a current baseline configuration of the system.",
+      "family": "Configuration Management",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "CM-6",
+      "title": "Configuration Settings",
+      "description": "Establish and document configuration settings for components employed within the system that reflect the most restrictive mode consistent with operational requirements.",
+      "family": "Configuration Management",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "IA-2",
+      "title": "Identification and Authentication (Organizational Users)",
+      "description": "Uniquely identify and authenticate organizational users and associate that unique identification with processes acting on behalf of those users.",
+      "family": "Identification and Authentication",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "IA-5",
+      "title": "Authenticator Management",
+      "description": "Manage system authenticators by verifying identity, establishing initial authenticator content, and protecting authenticator content from unauthorized disclosure or modification.",
+      "family": "Identification and Authentication",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "IR-4",
+      "title": "Incident Handling",
+      "description": "Implement an incident handling capability for incidents that includes preparation, detection and analysis, containment, eradication, and recovery.",
+      "family": "Incident Response",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "RA-5",
+      "title": "Vulnerability Monitoring and Scanning",
+      "description": "Monitor and scan for vulnerabilities in the system and hosted applications and when new vulnerabilities potentially affecting the system are identified and reported.",
+      "family": "Risk Assessment",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "SC-7",
+      "title": "Boundary Protection",
+      "description": "Monitor and control communications at the external managed interfaces to the system and at key internal managed interfaces within the system.",
+      "family": "System and Communications Protection",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "SC-13",
+      "title": "Cryptographic Protection",
+      "description": "Determine the cryptographic uses and types of cryptography required for each use; and implement the cryptographic uses and types in accordance with applicable federal laws, executive orders, directives, regulations, policies, standards, and guidelines.",
+      "family": "System and Communications Protection",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "SC-28",
+      "title": "Protection of Information at Rest",
+      "description": "Protect the confidentiality and integrity of information at rest using cryptographic mechanisms or alternative physical controls.",
+      "family": "System and Communications Protection",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "SI-2",
+      "title": "Flaw Remediation",
+      "description": "Identify, report, and correct system flaws. Test software and firmware updates related to flaw remediation for effectiveness and potential side effects before installation.",
+      "family": "System and Information Integrity",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    },
+    {
+      "id": "SI-4",
+      "title": "System Monitoring",
+      "description": "Monitor the system to detect attacks and indicators of potential attacks and unauthorized local, network, and remote connections.",
+      "family": "System and Information Integrity",
+      "priority": "P1",
+      "baseline_impact": ["moderate"]
+    }
+  ]
+}

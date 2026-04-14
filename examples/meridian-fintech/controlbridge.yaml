@@ -1,0 +1,22 @@
+# =====================================================================
+# Meridian Financial — ControlBridge Configuration
+# =====================================================================
+version: "1"
+
+llm:
+  model: "gpt-4o"
+  temperature: 0.1
+  max_retries: 3
+
+storage:
+  type: "file"
+  path: "./.controlbridge"
+
+frameworks:
+  default:
+    - nist-800-53-mod
+    - soc2-tsc
+
+logging:
+  level: "INFO"
+  format: "rich"

@@ -1,0 +1,132 @@
+# =====================================================================
+# Meridian Financial — System Context
+# =====================================================================
+# Provided to the AI risk statement generator so it can produce
+# specific, measurable risk statements grounded in this environment.
+# =====================================================================
+
+organization: "Meridian Financial"
+system_name: "Meridian Customer Platform"
+system_description: |
+  Consumer fintech SaaS offering savings, debit, and bill-pay
+  products to US residents. The customer platform consists of a
+  React web app, iOS and Android native apps, a Python/FastAPI
+  service layer, a Postgres customer database, and a payment
+  processing service that handles tokenized cardholder data.
+  Card data never hits our primary database; tokenization is
+  handled by the payment service and stored in a segmented PCI
+  scope.
+
+data_classification:
+  - PII
+  - PCI-CDE
+  - ITIN
+  - financial-account-data
+
+hosting: "AWS (us-east-1 primary, us-west-2 DR)"
+
+risk_tolerance: "low"
+
+regulatory_requirements:
+  - PCI DSS 4.0
+  - GLBA
+  - CCPA
+  - SOC 2 Type II
+  - NYDFS Part 500
+
+annual_revenue: "$50M-$100M"
+employee_count: 320
+customer_count: 1200000
+
+threat_actors:
+  - "External threat actors (financially motivated)"
+  - "Organized cybercrime groups targeting fintech"
+  - "Opportunistic ransomware operators"
+  - "Malicious insiders with privileged access"
+  - "Nation-state actors (lower likelihood)"
+
+existing_controls:
+  - AC-2
+  - AC-6
+  - CM-2
+  - IA-2
+  - IA-5
+  - SC-7
+  - SC-13
+  - SC-28
+
+frameworks:
+  - nist-800-53-mod
+  - soc2-tsc
+
+components:
+  - name: "Customer Web Application"
+    type: web_app
+    technology: "React + TypeScript, Next.js"
+    data_handled: ["PII"]
+    location: "AWS CloudFront + S3, us-east-1"
+    notes: "Public-facing, Cloudflare WAF in front"
+
+  - name: "Mobile Apps"
+    type: web_app
+    technology: "React Native (iOS + Android)"
+    data_handled: ["PII", "financial-account-data"]
+    location: "App Store / Play Store"
+
+  - name: "API Gateway"
+    type: api
+    technology: "Kong + AWS API Gateway"
+    data_handled: ["PII", "financial-account-data"]
+    location: "AWS us-east-1, us-west-2"
+    notes: "OAuth 2.0 + JWT authentication"
+
+  - name: "Core Service Layer"
+    type: api
+    technology: "Python 3.12 + FastAPI on ECS Fargate"
+    data_handled: ["PII", "financial-account-data"]
+    location: "AWS us-east-1 private subnets"
+
+  - name: "Payment Service"
+    type: api
+    technology: "Go + gRPC on EKS (segmented PCI scope)"
+    data_handled: ["PCI-CDE"]
+    location: "AWS us-east-1 (PCI VPC)"
+    notes: "PCI DSS Level 1 scope; tokenization via Stripe + in-house vault"
+
+  - name: "Customer Database"
+    type: database
+    technology: "Amazon RDS PostgreSQL 15 Multi-AZ"
+    data_handled: ["PII", "ITIN", "financial-account-data"]
+    location: "AWS us-east-1, encrypted at rest with CMK"
+
+  - name: "Data Warehouse"
+    type: database
+    technology: "Snowflake"
+    data_handled: ["PII (masked)", "analytics"]
+    location: "Snowflake AWS us-east-1"
+    notes: "Dynamic data masking; raw PII never lands here"
+
+  - name: "Identity Provider"
+    type: identity_provider
+    technology: "Okta (workforce) + Auth0 (customer CIAM)"
+    data_handled: ["authentication events"]
+    location: "Okta SaaS"
+
+  - name: "CI/CD Pipeline"
+    type: ci_cd
+    technology: "GitHub Actions + Terraform Cloud"
+    data_handled: ["source code", "build artifacts"]
+    location: "GitHub SaaS + Terraform Cloud"
+
+  - name: "Corporate Network"
+    type: network
+    technology: "Meraki MX, ZTNA via Cloudflare Access"
+    data_handled: ["employee authentication"]
+    location: "SF + NYC offices + remote"
+
+notes: |
+  PCI scope is strictly isolated. The primary customer database
+  contains PII but no cardholder data. All production changes
+  require peer review and pass through the CI/CD pipeline. No
+  production access is permanent — all privileged access is
+  time-bound via Teleport with MFA.

@@ -1,0 +1,47 @@
+organization: "Acme Corporation"
+controls:
+  - id: AC-2
+    title: "Account Management"
+    status: implemented
+    implementation_notes: "Managed via Okta with quarterly access reviews."
+    owner: "IAM Team"
+
+  - id: AC-3
+    title: "Access Enforcement"
+    status: partially_implemented
+    implementation_notes: "RBAC for production; permission model migration in progress."
+
+  - id: AC-6
+    title: "Least Privilege"
+    status: implemented
+    implementation_notes: "Production access requires approval and is time-bound."
+
+  - id: AU-2
+    title: "Audit Events"
+    status: planned
+    implementation_notes: "Centralized logging deployment scheduled for Q3."
+
+  - id: IA-2
+    title: "Identification and Authentication"
+    status: implemented
+    implementation_notes: "MFA enforced on all employee accounts via Okta."
+
+  - id: IA-5
+    title: "Authenticator Management"
+    status: implemented
+    implementation_notes: "Password rotation policy enforced; SSO with hardware keys for admins."
+
+  - id: SC-13
+    title: "Cryptographic Protection"
+    status: implemented
+    implementation_notes: "TLS 1.2+ for all data in transit; AES-256 at rest."
+
+  - id: CC6.1
+    title: "Logical and Physical Access Controls"
+    status: implemented
+    implementation_notes: "Mapped to AC-2 and AC-3 implementations."
+
+  - id: CC7.1
+    title: "Detection and Monitoring"
+    status: not_implemented
+    implementation_notes: "SIEM evaluation in early planning."
