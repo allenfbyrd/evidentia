@@ -92,10 +92,16 @@ All code in this repository runs today — there is no vaporware in Phase 1.
 
 ### What works today
 
-- **Gap analysis against 9 registered frameworks.** Bundled sample catalogs
-  for NIST 800-53 Moderate and SOC 2 TSC ship with the package. Additional
-  frameworks (NIST 800-53 High, ISO 27001:2022, CIS Controls v8, CMMC 2.0,
-  PCI DSS 4.0, NIST CSF 2.0) are registered and ready to accept OSCAL catalogs.
+- **Gap analysis against 2 bundled frameworks.** A 16-control NIST SP 800-53
+  Rev 5 Moderate sample catalog (Tier A, verbatim OSCAL) and a 61-criterion
+  SOC 2 Trust Services Criteria 2017 stub catalog (Tier C — AICPA control
+  text is licensed and not redistributable; stub ships public clause
+  numbering plus a `controlbridge catalog import` hook for your own
+  licensed copy). The **v0.2.0 Phase 1.5 big-bang release will expand
+  coverage to ~50 frameworks** across US federal (Tier A verbatim),
+  international (EU/UK/AU/CA/NZ), US state privacy laws, and copyrighted
+  frameworks as stubs (ISO 27001/27002, PCI DSS 4.0, HITRUST, CIS, SCF,
+  IEC 62443) — see [`CHANGELOG.md`](CHANGELOG.md) for the roadmap.
 
 - **Multi-format inventory parsing.** Load your controls from YAML, CSV, JSON
   (including OSCAL component-definition), or any format with fuzzy-matched
@@ -137,8 +143,13 @@ Setting expectations matters. Phase 1 does NOT yet include:
 - A web UI
 - Production-sized OSCAL catalogs — the bundled NIST 800-53 Moderate catalog
   has 16 hand-curated controls, not the full ~323 from the official NIST OSCAL
-  content repository. Replacing these with upstream OSCAL is straightforward
-  (drop JSON files into `catalogs/data/`) and planned for Phase 1.5.
+  content repository. Full upstream OSCAL import (plus ~48 additional
+  frameworks) ships in the **v0.2.0 Phase 1.5 big-bang release** — see
+  [`CHANGELOG.md`](CHANGELOG.md) for the roadmap.
+- Authoritative control text for copyrighted frameworks (ISO 27001/27002,
+  SOC 2 TSC, PCI DSS, HITRUST CSF, etc.). These frameworks will ship as
+  **Tier C stubs** in v0.2.0 — public clause numbering only, with a
+  `controlbridge catalog import` command to load your own licensed copy.
 
 ---
 
@@ -261,9 +272,9 @@ ControlBridge is a **uv workspace monorepo** of five composable Python packages:
 ```
 ┌─────────────────┐   ┌─────────────────┐   ┌────────────────────┐
 │ my-controls.yaml│   │  OSCAL catalogs │   │ framework mappings │
-│       .csv      │   │  (9 frameworks) │   │    (crosswalks)    │
-│       .json     │   └────────┬────────┘   └──────────┬─────────┘
-└────────┬────────┘            │                       │
+│       .csv      │   │  (2 bundled;    │   │    (crosswalks)    │
+│       .json     │   │  ~50 in v0.2.0) │   └──────────┬─────────┘
+└────────┬────────┘   └────────┬────────┘              │
          │                     ▼                       ▼
          │           ┌──────────────────────────────────────┐
          └──────────▶│         GapAnalyzer                  │
@@ -305,7 +316,18 @@ ControlBridge is a **uv workspace monorepo** of five composable Python packages:
 - [x] AI risk statement generator
 - [x] CLI (init, catalog, gap, risk, doctor)
 - [x] Sample data + end-to-end walkthrough
-- [ ] **Phase 1.5:** Import full upstream OSCAL catalogs (NIST 800-53 ~323 controls, full SOC 2 TSC, ISO 27001:2022)
+- [ ] **Phase 1.5 (v0.2.0 big-bang):** exhaustive framework expansion
+      — full upstream NIST 800-53 Rev 5 OSCAL (~1189 controls + Low/Mod/High/Privacy baselines),
+      NIST 800-171 r2/r3, 800-172, CSF 2.0, AI RMF, SSDF, Privacy Framework;
+      FedRAMP Rev 5 baselines; CMMC 2.0 L1/L2/L3; CJIS, CISA CPGs, HIPAA,
+      GLBA, NY DFS 500, NERC CIP, FDA 21 CFR Pt 11, IRS 1075, CMS ARS;
+      EU GDPR/AI Act/NIS2/DORA, UK NCSC CAF, Essential Eight, ACSC ISM,
+      Canada ITSG-33/PIPEDA, NZISM; 15 US state privacy laws; Tier-C stubs
+      for ISO 27001/27002/27017/27018/27701/42001/22301/9001, SOC 2 TSC,
+      PCI DSS 4.0, HITRUST, COBIT, SWIFT CSCF, CIS Controls + Benchmarks,
+      SCF, IEC 62443; MITRE ATT&CK, CWE, CAPEC, CISA KEV;
+      `controlbridge catalog import` for user-licensed Tier-C content;
+      GitHub Actions refresh CI for upstream change detection.
 
 ### Phase 2 — Evidence Collection (next)
 - [ ] Base collector architecture with `check_connection()`, `collect()`, `get_supported_controls()`

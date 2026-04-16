@@ -181,6 +181,14 @@ def load_controlbridge_catalog(catalog_path: Path) -> ControlCatalog:
         source=data.get("source", f"ControlBridge: {catalog_path.name}"),
         controls=controls,
         families=data.get("families", []),
+        # Tier / licensing metadata added in v0.1.1 for Tier-C stub
+        # catalogs (e.g., SOC 2 TSC). Defaults preserve the v0.1.0 shape
+        # for plain ControlBridge-format catalogs that omit these fields.
+        tier=data.get("tier"),
+        license_required=data.get("license_required", False),
+        license_terms=data.get("license_terms"),
+        license_url=data.get("license_url"),
+        placeholder=data.get("placeholder", False),
     )
 
 
@@ -193,16 +201,13 @@ def load_catalog(framework_id: str, custom_path: Path | None = None) -> ControlC
     if custom_path:
         path = custom_path
     else:
+        # Bundled catalog files. v0.1.1 ships 2; v0.2.0 will move this
+        # dispatch to a manifest-driven loader. Must mirror registry.py's
+        # FRAMEWORK_METADATA — adding here without a catalog JSON on disk
+        # produces a FileNotFoundError at load time.
         framework_files = {
-            "nist-800-53-rev5": "nist-800-53-rev5.json",
             "nist-800-53-mod": "nist-800-53-mod.json",
-            "nist-800-53-high": "nist-800-53-high.json",
-            "nist-csf-2.0": "nist-csf-2.0.json",
             "soc2-tsc": "soc2-tsc.json",
-            "iso27001-2022": "iso27001-2022.json",
-            "cis-controls-v8": "cis-controls-v8.json",
-            "cmmc-2-level2": "cmmc-2-level2.json",
-            "pci-dss-4": "pci-dss-4.json",
         }
         filename = framework_files.get(framework_id)
         if not filename:

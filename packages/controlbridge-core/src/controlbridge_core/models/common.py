@@ -48,17 +48,20 @@ class Severity(str, Enum):
 
 
 class FrameworkId(str, Enum):
-    """Canonical framework identifiers used throughout ControlBridge."""
+    """Canonical framework identifiers for frameworks bundled in this package.
 
-    NIST_800_53_REV5 = "nist-800-53-rev5"
+    v0.1.1 ships only the two frameworks that have backing catalog data
+    on disk. The v0.1.0 enum advertised 7 additional IDs without backing
+    data; those have been removed to prevent misleading consumers.
+
+    Note: ``ControlMapping.framework`` uses free-form ``str``, so any
+    framework ID can be used in mappings regardless of this enum.
+    v0.2.0 will deprecate this enum entirely in favor of a
+    manifest-driven registry.
+    """
+
     NIST_800_53_MOD = "nist-800-53-mod"
-    NIST_800_53_HIGH = "nist-800-53-high"
-    NIST_CSF_2 = "nist-csf-2.0"
     SOC2_TSC = "soc2-tsc"
-    ISO_27001_2022 = "iso27001-2022"
-    CIS_CONTROLS_V8 = "cis-controls-v8"
-    CMMC_2_LEVEL2 = "cmmc-2-level2"
-    PCI_DSS_4 = "pci-dss-4"
 
 
 class ControlMapping(ControlBridgeModel):

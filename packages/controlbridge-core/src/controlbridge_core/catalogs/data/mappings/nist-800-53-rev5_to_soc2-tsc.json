@@ -1,103 +1,103 @@
 {
   "source_framework": "nist-800-53-mod",
   "target_framework": "soc2-tsc",
-  "version": "1.0",
-  "generated_at": "2026-04-09",
-  "source": "Sample mapping for NIST SP 800-53 Rev 5 Moderate baseline ↔ SOC 2 Trust Services Criteria 2017. Hand-curated; replace with the AICPA-maintained crosswalk for production use.",
+  "version": "1.1",
+  "generated_at": "2026-04-16",
+  "source": "Hand-curated sample crosswalk between NIST SP 800-53 Rev 5 Moderate baseline and SOC 2 Trust Services Criteria 2017. Target control titles use the generic stub titles from the bundled soc2-tsc stub catalog (AICPA control text is licensed — see license_url on the soc2-tsc catalog). Replace with the AICPA-maintained crosswalk for production use.",
   "mappings": [
     {
       "source_control_id": "AC-2",
       "source_control_title": "Account Management",
       "target_control_id": "CC6.1",
-      "target_control_title": "Logical and Physical Access Controls — Software, Infrastructure, and Architectures",
+      "target_control_title": "Common Criteria 6.1",
       "relationship": "related",
-      "notes": "AC-2 covers user account lifecycle management; CC6.1 addresses logical access controls broadly."
+      "notes": "Account lifecycle management in AC-2 maps to the logical-access criterion in CC6.1."
     },
     {
       "source_control_id": "AC-2",
       "source_control_title": "Account Management",
       "target_control_id": "CC6.2",
-      "target_control_title": "Logical and Physical Access Controls — User Authentication",
+      "target_control_title": "Common Criteria 6.2",
       "relationship": "related",
-      "notes": "AC-2 user provisioning/deprovisioning supports CC6.2 registration and authorization requirements."
+      "notes": "User provisioning and deprovisioning in AC-2 supports the registration/authorization criterion in CC6.2."
     },
     {
       "source_control_id": "AC-3",
       "source_control_title": "Access Enforcement",
       "target_control_id": "CC6.3",
-      "target_control_title": "Logical and Physical Access Controls — Role-Based Access",
+      "target_control_title": "Common Criteria 6.3",
       "relationship": "related",
-      "notes": "AC-3 enforces approved authorizations; CC6.3 grants access based on roles and least privilege."
+      "notes": "AC-3 enforces authorizations at runtime; CC6.3 governs role/least-privilege assignment."
     },
     {
       "source_control_id": "AC-6",
       "source_control_title": "Least Privilege",
       "target_control_id": "CC6.3",
-      "target_control_title": "Logical and Physical Access Controls — Role-Based Access",
+      "target_control_title": "Common Criteria 6.3",
       "relationship": "equivalent",
-      "notes": "Both controls require enforcing least privilege via role-based access."
+      "notes": "Both controls require least-privilege enforcement."
     },
     {
       "source_control_id": "AU-2",
       "source_control_title": "Event Logging",
       "target_control_id": "CC7.2",
-      "target_control_title": "System Operations — Anomaly Monitoring",
+      "target_control_title": "Common Criteria 7.2",
       "relationship": "related",
-      "notes": "AU-2 establishes the events to log that feed CC7.2 anomaly monitoring."
+      "notes": "Event logging in AU-2 produces the data consumed by the monitoring criterion in CC7.2."
     },
     {
       "source_control_id": "AU-6",
       "source_control_title": "Audit Record Review, Analysis, and Reporting",
       "target_control_id": "CC7.2",
-      "target_control_title": "System Operations — Anomaly Monitoring",
+      "target_control_title": "Common Criteria 7.2",
       "relationship": "related",
-      "notes": "AU-6 review/analysis of audit records is the analytical step in CC7.2 monitoring."
+      "notes": "Audit review and analysis in AU-6 is the analytical step behind CC7.2 monitoring."
     },
     {
       "source_control_id": "CM-2",
       "source_control_title": "Baseline Configuration",
       "target_control_id": "CC8.1",
-      "target_control_title": "Change Management",
+      "target_control_title": "Common Criteria 8.1",
       "relationship": "related",
-      "notes": "CM-2 baseline configurations are the starting point for CC8.1 change management."
+      "notes": "Baseline configurations in CM-2 are the starting point for the change-management criterion in CC8.1."
     },
     {
       "source_control_id": "CM-6",
       "source_control_title": "Configuration Settings",
       "target_control_id": "CC7.1",
-      "target_control_title": "System Operations — Detection and Monitoring",
+      "target_control_title": "Common Criteria 7.1",
       "relationship": "related",
-      "notes": "CM-6 configuration settings drift detection feeds CC7.1 vulnerability detection."
+      "notes": "Configuration-setting drift detection in CM-6 feeds the detection criterion in CC7.1."
     },
     {
       "source_control_id": "IA-2",
       "source_control_title": "Identification and Authentication (Organizational Users)",
       "target_control_id": "CC6.2",
-      "target_control_title": "Logical and Physical Access Controls — User Authentication",
+      "target_control_title": "Common Criteria 6.2",
       "relationship": "equivalent",
-      "notes": "IA-2 and CC6.2 both require uniquely identifying and authenticating users."
+      "notes": "Both controls require uniquely identifying and authenticating users."
     },
     {
       "source_control_id": "IA-5",
       "source_control_title": "Authenticator Management",
       "target_control_id": "CC6.1",
-      "target_control_title": "Logical and Physical Access Controls — Software, Infrastructure, and Architectures",
+      "target_control_title": "Common Criteria 6.1",
       "relationship": "partial",
-      "notes": "IA-5 authenticator content protections support CC6.1 logical access security."
+      "notes": "Authenticator content protections in IA-5 support the logical-access criterion in CC6.1."
     },
     {
       "source_control_id": "IR-4",
       "source_control_title": "Incident Handling",
       "target_control_id": "CC7.3",
-      "target_control_title": "System Operations — Security Incident Evaluation",
+      "target_control_title": "Common Criteria 7.3",
       "relationship": "equivalent",
-      "notes": "IR-4 incident handling and CC7.3 incident evaluation cover the same lifecycle."
+      "notes": "Incident handling in IR-4 and the incident-evaluation criterion in CC7.3 cover the same lifecycle."
     },
     {
       "source_control_id": "RA-5",
       "source_control_title": "Vulnerability Monitoring and Scanning",
       "target_control_id": "CC7.1",
-      "target_control_title": "System Operations — Detection and Monitoring",
+      "target_control_title": "Common Criteria 7.1",
       "relationship": "equivalent",
       "notes": "Both controls require ongoing vulnerability detection and reporting."
     },
@@ -105,41 +105,41 @@
       "source_control_id": "SC-7",
       "source_control_title": "Boundary Protection",
       "target_control_id": "CC6.6",
-      "target_control_title": "Logical and Physical Access Controls — External User Authentication",
+      "target_control_title": "Common Criteria 6.6",
       "relationship": "related",
-      "notes": "SC-7 boundary protection enforces external access controls in CC6.6."
+      "notes": "Boundary protection in SC-7 enforces the external-access criterion in CC6.6."
     },
     {
       "source_control_id": "SC-13",
       "source_control_title": "Cryptographic Protection",
       "target_control_id": "CC6.7",
-      "target_control_title": "Logical and Physical Access Controls — Restriction and Disposal of Information",
+      "target_control_title": "Common Criteria 6.7",
       "relationship": "related",
-      "notes": "SC-13 cryptographic protection secures data in transit covered by CC6.7."
+      "notes": "Cryptographic protection in SC-13 secures data in transit covered by CC6.7."
     },
     {
       "source_control_id": "SC-28",
       "source_control_title": "Protection of Information at Rest",
       "target_control_id": "CC6.7",
-      "target_control_title": "Logical and Physical Access Controls — Restriction and Disposal of Information",
+      "target_control_title": "Common Criteria 6.7",
       "relationship": "related",
-      "notes": "SC-28 encryption at rest protects information that CC6.7 governs movement and disposal of."
+      "notes": "Encryption at rest in SC-28 protects information governed by CC6.7."
     },
     {
       "source_control_id": "SI-2",
       "source_control_title": "Flaw Remediation",
       "target_control_id": "CC7.1",
-      "target_control_title": "System Operations — Detection and Monitoring",
+      "target_control_title": "Common Criteria 7.1",
       "relationship": "related",
-      "notes": "SI-2 flaw remediation is the response activity for vulnerabilities detected per CC7.1."
+      "notes": "Flaw remediation in SI-2 is the response activity for vulnerabilities detected under CC7.1."
     },
     {
       "source_control_id": "SI-4",
       "source_control_title": "System Monitoring",
       "target_control_id": "CC7.2",
-      "target_control_title": "System Operations — Anomaly Monitoring",
+      "target_control_title": "Common Criteria 7.2",
       "relationship": "equivalent",
-      "notes": "SI-4 and CC7.2 both require continuous monitoring for security-relevant events."
+      "notes": "Both controls require continuous monitoring for security-relevant events."
     }
   ]
 }

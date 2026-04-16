@@ -16,16 +16,22 @@ from controlbridge_core.models.catalog import CatalogControl, ControlCatalog
 logger = logging.getLogger(__name__)
 
 
+# Registered frameworks with backing catalog data bundled in this package.
+# v0.1.1 ships 2 catalogs (NIST 800-53 Moderate sample + SOC 2 TSC stub);
+# v0.2.0 will expand to ~50 frameworks across Tiers A/B/C/D via a
+# manifest-driven registry. Do not re-add a framework ID here without
+# also adding its catalog JSON under data/ and its filename in loader.py.
 FRAMEWORK_METADATA: dict[str, dict[str, str]] = {
-    "nist-800-53-rev5": {"name": "NIST SP 800-53 Rev 5 (Full)", "controls": "~1189"},
-    "nist-800-53-mod": {"name": "NIST SP 800-53 Rev 5 Moderate Baseline", "controls": "~323"},
-    "nist-800-53-high": {"name": "NIST SP 800-53 Rev 5 High Baseline", "controls": "~421"},
-    "nist-csf-2.0": {"name": "NIST Cybersecurity Framework 2.0", "controls": "~106"},
-    "soc2-tsc": {"name": "SOC 2 Trust Services Criteria 2017", "controls": "~60"},
-    "iso27001-2022": {"name": "ISO/IEC 27001:2022 Annex A", "controls": "93"},
-    "cis-controls-v8": {"name": "CIS Controls v8", "controls": "153"},
-    "cmmc-2-level2": {"name": "CMMC 2.0 Level 2", "controls": "110"},
-    "pci-dss-4": {"name": "PCI DSS 4.0", "controls": "~285"},
+    "nist-800-53-mod": {
+        "name": "NIST SP 800-53 Rev 5 Moderate Baseline (sample)",
+        "controls": "16",
+        "tier": "A",
+    },
+    "soc2-tsc": {
+        "name": "SOC 2 Trust Services Criteria 2017 (stub — licensed content)",
+        "controls": "61",
+        "tier": "C",
+    },
 }
 
 

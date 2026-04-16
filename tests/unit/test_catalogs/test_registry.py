@@ -19,9 +19,13 @@ def test_registry_singleton():
     assert a is b
 
 
-def test_framework_metadata_contains_supported_frameworks():
-    expected = {"nist-800-53-mod", "soc2-tsc"}
-    assert expected.issubset(FRAMEWORK_METADATA.keys())
+def test_framework_metadata_exact_keyset():
+    # v0.1.1: only frameworks with backing catalog data on disk may appear
+    # here. Adding a key without a corresponding JSON in data/ produces a
+    # silent "loaded: no" row in `controlbridge catalog list`, which
+    # misleads operators about real coverage. v0.2.0 replaces this dict
+    # with a manifest-driven registry.
+    assert set(FRAMEWORK_METADATA.keys()) == {"nist-800-53-mod", "soc2-tsc"}
 
 
 def test_load_bundled_nist_catalog():
@@ -34,11 +38,21 @@ def test_load_bundled_nist_catalog():
     assert catalog.get_control("ac-2") is not None  # case-insensitive
 
 
-def test_load_bundled_soc2_catalog():
+def test_load_bundled_soc2_catalog_is_licensed_stub():
+    # v0.1.1: SOC 2 TSC ships as a Tier-C stub (AICPA copyrighted text
+    # is not redistributable). Verify the stub shape so a future
+    # accidental re-add of paraphrased AICPA content trips this test.
     registry = FrameworkRegistry.get_instance()
     catalog = registry.get_catalog("soc2-tsc")
     assert catalog.framework_id == "soc2-tsc"
-    assert catalog.get_control("CC6.1") is not None
+    assert catalog.tier == "C"
+    assert catalog.license_required is True
+    assert catalog.placeholder is True
+    assert catalog.license_url  # non-empty string
+    cc61 = catalog.get_control("CC6.1")
+    assert cc61 is not None
+    assert cc61.placeholder is True
+    assert cc61.license_required is True
 
 
 def test_crosswalk_loads_bundled_mappings():
