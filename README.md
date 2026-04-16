@@ -481,4 +481,4 @@ ControlBridge stands on the shoulders of excellent open-source projects:
 
 This project was developed with the help of AI assistants.
 
-**AI-assistants:** Claude Opus 4.6, Sonar Deep Research
+**AI-assistants:** Claude Opus 4.6, Claude Opus 4.7, Sonar Deep Research
