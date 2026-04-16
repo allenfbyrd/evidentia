@@ -1,0 +1,169 @@
+{
+  "framework_id": "cjis-v6",
+  "framework_name": "FBI CJIS Security Policy v6.0",
+  "version": "6.0 (Dec 2024)",
+  "source": "FBI Criminal Justice Information Services Division — CJIS Security Policy (federal agency document)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Information Exchange",
+    "Security Awareness Training",
+    "Incident Response",
+    "Auditing",
+    "Access Control",
+    "Identification and Authentication",
+    "Configuration Management",
+    "Media Protection",
+    "Physical Protection",
+    "System and Communications Protection",
+    "Personnel Security",
+    "Mobile Devices"
+  ],
+  "controls": [
+    {
+      "id": "5.1",
+      "title": "Information Exchange Agreements",
+      "description": "Information Exchange Agreements",
+      "family": "Information Exchange"
+    },
+    {
+      "id": "5.2",
+      "title": "Security Awareness Training",
+      "description": "Security Awareness Training",
+      "family": "Security Awareness Training"
+    },
+    {
+      "id": "5.3",
+      "title": "Incident Response",
+      "description": "Incident Response",
+      "family": "Incident Response"
+    },
+    {
+      "id": "5.4",
+      "title": "Auditing and Accountability",
+      "description": "Auditing and Accountability",
+      "family": "Auditing"
+    },
+    {
+      "id": "5.5",
+      "title": "Access Control",
+      "description": "Access Control",
+      "family": "Access Control"
+    },
+    {
+      "id": "5.5.1",
+      "title": "Account Management",
+      "description": "Account Management",
+      "family": "Access Control"
+    },
+    {
+      "id": "5.5.2",
+      "title": "Access Enforcement",
+      "description": "Access Enforcement",
+      "family": "Access Control"
+    },
+    {
+      "id": "5.5.3",
+      "title": "Unsuccessful Login Attempts",
+      "description": "Unsuccessful Login Attempts",
+      "family": "Access Control"
+    },
+    {
+      "id": "5.5.4",
+      "title": "System Use Notification",
+      "description": "System Use Notification",
+      "family": "Access Control"
+    },
+    {
+      "id": "5.5.5",
+      "title": "Session Lock",
+      "description": "Session Lock",
+      "family": "Access Control"
+    },
+    {
+      "id": "5.5.6",
+      "title": "Remote Access",
+      "description": "Remote Access",
+      "family": "Access Control"
+    },
+    {
+      "id": "5.6",
+      "title": "Identification and Authentication",
+      "description": "Identification and Authentication",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "5.6.1",
+      "title": "Identification Policy and Procedures",
+      "description": "Identification Policy and Procedures",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "5.6.2",
+      "title": "Authentication Policy and Procedures",
+      "description": "Authentication Policy and Procedures",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "5.6.2.2",
+      "title": "Advanced Authentication (multi-factor)",
+      "description": "Advanced Authentication (multi-factor)",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "5.7",
+      "title": "Configuration Management",
+      "description": "Configuration Management",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "5.8",
+      "title": "Media Protection",
+      "description": "Media Protection",
+      "family": "Media Protection"
+    },
+    {
+      "id": "5.9",
+      "title": "Physical Protection",
+      "description": "Physical Protection",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "5.10",
+      "title": "System and Communications Protection",
+      "description": "System and Communications Protection",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "5.10.1.1",
+      "title": "Encryption for CJI in transit",
+      "description": "Encryption for CJI in transit",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "5.10.1.2",
+      "title": "Encryption for CJI at rest",
+      "description": "Encryption for CJI at rest",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "5.11",
+      "title": "Formal Audits",
+      "description": "Formal Audits",
+      "family": "Auditing"
+    },
+    {
+      "id": "5.12",
+      "title": "Personnel Security",
+      "description": "Personnel Security",
+      "family": "Personnel Security"
+    },
+    {
+      "id": "5.13",
+      "title": "Mobile Devices",
+      "description": "Mobile Devices",
+      "family": "Mobile Devices"
+    }
+  ]
+}

@@ -1,0 +1,397 @@
+{
+  "framework_id": "iso-42001-2023",
+  "framework_name": "ISO/IEC 42001:2023 — AI Management System",
+  "version": "2023",
+  "source": "ISO/IEC — ISO/IEC 42001:2023",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "Annex A — AI management controls"
+  ],
+  "controls": [
+    {
+      "id": "A.1",
+      "title": "AI management control A.1",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.2",
+      "title": "AI management control A.2",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.3",
+      "title": "AI management control A.3",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.4",
+      "title": "AI management control A.4",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.5",
+      "title": "AI management control A.5",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.6",
+      "title": "AI management control A.6",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.7",
+      "title": "AI management control A.7",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.8",
+      "title": "AI management control A.8",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.9",
+      "title": "AI management control A.9",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.10",
+      "title": "AI management control A.10",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.11",
+      "title": "AI management control A.11",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.12",
+      "title": "AI management control A.12",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.13",
+      "title": "AI management control A.13",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.14",
+      "title": "AI management control A.14",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.15",
+      "title": "AI management control A.15",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.16",
+      "title": "AI management control A.16",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.17",
+      "title": "AI management control A.17",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.18",
+      "title": "AI management control A.18",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.19",
+      "title": "AI management control A.19",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.20",
+      "title": "AI management control A.20",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.21",
+      "title": "AI management control A.21",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.22",
+      "title": "AI management control A.22",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.23",
+      "title": "AI management control A.23",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.24",
+      "title": "AI management control A.24",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.25",
+      "title": "AI management control A.25",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.26",
+      "title": "AI management control A.26",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.27",
+      "title": "AI management control A.27",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.28",
+      "title": "AI management control A.28",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.29",
+      "title": "AI management control A.29",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.30",
+      "title": "AI management control A.30",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.31",
+      "title": "AI management control A.31",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.32",
+      "title": "AI management control A.32",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.33",
+      "title": "AI management control A.33",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.34",
+      "title": "AI management control A.34",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.35",
+      "title": "AI management control A.35",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.36",
+      "title": "AI management control A.36",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.37",
+      "title": "AI management control A.37",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    },
+    {
+      "id": "A.38",
+      "title": "AI management control A.38",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — AI management controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/81230"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© ISO/IEC.",
+  "license_url": "https://www.iso.org/standard/81230"
+}

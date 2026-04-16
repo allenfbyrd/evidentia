@@ -1,0 +1,297 @@
+{
+  "source_framework": "nist-csf-2.0",
+  "target_framework": "nist-800-53-mod",
+  "version": "CSF 2.0 / 800-53 Rev 5",
+  "generated_at": "2026-04-16",
+  "source": "Derived from NIST OLIR informative references",
+  "mappings": [
+    {
+      "source_control_id": "GV.OC-01",
+      "source_control_title": "",
+      "target_control_id": "AC-1",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Policy linking mission to security"
+    },
+    {
+      "source_control_id": "GV.OC-03",
+      "source_control_title": "",
+      "target_control_id": "PL-2",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "System security plans document legal/regulatory requirements"
+    },
+    {
+      "source_control_id": "GV.RM-01",
+      "source_control_title": "",
+      "target_control_id": "PM-1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Program management policy establishes risk objectives"
+    },
+    {
+      "source_control_id": "GV.RM-02",
+      "source_control_title": "",
+      "target_control_id": "PM-9",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Risk management strategy with appetite and tolerance"
+    },
+    {
+      "source_control_id": "GV.RR-02",
+      "source_control_title": "",
+      "target_control_id": "PS-7",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Roles and responsibilities for security"
+    },
+    {
+      "source_control_id": "GV.SC-01",
+      "source_control_title": "",
+      "target_control_id": "SR-1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Supply chain risk management policy"
+    },
+    {
+      "source_control_id": "GV.SC-05",
+      "source_control_title": "",
+      "target_control_id": "SR-3",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Supply chain controls and processes"
+    },
+    {
+      "source_control_id": "ID.AM-01",
+      "source_control_title": "",
+      "target_control_id": "CM-8",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Hardware inventory"
+    },
+    {
+      "source_control_id": "ID.AM-02",
+      "source_control_title": "",
+      "target_control_id": "CM-8",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Software inventory"
+    },
+    {
+      "source_control_id": "ID.AM-03",
+      "source_control_title": "",
+      "target_control_id": "AC-4",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Network data flow mapping"
+    },
+    {
+      "source_control_id": "ID.RA-01",
+      "source_control_title": "",
+      "target_control_id": "RA-5",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Vulnerability identification"
+    },
+    {
+      "source_control_id": "ID.RA-05",
+      "source_control_title": "",
+      "target_control_id": "RA-3",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Risk determination"
+    },
+    {
+      "source_control_id": "PR.AA-01",
+      "source_control_title": "",
+      "target_control_id": "IA-2",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Identity and credential management"
+    },
+    {
+      "source_control_id": "PR.AA-03",
+      "source_control_title": "",
+      "target_control_id": "IA-2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "User/device authentication"
+    },
+    {
+      "source_control_id": "PR.AA-05",
+      "source_control_title": "",
+      "target_control_id": "AC-3",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Access enforcement"
+    },
+    {
+      "source_control_id": "PR.AA-06",
+      "source_control_title": "",
+      "target_control_id": "PE-2",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Physical access authorization"
+    },
+    {
+      "source_control_id": "PR.AT-01",
+      "source_control_title": "",
+      "target_control_id": "AT-2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "General security awareness training"
+    },
+    {
+      "source_control_id": "PR.AT-02",
+      "source_control_title": "",
+      "target_control_id": "AT-3",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Role-based training"
+    },
+    {
+      "source_control_id": "PR.DS-01",
+      "source_control_title": "",
+      "target_control_id": "SC-28",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Data-at-rest protection"
+    },
+    {
+      "source_control_id": "PR.DS-02",
+      "source_control_title": "",
+      "target_control_id": "SC-8",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Data-in-transit protection"
+    },
+    {
+      "source_control_id": "PR.DS-11",
+      "source_control_title": "",
+      "target_control_id": "CP-9",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Backup protection and testing"
+    },
+    {
+      "source_control_id": "PR.PS-01",
+      "source_control_title": "",
+      "target_control_id": "CM-2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Baseline configuration management"
+    },
+    {
+      "source_control_id": "PR.PS-04",
+      "source_control_title": "",
+      "target_control_id": "AU-2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Log record generation"
+    },
+    {
+      "source_control_id": "PR.PS-05",
+      "source_control_title": "",
+      "target_control_id": "CM-7",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Prevent unauthorized software"
+    },
+    {
+      "source_control_id": "PR.IR-01",
+      "source_control_title": "",
+      "target_control_id": "AC-3",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Network access control"
+    },
+    {
+      "source_control_id": "DE.CM-01",
+      "source_control_title": "",
+      "target_control_id": "SI-4",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Network monitoring"
+    },
+    {
+      "source_control_id": "DE.CM-03",
+      "source_control_title": "",
+      "target_control_id": "AU-12",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Personnel activity logging"
+    },
+    {
+      "source_control_id": "DE.AE-02",
+      "source_control_title": "",
+      "target_control_id": "IR-4",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Event analysis"
+    },
+    {
+      "source_control_id": "DE.AE-08",
+      "source_control_title": "",
+      "target_control_id": "IR-8",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Incident declaration criteria"
+    },
+    {
+      "source_control_id": "RS.MA-01",
+      "source_control_title": "",
+      "target_control_id": "IR-4",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Incident response execution"
+    },
+    {
+      "source_control_id": "RS.MA-03",
+      "source_control_title": "",
+      "target_control_id": "IR-4",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Incident categorization and prioritization"
+    },
+    {
+      "source_control_id": "RS.CO-02",
+      "source_control_title": "",
+      "target_control_id": "IR-6",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Incident notification to stakeholders"
+    },
+    {
+      "source_control_id": "RS.MI-01",
+      "source_control_title": "",
+      "target_control_id": "IR-4",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Incident containment"
+    },
+    {
+      "source_control_id": "RS.MI-02",
+      "source_control_title": "",
+      "target_control_id": "IR-4",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Incident eradication"
+    },
+    {
+      "source_control_id": "RC.RP-01",
+      "source_control_title": "",
+      "target_control_id": "CP-10",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "System recovery and reconstitution"
+    },
+    {
+      "source_control_id": "RC.RP-03",
+      "source_control_title": "",
+      "target_control_id": "CP-9",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Verify backup integrity before restore"
+    }
+  ]
+}

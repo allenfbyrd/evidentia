@@ -1,0 +1,396 @@
+{
+  "framework_id": "hipaa-security",
+  "framework_name": "HIPAA Security Rule (45 CFR § 164 Subpart C)",
+  "version": "2013 (Omnibus Rule)",
+  "source": "HHS OCR — 45 CFR 164 (U.S. federal regulation, not copyrightable)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Administrative Safeguards",
+    "Physical Safeguards",
+    "Technical Safeguards",
+    "Organizational Requirements",
+    "Policies and Procedures"
+  ],
+  "controls": [
+    {
+      "id": "164.308(a)(1)(i)",
+      "title": "Security Management Process — Standard",
+      "description": "Security Management Process — Standard",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(1)(ii)(A)",
+      "title": "Risk Analysis",
+      "description": "Risk Analysis",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(1)(ii)(B)",
+      "title": "Risk Management",
+      "description": "Risk Management",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(1)(ii)(C)",
+      "title": "Sanction Policy",
+      "description": "Sanction Policy",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(1)(ii)(D)",
+      "title": "Information System Activity Review",
+      "description": "Information System Activity Review",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(2)",
+      "title": "Assigned Security Responsibility",
+      "description": "Assigned Security Responsibility",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(3)(i)",
+      "title": "Workforce Security — Standard",
+      "description": "Workforce Security — Standard",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(3)(ii)(A)",
+      "title": "Authorization and/or Supervision",
+      "description": "Authorization and/or Supervision",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(3)(ii)(B)",
+      "title": "Workforce Clearance Procedure",
+      "description": "Workforce Clearance Procedure",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(3)(ii)(C)",
+      "title": "Termination Procedures",
+      "description": "Termination Procedures",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(4)(i)",
+      "title": "Information Access Management — Standard",
+      "description": "Information Access Management — Standard",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(4)(ii)(A)",
+      "title": "Isolating Health Care Clearinghouse Function",
+      "description": "Isolating Health Care Clearinghouse Function",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(4)(ii)(B)",
+      "title": "Access Authorization",
+      "description": "Access Authorization",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(4)(ii)(C)",
+      "title": "Access Establishment and Modification",
+      "description": "Access Establishment and Modification",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(5)(i)",
+      "title": "Security Awareness and Training — Standard",
+      "description": "Security Awareness and Training — Standard",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(5)(ii)(A)",
+      "title": "Security Reminders",
+      "description": "Security Reminders",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(5)(ii)(B)",
+      "title": "Protection from Malicious Software",
+      "description": "Protection from Malicious Software",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(5)(ii)(C)",
+      "title": "Log-in Monitoring",
+      "description": "Log-in Monitoring",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(5)(ii)(D)",
+      "title": "Password Management",
+      "description": "Password Management",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(6)(i)",
+      "title": "Security Incident Procedures — Standard",
+      "description": "Security Incident Procedures — Standard",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(6)(ii)",
+      "title": "Response and Reporting",
+      "description": "Response and Reporting",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(7)(i)",
+      "title": "Contingency Plan — Standard",
+      "description": "Contingency Plan — Standard",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(7)(ii)(A)",
+      "title": "Data Backup Plan",
+      "description": "Data Backup Plan",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(7)(ii)(B)",
+      "title": "Disaster Recovery Plan",
+      "description": "Disaster Recovery Plan",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(7)(ii)(C)",
+      "title": "Emergency Mode Operation Plan",
+      "description": "Emergency Mode Operation Plan",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(7)(ii)(D)",
+      "title": "Testing and Revision Procedures",
+      "description": "Testing and Revision Procedures",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(7)(ii)(E)",
+      "title": "Applications and Data Criticality Analysis",
+      "description": "Applications and Data Criticality Analysis",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(a)(8)",
+      "title": "Evaluation",
+      "description": "Evaluation",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.308(b)(1)",
+      "title": "Business Associate Contracts and Other Arrangements",
+      "description": "Business Associate Contracts and Other Arrangements",
+      "family": "Administrative Safeguards"
+    },
+    {
+      "id": "164.310(a)(1)",
+      "title": "Facility Access Controls — Standard",
+      "description": "Facility Access Controls — Standard",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(a)(2)(i)",
+      "title": "Contingency Operations",
+      "description": "Contingency Operations",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(a)(2)(ii)",
+      "title": "Facility Security Plan",
+      "description": "Facility Security Plan",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(a)(2)(iii)",
+      "title": "Access Control and Validation Procedures",
+      "description": "Access Control and Validation Procedures",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(a)(2)(iv)",
+      "title": "Maintenance Records",
+      "description": "Maintenance Records",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(b)",
+      "title": "Workstation Use",
+      "description": "Workstation Use",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(c)",
+      "title": "Workstation Security",
+      "description": "Workstation Security",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(d)(1)",
+      "title": "Device and Media Controls — Standard",
+      "description": "Device and Media Controls — Standard",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(d)(2)(i)",
+      "title": "Disposal",
+      "description": "Disposal",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(d)(2)(ii)",
+      "title": "Media Re-use",
+      "description": "Media Re-use",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(d)(2)(iii)",
+      "title": "Accountability",
+      "description": "Accountability",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.310(d)(2)(iv)",
+      "title": "Data Backup and Storage",
+      "description": "Data Backup and Storage",
+      "family": "Physical Safeguards"
+    },
+    {
+      "id": "164.312(a)(1)",
+      "title": "Access Control — Standard",
+      "description": "Access Control — Standard",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(a)(2)(i)",
+      "title": "Unique User Identification",
+      "description": "Unique User Identification",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(a)(2)(ii)",
+      "title": "Emergency Access Procedure",
+      "description": "Emergency Access Procedure",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(a)(2)(iii)",
+      "title": "Automatic Logoff",
+      "description": "Automatic Logoff",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(a)(2)(iv)",
+      "title": "Encryption and Decryption",
+      "description": "Encryption and Decryption",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(b)",
+      "title": "Audit Controls",
+      "description": "Audit Controls",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(c)(1)",
+      "title": "Integrity — Standard",
+      "description": "Integrity — Standard",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(c)(2)",
+      "title": "Mechanism to Authenticate Electronic Protected Health Information",
+      "description": "Mechanism to Authenticate Electronic Protected Health Information",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(d)",
+      "title": "Person or Entity Authentication",
+      "description": "Person or Entity Authentication",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(e)(1)",
+      "title": "Transmission Security — Standard",
+      "description": "Transmission Security — Standard",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(e)(2)(i)",
+      "title": "Integrity Controls",
+      "description": "Integrity Controls",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.312(e)(2)(ii)",
+      "title": "Encryption",
+      "description": "Encryption",
+      "family": "Technical Safeguards"
+    },
+    {
+      "id": "164.314(a)(1)",
+      "title": "Business Associate Contracts — Standard",
+      "description": "Business Associate Contracts — Standard",
+      "family": "Organizational Requirements"
+    },
+    {
+      "id": "164.314(a)(2)(i)",
+      "title": "Business Associate Contracts",
+      "description": "Business Associate Contracts",
+      "family": "Organizational Requirements"
+    },
+    {
+      "id": "164.314(a)(2)(ii)",
+      "title": "Other Arrangements",
+      "description": "Other Arrangements",
+      "family": "Organizational Requirements"
+    },
+    {
+      "id": "164.314(b)(1)",
+      "title": "Requirements for Group Health Plans — Standard",
+      "description": "Requirements for Group Health Plans — Standard",
+      "family": "Organizational Requirements"
+    },
+    {
+      "id": "164.314(b)(2)(i)",
+      "title": "Amend Plan Documents",
+      "description": "Amend Plan Documents",
+      "family": "Organizational Requirements"
+    },
+    {
+      "id": "164.316(a)",
+      "title": "Policies and Procedures",
+      "description": "Policies and Procedures",
+      "family": "Policies and Procedures"
+    },
+    {
+      "id": "164.316(b)(1)",
+      "title": "Documentation — Standard",
+      "description": "Documentation — Standard",
+      "family": "Policies and Procedures"
+    },
+    {
+      "id": "164.316(b)(2)(i)",
+      "title": "Time Limit",
+      "description": "Time Limit",
+      "family": "Policies and Procedures"
+    },
+    {
+      "id": "164.316(b)(2)(ii)",
+      "title": "Availability",
+      "description": "Availability",
+      "family": "Policies and Procedures"
+    },
+    {
+      "id": "164.316(b)(2)(iii)",
+      "title": "Updates",
+      "description": "Updates",
+      "family": "Policies and Procedures"
+    }
+  ]
+}

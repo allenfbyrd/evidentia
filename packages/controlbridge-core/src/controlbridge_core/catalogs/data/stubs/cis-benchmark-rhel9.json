@@ -1,0 +1,217 @@
+{
+  "framework_id": "cis-benchmark-rhel9",
+  "framework_name": "CIS Red Hat Enterprise Linux 9 Benchmark",
+  "version": "Current",
+  "source": "Center for Internet Security (CIS)",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "Sections 1-5+ (see benchmark)"
+  ],
+  "controls": [
+    {
+      "id": "cis-benchmark-rhel9.1.1",
+      "title": "Benchmark control 1.1",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.2",
+      "title": "Benchmark control 1.2",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.3",
+      "title": "Benchmark control 1.3",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.4",
+      "title": "Benchmark control 1.4",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.5",
+      "title": "Benchmark control 1.5",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.6",
+      "title": "Benchmark control 1.6",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.7",
+      "title": "Benchmark control 1.7",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.8",
+      "title": "Benchmark control 1.8",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.9",
+      "title": "Benchmark control 1.9",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.10",
+      "title": "Benchmark control 1.10",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.11",
+      "title": "Benchmark control 1.11",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.12",
+      "title": "Benchmark control 1.12",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.13",
+      "title": "Benchmark control 1.13",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.14",
+      "title": "Benchmark control 1.14",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.15",
+      "title": "Benchmark control 1.15",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.16",
+      "title": "Benchmark control 1.16",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.17",
+      "title": "Benchmark control 1.17",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.18",
+      "title": "Benchmark control 1.18",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.19",
+      "title": "Benchmark control 1.19",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    },
+    {
+      "id": "cis-benchmark-rhel9.1.20",
+      "title": "Benchmark control 1.20",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Sections 1-5+ (see benchmark)",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/benchmark/rhel9"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© Center for Internet Security. CIS Benchmarks are freely downloadable; redistribution in catalog form requires CIS licensing.",
+  "license_url": "https://www.cisecurity.org/cis-benchmarks"
+}

@@ -1,0 +1,139 @@
+{
+  "framework_id": "fda-21-cfr-pt11",
+  "framework_name": "FDA 21 CFR Part 11 — Electronic Records; Electronic Signatures",
+  "version": "1997 (with guidance updates)",
+  "source": "FDA — 21 CFR Part 11 (U.S. federal regulation)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Controls for Closed Systems",
+    "Controls for Open Systems",
+    "Electronic Signatures",
+    "Electronic Signature General Requirements",
+    "Electronic Signature Components and Controls",
+    "Controls for ID Codes/Passwords"
+  ],
+  "controls": [
+    {
+      "id": "11.10(a)",
+      "title": "Validation of systems to ensure accuracy, reliability, consistent intended performance, and the ability to discern invalid or altered records",
+      "description": "Validation of systems to ensure accuracy, reliability, consistent intended performance, and the ability to discern invalid or altered records",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(b)",
+      "title": "Ability to generate accurate and complete copies of records",
+      "description": "Ability to generate accurate and complete copies of records",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(c)",
+      "title": "Protection of records to enable accurate and ready retrieval throughout the retention period",
+      "description": "Protection of records to enable accurate and ready retrieval throughout the retention period",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(d)",
+      "title": "Limiting system access to authorized individuals",
+      "description": "Limiting system access to authorized individuals",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(e)",
+      "title": "Use of secure, computer-generated, time-stamped audit trails",
+      "description": "Use of secure, computer-generated, time-stamped audit trails",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(f)",
+      "title": "Use of operational system checks to enforce permitted sequencing of steps and events",
+      "description": "Use of operational system checks to enforce permitted sequencing of steps and events",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(g)",
+      "title": "Use of authority checks to ensure that only authorized individuals can use the system, electronically sign a record, or perform operations",
+      "description": "Use of authority checks to ensure that only authorized individuals can use the system, electronically sign a record, or perform operations",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(h)",
+      "title": "Use of device checks to determine validity of source of data input or operational instruction",
+      "description": "Use of device checks to determine validity of source of data input or operational instruction",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(i)",
+      "title": "Determination that persons who develop, maintain, or use electronic records/signature systems have the appropriate education, training, and experience",
+      "description": "Determination that persons who develop, maintain, or use electronic records/signature systems have the appropriate education, training, and experience",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(j)",
+      "title": "Establishment of, and adherence to, written policies that hold individuals accountable and responsible for actions initiated under their electronic signatures",
+      "description": "Establishment of, and adherence to, written policies that hold individuals accountable and responsible for actions initiated under their electronic signatures",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.10(k)",
+      "title": "Use of appropriate controls over systems documentation",
+      "description": "Use of appropriate controls over systems documentation",
+      "family": "Controls for Closed Systems"
+    },
+    {
+      "id": "11.30",
+      "title": "Controls for Open Systems",
+      "description": "Controls for Open Systems",
+      "family": "Controls for Open Systems"
+    },
+    {
+      "id": "11.50",
+      "title": "Signature Manifestations",
+      "description": "Signature Manifestations",
+      "family": "Electronic Signatures"
+    },
+    {
+      "id": "11.70",
+      "title": "Signature/Record Linking",
+      "description": "Signature/Record Linking",
+      "family": "Electronic Signatures"
+    },
+    {
+      "id": "11.100(a)",
+      "title": "Each electronic signature shall be unique to one individual",
+      "description": "Each electronic signature shall be unique to one individual",
+      "family": "Electronic Signature General Requirements"
+    },
+    {
+      "id": "11.100(b)",
+      "title": "Verify identity before establishing, assigning, certifying, or sanctioning electronic signatures",
+      "description": "Verify identity before establishing, assigning, certifying, or sanctioning electronic signatures",
+      "family": "Electronic Signature General Requirements"
+    },
+    {
+      "id": "11.100(c)",
+      "title": "Certify to FDA that electronic signatures are intended to be the legally binding equivalent of traditional handwritten signatures",
+      "description": "Certify to FDA that electronic signatures are intended to be the legally binding equivalent of traditional handwritten signatures",
+      "family": "Electronic Signature General Requirements"
+    },
+    {
+      "id": "11.200(a)",
+      "title": "Electronic signatures not based upon biometrics shall employ at least two distinct identification components (ID + password) and fall under administrative controls",
+      "description": "Electronic signatures not based upon biometrics shall employ at least two distinct identification components (ID + password) and fall under administrative controls",
+      "family": "Electronic Signature Components and Controls"
+    },
+    {
+      "id": "11.200(b)",
+      "title": "Electronic signatures based upon biometrics shall be designed to ensure that they cannot be used by anyone other than their genuine owners",
+      "description": "Electronic signatures based upon biometrics shall be designed to ensure that they cannot be used by anyone other than their genuine owners",
+      "family": "Electronic Signature Components and Controls"
+    },
+    {
+      "id": "11.300",
+      "title": "Controls for Identification Codes/Passwords",
+      "description": "Controls for Identification Codes/Passwords",
+      "family": "Controls for ID Codes/Passwords"
+    }
+  ]
+}

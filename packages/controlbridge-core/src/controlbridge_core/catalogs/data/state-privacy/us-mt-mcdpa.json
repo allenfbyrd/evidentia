@@ -1,0 +1,106 @@
+{
+  "framework_id": "us-mt-mcdpa",
+  "framework_name": "Montana Consumer Data Privacy Act (MCDPA)",
+  "version": "Mont. Code § 30-14-2801 et seq.",
+  "source": "Montana Legislature (US state statute, not copyrightable under government edicts doctrine)",
+  "tier": "D",
+  "category": "obligation",
+  "placeholder": false,
+  "regime": {
+    "jurisdiction": "US-MT",
+    "effective_date": "2024-10-01",
+    "subject_rights": [
+      "access",
+      "delete",
+      "correct",
+      "portability",
+      "opt-out-sale",
+      "opt-out-profiling",
+      "appeal"
+    ],
+    "dpia_required": true,
+    "private_right_of_action": false,
+    "applicability_record_threshold": 50000,
+    "regulator": "Montana Attorney General"
+  },
+  "obligations": [
+    {
+      "id": "MCDPA.ACCESS",
+      "title": "Right to access personal information",
+      "description": "Right to access personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "MCDPA.DELETE",
+      "title": "Right to delete personal information",
+      "description": "Right to delete personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "MCDPA.CORRECT",
+      "title": "Right to correct inaccurate personal information",
+      "description": "Right to correct inaccurate personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "MCDPA.PORTABILITY",
+      "title": "Right to portability of personal information",
+      "description": "Right to portability of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "MCDPA.OPT-OUT-SALE",
+      "title": "Right to opt out of sale of personal information",
+      "description": "Right to opt out of sale of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "MCDPA.OPT-OUT-PROFILING",
+      "title": "Right to opt out of significant automated profiling",
+      "description": "Right to opt out of significant automated profiling",
+      "category": "subject-rights"
+    },
+    {
+      "id": "MCDPA.NOTICE",
+      "title": "Privacy notice / disclosure requirements at or before collection",
+      "description": "Privacy notice / disclosure requirements at or before collection",
+      "category": "notice"
+    },
+    {
+      "id": "MCDPA.CONSENT-SENSITIVE",
+      "title": "Consent (or similar) required for processing sensitive data",
+      "description": "Consent (or similar) required for processing sensitive data",
+      "category": "consent"
+    },
+    {
+      "id": "MCDPA.MINIMIZATION",
+      "title": "Purpose limitation and data minimization",
+      "description": "Purpose limitation and data minimization",
+      "category": "principles"
+    },
+    {
+      "id": "MCDPA.SECURITY",
+      "title": "Reasonable security practices to protect personal information",
+      "description": "Reasonable security practices to protect personal information",
+      "category": "security"
+    },
+    {
+      "id": "MCDPA.DPA-CONTRACT",
+      "title": "Contractual requirements for processors and service providers",
+      "description": "Contractual requirements for processors and service providers",
+      "category": "vendor"
+    },
+    {
+      "id": "MCDPA.DPA-ASSESSMENT",
+      "title": "Data protection impact assessment for high-risk processing",
+      "description": "Data protection impact assessment for high-risk processing",
+      "category": "accountability"
+    },
+    {
+      "id": "MCDPA.NON-DISCRIMINATION",
+      "title": "Prohibition on discrimination against consumers exercising rights",
+      "description": "Prohibition on discrimination against consumers exercising rights",
+      "category": "subject-rights"
+    }
+  ]
+}

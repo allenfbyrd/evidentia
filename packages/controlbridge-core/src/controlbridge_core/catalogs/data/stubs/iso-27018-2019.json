@@ -1,0 +1,267 @@
+{
+  "framework_id": "iso-27018-2019",
+  "framework_name": "ISO/IEC 27018:2019 — Protection of PII in Public Clouds",
+  "version": "2019",
+  "source": "ISO/IEC — ISO/IEC 27018:2019",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "PII-specific extensions"
+  ],
+  "controls": [
+    {
+      "id": "A.1",
+      "title": "ISO 27018 control A.1",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.2",
+      "title": "ISO 27018 control A.2",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.3",
+      "title": "ISO 27018 control A.3",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.4",
+      "title": "ISO 27018 control A.4",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.5",
+      "title": "ISO 27018 control A.5",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.6",
+      "title": "ISO 27018 control A.6",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.7",
+      "title": "ISO 27018 control A.7",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.8",
+      "title": "ISO 27018 control A.8",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.9",
+      "title": "ISO 27018 control A.9",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.10",
+      "title": "ISO 27018 control A.10",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.11",
+      "title": "ISO 27018 control A.11",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.12",
+      "title": "ISO 27018 control A.12",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.13",
+      "title": "ISO 27018 control A.13",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.14",
+      "title": "ISO 27018 control A.14",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.15",
+      "title": "ISO 27018 control A.15",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.16",
+      "title": "ISO 27018 control A.16",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.17",
+      "title": "ISO 27018 control A.17",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.18",
+      "title": "ISO 27018 control A.18",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.19",
+      "title": "ISO 27018 control A.19",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.20",
+      "title": "ISO 27018 control A.20",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.21",
+      "title": "ISO 27018 control A.21",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.22",
+      "title": "ISO 27018 control A.22",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.23",
+      "title": "ISO 27018 control A.23",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.24",
+      "title": "ISO 27018 control A.24",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    },
+    {
+      "id": "A.25",
+      "title": "ISO 27018 control A.25",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "PII-specific extensions",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/76559"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© ISO/IEC.",
+  "license_url": "https://www.iso.org/standard/76559"
+}

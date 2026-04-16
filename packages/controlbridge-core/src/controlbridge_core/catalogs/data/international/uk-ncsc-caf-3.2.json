@@ -1,0 +1,101 @@
+{
+  "framework_id": "uk-ncsc-caf-3.2",
+  "framework_name": "UK NCSC Cyber Assessment Framework (CAF) v3.2",
+  "version": "3.2 (2024)",
+  "source": "UK National Cyber Security Centre — https://www.ncsc.gov.uk/collection/cyber-assessment-framework (Open Government Licence v3.0)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "A — Managing Security Risk",
+    "B — Protecting Against Cyber Attack",
+    "C — Detecting Cyber Security Events",
+    "D — Minimising the Impact of Cyber Security Incidents"
+  ],
+  "controls": [
+    {
+      "id": "A1",
+      "title": "Governance",
+      "description": "Governance",
+      "family": "A — Managing Security Risk"
+    },
+    {
+      "id": "A2",
+      "title": "Risk Management",
+      "description": "Risk Management",
+      "family": "A — Managing Security Risk"
+    },
+    {
+      "id": "A3",
+      "title": "Asset Management",
+      "description": "Asset Management",
+      "family": "A — Managing Security Risk"
+    },
+    {
+      "id": "A4",
+      "title": "Supply Chain",
+      "description": "Supply Chain",
+      "family": "A — Managing Security Risk"
+    },
+    {
+      "id": "B1",
+      "title": "Service Protection Policies, Processes and Procedures",
+      "description": "Service Protection Policies, Processes and Procedures",
+      "family": "B — Protecting Against Cyber Attack"
+    },
+    {
+      "id": "B2",
+      "title": "Identity and Access Control",
+      "description": "Identity and Access Control",
+      "family": "B — Protecting Against Cyber Attack"
+    },
+    {
+      "id": "B3",
+      "title": "Data Security",
+      "description": "Data Security",
+      "family": "B — Protecting Against Cyber Attack"
+    },
+    {
+      "id": "B4",
+      "title": "System Security",
+      "description": "System Security",
+      "family": "B — Protecting Against Cyber Attack"
+    },
+    {
+      "id": "B5",
+      "title": "Resilient Networks and Systems",
+      "description": "Resilient Networks and Systems",
+      "family": "B — Protecting Against Cyber Attack"
+    },
+    {
+      "id": "B6",
+      "title": "Staff Awareness and Training",
+      "description": "Staff Awareness and Training",
+      "family": "B — Protecting Against Cyber Attack"
+    },
+    {
+      "id": "C1",
+      "title": "Security Monitoring",
+      "description": "Security Monitoring",
+      "family": "C — Detecting Cyber Security Events"
+    },
+    {
+      "id": "C2",
+      "title": "Proactive Security Event Discovery",
+      "description": "Proactive Security Event Discovery",
+      "family": "C — Detecting Cyber Security Events"
+    },
+    {
+      "id": "D1",
+      "title": "Response and Recovery Planning",
+      "description": "Response and Recovery Planning",
+      "family": "D — Minimising the Impact of Cyber Security Incidents"
+    },
+    {
+      "id": "D2",
+      "title": "Lessons Learned",
+      "description": "Lessons Learned",
+      "family": "D — Minimising the Impact of Cyber Security Incidents"
+    }
+  ]
+}

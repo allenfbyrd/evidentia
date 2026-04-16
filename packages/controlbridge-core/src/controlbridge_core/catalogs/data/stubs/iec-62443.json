@@ -1,0 +1,100 @@
+{
+  "framework_id": "iec-62443",
+  "framework_name": "IEC 62443 — Industrial Automation and Control Systems Security",
+  "version": "Multiple parts (2018-2023)",
+  "source": "IEC/ISA",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "Part 1 — General",
+    "Part 2 — Policies and Procedures",
+    "Part 3 — System",
+    "Part 4 — Component"
+  ],
+  "controls": [
+    {
+      "id": "1.1",
+      "title": "IEC 62443-1-1: Terminology, concepts and models",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Part 1 — General",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    },
+    {
+      "id": "2.1",
+      "title": "IEC 62443-2-1: Establishing an IACS security program",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Part 2 — Policies and Procedures",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    },
+    {
+      "id": "2.3",
+      "title": "IEC 62443-2-3: Patch management in the IACS environment",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Part 2 — Policies and Procedures",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    },
+    {
+      "id": "2.4",
+      "title": "IEC 62443-2-4: Security program requirements for IACS service providers",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Part 2 — Policies and Procedures",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    },
+    {
+      "id": "3.2",
+      "title": "IEC 62443-3-2: Security risk assessment for system design",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Part 3 — System",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    },
+    {
+      "id": "3.3",
+      "title": "IEC 62443-3-3: System security requirements and security levels",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Part 3 — System",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    },
+    {
+      "id": "4.1",
+      "title": "IEC 62443-4-1: Secure product development lifecycle requirements",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Part 4 — Component",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    },
+    {
+      "id": "4.2",
+      "title": "IEC 62443-4-2: Technical security requirements for IACS components",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Part 4 — Component",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© IEC/ISA. Purchase individual parts from ISA or IEC.",
+  "license_url": "https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards"
+}

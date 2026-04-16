@@ -1,0 +1,169 @@
+{
+  "source_framework": "nist-800-53-mod",
+  "target_framework": "hipaa-security",
+  "version": "NIST 800-53 Rev 5 / HIPAA 2013 Omnibus",
+  "generated_at": "2026-04-16",
+  "source": "HHS OCR HIPAA Security Rule Crosswalk Guidance + NIST OLIR",
+  "mappings": [
+    {
+      "source_control_id": "AC-2",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(4)(ii)(B)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Access authorization"
+    },
+    {
+      "source_control_id": "AC-2",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(4)(ii)(C)",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Access establishment and modification"
+    },
+    {
+      "source_control_id": "AC-3",
+      "source_control_title": "",
+      "target_control_id": "164.312(a)(1)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Access control"
+    },
+    {
+      "source_control_id": "AU-2",
+      "source_control_title": "",
+      "target_control_id": "164.312(b)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Audit controls"
+    },
+    {
+      "source_control_id": "CP-2",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(7)(i)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Contingency plan"
+    },
+    {
+      "source_control_id": "CP-9",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(7)(ii)(A)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Data backup plan"
+    },
+    {
+      "source_control_id": "CP-10",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(7)(ii)(B)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Disaster recovery plan"
+    },
+    {
+      "source_control_id": "IA-2",
+      "source_control_title": "",
+      "target_control_id": "164.312(d)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Person or entity authentication"
+    },
+    {
+      "source_control_id": "IA-5",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(5)(ii)(D)",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Password management"
+    },
+    {
+      "source_control_id": "IR-4",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(6)(ii)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Response and reporting"
+    },
+    {
+      "source_control_id": "MP-6",
+      "source_control_title": "",
+      "target_control_id": "164.310(d)(2)(i)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Disposal"
+    },
+    {
+      "source_control_id": "PE-3",
+      "source_control_title": "",
+      "target_control_id": "164.310(a)(1)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Facility access controls"
+    },
+    {
+      "source_control_id": "PS-3",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(3)(ii)(B)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Workforce clearance"
+    },
+    {
+      "source_control_id": "PS-4",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(3)(ii)(C)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Termination procedures"
+    },
+    {
+      "source_control_id": "RA-3",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(1)(ii)(A)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Risk analysis"
+    },
+    {
+      "source_control_id": "SC-8",
+      "source_control_title": "",
+      "target_control_id": "164.312(e)(1)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Transmission security"
+    },
+    {
+      "source_control_id": "SC-13",
+      "source_control_title": "",
+      "target_control_id": "164.312(e)(2)(ii)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Encryption"
+    },
+    {
+      "source_control_id": "SC-28",
+      "source_control_title": "",
+      "target_control_id": "164.312(a)(2)(iv)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Encryption at rest"
+    },
+    {
+      "source_control_id": "SI-2",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(5)(ii)(B)",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Protection from malicious software"
+    },
+    {
+      "source_control_id": "AT-2",
+      "source_control_title": "",
+      "target_control_id": "164.308(a)(5)(i)",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Security awareness training"
+    }
+  ]
+}

@@ -1,0 +1,265 @@
+{
+  "source_framework": "fedramp-rev5-moderate",
+  "target_framework": "cmmc-2-l2",
+  "version": "FedRAMP Rev 5 / CMMC 2.0 Level 2 (2024 Final Rule)",
+  "generated_at": "2026-04-16",
+  "source": "ControlBridge-authored based on DoD CMMC Assessment Guide correlations to NIST 800-171/800-53",
+  "mappings": [
+    {
+      "source_control_id": "AC-2",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.1.1",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Authorized user access"
+    },
+    {
+      "source_control_id": "AC-3",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.1.2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Transaction/function control"
+    },
+    {
+      "source_control_id": "AC-6",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.1.5",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Least privilege"
+    },
+    {
+      "source_control_id": "AC-7",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.1.8",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Unsuccessful logon attempts"
+    },
+    {
+      "source_control_id": "AC-11",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.1.10",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Session lock"
+    },
+    {
+      "source_control_id": "AC-17",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.1.12",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Remote access control"
+    },
+    {
+      "source_control_id": "AT-2",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.2.1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Security awareness"
+    },
+    {
+      "source_control_id": "AT-3",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.2.2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Role-based training"
+    },
+    {
+      "source_control_id": "AU-2",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.3.1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Event logging"
+    },
+    {
+      "source_control_id": "AU-3",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.3.1",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Audit record content"
+    },
+    {
+      "source_control_id": "AU-6",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.3.5",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Audit record review"
+    },
+    {
+      "source_control_id": "AU-8",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.3.7",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Time stamps"
+    },
+    {
+      "source_control_id": "CM-2",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.4.1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Baseline configuration"
+    },
+    {
+      "source_control_id": "CM-6",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.4.2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Configuration settings"
+    },
+    {
+      "source_control_id": "CM-7",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.4.7",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Least functionality"
+    },
+    {
+      "source_control_id": "CM-8",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.4.1",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "System component inventory"
+    },
+    {
+      "source_control_id": "IA-2",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.5.3",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Multi-factor authentication"
+    },
+    {
+      "source_control_id": "IA-5",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.5.7",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Authenticator management"
+    },
+    {
+      "source_control_id": "IR-4",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.6.1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Incident handling"
+    },
+    {
+      "source_control_id": "IR-6",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.6.2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Incident reporting"
+    },
+    {
+      "source_control_id": "MP-6",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.8.3",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Media sanitization"
+    },
+    {
+      "source_control_id": "PE-2",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.10.1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Physical access authorization"
+    },
+    {
+      "source_control_id": "PE-3",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.10.1",
+      "target_control_title": "",
+      "relationship": "related",
+      "notes": "Physical access control"
+    },
+    {
+      "source_control_id": "RA-3",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.11.1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Risk assessment"
+    },
+    {
+      "source_control_id": "RA-5",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.11.2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Vulnerability scanning"
+    },
+    {
+      "source_control_id": "SC-7",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.13.1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Boundary protection"
+    },
+    {
+      "source_control_id": "SC-8",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.13.8",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Transmission confidentiality"
+    },
+    {
+      "source_control_id": "SC-13",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.13.11",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Cryptographic protection (FIPS)"
+    },
+    {
+      "source_control_id": "SC-28",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.13.16",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Data at rest protection"
+    },
+    {
+      "source_control_id": "SI-2",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.14.1",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Flaw remediation"
+    },
+    {
+      "source_control_id": "SI-3",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.14.2",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "Malicious code protection"
+    },
+    {
+      "source_control_id": "SI-4",
+      "source_control_title": "",
+      "target_control_id": "CMMC.L2-3.14.6",
+      "target_control_title": "",
+      "relationship": "equivalent",
+      "notes": "System monitoring"
+    }
+  ]
+}

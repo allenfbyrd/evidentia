@@ -19,13 +19,16 @@ def test_registry_singleton():
     assert a is b
 
 
-def test_framework_metadata_exact_keyset():
-    # v0.1.1: only frameworks with backing catalog data on disk may appear
-    # here. Adding a key without a corresponding JSON in data/ produces a
-    # silent "loaded: no" row in `controlbridge catalog list`, which
-    # misleads operators about real coverage. v0.2.0 replaces this dict
-    # with a manifest-driven registry.
-    assert set(FRAMEWORK_METADATA.keys()) == {"nist-800-53-mod", "soc2-tsc"}
+def test_framework_metadata_includes_baseline_frameworks():
+    # v0.2.0: registry is manifest-driven — FRAMEWORK_METADATA is a
+    # dynamically-built view over data/frameworks.yaml. We assert that
+    # the core v0.1.x frameworks remain present; the full set is
+    # validated by tests/unit/test_catalogs/test_manifest.py.
+    ids = set(FRAMEWORK_METADATA.keys())
+    assert "nist-800-53-mod" in ids
+    assert "soc2-tsc" in ids
+    # Sanity — v0.2.0 ships ~50+ frameworks
+    assert len(ids) >= 50, f"Expected 50+ frameworks in v0.2.0, got {len(ids)}"
 
 
 def test_load_bundled_nist_catalog():

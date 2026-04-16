@@ -1,0 +1,508 @@
+{
+  "framework_id": "iso-27701-2019",
+  "framework_name": "ISO/IEC 27701:2019 — Privacy Information Management",
+  "version": "2019",
+  "source": "ISO/IEC — ISO/IEC 27701:2019",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "Annex A — PII Controllers",
+    "Annex B — PII Processors"
+  ],
+  "controls": [
+    {
+      "id": "A.7.1",
+      "title": "PII controller control A.7.1",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.2",
+      "title": "PII controller control A.7.2",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.3",
+      "title": "PII controller control A.7.3",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.4",
+      "title": "PII controller control A.7.4",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.5",
+      "title": "PII controller control A.7.5",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.6",
+      "title": "PII controller control A.7.6",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.7",
+      "title": "PII controller control A.7.7",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.8",
+      "title": "PII controller control A.7.8",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.9",
+      "title": "PII controller control A.7.9",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.10",
+      "title": "PII controller control A.7.10",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.11",
+      "title": "PII controller control A.7.11",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.12",
+      "title": "PII controller control A.7.12",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.13",
+      "title": "PII controller control A.7.13",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.14",
+      "title": "PII controller control A.7.14",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.15",
+      "title": "PII controller control A.7.15",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.16",
+      "title": "PII controller control A.7.16",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.17",
+      "title": "PII controller control A.7.17",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.18",
+      "title": "PII controller control A.7.18",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.19",
+      "title": "PII controller control A.7.19",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.20",
+      "title": "PII controller control A.7.20",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.21",
+      "title": "PII controller control A.7.21",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.22",
+      "title": "PII controller control A.7.22",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.23",
+      "title": "PII controller control A.7.23",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.24",
+      "title": "PII controller control A.7.24",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.25",
+      "title": "PII controller control A.7.25",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.26",
+      "title": "PII controller control A.7.26",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.27",
+      "title": "PII controller control A.7.27",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.28",
+      "title": "PII controller control A.7.28",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.29",
+      "title": "PII controller control A.7.29",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.30",
+      "title": "PII controller control A.7.30",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "A.7.31",
+      "title": "PII controller control A.7.31",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex A — PII Controllers",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.1",
+      "title": "PII processor control B.8.1",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.2",
+      "title": "PII processor control B.8.2",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.3",
+      "title": "PII processor control B.8.3",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.4",
+      "title": "PII processor control B.8.4",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.5",
+      "title": "PII processor control B.8.5",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.6",
+      "title": "PII processor control B.8.6",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.7",
+      "title": "PII processor control B.8.7",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.8",
+      "title": "PII processor control B.8.8",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.9",
+      "title": "PII processor control B.8.9",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.10",
+      "title": "PII processor control B.8.10",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.11",
+      "title": "PII processor control B.8.11",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.12",
+      "title": "PII processor control B.8.12",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.13",
+      "title": "PII processor control B.8.13",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.14",
+      "title": "PII processor control B.8.14",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.15",
+      "title": "PII processor control B.8.15",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.16",
+      "title": "PII processor control B.8.16",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.17",
+      "title": "PII processor control B.8.17",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    },
+    {
+      "id": "B.8.18",
+      "title": "PII processor control B.8.18",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Annex B — PII Processors",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/71670"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© ISO/IEC.",
+  "license_url": "https://www.iso.org/standard/71670"
+}

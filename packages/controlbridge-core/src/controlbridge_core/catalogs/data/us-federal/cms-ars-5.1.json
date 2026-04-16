@@ -1,0 +1,146 @@
+{
+  "framework_id": "cms-ars-5.1",
+  "framework_name": "CMS Acceptable Risk Safeguards (ARS) 5.1",
+  "version": "5.1 (2022)",
+  "source": "CMS Information Security & Privacy Group — CMS-specific overlay on NIST SP 800-53 Rev 5",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Access Control",
+    "Awareness and Training",
+    "Audit and Accountability",
+    "Security Assessment",
+    "Configuration Management",
+    "Contingency Planning",
+    "Identification and Authentication",
+    "Incident Response",
+    "Maintenance",
+    "Media Protection",
+    "Physical and Environmental",
+    "Planning",
+    "Program Management",
+    "Personnel Security",
+    "Risk Assessment",
+    "System and Services Acquisition",
+    "System and Communications Protection",
+    "System and Information Integrity",
+    "Supply Chain"
+  ],
+  "controls": [
+    {
+      "id": "CMS-AC",
+      "title": "Access Control — CMS-tailored 800-53 Rev 5",
+      "description": "Access Control — CMS-tailored 800-53 Rev 5",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMS-AT",
+      "title": "Awareness and Training — CMS-tailored 800-53 Rev 5",
+      "description": "Awareness and Training — CMS-tailored 800-53 Rev 5",
+      "family": "Awareness and Training"
+    },
+    {
+      "id": "CMS-AU",
+      "title": "Audit and Accountability — CMS-tailored 800-53 Rev 5",
+      "description": "Audit and Accountability — CMS-tailored 800-53 Rev 5",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMS-CA",
+      "title": "Security Assessment, Authorization, and Monitoring — CMS-tailored",
+      "description": "Security Assessment, Authorization, and Monitoring — CMS-tailored",
+      "family": "Security Assessment"
+    },
+    {
+      "id": "CMS-CM",
+      "title": "Configuration Management — CMS-tailored 800-53 Rev 5",
+      "description": "Configuration Management — CMS-tailored 800-53 Rev 5",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMS-CP",
+      "title": "Contingency Planning — CMS-tailored 800-53 Rev 5",
+      "description": "Contingency Planning — CMS-tailored 800-53 Rev 5",
+      "family": "Contingency Planning"
+    },
+    {
+      "id": "CMS-IA",
+      "title": "Identification and Authentication — CMS-tailored 800-53 Rev 5",
+      "description": "Identification and Authentication — CMS-tailored 800-53 Rev 5",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMS-IR",
+      "title": "Incident Response — CMS-tailored 800-53 Rev 5",
+      "description": "Incident Response — CMS-tailored 800-53 Rev 5",
+      "family": "Incident Response"
+    },
+    {
+      "id": "CMS-MA",
+      "title": "Maintenance — CMS-tailored 800-53 Rev 5",
+      "description": "Maintenance — CMS-tailored 800-53 Rev 5",
+      "family": "Maintenance"
+    },
+    {
+      "id": "CMS-MP",
+      "title": "Media Protection — CMS-tailored 800-53 Rev 5",
+      "description": "Media Protection — CMS-tailored 800-53 Rev 5",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMS-PE",
+      "title": "Physical and Environmental Protection — CMS-tailored",
+      "description": "Physical and Environmental Protection — CMS-tailored",
+      "family": "Physical and Environmental"
+    },
+    {
+      "id": "CMS-PL",
+      "title": "Planning — CMS-tailored 800-53 Rev 5",
+      "description": "Planning — CMS-tailored 800-53 Rev 5",
+      "family": "Planning"
+    },
+    {
+      "id": "CMS-PM",
+      "title": "Program Management — CMS-tailored 800-53 Rev 5",
+      "description": "Program Management — CMS-tailored 800-53 Rev 5",
+      "family": "Program Management"
+    },
+    {
+      "id": "CMS-PS",
+      "title": "Personnel Security — CMS-tailored 800-53 Rev 5",
+      "description": "Personnel Security — CMS-tailored 800-53 Rev 5",
+      "family": "Personnel Security"
+    },
+    {
+      "id": "CMS-RA",
+      "title": "Risk Assessment — CMS-tailored 800-53 Rev 5",
+      "description": "Risk Assessment — CMS-tailored 800-53 Rev 5",
+      "family": "Risk Assessment"
+    },
+    {
+      "id": "CMS-SA",
+      "title": "System and Services Acquisition — CMS-tailored",
+      "description": "System and Services Acquisition — CMS-tailored",
+      "family": "System and Services Acquisition"
+    },
+    {
+      "id": "CMS-SC",
+      "title": "System and Communications Protection — CMS-tailored",
+      "description": "System and Communications Protection — CMS-tailored",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMS-SI",
+      "title": "System and Information Integrity — CMS-tailored",
+      "description": "System and Information Integrity — CMS-tailored",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "CMS-SR",
+      "title": "Supply Chain Risk Management — CMS-tailored",
+      "description": "Supply Chain Risk Management — CMS-tailored",
+      "family": "Supply Chain"
+    }
+  ]
+}

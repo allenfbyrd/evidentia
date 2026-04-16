@@ -1,0 +1,142 @@
+{
+  "framework_id": "pci-dss-4.0.1",
+  "framework_name": "PCI DSS v4.0.1",
+  "version": "4.0.1 (June 2024)",
+  "source": "PCI Security Standards Council",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "Build and Maintain a Secure Network",
+    "Protect Account Data",
+    "Maintain a Vulnerability Management Program",
+    "Implement Strong Access Control Measures",
+    "Regularly Monitor and Test Networks",
+    "Maintain an Information Security Policy"
+  ],
+  "controls": [
+    {
+      "id": "1",
+      "title": "Install and Maintain Network Security Controls",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Build and Maintain a Secure Network",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "2",
+      "title": "Apply Secure Configurations to All System Components",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Build and Maintain a Secure Network",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "3",
+      "title": "Protect Stored Account Data",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Protect Account Data",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "4",
+      "title": "Protect Cardholder Data with Strong Cryptography During Transmission Over Open, Public Networks",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Protect Account Data",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "5",
+      "title": "Protect All Systems and Networks from Malicious Software",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Maintain a Vulnerability Management Program",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "6",
+      "title": "Develop and Maintain Secure Systems and Software",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Maintain a Vulnerability Management Program",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "7",
+      "title": "Restrict Access to System Components and Cardholder Data by Business Need to Know",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Implement Strong Access Control Measures",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "8",
+      "title": "Identify Users and Authenticate Access to System Components",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Implement Strong Access Control Measures",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "9",
+      "title": "Restrict Physical Access to Cardholder Data",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Implement Strong Access Control Measures",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "10",
+      "title": "Log and Monitor All Access to System Components and Cardholder Data",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Regularly Monitor and Test Networks",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "11",
+      "title": "Test Security of Systems and Networks Regularly",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Regularly Monitor and Test Networks",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    },
+    {
+      "id": "12",
+      "title": "Support Information Security with Organizational Policies and Programs",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Maintain an Information Security Policy",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.pcisecuritystandards.org/document_library/"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© PCI Security Standards Council. PCI DSS text is copyrighted. Download the standard (free registration required) from PCI SSC and import your licensed copy.",
+  "license_url": "https://www.pcisecuritystandards.org/document_library/"
+}

@@ -14,6 +14,7 @@ import json
 import logging
 from pathlib import Path
 
+from controlbridge_core.catalogs.manifest import load_manifest
 from controlbridge_core.models.catalog import CatalogControl, ControlCatalog
 
 logger = logging.getLogger(__name__)
@@ -181,6 +182,7 @@ def load_controlbridge_catalog(catalog_path: Path) -> ControlCatalog:
         source=data.get("source", f"ControlBridge: {catalog_path.name}"),
         controls=controls,
         families=data.get("families", []),
+        category=data.get("category", "control"),
         # Tier / licensing metadata added in v0.1.1 for Tier-C stub
         # catalogs (e.g., SOC 2 TSC). Defaults preserve the v0.1.0 shape
         # for plain ControlBridge-format catalogs that omit these fields.
@@ -189,6 +191,34 @@ def load_controlbridge_catalog(catalog_path: Path) -> ControlCatalog:
         license_terms=data.get("license_terms"),
         license_url=data.get("license_url"),
         placeholder=data.get("placeholder", False),
+    )
+
+
+def load_non_control_catalog(catalog_path: Path) -> object:
+    """Load a non-control-type catalog (technique, vulnerability, obligation).
+
+    Returns the appropriate Pydantic model type based on the JSON's
+    ``category`` field. These types don't subclass ControlCatalog; callers
+    that expect a ControlCatalog should check ``catalog.category`` first.
+    """
+    with open(catalog_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    category = data.get("category", "control")
+    if category == "technique":
+        from controlbridge_core.models.threat import TechniqueCatalog
+
+        return TechniqueCatalog.model_validate(data)
+    if category == "vulnerability":
+        from controlbridge_core.models.threat import VulnerabilityCatalog
+
+        return VulnerabilityCatalog.model_validate(data)
+    if category == "obligation":
+        from controlbridge_core.models.obligation import ObligationCatalog
+
+        return ObligationCatalog.model_validate(data)
+    raise ValueError(
+        f"Unknown catalog category {category!r} in {catalog_path.name}"
     )
 
 
@@ -201,21 +231,16 @@ def load_catalog(framework_id: str, custom_path: Path | None = None) -> ControlC
     if custom_path:
         path = custom_path
     else:
-        # Bundled catalog files. v0.1.1 ships 2; v0.2.0 will move this
-        # dispatch to a manifest-driven loader. Must mirror registry.py's
-        # FRAMEWORK_METADATA — adding here without a catalog JSON on disk
-        # produces a FileNotFoundError at load time.
-        framework_files = {
-            "nist-800-53-mod": "nist-800-53-mod.json",
-            "soc2-tsc": "soc2-tsc.json",
-        }
-        filename = framework_files.get(framework_id)
-        if not filename:
-            raise ValueError(
-                f"Unknown framework '{framework_id}'. "
-                f"Available: {', '.join(framework_files.keys())}"
-            )
-        path = DATA_DIR / filename
+        # Resolve path via the user-dir-aware helper — user-imported
+        # catalogs shadow bundled ones with the same framework_id, so an
+        # organization's licensed ISO 27001 copy wins over the Tier-C
+        # stub. Precedence is logged when a shadow occurs.
+        from controlbridge_core.catalogs.user_dir import resolve_catalog_path
+
+        manifest = load_manifest()
+        path, _entry, _source = resolve_catalog_path(
+            framework_id, bundled_manifest=manifest
+        )
 
     if not path.exists():
         raise FileNotFoundError(f"Catalog file not found: {path}")
@@ -223,7 +248,59 @@ def load_catalog(framework_id: str, custom_path: Path | None = None) -> ControlC
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
-    # Auto-detect format
+    # Auto-detect format: OSCAL (control-only) vs. ControlBridge JSON.
+    # ControlBridge JSON has a top-level ``category`` field telling us
+    # whether this is a control/technique/vulnerability/obligation catalog;
+    # non-control categories need a different loader and return type.
     if "catalog" in data:
         return load_oscal_catalog(path)
+    category = data.get("category", "control")
+    if category != "control":
+        # Caller is asking for a control catalog but the on-disk data is a
+        # technique/vulnerability/obligation catalog — raise a clear error.
+        # Use ``load_any_catalog`` (below) when you don't know the shape.
+        raise ValueError(
+            f"Catalog {path.name} is a {category!r} catalog, not a control "
+            "catalog. Use controlbridge_core.catalogs.loader.load_any_catalog() "
+            "to load it into the right model type."
+        )
     return load_controlbridge_catalog(path)
+
+
+def load_any_catalog(
+    framework_id: str, custom_path: Path | None = None
+) -> object:
+    """Load any catalog by framework ID, returning the right Pydantic type.
+
+    Dispatches on the catalog's ``category`` field:
+
+    - ``"control"`` → :class:`ControlCatalog`
+    - ``"technique"`` → :class:`TechniqueCatalog`
+    - ``"vulnerability"`` → :class:`VulnerabilityCatalog`
+    - ``"obligation"`` → :class:`ObligationCatalog`
+
+    Used by the CLI's ``catalog show`` command and by tooling that works
+    across all catalog types.
+    """
+    if custom_path:
+        path = custom_path
+    else:
+        from controlbridge_core.catalogs.user_dir import resolve_catalog_path
+
+        manifest = load_manifest()
+        path, _entry, _source = resolve_catalog_path(
+            framework_id, bundled_manifest=manifest
+        )
+
+    if not path.exists():
+        raise FileNotFoundError(f"Catalog file not found: {path}")
+
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "catalog" in data:
+        return load_oscal_catalog(path)
+    category = data.get("category", "control")
+    if category == "control":
+        return load_controlbridge_catalog(path)
+    return load_non_control_catalog(path)

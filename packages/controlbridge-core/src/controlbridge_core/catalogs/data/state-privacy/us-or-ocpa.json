@@ -1,0 +1,107 @@
+{
+  "framework_id": "us-or-ocpa",
+  "framework_name": "Oregon Consumer Privacy Act (OCPA)",
+  "version": "Or. Rev. Stat. § 646A.570 et seq.",
+  "source": "Oregon Legislature (US state statute, not copyrightable under government edicts doctrine)",
+  "tier": "D",
+  "category": "obligation",
+  "placeholder": false,
+  "regime": {
+    "jurisdiction": "US-OR",
+    "effective_date": "2024-07-01",
+    "subject_rights": [
+      "access",
+      "delete",
+      "correct",
+      "portability",
+      "opt-out-sale",
+      "opt-out-profiling",
+      "appeal"
+    ],
+    "dpia_required": true,
+    "private_right_of_action": false,
+    "cure_period_days": 30,
+    "applicability_record_threshold": 100000,
+    "regulator": "Oregon Attorney General"
+  },
+  "obligations": [
+    {
+      "id": "OCPA.ACCESS",
+      "title": "Right to access personal information",
+      "description": "Right to access personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "OCPA.DELETE",
+      "title": "Right to delete personal information",
+      "description": "Right to delete personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "OCPA.CORRECT",
+      "title": "Right to correct inaccurate personal information",
+      "description": "Right to correct inaccurate personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "OCPA.PORTABILITY",
+      "title": "Right to portability of personal information",
+      "description": "Right to portability of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "OCPA.OPT-OUT-SALE",
+      "title": "Right to opt out of sale of personal information",
+      "description": "Right to opt out of sale of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "OCPA.OPT-OUT-PROFILING",
+      "title": "Right to opt out of significant automated profiling",
+      "description": "Right to opt out of significant automated profiling",
+      "category": "subject-rights"
+    },
+    {
+      "id": "OCPA.NOTICE",
+      "title": "Privacy notice / disclosure requirements at or before collection",
+      "description": "Privacy notice / disclosure requirements at or before collection",
+      "category": "notice"
+    },
+    {
+      "id": "OCPA.CONSENT-SENSITIVE",
+      "title": "Consent (or similar) required for processing sensitive data",
+      "description": "Consent (or similar) required for processing sensitive data",
+      "category": "consent"
+    },
+    {
+      "id": "OCPA.MINIMIZATION",
+      "title": "Purpose limitation and data minimization",
+      "description": "Purpose limitation and data minimization",
+      "category": "principles"
+    },
+    {
+      "id": "OCPA.SECURITY",
+      "title": "Reasonable security practices to protect personal information",
+      "description": "Reasonable security practices to protect personal information",
+      "category": "security"
+    },
+    {
+      "id": "OCPA.DPA-CONTRACT",
+      "title": "Contractual requirements for processors and service providers",
+      "description": "Contractual requirements for processors and service providers",
+      "category": "vendor"
+    },
+    {
+      "id": "OCPA.DPA-ASSESSMENT",
+      "title": "Data protection impact assessment for high-risk processing",
+      "description": "Data protection impact assessment for high-risk processing",
+      "category": "accountability"
+    },
+    {
+      "id": "OCPA.NON-DISCRIMINATION",
+      "title": "Prohibition on discrimination against consumers exercising rights",
+      "description": "Prohibition on discrimination against consumers exercising rights",
+      "category": "subject-rights"
+    }
+  ]
+}

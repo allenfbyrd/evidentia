@@ -1,0 +1,147 @@
+{
+  "framework_id": "nist-csf-2.0",
+  "framework_name": "NIST Cybersecurity Framework 2.0",
+  "version": "2.0",
+  "source": "NIST (https://www.nist.gov/cyberframework) — U.S. Government work, public domain",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "license_url": "https://www.nist.gov/cyberframework",
+  "families": [
+    "Govern (GV)",
+    "Identify (ID)",
+    "Protect (PR)",
+    "Detect (DE)",
+    "Respond (RS)",
+    "Recover (RC)"
+  ],
+  "controls": [
+    {"id": "GV.OC-01", "title": "Organizational mission understood and informs cybersecurity risk management", "description": "The organizational mission is understood and informs cybersecurity risk management.", "family": "Govern (GV)"},
+    {"id": "GV.OC-02", "title": "Internal and external stakeholders' expectations are understood", "description": "Internal and external stakeholders are understood, and their needs and expectations regarding cybersecurity risk management are understood and considered.", "family": "Govern (GV)"},
+    {"id": "GV.OC-03", "title": "Legal, regulatory, and contractual requirements are managed", "description": "Legal, regulatory, and contractual requirements regarding cybersecurity — including privacy and civil liberties obligations — are understood and managed.", "family": "Govern (GV)"},
+    {"id": "GV.OC-04", "title": "Critical objectives, capabilities, and services that stakeholders depend on are understood", "description": "Critical objectives, capabilities, and services that external stakeholders depend on or expect from the organization are understood and communicated.", "family": "Govern (GV)"},
+    {"id": "GV.OC-05", "title": "Outcomes, capabilities, and services that the organization depends on are understood", "description": "Outcomes, capabilities, and services that the organization depends on are understood and communicated.", "family": "Govern (GV)"},
+
+    {"id": "GV.RM-01", "title": "Risk management objectives are established and agreed to", "description": "Risk management objectives are established and agreed to by organizational stakeholders.", "family": "Govern (GV)"},
+    {"id": "GV.RM-02", "title": "Risk appetite and risk tolerance statements are established", "description": "Risk appetite and risk tolerance statements are established, communicated, and maintained.", "family": "Govern (GV)"},
+    {"id": "GV.RM-03", "title": "Cybersecurity risk management activities and outcomes are included in enterprise risk management", "description": "Cybersecurity risk management activities and outcomes are included in enterprise risk management processes.", "family": "Govern (GV)"},
+    {"id": "GV.RM-04", "title": "Strategic direction for cybersecurity risk responses is established and communicated", "description": "Strategic direction that describes appropriate risk response options is established and communicated.", "family": "Govern (GV)"},
+    {"id": "GV.RM-05", "title": "Lines of communication for cybersecurity risks are established", "description": "Lines of communication across the organization are established for cybersecurity risks, including risks from suppliers and other third parties.", "family": "Govern (GV)"},
+    {"id": "GV.RM-06", "title": "A standardized method for calculating, documenting, categorizing, and prioritizing cybersecurity risks is established", "description": "A standardized method for calculating, documenting, categorizing, and prioritizing cybersecurity risks is established and communicated.", "family": "Govern (GV)"},
+    {"id": "GV.RM-07", "title": "Strategic opportunities are characterized and included in cybersecurity risk discussions", "description": "Strategic opportunities (i.e., positive risks) are characterized and are included in organizational cybersecurity risk discussions.", "family": "Govern (GV)"},
+
+    {"id": "GV.RR-01", "title": "Organizational leadership is responsible and accountable for cybersecurity risk", "description": "Organizational leadership is responsible and accountable for cybersecurity risk and fosters a culture that is risk-aware, ethical, and continually improving.", "family": "Govern (GV)"},
+    {"id": "GV.RR-02", "title": "Roles, responsibilities, and authorities related to cybersecurity risk management are established", "description": "Roles, responsibilities, and authorities related to cybersecurity risk management are established, communicated, understood, and enforced.", "family": "Govern (GV)"},
+    {"id": "GV.RR-03", "title": "Adequate resources are allocated to cybersecurity risk management activities", "description": "Adequate resources are allocated commensurate with the cybersecurity risk strategy, roles, responsibilities, and policies.", "family": "Govern (GV)"},
+    {"id": "GV.RR-04", "title": "Cybersecurity is included in human resources practices", "description": "Cybersecurity is included in human resources practices.", "family": "Govern (GV)"},
+
+    {"id": "GV.PO-01", "title": "Policy for managing cybersecurity risks is established", "description": "Policy for managing cybersecurity risks is established based on organizational context, cybersecurity strategy, and priorities, and is communicated and enforced.", "family": "Govern (GV)"},
+    {"id": "GV.PO-02", "title": "Policy for managing cybersecurity risks is reviewed, updated, communicated, and enforced", "description": "Policy for managing cybersecurity risks is reviewed, updated, communicated, and enforced to reflect changes in requirements, threats, technology, and organizational mission.", "family": "Govern (GV)"},
+
+    {"id": "GV.OV-01", "title": "Cybersecurity risk management strategy outcomes are reviewed", "description": "Cybersecurity risk management strategy outcomes are reviewed to inform and adjust strategy and direction.", "family": "Govern (GV)"},
+    {"id": "GV.OV-02", "title": "The cybersecurity risk management strategy is reviewed and adjusted", "description": "The cybersecurity risk management strategy is reviewed and adjusted to ensure coverage of organizational requirements and risks.", "family": "Govern (GV)"},
+    {"id": "GV.OV-03", "title": "Organizational cybersecurity risk management performance is evaluated", "description": "Organizational cybersecurity risk management performance is evaluated and reviewed for adjustments needed.", "family": "Govern (GV)"},
+
+    {"id": "GV.SC-01", "title": "A cybersecurity supply chain risk management program is established", "description": "A cybersecurity supply chain risk management program, strategy, objectives, policies, and processes are established and agreed to by organizational stakeholders.", "family": "Govern (GV)"},
+    {"id": "GV.SC-02", "title": "Cybersecurity roles and responsibilities for suppliers are established", "description": "Cybersecurity roles and responsibilities for suppliers, customers, and partners are established, communicated, and coordinated internally and externally.", "family": "Govern (GV)"},
+    {"id": "GV.SC-03", "title": "Cybersecurity supply chain risk management is integrated into risk management", "description": "Cybersecurity supply chain risk management is integrated into cybersecurity and enterprise risk management, risk assessment, and improvement processes.", "family": "Govern (GV)"},
+    {"id": "GV.SC-04", "title": "Suppliers are known and prioritized by criticality", "description": "Suppliers are known and prioritized by criticality.", "family": "Govern (GV)"},
+    {"id": "GV.SC-05", "title": "Requirements to address cybersecurity risks in supply chains are established", "description": "Requirements to address cybersecurity risks in supply chains are established, prioritized, and integrated into contracts and other types of agreements with suppliers and other relevant third parties.", "family": "Govern (GV)"},
+    {"id": "GV.SC-06", "title": "Planning and due diligence are performed to reduce risks before relationships", "description": "Planning and due diligence are performed to reduce risks before entering into formal supplier or other third-party relationships.", "family": "Govern (GV)"},
+    {"id": "GV.SC-07", "title": "Risks posed by suppliers are understood, recorded, prioritized, assessed, responded to, and monitored", "description": "The risks posed by a supplier, their products and services, and other third parties are understood, recorded, prioritized, assessed, responded to, and monitored over the course of the relationship.", "family": "Govern (GV)"},
+    {"id": "GV.SC-08", "title": "Relevant suppliers and third parties are included in incident planning, response, and recovery activities", "description": "Relevant suppliers and other third parties are included in incident planning, response, and recovery activities.", "family": "Govern (GV)"},
+    {"id": "GV.SC-09", "title": "Supply chain security practices are integrated into cybersecurity and enterprise risk management programs", "description": "Supply chain security practices are integrated into cybersecurity and enterprise risk management programs, and their performance is monitored throughout the technology product and service life cycle.", "family": "Govern (GV)"},
+    {"id": "GV.SC-10", "title": "Cybersecurity supply chain risk management plans include provisions for activities after relationships end", "description": "Cybersecurity supply chain risk management plans include provisions for activities that occur after the conclusion of a partnership or service agreement.", "family": "Govern (GV)"},
+
+    {"id": "ID.AM-01", "title": "Inventories of hardware managed by the organization are maintained", "description": "Inventories of hardware managed by the organization are maintained.", "family": "Identify (ID)"},
+    {"id": "ID.AM-02", "title": "Inventories of software, services, and systems managed by the organization are maintained", "description": "Inventories of software, services, and systems managed by the organization are maintained.", "family": "Identify (ID)"},
+    {"id": "ID.AM-03", "title": "Representations of the organization's authorized network communication and data flows are maintained", "description": "Representations of the organization's authorized network communication and internal and external network data flows are maintained.", "family": "Identify (ID)"},
+    {"id": "ID.AM-04", "title": "Inventories of services provided by suppliers are maintained", "description": "Inventories of services provided by suppliers are maintained.", "family": "Identify (ID)"},
+    {"id": "ID.AM-05", "title": "Assets are prioritized based on classification, criticality, resources, and impact on mission", "description": "Assets are prioritized based on classification, criticality, resources, and impact on the mission.", "family": "Identify (ID)"},
+    {"id": "ID.AM-07", "title": "Inventories of data and corresponding metadata for designated data types are maintained", "description": "Inventories of data and corresponding metadata for designated data types are maintained.", "family": "Identify (ID)"},
+    {"id": "ID.AM-08", "title": "Systems, hardware, software, services, and data are managed throughout their life cycles", "description": "Systems, hardware, software, services, and data are managed throughout their life cycles.", "family": "Identify (ID)"},
+
+    {"id": "ID.RA-01", "title": "Vulnerabilities in assets are identified, validated, and recorded", "description": "Vulnerabilities in assets are identified, validated, and recorded.", "family": "Identify (ID)"},
+    {"id": "ID.RA-02", "title": "Cyber threat intelligence is received from information sharing forums and sources", "description": "Cyber threat intelligence is received from information sharing forums and sources.", "family": "Identify (ID)"},
+    {"id": "ID.RA-03", "title": "Internal and external threats to the organization are identified and recorded", "description": "Internal and external threats to the organization are identified and recorded.", "family": "Identify (ID)"},
+    {"id": "ID.RA-04", "title": "Potential impacts and likelihoods of threats exploiting vulnerabilities are identified and recorded", "description": "Potential impacts and likelihoods of threats exploiting vulnerabilities are identified and recorded.", "family": "Identify (ID)"},
+    {"id": "ID.RA-05", "title": "Threats, vulnerabilities, likelihoods, and impacts are used to understand inherent risk and inform risk response prioritization", "description": "Threats, vulnerabilities, likelihoods, and impacts are used to understand inherent risk and inform risk response prioritization.", "family": "Identify (ID)"},
+    {"id": "ID.RA-06", "title": "Risk responses are chosen, prioritized, planned, tracked, and communicated", "description": "Risk responses are chosen, prioritized, planned, tracked, and communicated.", "family": "Identify (ID)"},
+    {"id": "ID.RA-07", "title": "Changes and exceptions are managed, assessed for risk impact, recorded, and tracked", "description": "Changes and exceptions are managed, assessed for risk impact, recorded, and tracked.", "family": "Identify (ID)"},
+    {"id": "ID.RA-08", "title": "Processes for receiving, analyzing, and responding to vulnerability disclosures are established", "description": "Processes for receiving, analyzing, and responding to vulnerability disclosures are established.", "family": "Identify (ID)"},
+    {"id": "ID.RA-09", "title": "Authenticity and integrity of hardware and software are assessed", "description": "The authenticity and integrity of hardware and software are assessed prior to acquisition and use.", "family": "Identify (ID)"},
+    {"id": "ID.RA-10", "title": "Critical suppliers are assessed prior to acquisition", "description": "Critical suppliers are assessed prior to acquisition.", "family": "Identify (ID)"},
+
+    {"id": "ID.IM-01", "title": "Improvements are identified from evaluations", "description": "Improvements are identified from evaluations.", "family": "Identify (ID)"},
+    {"id": "ID.IM-02", "title": "Improvements are identified from security tests and exercises", "description": "Improvements are identified from security tests and exercises, including those done in coordination with suppliers and relevant third parties.", "family": "Identify (ID)"},
+    {"id": "ID.IM-03", "title": "Improvements are identified from execution of operational processes, procedures, and activities", "description": "Improvements are identified from execution of operational processes, procedures, and activities.", "family": "Identify (ID)"},
+    {"id": "ID.IM-04", "title": "Incident response plans and other cybersecurity plans are established, communicated, maintained, and improved", "description": "Incident response plans and other cybersecurity plans that affect operations are established, communicated, maintained, and improved.", "family": "Identify (ID)"},
+
+    {"id": "PR.AA-01", "title": "Identities and credentials for authorized users, services, and hardware are managed", "description": "Identities and credentials for authorized users, services, and hardware are managed by the organization.", "family": "Protect (PR)"},
+    {"id": "PR.AA-02", "title": "Identities are proofed and bound to credentials based on the context of interactions", "description": "Identities are proofed and bound to credentials based on the context of interactions.", "family": "Protect (PR)"},
+    {"id": "PR.AA-03", "title": "Users, services, and hardware are authenticated", "description": "Users, services, and hardware are authenticated.", "family": "Protect (PR)"},
+    {"id": "PR.AA-04", "title": "Identity assertions are protected, conveyed, and verified", "description": "Identity assertions are protected, conveyed, and verified.", "family": "Protect (PR)"},
+    {"id": "PR.AA-05", "title": "Access permissions, entitlements, and authorizations are defined in a policy, managed, enforced, and reviewed", "description": "Access permissions, entitlements, and authorizations are defined in a policy, managed, enforced, and reviewed, and incorporate the principles of least privilege and separation of duties.", "family": "Protect (PR)"},
+    {"id": "PR.AA-06", "title": "Physical access to assets is managed, monitored, and enforced commensurate with risk", "description": "Physical access to assets is managed, monitored, and enforced commensurate with risk.", "family": "Protect (PR)"},
+
+    {"id": "PR.AT-01", "title": "Personnel are provided with awareness and training so they possess knowledge and skills to perform general tasks", "description": "Personnel are provided with awareness and training so that they possess the knowledge and skills to perform general tasks with cybersecurity risks in mind.", "family": "Protect (PR)"},
+    {"id": "PR.AT-02", "title": "Individuals in specialized roles are provided with awareness and training", "description": "Individuals in specialized roles are provided with awareness and training so that they possess the knowledge and skills to perform relevant tasks with cybersecurity risks in mind.", "family": "Protect (PR)"},
+
+    {"id": "PR.DS-01", "title": "The confidentiality, integrity, and availability of data-at-rest are protected", "description": "The confidentiality, integrity, and availability of data-at-rest are protected.", "family": "Protect (PR)"},
+    {"id": "PR.DS-02", "title": "The confidentiality, integrity, and availability of data-in-transit are protected", "description": "The confidentiality, integrity, and availability of data-in-transit are protected.", "family": "Protect (PR)"},
+    {"id": "PR.DS-10", "title": "The confidentiality, integrity, and availability of data-in-use are protected", "description": "The confidentiality, integrity, and availability of data-in-use are protected.", "family": "Protect (PR)"},
+    {"id": "PR.DS-11", "title": "Backups of data are created, protected, maintained, and tested", "description": "Backups of data are created, protected, maintained, and tested.", "family": "Protect (PR)"},
+
+    {"id": "PR.PS-01", "title": "Configuration management practices are established and applied", "description": "Configuration management practices are established and applied.", "family": "Protect (PR)"},
+    {"id": "PR.PS-02", "title": "Software is maintained, replaced, and removed commensurate with risk", "description": "Software is maintained, replaced, and removed commensurate with risk.", "family": "Protect (PR)"},
+    {"id": "PR.PS-03", "title": "Hardware is maintained, replaced, and removed commensurate with risk", "description": "Hardware is maintained, replaced, and removed commensurate with risk.", "family": "Protect (PR)"},
+    {"id": "PR.PS-04", "title": "Log records are generated and made available for continuous monitoring", "description": "Log records are generated and made available for continuous monitoring.", "family": "Protect (PR)"},
+    {"id": "PR.PS-05", "title": "Installation and execution of unauthorized software are prevented", "description": "Installation and execution of unauthorized software are prevented.", "family": "Protect (PR)"},
+    {"id": "PR.PS-06", "title": "Secure software development practices are integrated", "description": "Secure software development practices are integrated, and their performance is monitored throughout the software development life cycle.", "family": "Protect (PR)"},
+
+    {"id": "PR.IR-01", "title": "Networks and environments are protected from unauthorized logical access and usage", "description": "Networks and environments are protected from unauthorized logical access and usage.", "family": "Protect (PR)"},
+    {"id": "PR.IR-02", "title": "The organization's technology assets are protected from environmental threats", "description": "The organization's technology assets are protected from environmental threats.", "family": "Protect (PR)"},
+    {"id": "PR.IR-03", "title": "Mechanisms are implemented to achieve resilience requirements in normal and adverse situations", "description": "Mechanisms are implemented to achieve resilience requirements in normal and adverse situations.", "family": "Protect (PR)"},
+    {"id": "PR.IR-04", "title": "Adequate resource capacity to ensure availability is maintained", "description": "Adequate resource capacity to ensure availability is maintained.", "family": "Protect (PR)"},
+
+    {"id": "DE.CM-01", "title": "Networks and network services are monitored to find potentially adverse events", "description": "Networks and network services are monitored to find potentially adverse events.", "family": "Detect (DE)"},
+    {"id": "DE.CM-02", "title": "The physical environment is monitored to find potentially adverse events", "description": "The physical environment is monitored to find potentially adverse events.", "family": "Detect (DE)"},
+    {"id": "DE.CM-03", "title": "Personnel activity and technology usage are monitored to find potentially adverse events", "description": "Personnel activity and technology usage are monitored to find potentially adverse events.", "family": "Detect (DE)"},
+    {"id": "DE.CM-06", "title": "External service provider activities and services are monitored to find potentially adverse events", "description": "External service provider activities and services are monitored to find potentially adverse events.", "family": "Detect (DE)"},
+    {"id": "DE.CM-09", "title": "Computing hardware and software, runtime environments, and their data are monitored to find potentially adverse events", "description": "Computing hardware and software, runtime environments, and their data are monitored to find potentially adverse events.", "family": "Detect (DE)"},
+
+    {"id": "DE.AE-02", "title": "Potentially adverse events are analyzed to better understand associated activities", "description": "Potentially adverse events are analyzed to better understand associated activities.", "family": "Detect (DE)"},
+    {"id": "DE.AE-03", "title": "Information is correlated from multiple sources", "description": "Information is correlated from multiple sources.", "family": "Detect (DE)"},
+    {"id": "DE.AE-04", "title": "The estimated impact and scope of adverse events are understood", "description": "The estimated impact and scope of adverse events are understood.", "family": "Detect (DE)"},
+    {"id": "DE.AE-06", "title": "Information on adverse events is provided to authorized staff and tools", "description": "Information on adverse events is provided to authorized staff and tools.", "family": "Detect (DE)"},
+    {"id": "DE.AE-07", "title": "Cyber threat intelligence and other contextual information are integrated into the analysis", "description": "Cyber threat intelligence and other contextual information are integrated into the analysis.", "family": "Detect (DE)"},
+    {"id": "DE.AE-08", "title": "Incidents are declared when adverse events meet the defined incident criteria", "description": "Incidents are declared when adverse events meet the defined incident criteria.", "family": "Detect (DE)"},
+
+    {"id": "RS.MA-01", "title": "The incident response plan is executed in coordination with relevant third parties once an incident is declared", "description": "The incident response plan is executed in coordination with relevant third parties once an incident is declared.", "family": "Respond (RS)"},
+    {"id": "RS.MA-02", "title": "Incident reports are triaged and validated", "description": "Incident reports are triaged and validated.", "family": "Respond (RS)"},
+    {"id": "RS.MA-03", "title": "Incidents are categorized and prioritized", "description": "Incidents are categorized and prioritized.", "family": "Respond (RS)"},
+    {"id": "RS.MA-04", "title": "Incidents are escalated or elevated as needed", "description": "Incidents are escalated or elevated as needed.", "family": "Respond (RS)"},
+    {"id": "RS.MA-05", "title": "The criteria for initiating incident recovery are applied", "description": "The criteria for initiating incident recovery are applied.", "family": "Respond (RS)"},
+
+    {"id": "RS.AN-03", "title": "Analysis is performed to establish what has taken place during an incident and the root cause of the incident", "description": "Analysis is performed to establish what has taken place during an incident and the root cause of the incident.", "family": "Respond (RS)"},
+    {"id": "RS.AN-06", "title": "Actions performed during an investigation are recorded, and the records' integrity and provenance are preserved", "description": "Actions performed during an investigation are recorded, and the records' integrity and provenance are preserved.", "family": "Respond (RS)"},
+    {"id": "RS.AN-07", "title": "Incident data and metadata are collected, and their integrity and provenance are preserved", "description": "Incident data and metadata are collected, and their integrity and provenance are preserved.", "family": "Respond (RS)"},
+    {"id": "RS.AN-08", "title": "An incident's magnitude is estimated and validated", "description": "An incident's magnitude is estimated and validated.", "family": "Respond (RS)"},
+
+    {"id": "RS.CO-02", "title": "Internal and external stakeholders are notified of incidents", "description": "Internal and external stakeholders are notified of incidents.", "family": "Respond (RS)"},
+    {"id": "RS.CO-03", "title": "Information is shared with designated internal and external stakeholders", "description": "Information is shared with designated internal and external stakeholders.", "family": "Respond (RS)"},
+
+    {"id": "RS.MI-01", "title": "Incidents are contained", "description": "Incidents are contained.", "family": "Respond (RS)"},
+    {"id": "RS.MI-02", "title": "Incidents are eradicated", "description": "Incidents are eradicated.", "family": "Respond (RS)"},
+
+    {"id": "RC.RP-01", "title": "The recovery portion of the incident response plan is executed once initiated from the incident response process", "description": "The recovery portion of the incident response plan is executed once initiated from the incident response process.", "family": "Recover (RC)"},
+    {"id": "RC.RP-02", "title": "Recovery actions are selected, scoped, prioritized, and performed", "description": "Recovery actions are selected, scoped, prioritized, and performed.", "family": "Recover (RC)"},
+    {"id": "RC.RP-03", "title": "The integrity of backups and other restoration assets is verified before using them for restoration", "description": "The integrity of backups and other restoration assets is verified before using them for restoration.", "family": "Recover (RC)"},
+    {"id": "RC.RP-04", "title": "Critical mission functions and cybersecurity risk management are considered to establish post-incident operational norms", "description": "Critical mission functions and cybersecurity risk management are considered to establish post-incident operational norms.", "family": "Recover (RC)"},
+    {"id": "RC.RP-05", "title": "The integrity of restored assets is verified, systems and services are restored, and normal operating status is confirmed", "description": "The integrity of restored assets is verified, systems and services are restored, and normal operating status is confirmed.", "family": "Recover (RC)"},
+    {"id": "RC.RP-06", "title": "The end of incident recovery is declared based on criteria, and incident-related documentation is completed", "description": "The end of incident recovery is declared based on criteria, and incident-related documentation is completed.", "family": "Recover (RC)"},
+
+    {"id": "RC.CO-03", "title": "Recovery activities and progress in restoring operational capabilities are communicated to internal and external stakeholders", "description": "Recovery activities and progress in restoring operational capabilities are communicated to designated internal and external stakeholders.", "family": "Recover (RC)"},
+    {"id": "RC.CO-04", "title": "Public updates on incident recovery are shared using approved methods and messaging", "description": "Public updates on incident recovery are shared using approved methods and messaging.", "family": "Recover (RC)"}
+  ]
+}

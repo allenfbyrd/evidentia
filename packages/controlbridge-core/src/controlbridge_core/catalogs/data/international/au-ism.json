@@ -1,0 +1,176 @@
+{
+  "framework_id": "au-ism",
+  "framework_name": "Australian Information Security Manual",
+  "version": "September 2024",
+  "source": "Australian Signals Directorate (ACSC) — https://cyber.gov.au/ism (Creative Commons BY 4.0)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Communications",
+    "Cryptography",
+    "Data Transfers",
+    "Database Systems",
+    "Email",
+    "Gateways",
+    "Governance",
+    "ICT Equipment",
+    "Incident Response",
+    "Media",
+    "Networking",
+    "Personnel Security",
+    "Physical Security",
+    "Principles",
+    "Software Development",
+    "System Hardening",
+    "System Management",
+    "System Monitoring",
+    "Third-Party"
+  ],
+  "controls": [
+    {
+      "id": "ISM.Gov",
+      "title": "Cyber security principles — Govern",
+      "description": "Cyber security principles — Govern",
+      "family": "Principles"
+    },
+    {
+      "id": "ISM.Protect",
+      "title": "Cyber security principles — Protect",
+      "description": "Cyber security principles — Protect",
+      "family": "Principles"
+    },
+    {
+      "id": "ISM.Detect",
+      "title": "Cyber security principles — Detect",
+      "description": "Cyber security principles — Detect",
+      "family": "Principles"
+    },
+    {
+      "id": "ISM.Respond",
+      "title": "Cyber security principles — Respond",
+      "description": "Cyber security principles — Respond",
+      "family": "Principles"
+    },
+    {
+      "id": "ISM.Strategy",
+      "title": "Guidelines for cyber security roles and governance",
+      "description": "Guidelines for cyber security roles and governance",
+      "family": "Governance"
+    },
+    {
+      "id": "ISM.PhysicalSec",
+      "title": "Guidelines for physical security",
+      "description": "Guidelines for physical security",
+      "family": "Physical Security"
+    },
+    {
+      "id": "ISM.Personnel",
+      "title": "Guidelines for personnel security",
+      "description": "Guidelines for personnel security",
+      "family": "Personnel Security"
+    },
+    {
+      "id": "ISM.CommInfra",
+      "title": "Guidelines for communications infrastructure",
+      "description": "Guidelines for communications infrastructure",
+      "family": "Communications"
+    },
+    {
+      "id": "ISM.CommSys",
+      "title": "Guidelines for communications systems",
+      "description": "Guidelines for communications systems",
+      "family": "Communications"
+    },
+    {
+      "id": "ISM.ICTEqpt",
+      "title": "Guidelines for ICT equipment",
+      "description": "Guidelines for ICT equipment",
+      "family": "ICT Equipment"
+    },
+    {
+      "id": "ISM.Media",
+      "title": "Guidelines for media",
+      "description": "Guidelines for media",
+      "family": "Media"
+    },
+    {
+      "id": "ISM.SysHardening",
+      "title": "Guidelines for system hardening",
+      "description": "Guidelines for system hardening",
+      "family": "System Hardening"
+    },
+    {
+      "id": "ISM.SysMgmt",
+      "title": "Guidelines for system management",
+      "description": "Guidelines for system management",
+      "family": "System Management"
+    },
+    {
+      "id": "ISM.SysMon",
+      "title": "Guidelines for system monitoring",
+      "description": "Guidelines for system monitoring",
+      "family": "System Monitoring"
+    },
+    {
+      "id": "ISM.Software",
+      "title": "Guidelines for software development",
+      "description": "Guidelines for software development",
+      "family": "Software Development"
+    },
+    {
+      "id": "ISM.DbSys",
+      "title": "Guidelines for database systems",
+      "description": "Guidelines for database systems",
+      "family": "Database Systems"
+    },
+    {
+      "id": "ISM.Email",
+      "title": "Guidelines for email",
+      "description": "Guidelines for email",
+      "family": "Email"
+    },
+    {
+      "id": "ISM.Networks",
+      "title": "Guidelines for networking",
+      "description": "Guidelines for networking",
+      "family": "Networking"
+    },
+    {
+      "id": "ISM.Crypto",
+      "title": "Guidelines for cryptography",
+      "description": "Guidelines for cryptography",
+      "family": "Cryptography"
+    },
+    {
+      "id": "ISM.Gateways",
+      "title": "Guidelines for gateways",
+      "description": "Guidelines for gateways",
+      "family": "Gateways"
+    },
+    {
+      "id": "ISM.DataTrans",
+      "title": "Guidelines for data transfers",
+      "description": "Guidelines for data transfers",
+      "family": "Data Transfers"
+    },
+    {
+      "id": "ISM.CyberIncident",
+      "title": "Guidelines for cyber security incidents",
+      "description": "Guidelines for cyber security incidents",
+      "family": "Incident Response"
+    },
+    {
+      "id": "ISM.OutSysMgmt",
+      "title": "Guidelines for outsourcing",
+      "description": "Guidelines for outsourcing",
+      "family": "Third-Party"
+    },
+    {
+      "id": "ISM.Procure",
+      "title": "Guidelines for procurement and outsourcing",
+      "description": "Guidelines for procurement and outsourcing",
+      "family": "Third-Party"
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "framework_id": "eu-ai-act",
+  "framework_name": "EU AI Act (Regulation 2024/1689)",
+  "version": "Regulation (EU) 2024/1689",
+  "source": "Official Journal of the European Union — EU AI Act (regulation text)",
+  "tier": "D",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Prohibitions",
+    "High-Risk AI Systems",
+    "Deployer Obligations",
+    "Transparency",
+    "GPAI",
+    "Post-Market",
+    "Penalties"
+  ],
+  "controls": [
+    {
+      "id": "AIA.Art.5",
+      "title": "Prohibited AI practices",
+      "description": "Prohibited AI practices",
+      "family": "Prohibitions"
+    },
+    {
+      "id": "AIA.Art.9",
+      "title": "Risk management system",
+      "description": "Risk management system",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.10",
+      "title": "Data and data governance",
+      "description": "Data and data governance",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.11",
+      "title": "Technical documentation",
+      "description": "Technical documentation",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.12",
+      "title": "Record-keeping (logs)",
+      "description": "Record-keeping (logs)",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.13",
+      "title": "Transparency and provision of information to deployers",
+      "description": "Transparency and provision of information to deployers",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.14",
+      "title": "Human oversight",
+      "description": "Human oversight",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.15",
+      "title": "Accuracy, robustness and cybersecurity",
+      "description": "Accuracy, robustness and cybersecurity",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.16",
+      "title": "Obligations of providers of high-risk AI systems",
+      "description": "Obligations of providers of high-risk AI systems",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.17",
+      "title": "Quality management system",
+      "description": "Quality management system",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.18",
+      "title": "Documentation keeping",
+      "description": "Documentation keeping",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.19",
+      "title": "Automatically generated logs",
+      "description": "Automatically generated logs",
+      "family": "High-Risk AI Systems"
+    },
+    {
+      "id": "AIA.Art.26",
+      "title": "Obligations of deployers of high-risk AI systems",
+      "description": "Obligations of deployers of high-risk AI systems",
+      "family": "Deployer Obligations"
+    },
+    {
+      "id": "AIA.Art.27",
+      "title": "Fundamental rights impact assessment (FRIA)",
+      "description": "Fundamental rights impact assessment (FRIA)",
+      "family": "Deployer Obligations"
+    },
+    {
+      "id": "AIA.Art.50",
+      "title": "Transparency obligations for providers and deployers of certain AI systems",
+      "description": "Transparency obligations for providers and deployers of certain AI systems",
+      "family": "Transparency"
+    },
+    {
+      "id": "AIA.Art.51",
+      "title": "Classification of general-purpose AI models as GPAI models with systemic risk",
+      "description": "Classification of general-purpose AI models as GPAI models with systemic risk",
+      "family": "GPAI"
+    },
+    {
+      "id": "AIA.Art.53",
+      "title": "Obligations for providers of general-purpose AI models",
+      "description": "Obligations for providers of general-purpose AI models",
+      "family": "GPAI"
+    },
+    {
+      "id": "AIA.Art.55",
+      "title": "Obligations for providers of general-purpose AI models with systemic risk",
+      "description": "Obligations for providers of general-purpose AI models with systemic risk",
+      "family": "GPAI"
+    },
+    {
+      "id": "AIA.Art.72",
+      "title": "Post-market monitoring system",
+      "description": "Post-market monitoring system",
+      "family": "Post-Market"
+    },
+    {
+      "id": "AIA.Art.73",
+      "title": "Reporting of serious incidents",
+      "description": "Reporting of serious incidents",
+      "family": "Post-Market"
+    },
+    {
+      "id": "AIA.Art.99",
+      "title": "Penalties",
+      "description": "Penalties",
+      "family": "Penalties"
+    }
+  ]
+}

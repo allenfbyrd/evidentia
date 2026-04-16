@@ -1,0 +1,104 @@
+{
+  "framework_id": "us-ut-ucpa",
+  "framework_name": "Utah Consumer Privacy Act (UCPA)",
+  "version": "Utah Code § 13-61 et seq.",
+  "source": "Utah Legislature (US state statute, not copyrightable under government edicts doctrine)",
+  "tier": "D",
+  "category": "obligation",
+  "placeholder": false,
+  "regime": {
+    "jurisdiction": "US-UT",
+    "effective_date": "2023-12-31",
+    "subject_rights": [
+      "access",
+      "delete",
+      "portability",
+      "opt-out-sale"
+    ],
+    "private_right_of_action": false,
+    "cure_period_days": 30,
+    "applicability_revenue_threshold_usd": 25000000,
+    "applicability_record_threshold": 100000,
+    "regulator": "Utah Attorney General"
+  },
+  "obligations": [
+    {
+      "id": "UCPA.ACCESS",
+      "title": "Right to access personal information",
+      "description": "Right to access personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "UCPA.DELETE",
+      "title": "Right to delete personal information",
+      "description": "Right to delete personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "UCPA.CORRECT",
+      "title": "Right to correct inaccurate personal information",
+      "description": "Right to correct inaccurate personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "UCPA.PORTABILITY",
+      "title": "Right to portability of personal information",
+      "description": "Right to portability of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "UCPA.OPT-OUT-SALE",
+      "title": "Right to opt out of sale of personal information",
+      "description": "Right to opt out of sale of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "UCPA.OPT-OUT-PROFILING",
+      "title": "Right to opt out of significant automated profiling",
+      "description": "Right to opt out of significant automated profiling",
+      "category": "subject-rights"
+    },
+    {
+      "id": "UCPA.NOTICE",
+      "title": "Privacy notice / disclosure requirements at or before collection",
+      "description": "Privacy notice / disclosure requirements at or before collection",
+      "category": "notice"
+    },
+    {
+      "id": "UCPA.CONSENT-SENSITIVE",
+      "title": "Consent (or similar) required for processing sensitive data",
+      "description": "Consent (or similar) required for processing sensitive data",
+      "category": "consent"
+    },
+    {
+      "id": "UCPA.MINIMIZATION",
+      "title": "Purpose limitation and data minimization",
+      "description": "Purpose limitation and data minimization",
+      "category": "principles"
+    },
+    {
+      "id": "UCPA.SECURITY",
+      "title": "Reasonable security practices to protect personal information",
+      "description": "Reasonable security practices to protect personal information",
+      "category": "security"
+    },
+    {
+      "id": "UCPA.DPA-CONTRACT",
+      "title": "Contractual requirements for processors and service providers",
+      "description": "Contractual requirements for processors and service providers",
+      "category": "vendor"
+    },
+    {
+      "id": "UCPA.DPA-ASSESSMENT",
+      "title": "Data protection impact assessment for high-risk processing",
+      "description": "Data protection impact assessment for high-risk processing",
+      "category": "accountability"
+    },
+    {
+      "id": "UCPA.NON-DISCRIMINATION",
+      "title": "Prohibition on discrimination against consumers exercising rights",
+      "description": "Prohibition on discrimination against consumers exercising rights",
+      "category": "subject-rights"
+    }
+  ]
+}

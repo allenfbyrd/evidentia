@@ -1,0 +1,87 @@
+{
+  "framework_id": "iso-22301-2019",
+  "framework_name": "ISO 22301:2019 — Business Continuity Management System",
+  "version": "2019",
+  "source": "ISO — ISO 22301:2019",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "Clause 4-10 BCMS requirements"
+  ],
+  "controls": [
+    {
+      "id": "Clause.4",
+      "title": "BCMS clause 4",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Clause 4-10 BCMS requirements",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/75106"
+    },
+    {
+      "id": "Clause.5",
+      "title": "BCMS clause 5",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Clause 4-10 BCMS requirements",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/75106"
+    },
+    {
+      "id": "Clause.6",
+      "title": "BCMS clause 6",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Clause 4-10 BCMS requirements",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/75106"
+    },
+    {
+      "id": "Clause.7",
+      "title": "BCMS clause 7",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Clause 4-10 BCMS requirements",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/75106"
+    },
+    {
+      "id": "Clause.8",
+      "title": "BCMS clause 8",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Clause 4-10 BCMS requirements",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/75106"
+    },
+    {
+      "id": "Clause.9",
+      "title": "BCMS clause 9",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Clause 4-10 BCMS requirements",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/75106"
+    },
+    {
+      "id": "Clause.10",
+      "title": "BCMS clause 10",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "Clause 4-10 BCMS requirements",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.iso.org/standard/75106"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© ISO.",
+  "license_url": "https://www.iso.org/standard/75106"
+}

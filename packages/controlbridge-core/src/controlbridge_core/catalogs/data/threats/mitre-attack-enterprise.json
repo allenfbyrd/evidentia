@@ -1,0 +1,615 @@
+{
+  "framework_id": "mitre-attack-enterprise",
+  "framework_name": "MITRE ATT&CK Enterprise",
+  "version": "v15.1 (2024)",
+  "source": "MITRE Corporation — https://attack.mitre.org (free to use with attribution)",
+  "tier": "B",
+  "category": "technique",
+  "placeholder": false,
+  "techniques": [
+    {
+      "id": "T1078",
+      "name": "Valid Accounts",
+      "description": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
+      "tactic_names": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Defense Evasion"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1078.001",
+      "name": "Default Accounts",
+      "description": "Adversaries may obtain and abuse credentials of a default account as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
+      "tactic_names": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Defense Evasion"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1078",
+      "platforms": []
+    },
+    {
+      "id": "T1078.002",
+      "name": "Domain Accounts",
+      "description": "Adversaries may obtain and abuse credentials of a domain account as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
+      "tactic_names": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Defense Evasion"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1078",
+      "platforms": []
+    },
+    {
+      "id": "T1078.003",
+      "name": "Local Accounts",
+      "description": "Adversaries may obtain and abuse credentials of a local account as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
+      "tactic_names": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Defense Evasion"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1078",
+      "platforms": []
+    },
+    {
+      "id": "T1078.004",
+      "name": "Cloud Accounts",
+      "description": "Valid accounts in cloud environments may allow adversaries to perform actions to achieve Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
+      "tactic_names": [
+        "Initial Access",
+        "Persistence",
+        "Privilege Escalation",
+        "Defense Evasion"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1078",
+      "platforms": []
+    },
+    {
+      "id": "T1566",
+      "name": "Phishing",
+      "description": "Adversaries may send phishing messages to gain access to victim systems.",
+      "tactic_names": [
+        "Initial Access"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1566.001",
+      "name": "Spearphishing Attachment",
+      "description": "Adversaries may send spearphishing emails with a malicious attachment in an attempt to gain access to victim systems.",
+      "tactic_names": [
+        "Initial Access"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1566",
+      "platforms": []
+    },
+    {
+      "id": "T1566.002",
+      "name": "Spearphishing Link",
+      "description": "Adversaries may send spearphishing emails with a malicious link in an attempt to gain access to victim systems.",
+      "tactic_names": [
+        "Initial Access"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1566",
+      "platforms": []
+    },
+    {
+      "id": "T1190",
+      "name": "Exploit Public-Facing Application",
+      "description": "Adversaries may attempt to exploit a weakness in an Internet-facing host or system to initially access a network.",
+      "tactic_names": [
+        "Initial Access"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1133",
+      "name": "External Remote Services",
+      "description": "Adversaries may leverage external-facing remote services to initially access and/or persist within a network.",
+      "tactic_names": [
+        "Initial Access",
+        "Persistence"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1059",
+      "name": "Command and Scripting Interpreter",
+      "description": "Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries.",
+      "tactic_names": [
+        "Execution"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1059.001",
+      "name": "PowerShell",
+      "description": "Adversaries may abuse PowerShell commands and scripts for execution.",
+      "tactic_names": [
+        "Execution"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1059",
+      "platforms": []
+    },
+    {
+      "id": "T1059.003",
+      "name": "Windows Command Shell",
+      "description": "Adversaries may abuse the Windows command shell for execution.",
+      "tactic_names": [
+        "Execution"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1059",
+      "platforms": []
+    },
+    {
+      "id": "T1204",
+      "name": "User Execution",
+      "description": "An adversary may rely upon specific actions by a user in order to gain execution.",
+      "tactic_names": [
+        "Execution"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1053",
+      "name": "Scheduled Task/Job",
+      "description": "Adversaries may abuse task scheduling functionality to facilitate initial or recurring execution of malicious code.",
+      "tactic_names": [
+        "Execution",
+        "Persistence",
+        "Privilege Escalation"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1547",
+      "name": "Boot or Logon Autostart Execution",
+      "description": "Adversaries may configure system settings to automatically execute a program during system boot or logon.",
+      "tactic_names": [
+        "Persistence",
+        "Privilege Escalation"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1068",
+      "name": "Exploitation for Privilege Escalation",
+      "description": "Adversaries may exploit software vulnerabilities in an attempt to elevate privileges.",
+      "tactic_names": [
+        "Privilege Escalation"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1134",
+      "name": "Access Token Manipulation",
+      "description": "Adversaries may modify access tokens to operate under a different user or system security context.",
+      "tactic_names": [
+        "Defense Evasion",
+        "Privilege Escalation"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1562",
+      "name": "Impair Defenses",
+      "description": "Adversaries may maliciously modify components of a victim environment in order to hinder or disable defensive mechanisms.",
+      "tactic_names": [
+        "Defense Evasion"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1562.001",
+      "name": "Disable or Modify Tools",
+      "description": "Adversaries may modify and/or disable security tools to avoid possible detection of their malware/tools and activities.",
+      "tactic_names": [
+        "Defense Evasion"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1562",
+      "platforms": []
+    },
+    {
+      "id": "T1027",
+      "name": "Obfuscated Files or Information",
+      "description": "Adversaries may attempt to make an executable or file difficult to discover or analyze by encrypting, encoding, or otherwise obfuscating its contents.",
+      "tactic_names": [
+        "Defense Evasion"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1003",
+      "name": "OS Credential Dumping",
+      "description": "Adversaries may attempt to dump credentials to obtain account login and credential material.",
+      "tactic_names": [
+        "Credential Access"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1003.001",
+      "name": "LSASS Memory",
+      "description": "Adversaries may attempt to access credential material stored in the process memory of the Local Security Authority Subsystem Service (LSASS).",
+      "tactic_names": [
+        "Credential Access"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1003",
+      "platforms": []
+    },
+    {
+      "id": "T1110",
+      "name": "Brute Force",
+      "description": "Adversaries may use brute force techniques to gain access to accounts when passwords are unknown or when password hashes are obtained.",
+      "tactic_names": [
+        "Credential Access"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1552",
+      "name": "Unsecured Credentials",
+      "description": "Adversaries may search compromised systems to find and obtain insecurely stored credentials.",
+      "tactic_names": [
+        "Credential Access"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1082",
+      "name": "System Information Discovery",
+      "description": "An adversary may attempt to get detailed information about the operating system and hardware.",
+      "tactic_names": [
+        "Discovery"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1083",
+      "name": "File and Directory Discovery",
+      "description": "Adversaries may enumerate files and directories or may search in specific locations of a host or network share for certain information.",
+      "tactic_names": [
+        "Discovery"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1018",
+      "name": "Remote System Discovery",
+      "description": "Adversaries may attempt to get a listing of other systems by IP address, hostname, or other logical identifier on a network.",
+      "tactic_names": [
+        "Discovery"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1021",
+      "name": "Remote Services",
+      "description": "Adversaries may use valid accounts to log into a service that accepts remote connections.",
+      "tactic_names": [
+        "Lateral Movement"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1021.001",
+      "name": "Remote Desktop Protocol",
+      "description": "Adversaries may use Valid Accounts to log into a computer using the Remote Desktop Protocol (RDP).",
+      "tactic_names": [
+        "Lateral Movement"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1021",
+      "platforms": []
+    },
+    {
+      "id": "T1005",
+      "name": "Data from Local System",
+      "description": "Adversaries may search local system sources to find files of interest and sensitive data prior to Exfiltration.",
+      "tactic_names": [
+        "Collection"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1560",
+      "name": "Archive Collected Data",
+      "description": "An adversary may compress and/or encrypt data that is collected prior to exfiltration.",
+      "tactic_names": [
+        "Collection"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1071",
+      "name": "Application Layer Protocol",
+      "description": "Adversaries may communicate using OSI application layer protocols to avoid detection/network filtering by blending in with existing traffic.",
+      "tactic_names": [
+        "Command and Control"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1071.001",
+      "name": "Web Protocols",
+      "description": "Adversaries may communicate using application layer protocols associated with web traffic (HTTP/HTTPS) to avoid detection.",
+      "tactic_names": [
+        "Command and Control"
+      ],
+      "is_subtechnique": true,
+      "parent_technique_id": "T1071",
+      "platforms": []
+    },
+    {
+      "id": "T1105",
+      "name": "Ingress Tool Transfer",
+      "description": "Adversaries may transfer tools or other files from an external system into a compromised environment.",
+      "tactic_names": [
+        "Command and Control"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1041",
+      "name": "Exfiltration Over C2 Channel",
+      "description": "Adversaries may steal data by exfiltrating it over an existing command and control channel.",
+      "tactic_names": [
+        "Exfiltration"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1567",
+      "name": "Exfiltration Over Web Service",
+      "description": "Adversaries may use an existing, legitimate external Web service to exfiltrate data rather than their primary command and control channel.",
+      "tactic_names": [
+        "Exfiltration"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1486",
+      "name": "Data Encrypted for Impact",
+      "description": "Adversaries may encrypt data on target systems or on large numbers of systems in a network to interrupt availability to system and network resources.",
+      "tactic_names": [
+        "Impact"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1490",
+      "name": "Inhibit System Recovery",
+      "description": "Adversaries may delete or remove built-in data and turn off services designed to aid in the recovery of a corrupted system to prevent recovery.",
+      "tactic_names": [
+        "Impact"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1489",
+      "name": "Service Stop",
+      "description": "Adversaries may stop or disable services on a system to render those services unavailable to legitimate users.",
+      "tactic_names": [
+        "Impact"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    },
+    {
+      "id": "T1485",
+      "name": "Data Destruction",
+      "description": "Adversaries may destroy data and files on specific systems or in large numbers on a network to interrupt availability to systems, services, and network resources.",
+      "tactic_names": [
+        "Impact"
+      ],
+      "is_subtechnique": false,
+      "parent_technique_id": null,
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ]
+    }
+  ],
+  "tactics": [
+    "Reconnaissance",
+    "Resource Development",
+    "Initial Access",
+    "Execution",
+    "Persistence",
+    "Privilege Escalation",
+    "Defense Evasion",
+    "Credential Access",
+    "Discovery",
+    "Lateral Movement",
+    "Collection",
+    "Command and Control",
+    "Exfiltration",
+    "Impact"
+  ],
+  "license_terms": "© MITRE Corporation. ATT&CK is freely available under MITRE's terms of use."
+}

@@ -1,0 +1,150 @@
+{
+  "framework_id": "irs-1075",
+  "framework_name": "IRS Publication 1075 — Tax Information Security Guidelines",
+  "version": "November 2021",
+  "source": "IRS Publication 1075 (U.S. federal agency document)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Management",
+    "Operational",
+    "Technical",
+    "Disclosure",
+    "Protection"
+  ],
+  "controls": [
+    {
+      "id": "9.3.1",
+      "title": "Access Control Policy and Procedures",
+      "description": "Access Control Policy and Procedures",
+      "family": "Management"
+    },
+    {
+      "id": "9.3.2",
+      "title": "Awareness and Training Policy and Procedures",
+      "description": "Awareness and Training Policy and Procedures",
+      "family": "Management"
+    },
+    {
+      "id": "9.3.3",
+      "title": "Audit and Accountability Policy and Procedures",
+      "description": "Audit and Accountability Policy and Procedures",
+      "family": "Management"
+    },
+    {
+      "id": "9.3.4",
+      "title": "Security Assessment and Authorization",
+      "description": "Security Assessment and Authorization",
+      "family": "Management"
+    },
+    {
+      "id": "9.3.5",
+      "title": "Configuration Management",
+      "description": "Configuration Management",
+      "family": "Management"
+    },
+    {
+      "id": "9.3.6",
+      "title": "Contingency Planning",
+      "description": "Contingency Planning",
+      "family": "Operational"
+    },
+    {
+      "id": "9.3.7",
+      "title": "Identification and Authentication",
+      "description": "Identification and Authentication",
+      "family": "Technical"
+    },
+    {
+      "id": "9.3.8",
+      "title": "Incident Response",
+      "description": "Incident Response",
+      "family": "Operational"
+    },
+    {
+      "id": "9.3.9",
+      "title": "Maintenance",
+      "description": "Maintenance",
+      "family": "Operational"
+    },
+    {
+      "id": "9.3.10",
+      "title": "Media Protection",
+      "description": "Media Protection",
+      "family": "Operational"
+    },
+    {
+      "id": "9.3.11",
+      "title": "Physical and Environmental Protection",
+      "description": "Physical and Environmental Protection",
+      "family": "Operational"
+    },
+    {
+      "id": "9.3.12",
+      "title": "Planning",
+      "description": "Planning",
+      "family": "Management"
+    },
+    {
+      "id": "9.3.13",
+      "title": "Personnel Security",
+      "description": "Personnel Security",
+      "family": "Operational"
+    },
+    {
+      "id": "9.3.14",
+      "title": "Risk Assessment",
+      "description": "Risk Assessment",
+      "family": "Management"
+    },
+    {
+      "id": "9.3.15",
+      "title": "System and Services Acquisition",
+      "description": "System and Services Acquisition",
+      "family": "Management"
+    },
+    {
+      "id": "9.3.16",
+      "title": "System and Communications Protection",
+      "description": "System and Communications Protection",
+      "family": "Technical"
+    },
+    {
+      "id": "9.3.17",
+      "title": "System and Information Integrity",
+      "description": "System and Information Integrity",
+      "family": "Operational"
+    },
+    {
+      "id": "9.3.18",
+      "title": "Program Management",
+      "description": "Program Management",
+      "family": "Management"
+    },
+    {
+      "id": "9.4",
+      "title": "Disclosure to Contractors",
+      "description": "Disclosure to Contractors",
+      "family": "Disclosure"
+    },
+    {
+      "id": "9.5",
+      "title": "Protection of FTI in Transit",
+      "description": "Protection of FTI in Transit",
+      "family": "Protection"
+    },
+    {
+      "id": "9.6",
+      "title": "Secure Storage of FTI",
+      "description": "Secure Storage of FTI",
+      "family": "Protection"
+    },
+    {
+      "id": "9.7",
+      "title": "Secure Disposal of FTI",
+      "description": "Secure Disposal of FTI",
+      "family": "Protection"
+    }
+  ]
+}

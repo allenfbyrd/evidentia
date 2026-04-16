@@ -1,0 +1,129 @@
+{
+  "framework_id": "glba-safeguards",
+  "framework_name": "GLBA Safeguards Rule (16 CFR § 314)",
+  "version": "2023 (Notification Amendment)",
+  "source": "FTC — 16 CFR 314 (U.S. federal regulation)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Standards",
+    "Elements"
+  ],
+  "controls": [
+    {
+      "id": "314.3",
+      "title": "Standards for safeguarding customer information",
+      "description": "Standards for safeguarding customer information",
+      "family": "Standards"
+    },
+    {
+      "id": "314.4(a)",
+      "title": "Designate a qualified individual responsible for the information security program",
+      "description": "Designate a qualified individual responsible for the information security program",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(b)(1)",
+      "title": "Identify reasonably foreseeable internal and external risks",
+      "description": "Identify reasonably foreseeable internal and external risks",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(b)(2)",
+      "title": "Assess likelihood and potential damage of risks",
+      "description": "Assess likelihood and potential damage of risks",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(b)(3)",
+      "title": "Assess sufficiency of safeguards in place",
+      "description": "Assess sufficiency of safeguards in place",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(c)(1)",
+      "title": "Implement access controls",
+      "description": "Implement access controls",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(c)(2)",
+      "title": "Identify and manage data, personnel, devices, systems, and facilities",
+      "description": "Identify and manage data, personnel, devices, systems, and facilities",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(c)(3)",
+      "title": "Encrypt all customer information at rest and in transit",
+      "description": "Encrypt all customer information at rest and in transit",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(c)(4)",
+      "title": "Adopt secure development practices",
+      "description": "Adopt secure development practices",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(c)(5)",
+      "title": "Implement MFA for anyone accessing customer information",
+      "description": "Implement MFA for anyone accessing customer information",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(c)(6)",
+      "title": "Securely dispose of customer information",
+      "description": "Securely dispose of customer information",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(c)(7)",
+      "title": "Adopt procedures for change management",
+      "description": "Adopt procedures for change management",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(c)(8)",
+      "title": "Monitor and log authorized user activity",
+      "description": "Monitor and log authorized user activity",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(d)(1)",
+      "title": "Continuous monitoring or annual penetration testing + biannual vulnerability assessment",
+      "description": "Continuous monitoring or annual penetration testing + biannual vulnerability assessment",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(e)",
+      "title": "Implement policies and procedures for secure disposal",
+      "description": "Implement policies and procedures for secure disposal",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(f)",
+      "title": "Monitor, evaluate, and adjust the information security program",
+      "description": "Monitor, evaluate, and adjust the information security program",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(g)",
+      "title": "Establish an incident response plan",
+      "description": "Establish an incident response plan",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(h)",
+      "title": "Report to the board of directors annually",
+      "description": "Report to the board of directors annually",
+      "family": "Elements"
+    },
+    {
+      "id": "314.4(i)",
+      "title": "Notify FTC of security events affecting 500+ consumers within 30 days",
+      "description": "Notify FTC of security events affecting 500+ consumers within 30 days",
+      "family": "Elements"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "framework_id": "hipaa-breach",
+  "framework_name": "HIPAA Breach Notification Rule (45 CFR § 164 Subpart D)",
+  "version": "2013",
+  "source": "HHS OCR — 45 CFR 164 Subpart D (U.S. federal regulation)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "General",
+    "Notifications",
+    "Administrative"
+  ],
+  "controls": [
+    {
+      "id": "164.400",
+      "title": "Applicability",
+      "description": "Applicability",
+      "family": "General"
+    },
+    {
+      "id": "164.402",
+      "title": "Definitions — breach, unsecured PHI",
+      "description": "Definitions — breach, unsecured PHI",
+      "family": "General"
+    },
+    {
+      "id": "164.404",
+      "title": "Notification to individuals",
+      "description": "Notification to individuals",
+      "family": "Notifications"
+    },
+    {
+      "id": "164.406",
+      "title": "Notification to the media (500+ affected)",
+      "description": "Notification to the media (500+ affected)",
+      "family": "Notifications"
+    },
+    {
+      "id": "164.408",
+      "title": "Notification to the Secretary",
+      "description": "Notification to the Secretary",
+      "family": "Notifications"
+    },
+    {
+      "id": "164.410",
+      "title": "Notification by a business associate",
+      "description": "Notification by a business associate",
+      "family": "Notifications"
+    },
+    {
+      "id": "164.412",
+      "title": "Law enforcement delay",
+      "description": "Law enforcement delay",
+      "family": "Administrative"
+    },
+    {
+      "id": "164.414",
+      "title": "Administrative requirements and burden of proof",
+      "description": "Administrative requirements and burden of proof",
+      "family": "Administrative"
+    }
+  ]
+}

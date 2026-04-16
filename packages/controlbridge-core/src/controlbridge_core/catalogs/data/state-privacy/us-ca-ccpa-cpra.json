@@ -1,0 +1,116 @@
+{
+  "framework_id": "us-ca-ccpa-cpra",
+  "framework_name": "California Consumer Privacy Act / California Privacy Rights Act (CCPA/CPRA)",
+  "version": "Cal. Civ. Code § 1798.100 et seq. (CCPA 2020; CPRA amendments 2023)",
+  "source": "California Office of the Attorney General / California Privacy Protection Agency (US state statute, not copyrightable under government edicts doctrine)",
+  "tier": "D",
+  "category": "obligation",
+  "placeholder": false,
+  "regime": {
+    "jurisdiction": "US-CA",
+    "effective_date": "2020-01-01",
+    "amendments": [
+      "CPRA 2023"
+    ],
+    "subject_rights": [
+      "access",
+      "delete",
+      "correct",
+      "portability",
+      "opt-out-sale",
+      "opt-out-sharing",
+      "opt-out-profiling",
+      "limit-sensitive",
+      "non-discrimination"
+    ],
+    "data_minimization_required": true,
+    "dpia_required": true,
+    "breach_notification_threshold_days": null,
+    "private_right_of_action": true,
+    "cure_period_days": null,
+    "applicability_revenue_threshold_usd": 25000000,
+    "applicability_record_threshold": 100000,
+    "applicability_revenue_share_from_data": 0.5,
+    "regulator": "California Privacy Protection Agency (CPPA)"
+  },
+  "obligations": [
+    {
+      "id": "CCPA.ACCESS",
+      "title": "Right to access personal information",
+      "description": "Right to access personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CCPA.DELETE",
+      "title": "Right to delete personal information",
+      "description": "Right to delete personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CCPA.CORRECT",
+      "title": "Right to correct inaccurate personal information",
+      "description": "Right to correct inaccurate personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CCPA.PORTABILITY",
+      "title": "Right to portability of personal information",
+      "description": "Right to portability of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CCPA.OPT-OUT-SALE",
+      "title": "Right to opt out of sale of personal information",
+      "description": "Right to opt out of sale of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CCPA.OPT-OUT-PROFILING",
+      "title": "Right to opt out of significant automated profiling",
+      "description": "Right to opt out of significant automated profiling",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CCPA.NOTICE",
+      "title": "Privacy notice / disclosure requirements at or before collection",
+      "description": "Privacy notice / disclosure requirements at or before collection",
+      "category": "notice"
+    },
+    {
+      "id": "CCPA.CONSENT-SENSITIVE",
+      "title": "Consent (or similar) required for processing sensitive data",
+      "description": "Consent (or similar) required for processing sensitive data",
+      "category": "consent"
+    },
+    {
+      "id": "CCPA.MINIMIZATION",
+      "title": "Purpose limitation and data minimization",
+      "description": "Purpose limitation and data minimization",
+      "category": "principles"
+    },
+    {
+      "id": "CCPA.SECURITY",
+      "title": "Reasonable security practices to protect personal information",
+      "description": "Reasonable security practices to protect personal information",
+      "category": "security"
+    },
+    {
+      "id": "CCPA.DPA-CONTRACT",
+      "title": "Contractual requirements for processors and service providers",
+      "description": "Contractual requirements for processors and service providers",
+      "category": "vendor"
+    },
+    {
+      "id": "CCPA.DPA-ASSESSMENT",
+      "title": "Data protection impact assessment for high-risk processing",
+      "description": "Data protection impact assessment for high-risk processing",
+      "category": "accountability"
+    },
+    {
+      "id": "CCPA.NON-DISCRIMINATION",
+      "title": "Prohibition on discrimination against consumers exercising rights",
+      "description": "Prohibition on discrimination against consumers exercising rights",
+      "category": "subject-rights"
+    }
+  ]
+}

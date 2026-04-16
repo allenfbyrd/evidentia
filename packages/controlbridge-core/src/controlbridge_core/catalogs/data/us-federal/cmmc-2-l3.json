@@ -1,0 +1,807 @@
+{
+  "framework_id": "cmmc-2-l3",
+  "framework_name": "CMMC 2.0 Level 3 (Expert)",
+  "version": "2.0 (2024 Final Rule)",
+  "source": "DoD CIO — https://dodcio.defense.gov/CMMC/. Level 3 = Level 2 + subset of NIST SP 800-172 enhanced requirements.",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Access Control",
+    "Audit and Accountability",
+    "Awareness and Training",
+    "Configuration Management",
+    "Identification and Authentication",
+    "Incident Response",
+    "Maintenance",
+    "Media Protection",
+    "Personnel Security",
+    "Physical Protection",
+    "Risk Assessment",
+    "Security Assessment",
+    "System and Communications Protection",
+    "System and Information Integrity"
+  ],
+  "controls": [
+    {
+      "id": "CMMC.L2-3.1.1",
+      "title": "Limit system access to authorized users",
+      "description": "Limit system access to authorized users",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.2",
+      "title": "Limit system access to the types of transactions and functions that authorized users are permitted to execute",
+      "description": "Limit system access to the types of transactions and functions that authorized users are permitted to execute",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.3",
+      "title": "Control the flow of CUI in accordance with approved authorizations",
+      "description": "Control the flow of CUI in accordance with approved authorizations",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.4",
+      "title": "Separate the duties of individuals to reduce the risk of malevolent activity without collusion",
+      "description": "Separate the duties of individuals to reduce the risk of malevolent activity without collusion",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.5",
+      "title": "Employ the principle of least privilege",
+      "description": "Employ the principle of least privilege",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.6",
+      "title": "Use non-privileged accounts or roles when accessing nonsecurity functions",
+      "description": "Use non-privileged accounts or roles when accessing nonsecurity functions",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.7",
+      "title": "Prevent non-privileged users from executing privileged functions",
+      "description": "Prevent non-privileged users from executing privileged functions",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.8",
+      "title": "Limit unsuccessful logon attempts",
+      "description": "Limit unsuccessful logon attempts",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.9",
+      "title": "Provide privacy and security notices consistent with applicable CUI rules",
+      "description": "Provide privacy and security notices consistent with applicable CUI rules",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.10",
+      "title": "Use session lock with pattern-hiding displays",
+      "description": "Use session lock with pattern-hiding displays",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.11",
+      "title": "Terminate user sessions after a defined condition",
+      "description": "Terminate user sessions after a defined condition",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.12",
+      "title": "Monitor and control remote access sessions",
+      "description": "Monitor and control remote access sessions",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.13",
+      "title": "Employ cryptographic mechanisms to protect remote access sessions",
+      "description": "Employ cryptographic mechanisms to protect remote access sessions",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.14",
+      "title": "Route remote access via managed access control points",
+      "description": "Route remote access via managed access control points",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.15",
+      "title": "Authorize remote execution of privileged commands",
+      "description": "Authorize remote execution of privileged commands",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.16",
+      "title": "Authorize wireless access prior to allowing connections",
+      "description": "Authorize wireless access prior to allowing connections",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.17",
+      "title": "Protect wireless access using authentication and encryption",
+      "description": "Protect wireless access using authentication and encryption",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.18",
+      "title": "Control connection of mobile devices",
+      "description": "Control connection of mobile devices",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.19",
+      "title": "Encrypt CUI on mobile devices and mobile computing platforms",
+      "description": "Encrypt CUI on mobile devices and mobile computing platforms",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.20",
+      "title": "Verify and control/limit connections to external systems",
+      "description": "Verify and control/limit connections to external systems",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.21",
+      "title": "Limit use of organizational portable storage devices on external systems",
+      "description": "Limit use of organizational portable storage devices on external systems",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.1.22",
+      "title": "Control CUI posted or processed on publicly accessible systems",
+      "description": "Control CUI posted or processed on publicly accessible systems",
+      "family": "Access Control"
+    },
+    {
+      "id": "CMMC.L2-3.2.1",
+      "title": "Ensure personnel are aware of security risks",
+      "description": "Ensure personnel are aware of security risks",
+      "family": "Awareness and Training"
+    },
+    {
+      "id": "CMMC.L2-3.2.2",
+      "title": "Ensure personnel are trained for their security-related duties",
+      "description": "Ensure personnel are trained for their security-related duties",
+      "family": "Awareness and Training"
+    },
+    {
+      "id": "CMMC.L2-3.2.3",
+      "title": "Provide insider threat awareness training",
+      "description": "Provide insider threat awareness training",
+      "family": "Awareness and Training"
+    },
+    {
+      "id": "CMMC.L2-3.3.1",
+      "title": "Create and retain system audit logs",
+      "description": "Create and retain system audit logs",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.3.2",
+      "title": "Ensure actions of individual users can be uniquely traced",
+      "description": "Ensure actions of individual users can be uniquely traced",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.3.3",
+      "title": "Review and update logged events",
+      "description": "Review and update logged events",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.3.4",
+      "title": "Alert in the event of an audit logging process failure",
+      "description": "Alert in the event of an audit logging process failure",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.3.5",
+      "title": "Correlate audit record review, analysis, and reporting",
+      "description": "Correlate audit record review, analysis, and reporting",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.3.6",
+      "title": "Provide audit record reduction and report generation",
+      "description": "Provide audit record reduction and report generation",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.3.7",
+      "title": "Synchronize internal system clocks",
+      "description": "Synchronize internal system clocks",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.3.8",
+      "title": "Protect audit information and audit logging tools",
+      "description": "Protect audit information and audit logging tools",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.3.9",
+      "title": "Limit management of audit logging functionality to privileged users",
+      "description": "Limit management of audit logging functionality to privileged users",
+      "family": "Audit and Accountability"
+    },
+    {
+      "id": "CMMC.L2-3.4.1",
+      "title": "Establish and maintain baseline configurations and inventories",
+      "description": "Establish and maintain baseline configurations and inventories",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.4.2",
+      "title": "Establish and enforce security configuration settings",
+      "description": "Establish and enforce security configuration settings",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.4.3",
+      "title": "Track, review, approve, and log changes to systems",
+      "description": "Track, review, approve, and log changes to systems",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.4.4",
+      "title": "Analyze the security impact of changes prior to implementation",
+      "description": "Analyze the security impact of changes prior to implementation",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.4.5",
+      "title": "Define, document, approve, and enforce access restrictions for changes",
+      "description": "Define, document, approve, and enforce access restrictions for changes",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.4.6",
+      "title": "Employ the principle of least functionality",
+      "description": "Employ the principle of least functionality",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.4.7",
+      "title": "Restrict use of nonessential programs, functions, ports, protocols, and services",
+      "description": "Restrict use of nonessential programs, functions, ports, protocols, and services",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.4.8",
+      "title": "Apply deny-by-exception or permit-by-exception software policy",
+      "description": "Apply deny-by-exception or permit-by-exception software policy",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.4.9",
+      "title": "Control and monitor user-installed software",
+      "description": "Control and monitor user-installed software",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CMMC.L2-3.5.1",
+      "title": "Identify system users, processes, and devices",
+      "description": "Identify system users, processes, and devices",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.2",
+      "title": "Authenticate identities of users, processes, or devices",
+      "description": "Authenticate identities of users, processes, or devices",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.3",
+      "title": "Use multifactor authentication for privileged and network access",
+      "description": "Use multifactor authentication for privileged and network access",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.4",
+      "title": "Employ replay-resistant authentication",
+      "description": "Employ replay-resistant authentication",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.5",
+      "title": "Prevent reuse of identifiers for a defined period",
+      "description": "Prevent reuse of identifiers for a defined period",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.6",
+      "title": "Disable identifiers after a defined period of inactivity",
+      "description": "Disable identifiers after a defined period of inactivity",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.7",
+      "title": "Enforce minimum password complexity and change of characters",
+      "description": "Enforce minimum password complexity and change of characters",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.8",
+      "title": "Prohibit password reuse for a specified number of generations",
+      "description": "Prohibit password reuse for a specified number of generations",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.9",
+      "title": "Allow temporary passwords with immediate change",
+      "description": "Allow temporary passwords with immediate change",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.10",
+      "title": "Store and transmit only cryptographically-protected passwords",
+      "description": "Store and transmit only cryptographically-protected passwords",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.5.11",
+      "title": "Obscure feedback of authentication information",
+      "description": "Obscure feedback of authentication information",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "CMMC.L2-3.6.1",
+      "title": "Establish an operational incident-handling capability",
+      "description": "Establish an operational incident-handling capability",
+      "family": "Incident Response"
+    },
+    {
+      "id": "CMMC.L2-3.6.2",
+      "title": "Track, document, and report incidents",
+      "description": "Track, document, and report incidents",
+      "family": "Incident Response"
+    },
+    {
+      "id": "CMMC.L2-3.6.3",
+      "title": "Test the organizational incident response capability",
+      "description": "Test the organizational incident response capability",
+      "family": "Incident Response"
+    },
+    {
+      "id": "CMMC.L2-3.7.1",
+      "title": "Perform maintenance on organizational systems",
+      "description": "Perform maintenance on organizational systems",
+      "family": "Maintenance"
+    },
+    {
+      "id": "CMMC.L2-3.7.2",
+      "title": "Provide controls on tools, techniques, and personnel used for maintenance",
+      "description": "Provide controls on tools, techniques, and personnel used for maintenance",
+      "family": "Maintenance"
+    },
+    {
+      "id": "CMMC.L2-3.7.3",
+      "title": "Ensure equipment removed for off-site maintenance is sanitized",
+      "description": "Ensure equipment removed for off-site maintenance is sanitized",
+      "family": "Maintenance"
+    },
+    {
+      "id": "CMMC.L2-3.7.4",
+      "title": "Check media containing diagnostic programs for malicious code",
+      "description": "Check media containing diagnostic programs for malicious code",
+      "family": "Maintenance"
+    },
+    {
+      "id": "CMMC.L2-3.7.5",
+      "title": "Require MFA for nonlocal maintenance sessions",
+      "description": "Require MFA for nonlocal maintenance sessions",
+      "family": "Maintenance"
+    },
+    {
+      "id": "CMMC.L2-3.7.6",
+      "title": "Supervise maintenance activities without access authorization",
+      "description": "Supervise maintenance activities without access authorization",
+      "family": "Maintenance"
+    },
+    {
+      "id": "CMMC.L2-3.8.1",
+      "title": "Protect system media containing CUI",
+      "description": "Protect system media containing CUI",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.8.2",
+      "title": "Limit access to CUI on system media to authorized users",
+      "description": "Limit access to CUI on system media to authorized users",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.8.3",
+      "title": "Sanitize or destroy system media containing CUI before disposal",
+      "description": "Sanitize or destroy system media containing CUI before disposal",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.8.4",
+      "title": "Mark media with necessary CUI markings",
+      "description": "Mark media with necessary CUI markings",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.8.5",
+      "title": "Control access to media containing CUI during transport",
+      "description": "Control access to media containing CUI during transport",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.8.6",
+      "title": "Implement cryptographic mechanisms to protect CUI on digital media",
+      "description": "Implement cryptographic mechanisms to protect CUI on digital media",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.8.7",
+      "title": "Control the use of removable media on system components",
+      "description": "Control the use of removable media on system components",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.8.8",
+      "title": "Prohibit use of portable storage devices without identifiable owners",
+      "description": "Prohibit use of portable storage devices without identifiable owners",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.8.9",
+      "title": "Protect the confidentiality of backup CUI at storage locations",
+      "description": "Protect the confidentiality of backup CUI at storage locations",
+      "family": "Media Protection"
+    },
+    {
+      "id": "CMMC.L2-3.9.1",
+      "title": "Screen individuals prior to authorizing access to CUI",
+      "description": "Screen individuals prior to authorizing access to CUI",
+      "family": "Personnel Security"
+    },
+    {
+      "id": "CMMC.L2-3.9.2",
+      "title": "Ensure systems are protected during and after personnel actions",
+      "description": "Ensure systems are protected during and after personnel actions",
+      "family": "Personnel Security"
+    },
+    {
+      "id": "CMMC.L2-3.10.1",
+      "title": "Limit physical access to organizational systems",
+      "description": "Limit physical access to organizational systems",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "CMMC.L2-3.10.2",
+      "title": "Protect and monitor physical facility and support infrastructure",
+      "description": "Protect and monitor physical facility and support infrastructure",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "CMMC.L2-3.10.3",
+      "title": "Escort visitors and monitor visitor activity",
+      "description": "Escort visitors and monitor visitor activity",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "CMMC.L2-3.10.4",
+      "title": "Maintain audit logs of physical access",
+      "description": "Maintain audit logs of physical access",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "CMMC.L2-3.10.5",
+      "title": "Control and manage physical access devices",
+      "description": "Control and manage physical access devices",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "CMMC.L2-3.10.6",
+      "title": "Enforce safeguarding measures at alternate work sites",
+      "description": "Enforce safeguarding measures at alternate work sites",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "CMMC.L2-3.11.1",
+      "title": "Periodically assess risk to organizational operations",
+      "description": "Periodically assess risk to organizational operations",
+      "family": "Risk Assessment"
+    },
+    {
+      "id": "CMMC.L2-3.11.2",
+      "title": "Scan for vulnerabilities periodically and when new vulns identified",
+      "description": "Scan for vulnerabilities periodically and when new vulns identified",
+      "family": "Risk Assessment"
+    },
+    {
+      "id": "CMMC.L2-3.11.3",
+      "title": "Remediate vulnerabilities in accordance with risk assessments",
+      "description": "Remediate vulnerabilities in accordance with risk assessments",
+      "family": "Risk Assessment"
+    },
+    {
+      "id": "CMMC.L2-3.12.1",
+      "title": "Periodically assess security controls for effectiveness",
+      "description": "Periodically assess security controls for effectiveness",
+      "family": "Security Assessment"
+    },
+    {
+      "id": "CMMC.L2-3.12.2",
+      "title": "Develop and implement plans of action to correct deficiencies",
+      "description": "Develop and implement plans of action to correct deficiencies",
+      "family": "Security Assessment"
+    },
+    {
+      "id": "CMMC.L2-3.12.3",
+      "title": "Monitor security controls on an ongoing basis",
+      "description": "Monitor security controls on an ongoing basis",
+      "family": "Security Assessment"
+    },
+    {
+      "id": "CMMC.L2-3.12.4",
+      "title": "Develop and periodically update system security plans",
+      "description": "Develop and periodically update system security plans",
+      "family": "Security Assessment"
+    },
+    {
+      "id": "CMMC.L2-3.13.1",
+      "title": "Monitor, control, and protect communications at external/internal boundaries",
+      "description": "Monitor, control, and protect communications at external/internal boundaries",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.2",
+      "title": "Employ secure architectural designs and development techniques",
+      "description": "Employ secure architectural designs and development techniques",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.3",
+      "title": "Separate user functionality from system management functionality",
+      "description": "Separate user functionality from system management functionality",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.4",
+      "title": "Prevent unauthorized information transfer via shared resources",
+      "description": "Prevent unauthorized information transfer via shared resources",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.5",
+      "title": "Implement subnetworks for publicly accessible components",
+      "description": "Implement subnetworks for publicly accessible components",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.6",
+      "title": "Deny network traffic by default, allow by exception",
+      "description": "Deny network traffic by default, allow by exception",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.7",
+      "title": "Prevent split tunneling",
+      "description": "Prevent split tunneling",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.8",
+      "title": "Implement cryptographic mechanisms to prevent unauthorized disclosure",
+      "description": "Implement cryptographic mechanisms to prevent unauthorized disclosure",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.9",
+      "title": "Terminate network connections at end of session or inactivity",
+      "description": "Terminate network connections at end of session or inactivity",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.10",
+      "title": "Establish and manage cryptographic keys",
+      "description": "Establish and manage cryptographic keys",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.11",
+      "title": "Employ FIPS-validated cryptography for CUI",
+      "description": "Employ FIPS-validated cryptography for CUI",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.12",
+      "title": "Prohibit remote activation of collaborative computing devices",
+      "description": "Prohibit remote activation of collaborative computing devices",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.13",
+      "title": "Control and monitor use of mobile code",
+      "description": "Control and monitor use of mobile code",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.14",
+      "title": "Control and monitor use of VoIP technologies",
+      "description": "Control and monitor use of VoIP technologies",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.15",
+      "title": "Protect authenticity of communications sessions",
+      "description": "Protect authenticity of communications sessions",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.13.16",
+      "title": "Protect confidentiality of CUI at rest",
+      "description": "Protect confidentiality of CUI at rest",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "CMMC.L2-3.14.1",
+      "title": "Identify, report, and correct system flaws in a timely manner",
+      "description": "Identify, report, and correct system flaws in a timely manner",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "CMMC.L2-3.14.2",
+      "title": "Provide protection from malicious code",
+      "description": "Provide protection from malicious code",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "CMMC.L2-3.14.3",
+      "title": "Monitor system security alerts and advisories",
+      "description": "Monitor system security alerts and advisories",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "CMMC.L2-3.14.4",
+      "title": "Update malicious code protection mechanisms",
+      "description": "Update malicious code protection mechanisms",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "CMMC.L2-3.14.5",
+      "title": "Perform periodic and real-time scans",
+      "description": "Perform periodic and real-time scans",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "CMMC.L2-3.14.6",
+      "title": "Monitor systems for attacks and indicators of potential attacks",
+      "description": "Monitor systems for attacks and indicators of potential attacks",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "CMMC.L2-3.14.7",
+      "title": "Identify unauthorized use of organizational systems",
+      "description": "Identify unauthorized use of organizational systems",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "AC.L3-3.1.2e",
+      "title": "Restrict access to systems and components",
+      "description": "Restrict access to systems and components",
+      "family": "Access Control"
+    },
+    {
+      "id": "AC.L3-3.1.3e",
+      "title": "Employ secure information transfer solutions",
+      "description": "Employ secure information transfer solutions",
+      "family": "Access Control"
+    },
+    {
+      "id": "AT.L3-3.2.1e",
+      "title": "Advanced threat awareness training",
+      "description": "Advanced threat awareness training",
+      "family": "Awareness and Training"
+    },
+    {
+      "id": "AT.L3-3.2.2e",
+      "title": "Practical exercises in awareness training",
+      "description": "Practical exercises in awareness training",
+      "family": "Awareness and Training"
+    },
+    {
+      "id": "CM.L3-3.4.1e",
+      "title": "Authoritative source and repository for approved components",
+      "description": "Authoritative source and repository for approved components",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CM.L3-3.4.2e",
+      "title": "Automated detection of misconfigured/unauthorized components",
+      "description": "Automated detection of misconfigured/unauthorized components",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "CM.L3-3.4.3e",
+      "title": "Automated inventory discovery and management",
+      "description": "Automated inventory discovery and management",
+      "family": "Configuration Management"
+    },
+    {
+      "id": "IA.L3-3.5.1e",
+      "title": "Bidirectional authentication for components",
+      "description": "Bidirectional authentication for components",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "IA.L3-3.5.3e",
+      "title": "Block unknown or unconfigured components from connecting",
+      "description": "Block unknown or unconfigured components from connecting",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "IR.L3-3.6.1e",
+      "title": "24/7 security operations center capability",
+      "description": "24/7 security operations center capability",
+      "family": "Incident Response"
+    },
+    {
+      "id": "IR.L3-3.6.2e",
+      "title": "Cyber incident response team deployable within 24 hours",
+      "description": "Cyber incident response team deployable within 24 hours",
+      "family": "Incident Response"
+    },
+    {
+      "id": "RA.L3-3.11.1e",
+      "title": "Employ threat intelligence to inform risk assessments",
+      "description": "Employ threat intelligence to inform risk assessments",
+      "family": "Risk Assessment"
+    },
+    {
+      "id": "RA.L3-3.11.2e",
+      "title": "Conduct cyber threat hunting activities",
+      "description": "Conduct cyber threat hunting activities",
+      "family": "Risk Assessment"
+    },
+    {
+      "id": "RA.L3-3.11.6e",
+      "title": "Assess and monitor supply chain risks",
+      "description": "Assess and monitor supply chain risks",
+      "family": "Risk Assessment"
+    },
+    {
+      "id": "RA.L3-3.11.7e",
+      "title": "Develop a supply chain risk management plan",
+      "description": "Develop a supply chain risk management plan",
+      "family": "Risk Assessment"
+    },
+    {
+      "id": "CA.L3-3.12.1e",
+      "title": "Conduct penetration testing at least annually",
+      "description": "Conduct penetration testing at least annually",
+      "family": "Security Assessment"
+    },
+    {
+      "id": "SC.L3-3.13.4e",
+      "title": "Employ technical means to mislead adversaries",
+      "description": "Employ technical means to mislead adversaries",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "SI.L3-3.14.1e",
+      "title": "Verify integrity of security-critical software",
+      "description": "Verify integrity of security-critical software",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "SI.L3-3.14.3e",
+      "title": "Real-time event and alert analysis",
+      "description": "Real-time event and alert analysis",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "SI.L3-3.14.6e",
+      "title": "Use threat indicator information for intrusion detection",
+      "description": "Use threat indicator information for intrusion detection",
+      "family": "System and Information Integrity"
+    }
+  ]
+}

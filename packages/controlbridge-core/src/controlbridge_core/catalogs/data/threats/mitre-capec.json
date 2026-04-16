@@ -1,0 +1,102 @@
+{
+  "framework_id": "mitre-capec",
+  "framework_name": "MITRE Common Attack Pattern Enumeration and Classification (CAPEC) — Sample",
+  "version": "v3.9 (2024)",
+  "source": "MITRE Corporation — https://capec.mitre.org (free to use)",
+  "tier": "B",
+  "category": "technique",
+  "placeholder": false,
+  "techniques": [
+    {
+      "id": "CAPEC-21",
+      "name": "Exploitation of Trusted Identifiers",
+      "description": "An attacker guesses the identifiers used to access resources.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-66",
+      "name": "SQL Injection",
+      "description": "Inject SQL commands in entry points.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-70",
+      "name": "Try Common or Default Usernames and Passwords",
+      "description": "Brute force with common credential lists.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-98",
+      "name": "Phishing",
+      "description": "Send deceptive communications to obtain sensitive information.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-148",
+      "name": "Content Spoofing",
+      "description": "Modify content to deceive users.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-232",
+      "name": "Exploitation of Privilege/Trust",
+      "description": "Gain privileged access through trust relationships.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-242",
+      "name": "Code Injection",
+      "description": "Inject code into a target environment.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-248",
+      "name": "Command Injection",
+      "description": "Inject commands into application input.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-509",
+      "name": "Kerberoasting",
+      "description": "Request service tickets and crack them offline.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    },
+    {
+      "id": "CAPEC-560",
+      "name": "Use of Known Domain Credentials",
+      "description": "Reuse domain credentials across systems.",
+      "tactic_names": [
+        "Attack Pattern"
+      ],
+      "is_subtechnique": false
+    }
+  ],
+  "license_terms": "© MITRE Corporation. CAPEC is freely available."
+}

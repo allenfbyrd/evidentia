@@ -3,15 +3,28 @@
 Represents the controls required by a compliance framework. These are
 loaded from bundled OSCAL JSON catalogs and used as the "target state"
 in gap analysis.
+
+v0.2.0 expands the model to carry richer OSCAL data (guidance,
+objective, examples, control class) and tier/license metadata for the
+50-framework catalog expansion. All new fields are optional with safe
+defaults — existing v0.1.x catalog JSONs continue to parse under
+``extra="forbid"``.
 """
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field, PrivateAttr
 
 from controlbridge_core.models.common import ControlBridgeModel
+
+# Crosswalk relationship vocabulary. Kept as a ``Literal`` constant so
+# tooling can type-check hand-authored mappings; ``FrameworkMapping.relationship``
+# remains a plain ``str`` for backward compatibility with v0.1.x JSON.
+RelationshipType = Literal[
+    "equivalent", "related", "partial", "superset", "subset", "intersects"
+]
 
 
 class CatalogControl(ControlBridgeModel):
@@ -25,6 +38,12 @@ class CatalogControl(ControlBridgeModel):
         default=None,
         alias="class",
         description="Control class: 'technical', 'operational', 'management'",
+    )
+    control_class: str | None = Field(
+        default=None,
+        description="OSCAL `class` attribute (e.g. 'SP800-53'). Distinct from "
+        "`class_` which historically carried the control's nature "
+        "(technical/operational/management) in ControlBridge format.",
     )
     priority: str | None = Field(
         default=None,
@@ -46,9 +65,28 @@ class CatalogControl(ControlBridgeModel):
         default_factory=list,
         description="Assessment objectives from SP 800-53A",
     )
+    objective: str | None = Field(
+        default=None,
+        description="OSCAL `part.name=objective` prose — concise statement of "
+        "what the control aims to achieve",
+    )
+    guidance: str | None = Field(
+        default=None,
+        description="OSCAL `part.name=guidance` prose — implementation guidance "
+        "text distinct from the control statement",
+    )
+    examples: list[str] = Field(
+        default_factory=list,
+        description="Illustrative examples from the authoritative text",
+    )
     parameters: dict[str, str] = Field(
         default_factory=dict,
         description="Organization-defined parameters and their default values",
+    )
+    ordering: int | None = Field(
+        default=None,
+        description="Preserves upstream order for CSF subcategories, ISO clause "
+        "numbering, etc. Populated during catalog load.",
     )
     tier: str | None = Field(
         default=None,
@@ -97,6 +135,17 @@ class ControlCatalog(ControlBridgeModel):
         default_factory=list,
         description="List of control families in this catalog",
     )
+    family_hierarchy: dict[str, list[str]] | None = Field(
+        default=None,
+        description="Parent→children map for multi-level OSCAL groups "
+        "(e.g. NIST 800-53 groups with sub-groups). None when families are flat.",
+    )
+    category: Literal["control", "technique", "vulnerability", "obligation"] = Field(
+        default="control",
+        description="Catalog type — 'control' for compliance frameworks, "
+        "'technique' for ATT&CK/CWE/CAPEC, 'vulnerability' for KEV, "
+        "'obligation' for privacy laws.",
+    )
     tier: str | None = Field(
         default=None,
         description="Redistribution tier: 'A', 'B', 'C', 'D' (see CatalogControl.tier)",
@@ -123,12 +172,22 @@ class ControlCatalog(ControlBridgeModel):
     _index: dict[str, CatalogControl] = PrivateAttr(default_factory=dict)
 
     def model_post_init(self, __context: Any) -> None:
-        """Build control index after initialization."""
+        """Build recursive control index after initialization.
+
+        v0.2.0: walks the full enhancement tree so 3-level NIST Rev 5
+        IDs like ``AC-2(1)(a)`` resolve via ``get_control``. The v0.1.x
+        implementation only indexed one level of enhancements, silently
+        losing 3rd-level items on a full NIST 800-53 Rev 5 catalog.
+        """
         self._index = {}
+
+        def _walk(ctrl: CatalogControl) -> None:
+            self._index[ctrl.id.upper()] = ctrl
+            for e in ctrl.enhancements:
+                _walk(e)
+
         for control in self.controls:
-            self._index[control.id.upper()] = control
-            for enhancement in control.enhancements:
-                self._index[enhancement.id.upper()] = enhancement
+            _walk(control)
 
     def get_control(self, control_id: str) -> CatalogControl | None:
         """Look up a control by ID (case-insensitive)."""
@@ -152,7 +211,9 @@ class FrameworkMapping(ControlBridgeModel):
     target_control_id: str
     target_control_title: str | None = None
     relationship: str = Field(
-        description="Mapping relationship: 'equivalent', 'related', 'partial', 'superset'",
+        description="Mapping relationship: see RelationshipType constant for "
+        "the canonical vocabulary ('equivalent', 'related', 'partial', "
+        "'superset', 'subset', 'intersects'). Kept as str for v0.1.x compat.",
     )
     notes: str | None = Field(
         default=None,

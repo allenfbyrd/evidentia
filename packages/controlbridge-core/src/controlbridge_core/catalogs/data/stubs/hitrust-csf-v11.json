@@ -1,0 +1,985 @@
+{
+  "framework_id": "hitrust-csf-v11",
+  "framework_name": "HITRUST CSF v11",
+  "version": "v11",
+  "source": "HITRUST Alliance",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "01. Information Protection Program",
+    "02. Endpoint Protection",
+    "03. Portable Media Security",
+    "04. Mobile Device Security",
+    "05. Wireless Security",
+    "06. Configuration Management",
+    "07. Vulnerability Management",
+    "08. Network Protection",
+    "09. Transmission Protection",
+    "10. Password Management",
+    "11. Access Control",
+    "12. Audit Logging & Monitoring",
+    "13. Education, Training and Awareness",
+    "14. Third Party Assurance",
+    "15. Incident Management",
+    "16. Business Continuity & Disaster Recovery",
+    "17. Risk Management",
+    "18. Physical & Environmental Security",
+    "19. Data Protection & Privacy"
+  ],
+  "controls": [
+    {
+      "id": "01.a",
+      "title": "HITRUST CSF objective 01.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "01. Information Protection Program",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "01.b",
+      "title": "HITRUST CSF objective 01.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "01. Information Protection Program",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "01.c",
+      "title": "HITRUST CSF objective 01.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "01. Information Protection Program",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "01.d",
+      "title": "HITRUST CSF objective 01.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "01. Information Protection Program",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "01.e",
+      "title": "HITRUST CSF objective 01.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "01. Information Protection Program",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "02.a",
+      "title": "HITRUST CSF objective 02.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "02. Endpoint Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "02.b",
+      "title": "HITRUST CSF objective 02.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "02. Endpoint Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "02.c",
+      "title": "HITRUST CSF objective 02.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "02. Endpoint Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "02.d",
+      "title": "HITRUST CSF objective 02.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "02. Endpoint Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "02.e",
+      "title": "HITRUST CSF objective 02.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "02. Endpoint Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "03.a",
+      "title": "HITRUST CSF objective 03.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "03. Portable Media Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "03.b",
+      "title": "HITRUST CSF objective 03.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "03. Portable Media Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "03.c",
+      "title": "HITRUST CSF objective 03.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "03. Portable Media Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "03.d",
+      "title": "HITRUST CSF objective 03.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "03. Portable Media Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "03.e",
+      "title": "HITRUST CSF objective 03.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "03. Portable Media Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "04.a",
+      "title": "HITRUST CSF objective 04.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "04. Mobile Device Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "04.b",
+      "title": "HITRUST CSF objective 04.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "04. Mobile Device Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "04.c",
+      "title": "HITRUST CSF objective 04.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "04. Mobile Device Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "04.d",
+      "title": "HITRUST CSF objective 04.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "04. Mobile Device Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "04.e",
+      "title": "HITRUST CSF objective 04.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "04. Mobile Device Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "05.a",
+      "title": "HITRUST CSF objective 05.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "05. Wireless Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "05.b",
+      "title": "HITRUST CSF objective 05.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "05. Wireless Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "05.c",
+      "title": "HITRUST CSF objective 05.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "05. Wireless Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "05.d",
+      "title": "HITRUST CSF objective 05.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "05. Wireless Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "05.e",
+      "title": "HITRUST CSF objective 05.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "05. Wireless Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "06.a",
+      "title": "HITRUST CSF objective 06.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "06. Configuration Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "06.b",
+      "title": "HITRUST CSF objective 06.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "06. Configuration Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "06.c",
+      "title": "HITRUST CSF objective 06.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "06. Configuration Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "06.d",
+      "title": "HITRUST CSF objective 06.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "06. Configuration Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "06.e",
+      "title": "HITRUST CSF objective 06.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "06. Configuration Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "07.a",
+      "title": "HITRUST CSF objective 07.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "07. Vulnerability Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "07.b",
+      "title": "HITRUST CSF objective 07.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "07. Vulnerability Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "07.c",
+      "title": "HITRUST CSF objective 07.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "07. Vulnerability Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "07.d",
+      "title": "HITRUST CSF objective 07.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "07. Vulnerability Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "07.e",
+      "title": "HITRUST CSF objective 07.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "07. Vulnerability Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "08.a",
+      "title": "HITRUST CSF objective 08.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "08. Network Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "08.b",
+      "title": "HITRUST CSF objective 08.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "08. Network Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "08.c",
+      "title": "HITRUST CSF objective 08.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "08. Network Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "08.d",
+      "title": "HITRUST CSF objective 08.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "08. Network Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "08.e",
+      "title": "HITRUST CSF objective 08.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "08. Network Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "09.a",
+      "title": "HITRUST CSF objective 09.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "09. Transmission Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "09.b",
+      "title": "HITRUST CSF objective 09.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "09. Transmission Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "09.c",
+      "title": "HITRUST CSF objective 09.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "09. Transmission Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "09.d",
+      "title": "HITRUST CSF objective 09.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "09. Transmission Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "09.e",
+      "title": "HITRUST CSF objective 09.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "09. Transmission Protection",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "10.a",
+      "title": "HITRUST CSF objective 10.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "10. Password Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "10.b",
+      "title": "HITRUST CSF objective 10.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "10. Password Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "10.c",
+      "title": "HITRUST CSF objective 10.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "10. Password Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "10.d",
+      "title": "HITRUST CSF objective 10.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "10. Password Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "10.e",
+      "title": "HITRUST CSF objective 10.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "10. Password Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "11.a",
+      "title": "HITRUST CSF objective 11.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "11. Access Control",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "11.b",
+      "title": "HITRUST CSF objective 11.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "11. Access Control",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "11.c",
+      "title": "HITRUST CSF objective 11.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "11. Access Control",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "11.d",
+      "title": "HITRUST CSF objective 11.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "11. Access Control",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "11.e",
+      "title": "HITRUST CSF objective 11.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "11. Access Control",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "12.a",
+      "title": "HITRUST CSF objective 12.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "12. Audit Logging & Monitoring",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "12.b",
+      "title": "HITRUST CSF objective 12.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "12. Audit Logging & Monitoring",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "12.c",
+      "title": "HITRUST CSF objective 12.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "12. Audit Logging & Monitoring",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "12.d",
+      "title": "HITRUST CSF objective 12.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "12. Audit Logging & Monitoring",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "12.e",
+      "title": "HITRUST CSF objective 12.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "12. Audit Logging & Monitoring",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "13.a",
+      "title": "HITRUST CSF objective 13.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "13. Education, Training and Awareness",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "13.b",
+      "title": "HITRUST CSF objective 13.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "13. Education, Training and Awareness",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "13.c",
+      "title": "HITRUST CSF objective 13.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "13. Education, Training and Awareness",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "13.d",
+      "title": "HITRUST CSF objective 13.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "13. Education, Training and Awareness",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "13.e",
+      "title": "HITRUST CSF objective 13.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "13. Education, Training and Awareness",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "14.a",
+      "title": "HITRUST CSF objective 14.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "14. Third Party Assurance",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "14.b",
+      "title": "HITRUST CSF objective 14.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "14. Third Party Assurance",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "14.c",
+      "title": "HITRUST CSF objective 14.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "14. Third Party Assurance",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "14.d",
+      "title": "HITRUST CSF objective 14.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "14. Third Party Assurance",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "14.e",
+      "title": "HITRUST CSF objective 14.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "14. Third Party Assurance",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "15.a",
+      "title": "HITRUST CSF objective 15.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "15. Incident Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "15.b",
+      "title": "HITRUST CSF objective 15.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "15. Incident Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "15.c",
+      "title": "HITRUST CSF objective 15.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "15. Incident Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "15.d",
+      "title": "HITRUST CSF objective 15.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "15. Incident Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "15.e",
+      "title": "HITRUST CSF objective 15.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "15. Incident Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "16.a",
+      "title": "HITRUST CSF objective 16.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "16. Business Continuity & Disaster Recovery",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "16.b",
+      "title": "HITRUST CSF objective 16.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "16. Business Continuity & Disaster Recovery",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "16.c",
+      "title": "HITRUST CSF objective 16.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "16. Business Continuity & Disaster Recovery",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "16.d",
+      "title": "HITRUST CSF objective 16.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "16. Business Continuity & Disaster Recovery",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "16.e",
+      "title": "HITRUST CSF objective 16.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "16. Business Continuity & Disaster Recovery",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "17.a",
+      "title": "HITRUST CSF objective 17.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "17. Risk Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "17.b",
+      "title": "HITRUST CSF objective 17.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "17. Risk Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "17.c",
+      "title": "HITRUST CSF objective 17.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "17. Risk Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "17.d",
+      "title": "HITRUST CSF objective 17.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "17. Risk Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "17.e",
+      "title": "HITRUST CSF objective 17.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "17. Risk Management",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "18.a",
+      "title": "HITRUST CSF objective 18.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "18. Physical & Environmental Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "18.b",
+      "title": "HITRUST CSF objective 18.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "18. Physical & Environmental Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "18.c",
+      "title": "HITRUST CSF objective 18.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "18. Physical & Environmental Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "18.d",
+      "title": "HITRUST CSF objective 18.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "18. Physical & Environmental Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "18.e",
+      "title": "HITRUST CSF objective 18.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "18. Physical & Environmental Security",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "19.a",
+      "title": "HITRUST CSF objective 19.a",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "19. Data Protection & Privacy",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "19.b",
+      "title": "HITRUST CSF objective 19.b",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "19. Data Protection & Privacy",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "19.c",
+      "title": "HITRUST CSF objective 19.c",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "19. Data Protection & Privacy",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "19.d",
+      "title": "HITRUST CSF objective 19.d",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "19. Data Protection & Privacy",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    },
+    {
+      "id": "19.e",
+      "title": "HITRUST CSF objective 19.e",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "19. Data Protection & Privacy",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://hitrustalliance.net/csf"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© HITRUST Alliance. The HITRUST Common Security Framework is subscription-licensed.",
+  "license_url": "https://hitrustalliance.net/csf"
+}

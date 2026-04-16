@@ -1,0 +1,241 @@
+{
+  "framework_id": "eu-gdpr",
+  "framework_name": "EU General Data Protection Regulation (GDPR)",
+  "version": "Regulation (EU) 2016/679",
+  "source": "Official Journal of the European Union L 119, 4 May 2016",
+  "tier": "D",
+  "category": "obligation",
+  "placeholder": false,
+  "regime": {
+    "jurisdiction": "EU",
+    "effective_date": "2018-05-25",
+    "subject_rights": [
+      "access",
+      "delete",
+      "correct",
+      "portability",
+      "restrict-processing",
+      "object"
+    ],
+    "data_minimization_required": true,
+    "dpia_required": true,
+    "breach_notification_threshold_days": 3,
+    "breach_notification_to_subjects": true,
+    "private_right_of_action": true,
+    "cure_period_days": null,
+    "regulator": "Member State Data Protection Authorities (coordinated by European Data Protection Board)",
+    "notes": "Fines up to €20M or 4% of global annual turnover, whichever is higher."
+  },
+  "obligations": [
+    {
+      "id": "GDPR.Art.5",
+      "title": "Principles relating to processing of personal data",
+      "description": "Lawfulness, fairness, transparency; purpose limitation; data minimisation; accuracy; storage limitation; integrity and confidentiality; accountability",
+      "category": "Cross-cutting",
+      "citation": "Article 5"
+    },
+    {
+      "id": "GDPR.Art.6",
+      "title": "Lawfulness of processing",
+      "description": "Processing is lawful only if one of six bases applies: consent, contract, legal obligation, vital interests, public task, or legitimate interests.",
+      "category": "Lawful Basis",
+      "citation": "Article 6"
+    },
+    {
+      "id": "GDPR.Art.7",
+      "title": "Conditions for consent",
+      "description": "Consent must be freely given, specific, informed, unambiguous, demonstrable, and as easy to withdraw as to give.",
+      "category": "Lawful Basis",
+      "citation": "Article 7"
+    },
+    {
+      "id": "GDPR.Art.9",
+      "title": "Processing of special categories of personal data",
+      "description": "Processing sensitive data is prohibited except under specific conditions (explicit consent, employment law, vital interests, etc.).",
+      "category": "Lawful Basis",
+      "citation": "Article 9"
+    },
+    {
+      "id": "GDPR.Art.12",
+      "title": "Transparent information and communication",
+      "description": "Provide transparent, concise, and accessible information about processing.",
+      "category": "Transparency",
+      "citation": "Article 12"
+    },
+    {
+      "id": "GDPR.Art.13",
+      "title": "Information to be provided when data is collected from the data subject",
+      "description": "Specific information elements at the time of collection.",
+      "category": "Transparency",
+      "citation": "Article 13"
+    },
+    {
+      "id": "GDPR.Art.14",
+      "title": "Information to be provided when data is not collected from the data subject",
+      "description": "Specific information elements when collecting from third parties.",
+      "category": "Transparency",
+      "citation": "Article 14"
+    },
+    {
+      "id": "GDPR.Art.15",
+      "title": "Right of access by the data subject",
+      "description": "Right to confirmation, access to data, and information about processing.",
+      "category": "Subject Rights",
+      "citation": "Article 15"
+    },
+    {
+      "id": "GDPR.Art.16",
+      "title": "Right to rectification",
+      "description": "Right to have inaccurate data corrected.",
+      "category": "Subject Rights",
+      "citation": "Article 16"
+    },
+    {
+      "id": "GDPR.Art.17",
+      "title": "Right to erasure ('right to be forgotten')",
+      "description": "Right to have data deleted under specific circumstances.",
+      "category": "Subject Rights",
+      "citation": "Article 17"
+    },
+    {
+      "id": "GDPR.Art.18",
+      "title": "Right to restriction of processing",
+      "description": "Right to have processing limited in specific cases.",
+      "category": "Subject Rights",
+      "citation": "Article 18"
+    },
+    {
+      "id": "GDPR.Art.19",
+      "title": "Notification obligation regarding rectification or erasure of personal data or restriction of processing",
+      "description": "Communicate rectifications/erasures to third parties.",
+      "category": "Subject Rights",
+      "citation": "Article 19"
+    },
+    {
+      "id": "GDPR.Art.20",
+      "title": "Right to data portability",
+      "description": "Right to receive data in a structured, commonly used, machine-readable format and transmit it to another controller.",
+      "category": "Subject Rights",
+      "citation": "Article 20"
+    },
+    {
+      "id": "GDPR.Art.21",
+      "title": "Right to object",
+      "description": "Right to object to processing based on legitimate interests or direct marketing.",
+      "category": "Subject Rights",
+      "citation": "Article 21"
+    },
+    {
+      "id": "GDPR.Art.22",
+      "title": "Automated individual decision-making, including profiling",
+      "description": "Right not to be subject to decisions based solely on automated processing with legal or similarly significant effects.",
+      "category": "Subject Rights",
+      "citation": "Article 22"
+    },
+    {
+      "id": "GDPR.Art.24",
+      "title": "Responsibility of the controller",
+      "description": "Implement technical and organisational measures to ensure and demonstrate compliance.",
+      "category": "Accountability",
+      "citation": "Article 24"
+    },
+    {
+      "id": "GDPR.Art.25",
+      "title": "Data protection by design and by default",
+      "description": "Implement privacy by design and by default.",
+      "category": "Accountability",
+      "citation": "Article 25"
+    },
+    {
+      "id": "GDPR.Art.26",
+      "title": "Joint controllers",
+      "description": "Arrangements between joint controllers.",
+      "category": "Accountability",
+      "citation": "Article 26"
+    },
+    {
+      "id": "GDPR.Art.28",
+      "title": "Processor",
+      "description": "Processor requirements, including written contract with specific terms.",
+      "category": "Vendor Management",
+      "citation": "Article 28"
+    },
+    {
+      "id": "GDPR.Art.30",
+      "title": "Records of processing activities",
+      "description": "Maintain records of processing (with SME exemptions).",
+      "category": "Accountability",
+      "citation": "Article 30"
+    },
+    {
+      "id": "GDPR.Art.32",
+      "title": "Security of processing",
+      "description": "Implement appropriate technical and organisational measures to ensure security appropriate to the risk.",
+      "category": "Security",
+      "citation": "Article 32"
+    },
+    {
+      "id": "GDPR.Art.33",
+      "title": "Notification of a personal data breach to the supervisory authority",
+      "description": "Notify the supervisory authority of breaches within 72 hours where feasible.",
+      "category": "Breach Notification",
+      "citation": "Article 33"
+    },
+    {
+      "id": "GDPR.Art.34",
+      "title": "Communication of a personal data breach to the data subject",
+      "description": "Notify affected individuals of high-risk breaches without undue delay.",
+      "category": "Breach Notification",
+      "citation": "Article 34"
+    },
+    {
+      "id": "GDPR.Art.35",
+      "title": "Data protection impact assessment (DPIA)",
+      "description": "Carry out DPIAs for high-risk processing.",
+      "category": "Accountability",
+      "citation": "Article 35"
+    },
+    {
+      "id": "GDPR.Art.36",
+      "title": "Prior consultation",
+      "description": "Consult supervisory authority when DPIA indicates high residual risk.",
+      "category": "Accountability",
+      "citation": "Article 36"
+    },
+    {
+      "id": "GDPR.Art.37",
+      "title": "Designation of the data protection officer",
+      "description": "Designate a DPO in specified cases.",
+      "category": "Accountability",
+      "citation": "Article 37"
+    },
+    {
+      "id": "GDPR.Art.44",
+      "title": "General principle for transfers",
+      "description": "Transfers only under GDPR adequacy or appropriate safeguards.",
+      "category": "International Transfers",
+      "citation": "Article 44"
+    },
+    {
+      "id": "GDPR.Art.45",
+      "title": "Transfers on the basis of an adequacy decision",
+      "description": "Transfers to adequate countries.",
+      "category": "International Transfers",
+      "citation": "Article 45"
+    },
+    {
+      "id": "GDPR.Art.46",
+      "title": "Transfers subject to appropriate safeguards",
+      "description": "SCCs, BCRs, approved codes of conduct/certifications.",
+      "category": "International Transfers",
+      "citation": "Article 46"
+    },
+    {
+      "id": "GDPR.Art.49",
+      "title": "Derogations for specific situations",
+      "description": "Limited exceptions for specific transfers.",
+      "category": "International Transfers",
+      "citation": "Article 49"
+    }
+  ]
+}

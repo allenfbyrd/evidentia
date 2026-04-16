@@ -1,0 +1,121 @@
+{
+  "framework_id": "cmmc-2-l1",
+  "framework_name": "CMMC 2.0 Level 1 (Foundational)",
+  "version": "2.0 (2024 Final Rule)",
+  "source": "DoD CIO — https://dodcio.defense.gov/CMMC/ (U.S. Government work). Based on the 17 FAR 52.204-21 basic safeguarding practices.",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Access Control",
+    "Identification and Authentication",
+    "Media Protection",
+    "Physical Protection",
+    "System and Communications Protection",
+    "System and Information Integrity"
+  ],
+  "controls": [
+    {
+      "id": "AC.L1-3.1.1",
+      "title": "Authorized Access Control",
+      "description": "Authorized Access Control",
+      "family": "Access Control"
+    },
+    {
+      "id": "AC.L1-3.1.2",
+      "title": "Transaction & Function Control",
+      "description": "Transaction & Function Control",
+      "family": "Access Control"
+    },
+    {
+      "id": "AC.L1-3.1.20",
+      "title": "External Connections",
+      "description": "External Connections",
+      "family": "Access Control"
+    },
+    {
+      "id": "AC.L1-3.1.22",
+      "title": "Control Public Information",
+      "description": "Control Public Information",
+      "family": "Access Control"
+    },
+    {
+      "id": "IA.L1-3.5.1",
+      "title": "Identification",
+      "description": "Identification",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "IA.L1-3.5.2",
+      "title": "Authentication",
+      "description": "Authentication",
+      "family": "Identification and Authentication"
+    },
+    {
+      "id": "MP.L1-3.8.3",
+      "title": "Media Disposal",
+      "description": "Media Disposal",
+      "family": "Media Protection"
+    },
+    {
+      "id": "PE.L1-3.10.1",
+      "title": "Limit Physical Access",
+      "description": "Limit Physical Access",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "PE.L1-3.10.3",
+      "title": "Escort Visitors",
+      "description": "Escort Visitors",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "PE.L1-3.10.4",
+      "title": "Physical Access Logs",
+      "description": "Physical Access Logs",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "PE.L1-3.10.5",
+      "title": "Manage Physical Access",
+      "description": "Manage Physical Access",
+      "family": "Physical Protection"
+    },
+    {
+      "id": "SC.L1-3.13.1",
+      "title": "Boundary Protection",
+      "description": "Boundary Protection",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "SC.L1-3.13.5",
+      "title": "Public-Access System Separation",
+      "description": "Public-Access System Separation",
+      "family": "System and Communications Protection"
+    },
+    {
+      "id": "SI.L1-3.14.1",
+      "title": "Flaw Remediation",
+      "description": "Flaw Remediation",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "SI.L1-3.14.2",
+      "title": "Malicious Code Protection",
+      "description": "Malicious Code Protection",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "SI.L1-3.14.4",
+      "title": "Update Malicious Code Protection",
+      "description": "Update Malicious Code Protection",
+      "family": "System and Information Integrity"
+    },
+    {
+      "id": "SI.L1-3.14.5",
+      "title": "System & File Scanning",
+      "description": "System & File Scanning",
+      "family": "System and Information Integrity"
+    }
+  ]
+}

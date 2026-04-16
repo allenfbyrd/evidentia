@@ -1,0 +1,188 @@
+{
+  "framework_id": "ny-dfs-500",
+  "framework_name": "NY DFS 23 NYCRR Part 500 — Cybersecurity Requirements",
+  "version": "Amendment 2 (Nov 2023)",
+  "source": "NYS Department of Financial Services — 23 NYCRR 500 (state regulation)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Program Requirements",
+    "Governance",
+    "Access Controls",
+    "Data Protection",
+    "Incident Response",
+    "Third-Party",
+    "General"
+  ],
+  "controls": [
+    {
+      "id": "500.2",
+      "title": "Cybersecurity program",
+      "description": "Cybersecurity program",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.3",
+      "title": "Cybersecurity policy",
+      "description": "Cybersecurity policy",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.4(a)",
+      "title": "Chief Information Security Officer (CISO)",
+      "description": "Chief Information Security Officer (CISO)",
+      "family": "Governance"
+    },
+    {
+      "id": "500.4(b)",
+      "title": "CISO reporting to board",
+      "description": "CISO reporting to board",
+      "family": "Governance"
+    },
+    {
+      "id": "500.4(c)",
+      "title": "CISO qualifications and oversight of third-party CISOs",
+      "description": "CISO qualifications and oversight of third-party CISOs",
+      "family": "Governance"
+    },
+    {
+      "id": "500.4(d)",
+      "title": "Reporting of material cybersecurity issues",
+      "description": "Reporting of material cybersecurity issues",
+      "family": "Governance"
+    },
+    {
+      "id": "500.5",
+      "title": "Vulnerability management",
+      "description": "Vulnerability management",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.6",
+      "title": "Audit trail",
+      "description": "Audit trail",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.7",
+      "title": "Access privileges and management",
+      "description": "Access privileges and management",
+      "family": "Access Controls"
+    },
+    {
+      "id": "500.8",
+      "title": "Application security",
+      "description": "Application security",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.9",
+      "title": "Risk assessment",
+      "description": "Risk assessment",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.10",
+      "title": "Cybersecurity personnel and intelligence",
+      "description": "Cybersecurity personnel and intelligence",
+      "family": "Governance"
+    },
+    {
+      "id": "500.11",
+      "title": "Third-party service provider security policy",
+      "description": "Third-party service provider security policy",
+      "family": "Third-Party"
+    },
+    {
+      "id": "500.12",
+      "title": "Multi-factor authentication",
+      "description": "Multi-factor authentication",
+      "family": "Access Controls"
+    },
+    {
+      "id": "500.13",
+      "title": "Asset management and data retention requirements",
+      "description": "Asset management and data retention requirements",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.14(a)",
+      "title": "Monitoring and training",
+      "description": "Monitoring and training",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.14(b)",
+      "title": "Cybersecurity awareness training",
+      "description": "Cybersecurity awareness training",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.15",
+      "title": "Encryption of nonpublic information",
+      "description": "Encryption of nonpublic information",
+      "family": "Data Protection"
+    },
+    {
+      "id": "500.16",
+      "title": "Incident response plan",
+      "description": "Incident response plan",
+      "family": "Incident Response"
+    },
+    {
+      "id": "500.17(a)",
+      "title": "Notification of cybersecurity events — to superintendent",
+      "description": "Notification of cybersecurity events — to superintendent",
+      "family": "Incident Response"
+    },
+    {
+      "id": "500.17(b)",
+      "title": "Notices of extortion payment",
+      "description": "Notices of extortion payment",
+      "family": "Incident Response"
+    },
+    {
+      "id": "500.17(c)",
+      "title": "Annual certification of compliance",
+      "description": "Annual certification of compliance",
+      "family": "Governance"
+    },
+    {
+      "id": "500.18",
+      "title": "Confidentiality",
+      "description": "Confidentiality",
+      "family": "Program Requirements"
+    },
+    {
+      "id": "500.19",
+      "title": "Exemptions",
+      "description": "Exemptions",
+      "family": "General"
+    },
+    {
+      "id": "500.20",
+      "title": "Enforcement",
+      "description": "Enforcement",
+      "family": "General"
+    },
+    {
+      "id": "500.21",
+      "title": "Effective date",
+      "description": "Effective date",
+      "family": "General"
+    },
+    {
+      "id": "500.22",
+      "title": "Transitional periods",
+      "description": "Transitional periods",
+      "family": "General"
+    },
+    {
+      "id": "500.23",
+      "title": "Severability",
+      "description": "Severability",
+      "family": "General"
+    }
+  ]
+}

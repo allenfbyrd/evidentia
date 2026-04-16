@@ -1,0 +1,107 @@
+{
+  "framework_id": "us-ct-ctdpa",
+  "framework_name": "Connecticut Data Privacy Act (CTDPA)",
+  "version": "Conn. Gen. Stat. § 42-515 et seq.",
+  "source": "Connecticut General Assembly (US state statute, not copyrightable under government edicts doctrine)",
+  "tier": "D",
+  "category": "obligation",
+  "placeholder": false,
+  "regime": {
+    "jurisdiction": "US-CT",
+    "effective_date": "2023-07-01",
+    "subject_rights": [
+      "access",
+      "delete",
+      "correct",
+      "portability",
+      "opt-out-sale",
+      "opt-out-profiling",
+      "appeal"
+    ],
+    "dpia_required": true,
+    "private_right_of_action": false,
+    "cure_period_days": 60,
+    "applicability_record_threshold": 100000,
+    "regulator": "Connecticut Attorney General"
+  },
+  "obligations": [
+    {
+      "id": "CTDPA.ACCESS",
+      "title": "Right to access personal information",
+      "description": "Right to access personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CTDPA.DELETE",
+      "title": "Right to delete personal information",
+      "description": "Right to delete personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CTDPA.CORRECT",
+      "title": "Right to correct inaccurate personal information",
+      "description": "Right to correct inaccurate personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CTDPA.PORTABILITY",
+      "title": "Right to portability of personal information",
+      "description": "Right to portability of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CTDPA.OPT-OUT-SALE",
+      "title": "Right to opt out of sale of personal information",
+      "description": "Right to opt out of sale of personal information",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CTDPA.OPT-OUT-PROFILING",
+      "title": "Right to opt out of significant automated profiling",
+      "description": "Right to opt out of significant automated profiling",
+      "category": "subject-rights"
+    },
+    {
+      "id": "CTDPA.NOTICE",
+      "title": "Privacy notice / disclosure requirements at or before collection",
+      "description": "Privacy notice / disclosure requirements at or before collection",
+      "category": "notice"
+    },
+    {
+      "id": "CTDPA.CONSENT-SENSITIVE",
+      "title": "Consent (or similar) required for processing sensitive data",
+      "description": "Consent (or similar) required for processing sensitive data",
+      "category": "consent"
+    },
+    {
+      "id": "CTDPA.MINIMIZATION",
+      "title": "Purpose limitation and data minimization",
+      "description": "Purpose limitation and data minimization",
+      "category": "principles"
+    },
+    {
+      "id": "CTDPA.SECURITY",
+      "title": "Reasonable security practices to protect personal information",
+      "description": "Reasonable security practices to protect personal information",
+      "category": "security"
+    },
+    {
+      "id": "CTDPA.DPA-CONTRACT",
+      "title": "Contractual requirements for processors and service providers",
+      "description": "Contractual requirements for processors and service providers",
+      "category": "vendor"
+    },
+    {
+      "id": "CTDPA.DPA-ASSESSMENT",
+      "title": "Data protection impact assessment for high-risk processing",
+      "description": "Data protection impact assessment for high-risk processing",
+      "category": "accountability"
+    },
+    {
+      "id": "CTDPA.NON-DISCRIMINATION",
+      "title": "Prohibition on discrimination against consumers exercising rights",
+      "description": "Prohibition on discrimination against consumers exercising rights",
+      "category": "subject-rights"
+    }
+  ]
+}

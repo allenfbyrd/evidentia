@@ -1,0 +1,44 @@
+{
+  "framework_id": "uk-cyber-essentials",
+  "framework_name": "UK Cyber Essentials",
+  "version": "Montpellier (Apr 2025)",
+  "source": "IASME / UK NCSC — Cyber Essentials scheme (Open Government Licence v3.0)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Technical Controls"
+  ],
+  "controls": [
+    {
+      "id": "CE.1",
+      "title": "Firewalls",
+      "description": "Firewalls",
+      "family": "Technical Controls"
+    },
+    {
+      "id": "CE.2",
+      "title": "Secure Configuration",
+      "description": "Secure Configuration",
+      "family": "Technical Controls"
+    },
+    {
+      "id": "CE.3",
+      "title": "User Access Control",
+      "description": "User Access Control",
+      "family": "Technical Controls"
+    },
+    {
+      "id": "CE.4",
+      "title": "Malware Protection",
+      "description": "Malware Protection",
+      "family": "Technical Controls"
+    },
+    {
+      "id": "CE.5",
+      "title": "Security Update Management",
+      "description": "Security Update Management",
+      "family": "Technical Controls"
+    }
+  ]
+}

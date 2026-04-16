@@ -1,0 +1,234 @@
+{
+  "framework_id": "cisa-cpgs",
+  "framework_name": "CISA Cross-Sector Cybersecurity Performance Goals",
+  "version": "1.0.1 (Mar 2023)",
+  "source": "Cybersecurity and Infrastructure Security Agency (CISA) — https://cisa.gov/cross-sector-cybersecurity-performance-goals",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Identify",
+    "Protect",
+    "Detect",
+    "Respond",
+    "Recover"
+  ],
+  "controls": [
+    {
+      "id": "1.A",
+      "title": "Asset Inventory",
+      "description": "Asset Inventory",
+      "family": "Identify"
+    },
+    {
+      "id": "1.B",
+      "title": "Organizational Cybersecurity Leadership",
+      "description": "Organizational Cybersecurity Leadership",
+      "family": "Identify"
+    },
+    {
+      "id": "1.C",
+      "title": "Mitigation of Known Vulnerabilities",
+      "description": "Mitigation of Known Vulnerabilities",
+      "family": "Identify"
+    },
+    {
+      "id": "1.D",
+      "title": "Third-Party Validation of Cybersecurity Control Effectiveness",
+      "description": "Third-Party Validation of Cybersecurity Control Effectiveness",
+      "family": "Identify"
+    },
+    {
+      "id": "1.E",
+      "title": "Supply Chain Incident Reporting",
+      "description": "Supply Chain Incident Reporting",
+      "family": "Identify"
+    },
+    {
+      "id": "1.F",
+      "title": "Supply Chain Vulnerability Disclosure",
+      "description": "Supply Chain Vulnerability Disclosure",
+      "family": "Identify"
+    },
+    {
+      "id": "1.G",
+      "title": "Vendor/Supplier Cybersecurity Requirements",
+      "description": "Vendor/Supplier Cybersecurity Requirements",
+      "family": "Identify"
+    },
+    {
+      "id": "2.A",
+      "title": "Changing Default Passwords",
+      "description": "Changing Default Passwords",
+      "family": "Protect"
+    },
+    {
+      "id": "2.B",
+      "title": "Minimum Password Strength",
+      "description": "Minimum Password Strength",
+      "family": "Protect"
+    },
+    {
+      "id": "2.C",
+      "title": "Unique Credentials",
+      "description": "Unique Credentials",
+      "family": "Protect"
+    },
+    {
+      "id": "2.D",
+      "title": "Revoking Credentials for Departing Employees",
+      "description": "Revoking Credentials for Departing Employees",
+      "family": "Protect"
+    },
+    {
+      "id": "2.E",
+      "title": "Separating User and Privileged Accounts",
+      "description": "Separating User and Privileged Accounts",
+      "family": "Protect"
+    },
+    {
+      "id": "2.F",
+      "title": "Network Segmentation",
+      "description": "Network Segmentation",
+      "family": "Protect"
+    },
+    {
+      "id": "2.G",
+      "title": "Detection of Unsuccessful (Automated) Login Attempts",
+      "description": "Detection of Unsuccessful (Automated) Login Attempts",
+      "family": "Protect"
+    },
+    {
+      "id": "2.H",
+      "title": "Phishing-Resistant Multi-Factor Authentication (MFA)",
+      "description": "Phishing-Resistant Multi-Factor Authentication (MFA)",
+      "family": "Protect"
+    },
+    {
+      "id": "2.I",
+      "title": "Basic Cybersecurity Training",
+      "description": "Basic Cybersecurity Training",
+      "family": "Protect"
+    },
+    {
+      "id": "2.J",
+      "title": "OT Cybersecurity Training",
+      "description": "OT Cybersecurity Training",
+      "family": "Protect"
+    },
+    {
+      "id": "2.K",
+      "title": "Strong and Agile Encryption",
+      "description": "Strong and Agile Encryption",
+      "family": "Protect"
+    },
+    {
+      "id": "2.L",
+      "title": "Secure Sensitive Data",
+      "description": "Secure Sensitive Data",
+      "family": "Protect"
+    },
+    {
+      "id": "2.M",
+      "title": "Email Security",
+      "description": "Email Security",
+      "family": "Protect"
+    },
+    {
+      "id": "2.N",
+      "title": "Disable Macros by Default",
+      "description": "Disable Macros by Default",
+      "family": "Protect"
+    },
+    {
+      "id": "2.O",
+      "title": "Document Device Configurations",
+      "description": "Document Device Configurations",
+      "family": "Protect"
+    },
+    {
+      "id": "2.P",
+      "title": "Document Network Topology",
+      "description": "Document Network Topology",
+      "family": "Protect"
+    },
+    {
+      "id": "2.Q",
+      "title": "Hardware and Software Approval Process",
+      "description": "Hardware and Software Approval Process",
+      "family": "Protect"
+    },
+    {
+      "id": "2.R",
+      "title": "System Back Ups",
+      "description": "System Back Ups",
+      "family": "Protect"
+    },
+    {
+      "id": "2.S",
+      "title": "Incident Response Plans",
+      "description": "Incident Response Plans",
+      "family": "Protect"
+    },
+    {
+      "id": "2.T",
+      "title": "Log Collection",
+      "description": "Log Collection",
+      "family": "Protect"
+    },
+    {
+      "id": "2.U",
+      "title": "Secure Log Storage",
+      "description": "Secure Log Storage",
+      "family": "Protect"
+    },
+    {
+      "id": "2.V",
+      "title": "Prohibit Connection of Unauthorized Devices",
+      "description": "Prohibit Connection of Unauthorized Devices",
+      "family": "Protect"
+    },
+    {
+      "id": "2.W",
+      "title": "No Exploitable Services on the Internet",
+      "description": "No Exploitable Services on the Internet",
+      "family": "Protect"
+    },
+    {
+      "id": "2.X",
+      "title": "Limit OT Connections to Public Internet",
+      "description": "Limit OT Connections to Public Internet",
+      "family": "Protect"
+    },
+    {
+      "id": "3.A",
+      "title": "Detecting Relevant Threats and TTPs",
+      "description": "Detecting Relevant Threats and TTPs",
+      "family": "Detect"
+    },
+    {
+      "id": "4.A",
+      "title": "Incident Reporting",
+      "description": "Incident Reporting",
+      "family": "Respond"
+    },
+    {
+      "id": "4.B",
+      "title": "Vulnerability Disclosure/Reporting",
+      "description": "Vulnerability Disclosure/Reporting",
+      "family": "Respond"
+    },
+    {
+      "id": "4.C",
+      "title": "Deploy Security.txt Files",
+      "description": "Deploy Security.txt Files",
+      "family": "Respond"
+    },
+    {
+      "id": "5.A",
+      "title": "Incident Planning and Preparedness",
+      "description": "Incident Planning and Preparedness",
+      "family": "Recover"
+    }
+  ]
+}

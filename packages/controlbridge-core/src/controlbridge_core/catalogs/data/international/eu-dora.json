@@ -1,0 +1,116 @@
+{
+  "framework_id": "eu-dora",
+  "framework_name": "EU Digital Operational Resilience Act (DORA)",
+  "version": "Regulation (EU) 2022/2554",
+  "source": "Official Journal of the European Union — DORA (regulation text)",
+  "tier": "D",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Governance",
+    "Risk Management",
+    "Protection",
+    "Detection",
+    "Response",
+    "Backup",
+    "Continuous Improvement",
+    "Communication",
+    "Incident Management",
+    "Incident Reporting",
+    "Testing",
+    "Third-Party Risk",
+    "Information Sharing"
+  ],
+  "controls": [
+    {
+      "id": "DORA.Art.5",
+      "title": "ICT governance and control framework",
+      "description": "ICT governance and control framework",
+      "family": "Governance"
+    },
+    {
+      "id": "DORA.Art.6",
+      "title": "ICT risk management framework",
+      "description": "ICT risk management framework",
+      "family": "Risk Management"
+    },
+    {
+      "id": "DORA.Art.8",
+      "title": "Identification of functions, processes and assets",
+      "description": "Identification of functions, processes and assets",
+      "family": "Risk Management"
+    },
+    {
+      "id": "DORA.Art.9",
+      "title": "Protection and prevention",
+      "description": "Protection and prevention",
+      "family": "Protection"
+    },
+    {
+      "id": "DORA.Art.10",
+      "title": "Detection",
+      "description": "Detection",
+      "family": "Detection"
+    },
+    {
+      "id": "DORA.Art.11",
+      "title": "Response and recovery",
+      "description": "Response and recovery",
+      "family": "Response"
+    },
+    {
+      "id": "DORA.Art.12",
+      "title": "Backup policies, restoration and recovery procedures",
+      "description": "Backup policies, restoration and recovery procedures",
+      "family": "Backup"
+    },
+    {
+      "id": "DORA.Art.13",
+      "title": "Learning and evolving",
+      "description": "Learning and evolving",
+      "family": "Continuous Improvement"
+    },
+    {
+      "id": "DORA.Art.14",
+      "title": "Communication",
+      "description": "Communication",
+      "family": "Communication"
+    },
+    {
+      "id": "DORA.Art.17",
+      "title": "ICT-related incident management process",
+      "description": "ICT-related incident management process",
+      "family": "Incident Management"
+    },
+    {
+      "id": "DORA.Art.19",
+      "title": "Reporting of major ICT-related incidents and voluntary reporting of significant cyber threats",
+      "description": "Reporting of major ICT-related incidents and voluntary reporting of significant cyber threats",
+      "family": "Incident Reporting"
+    },
+    {
+      "id": "DORA.Art.24",
+      "title": "Advanced testing of ICT tools, systems and processes based on threat-led penetration testing (TLPT)",
+      "description": "Advanced testing of ICT tools, systems and processes based on threat-led penetration testing (TLPT)",
+      "family": "Testing"
+    },
+    {
+      "id": "DORA.Art.28",
+      "title": "General principles on ICT third-party risk",
+      "description": "General principles on ICT third-party risk",
+      "family": "Third-Party Risk"
+    },
+    {
+      "id": "DORA.Art.30",
+      "title": "Key contractual provisions with ICT third-party service providers",
+      "description": "Key contractual provisions with ICT third-party service providers",
+      "family": "Third-Party Risk"
+    },
+    {
+      "id": "DORA.Art.40",
+      "title": "Cyber threat information and intelligence sharing arrangements",
+      "description": "Cyber threat information and intelligence sharing arrangements",
+      "family": "Information Sharing"
+    }
+  ]
+}

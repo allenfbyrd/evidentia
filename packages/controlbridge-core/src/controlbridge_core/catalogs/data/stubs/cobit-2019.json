@@ -1,0 +1,421 @@
+{
+  "framework_id": "cobit-2019",
+  "framework_name": "COBIT 2019",
+  "version": "2019 (with 2022 focus area guides)",
+  "source": "ISACA",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "EDM: Evaluate, Direct and Monitor",
+    "APO: Align, Plan and Organise",
+    "BAI: Build, Acquire and Implement",
+    "DSS: Deliver, Service and Support",
+    "MEA: Monitor, Evaluate and Assess"
+  ],
+  "controls": [
+    {
+      "id": "EDM01",
+      "title": "Ensured Governance Framework Setting and Maintenance",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "EDM: Evaluate, Direct and Monitor",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "EDM02",
+      "title": "Ensured Benefits Delivery",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "EDM: Evaluate, Direct and Monitor",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "EDM03",
+      "title": "Ensured Risk Optimisation",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "EDM: Evaluate, Direct and Monitor",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "EDM04",
+      "title": "Ensured Resource Optimisation",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "EDM: Evaluate, Direct and Monitor",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "EDM05",
+      "title": "Ensured Stakeholder Engagement",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "EDM: Evaluate, Direct and Monitor",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO01",
+      "title": "Managed I&T Management Framework",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO02",
+      "title": "Managed Strategy",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO03",
+      "title": "Managed Enterprise Architecture",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO04",
+      "title": "Managed Innovation",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO05",
+      "title": "Managed Portfolio",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO06",
+      "title": "Managed Budget and Costs",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO07",
+      "title": "Managed Human Resources",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO08",
+      "title": "Managed Relationships",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO09",
+      "title": "Managed Service Agreements",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO10",
+      "title": "Managed Vendors",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO11",
+      "title": "Managed Quality",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO12",
+      "title": "Managed Risk",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO13",
+      "title": "Managed Security",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "APO14",
+      "title": "Managed Data",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "APO: Align, Plan and Organise",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI01",
+      "title": "Managed Programs",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI02",
+      "title": "Managed Requirements Definition",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI03",
+      "title": "Managed Solutions Identification and Build",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI04",
+      "title": "Managed Availability and Capacity",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI05",
+      "title": "Managed Organisational Change",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI06",
+      "title": "Managed IT Changes",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI07",
+      "title": "Managed IT Change Acceptance and Transitioning",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI08",
+      "title": "Managed Knowledge",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI09",
+      "title": "Managed Assets",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI10",
+      "title": "Managed Configuration",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "BAI11",
+      "title": "Managed Projects",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "BAI: Build, Acquire and Implement",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "DSS01",
+      "title": "Managed Operations",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "DSS: Deliver, Service and Support",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "DSS02",
+      "title": "Managed Service Requests and Incidents",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "DSS: Deliver, Service and Support",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "DSS03",
+      "title": "Managed Problems",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "DSS: Deliver, Service and Support",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "DSS04",
+      "title": "Managed Continuity",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "DSS: Deliver, Service and Support",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "DSS05",
+      "title": "Managed Security Services",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "DSS: Deliver, Service and Support",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "DSS06",
+      "title": "Managed Business Process Controls",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "DSS: Deliver, Service and Support",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "MEA01",
+      "title": "Managed Performance and Conformance Monitoring",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "MEA: Monitor, Evaluate and Assess",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "MEA02",
+      "title": "Managed System of Internal Control",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "MEA: Monitor, Evaluate and Assess",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "MEA03",
+      "title": "Managed Compliance With External Requirements",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "MEA: Monitor, Evaluate and Assess",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    },
+    {
+      "id": "MEA04",
+      "title": "Managed Assurance",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "MEA: Monitor, Evaluate and Assess",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.isaca.org/resources/cobit"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© ISACA. COBIT framework content is license-protected.",
+  "license_url": "https://www.isaca.org/resources/cobit"
+}

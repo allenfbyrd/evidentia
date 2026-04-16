@@ -1,0 +1,118 @@
+{
+  "framework_id": "canada-itsg-33",
+  "framework_name": "Canada ITSG-33 — IT Security Risk Management: A Lifecycle Approach",
+  "version": "December 2014 (current)",
+  "source": "Canadian Centre for Cyber Security (CCCS) — ITSG-33 Annex 3A (public document)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Management",
+    "Operational",
+    "Technical"
+  ],
+  "controls": [
+    {
+      "id": "AC",
+      "title": "Access Control",
+      "description": "Access Control",
+      "family": "Technical"
+    },
+    {
+      "id": "AT",
+      "title": "Awareness and Training",
+      "description": "Awareness and Training",
+      "family": "Operational"
+    },
+    {
+      "id": "AU",
+      "title": "Audit and Accountability",
+      "description": "Audit and Accountability",
+      "family": "Technical"
+    },
+    {
+      "id": "CA",
+      "title": "Security Assessment and Authorization",
+      "description": "Security Assessment and Authorization",
+      "family": "Management"
+    },
+    {
+      "id": "CM",
+      "title": "Configuration Management",
+      "description": "Configuration Management",
+      "family": "Operational"
+    },
+    {
+      "id": "CP",
+      "title": "Contingency Planning",
+      "description": "Contingency Planning",
+      "family": "Operational"
+    },
+    {
+      "id": "IA",
+      "title": "Identification and Authentication",
+      "description": "Identification and Authentication",
+      "family": "Technical"
+    },
+    {
+      "id": "IR",
+      "title": "Incident Response",
+      "description": "Incident Response",
+      "family": "Operational"
+    },
+    {
+      "id": "MA",
+      "title": "Maintenance",
+      "description": "Maintenance",
+      "family": "Operational"
+    },
+    {
+      "id": "MP",
+      "title": "Media Protection",
+      "description": "Media Protection",
+      "family": "Operational"
+    },
+    {
+      "id": "PE",
+      "title": "Physical and Environmental Protection",
+      "description": "Physical and Environmental Protection",
+      "family": "Operational"
+    },
+    {
+      "id": "PL",
+      "title": "Planning",
+      "description": "Planning",
+      "family": "Management"
+    },
+    {
+      "id": "PS",
+      "title": "Personnel Security",
+      "description": "Personnel Security",
+      "family": "Operational"
+    },
+    {
+      "id": "RA",
+      "title": "Risk Assessment",
+      "description": "Risk Assessment",
+      "family": "Management"
+    },
+    {
+      "id": "SA",
+      "title": "System and Services Acquisition",
+      "description": "System and Services Acquisition",
+      "family": "Management"
+    },
+    {
+      "id": "SC",
+      "title": "System and Communications Protection",
+      "description": "System and Communications Protection",
+      "family": "Technical"
+    },
+    {
+      "id": "SI",
+      "title": "System and Information Integrity",
+      "description": "System and Information Integrity",
+      "family": "Operational"
+    }
+  ]
+}

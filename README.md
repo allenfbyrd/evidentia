@@ -85,23 +85,49 @@ ControlBridge is built on four principles:
 
 ---
 
-## Current status: Phase 1 MVP
+## Current status: Phase 1.5 — 77 frameworks bundled
 
-Phase 1 is a working, tested, end-to-end gap analyzer with AI risk generation.
-All code in this repository runs today — there is no vaporware in Phase 1.
+v0.2.0 (released April 2026) is the Phase 1.5 big-bang: a comprehensive
+GRC catalog library so the common workflows work out of the box without
+digging. All code here runs today; there is no vaporware in v0.2.0.
 
 ### What works today
 
-- **Gap analysis against 2 bundled frameworks.** A 16-control NIST SP 800-53
-  Rev 5 Moderate sample catalog (Tier A, verbatim OSCAL) and a 61-criterion
-  SOC 2 Trust Services Criteria 2017 stub catalog (Tier C — AICPA control
-  text is licensed and not redistributable; stub ships public clause
-  numbering plus a `controlbridge catalog import` hook for your own
-  licensed copy). The **v0.2.0 Phase 1.5 big-bang release will expand
-  coverage to ~50 frameworks** across US federal (Tier A verbatim),
-  international (EU/UK/AU/CA/NZ), US state privacy laws, and copyrighted
-  frameworks as stubs (ISO 27001/27002, PCI DSS 4.0, HITRUST, CIS, SCF,
-  IEC 62443) — see [`CHANGELOG.md`](CHANGELOG.md) for the roadmap.
+- **Gap analysis against 77 bundled frameworks** across four redistribution
+  tiers:
+
+  - **Tier A — US federal (25 frameworks, verbatim public domain):**
+    NIST 800-53 Moderate sample, 800-171 Rev 2/Rev 3, 800-172, CSF 2.0,
+    AI RMF 1.0, Privacy Framework 1.0, SSDF 800-218; FedRAMP Rev 5
+    Low/Moderate/High/LI-SaaS baselines; CMMC 2.0 Levels 1/2/3; HIPAA
+    Security/Privacy/Breach Notification Rules; GLBA Safeguards, NY DFS
+    500, NERC CIP v7, FDA 21 CFR Part 11, IRS 1075, CMS ARS, FBI CJIS v6,
+    CISA Cross-Sector CPGs.
+
+  - **Tier A — International (6 frameworks):** UK NCSC CAF 3.2, UK Cyber
+    Essentials, Australian Essential Eight, Australian ISM, Canada
+    ITSG-33, New Zealand NZISM.
+
+  - **Tier D — Statutory obligations (21 frameworks, government edicts,
+    uncopyrightable):** EU GDPR, EU AI Act, EU NIS2, EU DORA, UK DPA 2018,
+    Canada PIPEDA, plus all 15 comprehensive US state privacy laws (CA
+    CCPA/CPRA, VA, CO, CT, UT, TX, OR, DE, MT, IA, FL, TN, NH, MD, MN).
+
+  - **Tier C — Licensed stubs (20 frameworks):** ISO/IEC 27001:2022,
+    27002:2022, 27017, 27018, 27701, 42001 (AI), 22301 (BC); PCI DSS
+    v4.0.1; HITRUST CSF v11; COBIT 2019; SWIFT CSCF 2024; CIS Controls
+    v8.1 plus 5 CIS Benchmarks (AWS, Azure, GCP, Kubernetes, RHEL 9);
+    Secure Controls Framework 2024; IEC 62443; SOC 2 TSC. Copyrighted
+    authoritative text isn't bundled — ships with public clause numbering
+    plus a `controlbridge catalog import` hook for your licensed copy.
+
+  - **Tier B — Threat and vulnerability catalogs (4 frameworks):** MITRE
+    ATT&CK Enterprise (41 techniques), MITRE CWE Top 25 (2024), MITRE
+    CAPEC sample, CISA KEV sample (Log4Shell, MOVEit, EternalBlue, etc).
+
+- **Six bundled crosswalks:** NIST CSF 2.0 → 800-53, FedRAMP Moderate →
+  CMMC L2, NIST 800-53 → HIPAA Security, ISO 27001 → NIST 800-53, VCDPA →
+  CCPA/CPRA, NIST 800-53 → SOC 2 TSC.
 
 - **Multi-format inventory parsing.** Load your controls from YAML, CSV, JSON
   (including OSCAL component-definition), or any format with fuzzy-matched
@@ -109,9 +135,10 @@ All code in this repository runs today — there is no vaporware in Phase 1.
   "planned", "in progress", "missing", etc.
 
 - **Cross-framework crosswalk engine.** Bidirectional mapping index: ask
-  "what NIST controls satisfy this SOC 2 criterion?" or vice-versa. Bundled
-  with 17 hand-curated NIST ↔ SOC 2 mappings for demonstration; production
-  crosswalks are plug-in JSON files in `catalogs/data/mappings/`.
+  "what NIST 800-53 controls satisfy my SOC 2 criterion?" or "what CMMC
+  Level 2 controls match my FedRAMP Moderate posture?". v0.2.0 ships six
+  bundled crosswalks (118 mappings total). Custom crosswalks are
+  drop-in JSON files in `catalogs/data/mappings/`.
 
 - **Prioritized gap reports.** Severity by implementation state, effort-weighted
   priority scores, efficiency opportunities (controls that close gaps in 2+
@@ -125,12 +152,18 @@ All code in this repository runs today — there is no vaporware in Phase 1.
   `RiskStatement` Pydantic schema on LLM output, with automatic retries on
   validation failure. Works with any LiteLLM-supported model.
 
-- **Typer + Rich CLI** with `init`, `catalog list/show/crosswalk`,
-  `gap analyze`, `risk generate`, `doctor`, and `version` commands.
+- **Typer + Rich CLI** with `init`, `catalog list/show/crosswalk/import/
+  where/license-info/remove`, `gap analyze`, `risk generate`, `doctor`,
+  and `version` commands. `catalog list` supports `--tier` and `--category`
+  filters; `catalog import` accepts direct JSON or an OSCAL profile (via
+  `--profile <profile.json> --catalog <source.json>`).
 
-- **22 passing pytest tests** covering models, catalog loading, crosswalk,
-  multi-format inventory parsing, severity calculation per implementation
-  state, and all four report exporters.
+- **131 passing pytest tests** covering models, catalog loading (with a
+  parametric smoke test per bundled framework), recursive enhancement
+  flattener for NIST Rev 5 3-level IDs, tier invariants, OSCAL profile
+  resolution, user-import directory precedence, `FrameworkId` deprecation,
+  crosswalk bidirectionality, multi-format inventory parsing, severity
+  calculation, and all four report exporters.
 
 ### What Phase 1 explicitly does NOT include
 
@@ -141,11 +174,13 @@ Setting expectations matters. Phase 1 does NOT yet include:
 - Jira or ServiceNow push integrations (Phase 2)
 - The FastAPI REST server (`controlbridge serve`)
 - A web UI
-- Production-sized OSCAL catalogs — the bundled NIST 800-53 Moderate catalog
-  has 16 hand-curated controls, not the full ~323 from the official NIST OSCAL
-  content repository. Full upstream OSCAL import (plus ~48 additional
-  frameworks) ships in the **v0.2.0 Phase 1.5 big-bang release** — see
-  [`CHANGELOG.md`](CHANGELOG.md) for the roadmap.
+- Full-depth NIST 800-53 Rev 5 catalog (~323 controls with 3-level
+  enhancements) — v0.2.0 ships the 16-control Moderate sample plus
+  pointer-style FedRAMP baselines that the OSCAL profile resolver can
+  turn into resolved 149/287/369-control baselines once you supply the
+  full upstream NIST OSCAL catalog via `catalog import --profile`.
+  Direct bundling of the full NIST Rev 5 catalog is planned for v0.2.1
+  via the upstream refresh CI workflow.
 - Authoritative control text for copyrighted frameworks (ISO 27001/27002,
   SOC 2 TSC, PCI DSS, HITRUST CSF, etc.). These frameworks will ship as
   **Tier C stubs** in v0.2.0 — public clause numbering only, with a
@@ -272,8 +307,8 @@ ControlBridge is a **uv workspace monorepo** of five composable Python packages:
 ```
 ┌─────────────────┐   ┌─────────────────┐   ┌────────────────────┐
 │ my-controls.yaml│   │  OSCAL catalogs │   │ framework mappings │
-│       .csv      │   │  (2 bundled;    │   │    (crosswalks)    │
-│       .json     │   │  ~50 in v0.2.0) │   └──────────┬─────────┘
+│       .csv      │   │  (77 bundled;   │   │    (crosswalks)    │
+│       .json     │   │  manifest-driven) │   └──────────┬───────┘
 └────────┬────────┘   └────────┬────────┘              │
          │                     ▼                       ▼
          │           ┌──────────────────────────────────────┐

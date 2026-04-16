@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-core"
-version = "0.1.2"
+version = "0.2.0"
 description = "Core data models, catalog loading, and gap analysis engine for ControlBridge GRC tool"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
@@ -22,6 +22,7 @@ dependencies = [
     "pyyaml>=6.0",
     "python-dateutil>=2.9",
     "thefuzz[speedup]>=0.22",
+    "platformdirs>=4.3",
 ]
 
 [project.urls]

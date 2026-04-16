@@ -1,0 +1,933 @@
+{
+  "framework_id": "fedramp-rev5-li-saas",
+  "framework_name": "FedRAMP Rev 5 LI-SAAS Baseline",
+  "version": "Rev 5 (2023)",
+  "source": "FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "AC — Access Control",
+    "AT — Awareness and Training",
+    "AU — Audit and Accountability",
+    "CA — Assessment, Authorization, and Monitoring",
+    "CM — Configuration Management",
+    "CP — Contingency Planning",
+    "IA — Identification and Authentication",
+    "IR — Incident Response",
+    "MA — Maintenance",
+    "MP — Media Protection",
+    "PE — Physical and Environmental Protection",
+    "PL — Planning",
+    "PM — Program Management",
+    "PS — Personnel Security",
+    "PT — PII Processing and Transparency",
+    "RA — Risk Assessment",
+    "SA — System and Services Acquisition",
+    "SC — System and Communications Protection",
+    "SI — System and Information Integrity",
+    "SR — Supply Chain Risk Management"
+  ],
+  "controls": [
+    {
+      "id": "AC-1",
+      "title": "NIST 800-53 Rev 5 control AC-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-1 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-2",
+      "title": "NIST 800-53 Rev 5 control AC-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-2 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-3",
+      "title": "NIST 800-53 Rev 5 control AC-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-3 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-4",
+      "title": "NIST 800-53 Rev 5 control AC-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-4 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-5",
+      "title": "NIST 800-53 Rev 5 control AC-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-5 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-6",
+      "title": "NIST 800-53 Rev 5 control AC-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-6 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-7",
+      "title": "NIST 800-53 Rev 5 control AC-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-7 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-8",
+      "title": "NIST 800-53 Rev 5 control AC-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-8 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-11",
+      "title": "NIST 800-53 Rev 5 control AC-11",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-11 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-12",
+      "title": "NIST 800-53 Rev 5 control AC-12",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-12 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-14",
+      "title": "NIST 800-53 Rev 5 control AC-14",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-14 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-17",
+      "title": "NIST 800-53 Rev 5 control AC-17",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-17 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-18",
+      "title": "NIST 800-53 Rev 5 control AC-18",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-18 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-19",
+      "title": "NIST 800-53 Rev 5 control AC-19",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-19 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-20",
+      "title": "NIST 800-53 Rev 5 control AC-20",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-20 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-21",
+      "title": "NIST 800-53 Rev 5 control AC-21",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-21 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AC-22",
+      "title": "NIST 800-53 Rev 5 control AC-22",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-22 in family AC — Access Control.",
+      "family": "AC — Access Control"
+    },
+    {
+      "id": "AT-1",
+      "title": "NIST 800-53 Rev 5 control AT-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AT-1 in family AT — Awareness and Training.",
+      "family": "AT — Awareness and Training"
+    },
+    {
+      "id": "AT-2",
+      "title": "NIST 800-53 Rev 5 control AT-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AT-2 in family AT — Awareness and Training.",
+      "family": "AT — Awareness and Training"
+    },
+    {
+      "id": "AT-3",
+      "title": "NIST 800-53 Rev 5 control AT-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AT-3 in family AT — Awareness and Training.",
+      "family": "AT — Awareness and Training"
+    },
+    {
+      "id": "AT-4",
+      "title": "NIST 800-53 Rev 5 control AT-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AT-4 in family AT — Awareness and Training.",
+      "family": "AT — Awareness and Training"
+    },
+    {
+      "id": "AU-1",
+      "title": "NIST 800-53 Rev 5 control AU-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-1 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-2",
+      "title": "NIST 800-53 Rev 5 control AU-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-2 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-3",
+      "title": "NIST 800-53 Rev 5 control AU-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-3 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-4",
+      "title": "NIST 800-53 Rev 5 control AU-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-4 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-5",
+      "title": "NIST 800-53 Rev 5 control AU-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-5 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-6",
+      "title": "NIST 800-53 Rev 5 control AU-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-6 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-7",
+      "title": "NIST 800-53 Rev 5 control AU-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-7 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-8",
+      "title": "NIST 800-53 Rev 5 control AU-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-8 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-9",
+      "title": "NIST 800-53 Rev 5 control AU-9",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-9 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-11",
+      "title": "NIST 800-53 Rev 5 control AU-11",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-11 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "AU-12",
+      "title": "NIST 800-53 Rev 5 control AU-12",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-12 in family AU — Audit and Accountability.",
+      "family": "AU — Audit and Accountability"
+    },
+    {
+      "id": "CA-1",
+      "title": "NIST 800-53 Rev 5 control CA-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-1 in family CA — Assessment, Authorization, and Monitoring.",
+      "family": "CA — Assessment, Authorization, and Monitoring"
+    },
+    {
+      "id": "CA-2",
+      "title": "NIST 800-53 Rev 5 control CA-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-2 in family CA — Assessment, Authorization, and Monitoring.",
+      "family": "CA — Assessment, Authorization, and Monitoring"
+    },
+    {
+      "id": "CA-3",
+      "title": "NIST 800-53 Rev 5 control CA-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-3 in family CA — Assessment, Authorization, and Monitoring.",
+      "family": "CA — Assessment, Authorization, and Monitoring"
+    },
+    {
+      "id": "CA-5",
+      "title": "NIST 800-53 Rev 5 control CA-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-5 in family CA — Assessment, Authorization, and Monitoring.",
+      "family": "CA — Assessment, Authorization, and Monitoring"
+    },
+    {
+      "id": "CA-6",
+      "title": "NIST 800-53 Rev 5 control CA-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-6 in family CA — Assessment, Authorization, and Monitoring.",
+      "family": "CA — Assessment, Authorization, and Monitoring"
+    },
+    {
+      "id": "CA-7",
+      "title": "NIST 800-53 Rev 5 control CA-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-7 in family CA — Assessment, Authorization, and Monitoring.",
+      "family": "CA — Assessment, Authorization, and Monitoring"
+    },
+    {
+      "id": "CA-8",
+      "title": "NIST 800-53 Rev 5 control CA-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-8 in family CA — Assessment, Authorization, and Monitoring.",
+      "family": "CA — Assessment, Authorization, and Monitoring"
+    },
+    {
+      "id": "CA-9",
+      "title": "NIST 800-53 Rev 5 control CA-9",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-9 in family CA — Assessment, Authorization, and Monitoring.",
+      "family": "CA — Assessment, Authorization, and Monitoring"
+    },
+    {
+      "id": "CM-1",
+      "title": "NIST 800-53 Rev 5 control CM-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-1 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-2",
+      "title": "NIST 800-53 Rev 5 control CM-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-2 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-3",
+      "title": "NIST 800-53 Rev 5 control CM-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-3 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-4",
+      "title": "NIST 800-53 Rev 5 control CM-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-4 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-5",
+      "title": "NIST 800-53 Rev 5 control CM-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-5 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-6",
+      "title": "NIST 800-53 Rev 5 control CM-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-6 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-7",
+      "title": "NIST 800-53 Rev 5 control CM-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-7 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-8",
+      "title": "NIST 800-53 Rev 5 control CM-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-8 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-9",
+      "title": "NIST 800-53 Rev 5 control CM-9",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-9 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-10",
+      "title": "NIST 800-53 Rev 5 control CM-10",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-10 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CM-11",
+      "title": "NIST 800-53 Rev 5 control CM-11",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-11 in family CM — Configuration Management.",
+      "family": "CM — Configuration Management"
+    },
+    {
+      "id": "CP-1",
+      "title": "NIST 800-53 Rev 5 control CP-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-1 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "CP-2",
+      "title": "NIST 800-53 Rev 5 control CP-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-2 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "CP-3",
+      "title": "NIST 800-53 Rev 5 control CP-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-3 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "CP-4",
+      "title": "NIST 800-53 Rev 5 control CP-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-4 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "CP-6",
+      "title": "NIST 800-53 Rev 5 control CP-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-6 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "CP-7",
+      "title": "NIST 800-53 Rev 5 control CP-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-7 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "CP-8",
+      "title": "NIST 800-53 Rev 5 control CP-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-8 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "CP-9",
+      "title": "NIST 800-53 Rev 5 control CP-9",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-9 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "CP-10",
+      "title": "NIST 800-53 Rev 5 control CP-10",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-10 in family CP — Contingency Planning.",
+      "family": "CP — Contingency Planning"
+    },
+    {
+      "id": "IA-1",
+      "title": "NIST 800-53 Rev 5 control IA-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-1 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-2",
+      "title": "NIST 800-53 Rev 5 control IA-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-2 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-3",
+      "title": "NIST 800-53 Rev 5 control IA-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-3 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-4",
+      "title": "NIST 800-53 Rev 5 control IA-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-4 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-5",
+      "title": "NIST 800-53 Rev 5 control IA-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-5 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-6",
+      "title": "NIST 800-53 Rev 5 control IA-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-6 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-7",
+      "title": "NIST 800-53 Rev 5 control IA-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-7 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-8",
+      "title": "NIST 800-53 Rev 5 control IA-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-8 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-11",
+      "title": "NIST 800-53 Rev 5 control IA-11",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-11 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IA-12",
+      "title": "NIST 800-53 Rev 5 control IA-12",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-12 in family IA — Identification and Authentication.",
+      "family": "IA — Identification and Authentication"
+    },
+    {
+      "id": "IR-1",
+      "title": "NIST 800-53 Rev 5 control IR-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-1 in family IR — Incident Response.",
+      "family": "IR — Incident Response"
+    },
+    {
+      "id": "IR-2",
+      "title": "NIST 800-53 Rev 5 control IR-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-2 in family IR — Incident Response.",
+      "family": "IR — Incident Response"
+    },
+    {
+      "id": "IR-3",
+      "title": "NIST 800-53 Rev 5 control IR-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-3 in family IR — Incident Response.",
+      "family": "IR — Incident Response"
+    },
+    {
+      "id": "IR-4",
+      "title": "NIST 800-53 Rev 5 control IR-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-4 in family IR — Incident Response.",
+      "family": "IR — Incident Response"
+    },
+    {
+      "id": "IR-5",
+      "title": "NIST 800-53 Rev 5 control IR-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-5 in family IR — Incident Response.",
+      "family": "IR — Incident Response"
+    },
+    {
+      "id": "IR-6",
+      "title": "NIST 800-53 Rev 5 control IR-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-6 in family IR — Incident Response.",
+      "family": "IR — Incident Response"
+    },
+    {
+      "id": "IR-7",
+      "title": "NIST 800-53 Rev 5 control IR-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-7 in family IR — Incident Response.",
+      "family": "IR — Incident Response"
+    },
+    {
+      "id": "IR-8",
+      "title": "NIST 800-53 Rev 5 control IR-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-8 in family IR — Incident Response.",
+      "family": "IR — Incident Response"
+    },
+    {
+      "id": "MA-1",
+      "title": "NIST 800-53 Rev 5 control MA-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-1 in family MA — Maintenance.",
+      "family": "MA — Maintenance"
+    },
+    {
+      "id": "MA-2",
+      "title": "NIST 800-53 Rev 5 control MA-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-2 in family MA — Maintenance.",
+      "family": "MA — Maintenance"
+    },
+    {
+      "id": "MA-3",
+      "title": "NIST 800-53 Rev 5 control MA-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-3 in family MA — Maintenance.",
+      "family": "MA — Maintenance"
+    },
+    {
+      "id": "MA-4",
+      "title": "NIST 800-53 Rev 5 control MA-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-4 in family MA — Maintenance.",
+      "family": "MA — Maintenance"
+    },
+    {
+      "id": "MA-5",
+      "title": "NIST 800-53 Rev 5 control MA-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-5 in family MA — Maintenance.",
+      "family": "MA — Maintenance"
+    },
+    {
+      "id": "MA-6",
+      "title": "NIST 800-53 Rev 5 control MA-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-6 in family MA — Maintenance.",
+      "family": "MA — Maintenance"
+    },
+    {
+      "id": "MP-1",
+      "title": "NIST 800-53 Rev 5 control MP-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-1 in family MP — Media Protection.",
+      "family": "MP — Media Protection"
+    },
+    {
+      "id": "MP-2",
+      "title": "NIST 800-53 Rev 5 control MP-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-2 in family MP — Media Protection.",
+      "family": "MP — Media Protection"
+    },
+    {
+      "id": "MP-3",
+      "title": "NIST 800-53 Rev 5 control MP-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-3 in family MP — Media Protection.",
+      "family": "MP — Media Protection"
+    },
+    {
+      "id": "MP-4",
+      "title": "NIST 800-53 Rev 5 control MP-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-4 in family MP — Media Protection.",
+      "family": "MP — Media Protection"
+    },
+    {
+      "id": "MP-5",
+      "title": "NIST 800-53 Rev 5 control MP-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-5 in family MP — Media Protection.",
+      "family": "MP — Media Protection"
+    },
+    {
+      "id": "MP-6",
+      "title": "NIST 800-53 Rev 5 control MP-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-6 in family MP — Media Protection.",
+      "family": "MP — Media Protection"
+    },
+    {
+      "id": "MP-7",
+      "title": "NIST 800-53 Rev 5 control MP-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-7 in family MP — Media Protection.",
+      "family": "MP — Media Protection"
+    },
+    {
+      "id": "PE-1",
+      "title": "NIST 800-53 Rev 5 control PE-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-1 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-2",
+      "title": "NIST 800-53 Rev 5 control PE-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-2 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-3",
+      "title": "NIST 800-53 Rev 5 control PE-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-3 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-4",
+      "title": "NIST 800-53 Rev 5 control PE-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-4 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-5",
+      "title": "NIST 800-53 Rev 5 control PE-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-5 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-6",
+      "title": "NIST 800-53 Rev 5 control PE-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-6 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-8",
+      "title": "NIST 800-53 Rev 5 control PE-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-8 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-9",
+      "title": "NIST 800-53 Rev 5 control PE-9",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-9 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-10",
+      "title": "NIST 800-53 Rev 5 control PE-10",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-10 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-11",
+      "title": "NIST 800-53 Rev 5 control PE-11",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-11 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-12",
+      "title": "NIST 800-53 Rev 5 control PE-12",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-12 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-13",
+      "title": "NIST 800-53 Rev 5 control PE-13",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-13 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-14",
+      "title": "NIST 800-53 Rev 5 control PE-14",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-14 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-15",
+      "title": "NIST 800-53 Rev 5 control PE-15",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-15 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-16",
+      "title": "NIST 800-53 Rev 5 control PE-16",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-16 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PE-17",
+      "title": "NIST 800-53 Rev 5 control PE-17",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-17 in family PE — Physical and Environmental Protection.",
+      "family": "PE — Physical and Environmental Protection"
+    },
+    {
+      "id": "PL-1",
+      "title": "NIST 800-53 Rev 5 control PL-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-1 in family PL — Planning.",
+      "family": "PL — Planning"
+    },
+    {
+      "id": "PL-2",
+      "title": "NIST 800-53 Rev 5 control PL-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-2 in family PL — Planning.",
+      "family": "PL — Planning"
+    },
+    {
+      "id": "PL-4",
+      "title": "NIST 800-53 Rev 5 control PL-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-4 in family PL — Planning.",
+      "family": "PL — Planning"
+    },
+    {
+      "id": "PL-8",
+      "title": "NIST 800-53 Rev 5 control PL-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-8 in family PL — Planning.",
+      "family": "PL — Planning"
+    },
+    {
+      "id": "PL-10",
+      "title": "NIST 800-53 Rev 5 control PL-10",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-10 in family PL — Planning.",
+      "family": "PL — Planning"
+    },
+    {
+      "id": "PL-11",
+      "title": "NIST 800-53 Rev 5 control PL-11",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-11 in family PL — Planning.",
+      "family": "PL — Planning"
+    },
+    {
+      "id": "PM-1",
+      "title": "NIST 800-53 Rev 5 control PM-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-1 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-2",
+      "title": "NIST 800-53 Rev 5 control PM-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-2 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-3",
+      "title": "NIST 800-53 Rev 5 control PM-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-3 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-4",
+      "title": "NIST 800-53 Rev 5 control PM-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-4 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-5",
+      "title": "NIST 800-53 Rev 5 control PM-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-5 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-6",
+      "title": "NIST 800-53 Rev 5 control PM-6",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-6 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-7",
+      "title": "NIST 800-53 Rev 5 control PM-7",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-7 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-8",
+      "title": "NIST 800-53 Rev 5 control PM-8",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-8 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-9",
+      "title": "NIST 800-53 Rev 5 control PM-9",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-9 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-10",
+      "title": "NIST 800-53 Rev 5 control PM-10",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-10 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-11",
+      "title": "NIST 800-53 Rev 5 control PM-11",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-11 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-12",
+      "title": "NIST 800-53 Rev 5 control PM-12",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-12 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-13",
+      "title": "NIST 800-53 Rev 5 control PM-13",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-13 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-14",
+      "title": "NIST 800-53 Rev 5 control PM-14",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-14 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-15",
+      "title": "NIST 800-53 Rev 5 control PM-15",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-15 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-16",
+      "title": "NIST 800-53 Rev 5 control PM-16",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-16 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-17",
+      "title": "NIST 800-53 Rev 5 control PM-17",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-17 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-18",
+      "title": "NIST 800-53 Rev 5 control PM-18",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-18 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-19",
+      "title": "NIST 800-53 Rev 5 control PM-19",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-19 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-20",
+      "title": "NIST 800-53 Rev 5 control PM-20",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-20 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-21",
+      "title": "NIST 800-53 Rev 5 control PM-21",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-21 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-22",
+      "title": "NIST 800-53 Rev 5 control PM-22",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-22 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-23",
+      "title": "NIST 800-53 Rev 5 control PM-23",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-23 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-24",
+      "title": "NIST 800-53 Rev 5 control PM-24",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-24 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-25",
+      "title": "NIST 800-53 Rev 5 control PM-25",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-25 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-26",
+      "title": "NIST 800-53 Rev 5 control PM-26",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-26 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-27",
+      "title": "NIST 800-53 Rev 5 control PM-27",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-27 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-28",
+      "title": "NIST 800-53 Rev 5 control PM-28",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-28 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-29",
+      "title": "NIST 800-53 Rev 5 control PM-29",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-29 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-30",
+      "title": "NIST 800-53 Rev 5 control PM-30",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-30 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-31",
+      "title": "NIST 800-53 Rev 5 control PM-31",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-31 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PM-32",
+      "title": "NIST 800-53 Rev 5 control PM-32",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-32 in family PM — Program Management.",
+      "family": "PM — Program Management"
+    },
+    {
+      "id": "PS-1",
+      "title": "NIST 800-53 Rev 5 control PS-1",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-1 in family PS — Personnel Security.",
+      "family": "PS — Personnel Security"
+    },
+    {
+      "id": "PS-2",
+      "title": "NIST 800-53 Rev 5 control PS-2",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-2 in family PS — Personnel Security.",
+      "family": "PS — Personnel Security"
+    },
+    {
+      "id": "PS-3",
+      "title": "NIST 800-53 Rev 5 control PS-3",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-3 in family PS — Personnel Security.",
+      "family": "PS — Personnel Security"
+    },
+    {
+      "id": "PS-4",
+      "title": "NIST 800-53 Rev 5 control PS-4",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-4 in family PS — Personnel Security.",
+      "family": "PS — Personnel Security"
+    },
+    {
+      "id": "PS-5",
+      "title": "NIST 800-53 Rev 5 control PS-5",
+      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-5 in family PS — Personnel Security.",
+      "family": "PS — Personnel Security"
+    }
+  ]
+}

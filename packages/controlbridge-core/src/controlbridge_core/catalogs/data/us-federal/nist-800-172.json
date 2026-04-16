@@ -1,0 +1,227 @@
+{
+  "framework_id": "nist-800-172",
+  "framework_name": "NIST SP 800-172 — Enhanced Security Requirements for Protecting CUI",
+  "version": "1.0 (Feb 2021)",
+  "source": "NIST (U.S. Government work, public domain) — https://csrc.nist.gov/publications/detail/sp/800-172/final",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "3.1 Access Control",
+    "3.11 Risk Assessment",
+    "3.12 Security Assessment",
+    "3.13 System and Communications Protection",
+    "3.14 System and Information Integrity",
+    "3.2 Awareness and Training",
+    "3.3 Audit and Accountability",
+    "3.4 Configuration Management",
+    "3.5 Identification and Authentication",
+    "3.6 Incident Response"
+  ],
+  "controls": [
+    {
+      "id": "3.1.1e",
+      "title": "Employ dual authorization to execute critical or sensitive system and organizational operations",
+      "description": "Employ dual authorization to execute critical or sensitive system and organizational operations",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "3.1.2e",
+      "title": "Restrict access to systems and system components to only those information resources that are owned, provisioned, or issued by the organization",
+      "description": "Restrict access to systems and system components to only those information resources that are owned, provisioned, or issued by the organization",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "3.1.3e",
+      "title": "Employ secure information transfer solutions to control information flows between security domains on connected systems",
+      "description": "Employ secure information transfer solutions to control information flows between security domains on connected systems",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "3.2.1e",
+      "title": "Provide awareness training focused on recognizing and responding to threats from social engineering, advanced persistent threat actors, breaches, and suspicious behaviors",
+      "description": "Provide awareness training focused on recognizing and responding to threats from social engineering, advanced persistent threat actors, breaches, and suspicious behaviors",
+      "family": "3.2 Awareness and Training"
+    },
+    {
+      "id": "3.2.2e",
+      "title": "Include practical exercises in awareness training that are aligned with current threat scenarios and provide feedback to individuals involved in the training and their supervisors",
+      "description": "Include practical exercises in awareness training that are aligned with current threat scenarios and provide feedback to individuals involved in the training and their supervisors",
+      "family": "3.2 Awareness and Training"
+    },
+    {
+      "id": "3.3.1e",
+      "title": "Deploy an audit record generation capability that provides an organization-defined level of auditing of user-level and system-level activities that supports real-time alerting and analysis",
+      "description": "Deploy an audit record generation capability that provides an organization-defined level of auditing of user-level and system-level activities that supports real-time alerting and analysis",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "3.4.1e",
+      "title": "Establish and maintain an authoritative source and repository to provide a trusted source and accountability for approved and implemented system components",
+      "description": "Establish and maintain an authoritative source and repository to provide a trusted source and accountability for approved and implemented system components",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "3.4.2e",
+      "title": "Employ automated mechanisms to detect misconfigured or unauthorized system components and place components that cannot be remediated into a quarantine or remediation network",
+      "description": "Employ automated mechanisms to detect misconfigured or unauthorized system components and place components that cannot be remediated into a quarantine or remediation network",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "3.4.3e",
+      "title": "Employ automated discovery and management tools to maintain an up-to-date, complete, accurate, and readily available inventory of system components",
+      "description": "Employ automated discovery and management tools to maintain an up-to-date, complete, accurate, and readily available inventory of system components",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "3.5.1e",
+      "title": "Identify and authenticate systems and system components, where possible, before establishing a network connection using bidirectional authentication that is cryptographically-based and replay-resistant",
+      "description": "Identify and authenticate systems and system components, where possible, before establishing a network connection using bidirectional authentication that is cryptographically-based and replay-resistant",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "3.5.2e",
+      "title": "Employ automated mechanisms for the generation, protection, rotation, and management of passwords for systems and system components that do not support multifactor authentication or complex account management",
+      "description": "Employ automated mechanisms for the generation, protection, rotation, and management of passwords for systems and system components that do not support multifactor authentication or complex account management",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "3.5.3e",
+      "title": "Employ automated or manual/procedural mechanisms to prohibit system components from connecting to organizational systems unless the components are known, authenticated, in a properly configured state, or in a trust profile",
+      "description": "Employ automated or manual/procedural mechanisms to prohibit system components from connecting to organizational systems unless the components are known, authenticated, in a properly configured state, or in a trust profile",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "3.6.1e",
+      "title": "Establish and maintain a security operations center capability that facilitates a 24/7 response capability",
+      "description": "Establish and maintain a security operations center capability that facilitates a 24/7 response capability",
+      "family": "3.6 Incident Response"
+    },
+    {
+      "id": "3.6.2e",
+      "title": "Establish and maintain a cyber incident response team that can be deployed by the organization within 24 hours",
+      "description": "Establish and maintain a cyber incident response team that can be deployed by the organization within 24 hours",
+      "family": "3.6 Incident Response"
+    },
+    {
+      "id": "3.11.1e",
+      "title": "Employ threat intelligence, at a minimum from open or commercial sources and any DoD-provided sources, as part of a risk assessment to guide and inform the development of organizational systems, security architectures, selection of security solutions, monitoring, threat hunting, and response and recovery activities",
+      "description": "Employ threat intelligence, at a minimum from open or commercial sources and any DoD-provided sources, as part of a risk assessment to guide and inform the development of organizational systems, security architectures, selection of security solutions, monitoring, threat hunting, and response and recovery activities",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "3.11.2e",
+      "title": "Conduct cyber threat hunting activities to search for indicators of compromise in organizational systems and detect, track, and disrupt threats that evade existing controls",
+      "description": "Conduct cyber threat hunting activities to search for indicators of compromise in organizational systems and detect, track, and disrupt threats that evade existing controls",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "3.11.3e",
+      "title": "Employ advanced automation and analytics capabilities in support of analysts to predict and identify risks to organizations, systems, and system components",
+      "description": "Employ advanced automation and analytics capabilities in support of analysts to predict and identify risks to organizations, systems, and system components",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "3.11.4e",
+      "title": "Document or reference in the system security plan the security solution selected, the rationale for the security solution, and the risk determination",
+      "description": "Document or reference in the system security plan the security solution selected, the rationale for the security solution, and the risk determination",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "3.11.5e",
+      "title": "Assess the effectiveness of security solutions at least annually to address anticipated risk and to respond to a continually evolving threat landscape",
+      "description": "Assess the effectiveness of security solutions at least annually to address anticipated risk and to respond to a continually evolving threat landscape",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "3.11.6e",
+      "title": "Assess, respond to, and monitor supply chain risks associated with organizational systems and system components",
+      "description": "Assess, respond to, and monitor supply chain risks associated with organizational systems and system components",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "3.11.7e",
+      "title": "Develop a plan for managing supply chain risks associated with organizational systems and system components; update the plan at least annually and upon receipt of relevant cyber threat information",
+      "description": "Develop a plan for managing supply chain risks associated with organizational systems and system components; update the plan at least annually and upon receipt of relevant cyber threat information",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "3.12.1e",
+      "title": "Conduct penetration testing at least annually, leveraging automated scanning tools and ad hoc tests using subject matter experts",
+      "description": "Conduct penetration testing at least annually, leveraging automated scanning tools and ad hoc tests using subject matter experts",
+      "family": "3.12 Security Assessment"
+    },
+    {
+      "id": "3.13.1e",
+      "title": "Employ diverse system components to reduce the extent of malicious code propagation",
+      "description": "Employ diverse system components to reduce the extent of malicious code propagation",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "3.13.2e",
+      "title": "Employ a physically or logically isolated subnetwork with managed interfaces to restrict communications traffic from systems that process CUI to systems with other data protection requirements",
+      "description": "Employ a physically or logically isolated subnetwork with managed interfaces to restrict communications traffic from systems that process CUI to systems with other data protection requirements",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "3.13.3e",
+      "title": "Enforce design, implementation, and operation principles to maximize the use of automation and to minimize the use of trust between system components",
+      "description": "Enforce design, implementation, and operation principles to maximize the use of automation and to minimize the use of trust between system components",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "3.13.4e",
+      "title": "Employ technical and procedural means to confuse and mislead adversaries through a combination of misdirection, tainting, or disinformation",
+      "description": "Employ technical and procedural means to confuse and mislead adversaries through a combination of misdirection, tainting, or disinformation",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "3.13.5e",
+      "title": "Employ technical means to dynamically change aspects of organizational systems, system components, locations of critical functions/resources, or system configurations to increase the attack surface uncertainty and the level of effort required of adversaries",
+      "description": "Employ technical means to dynamically change aspects of organizational systems, system components, locations of critical functions/resources, or system configurations to increase the attack surface uncertainty and the level of effort required of adversaries",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "3.14.1e",
+      "title": "Verify the integrity of security-critical and essential software using root of trust mechanisms or cryptographic signatures",
+      "description": "Verify the integrity of security-critical and essential software using root of trust mechanisms or cryptographic signatures",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "3.14.2e",
+      "title": "Monitor organizational systems and system components on an ongoing basis for anomalous or suspicious behavior",
+      "description": "Monitor organizational systems and system components on an ongoing basis for anomalous or suspicious behavior",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "3.14.3e",
+      "title": "Employ technical and procedural means to analyze events, incidents, alerts, security advisories, and related information on a real-time or near-real-time basis",
+      "description": "Employ technical and procedural means to analyze events, incidents, alerts, security advisories, and related information on a real-time or near-real-time basis",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "3.14.4e",
+      "title": "Refresh organizational systems and system components from a known, trusted state periodically",
+      "description": "Refresh organizational systems and system components from a known, trusted state periodically",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "3.14.5e",
+      "title": "Conduct reviews of persistent organizational storage locations periodically and remove CUI that is no longer needed",
+      "description": "Conduct reviews of persistent organizational storage locations periodically and remove CUI that is no longer needed",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "3.14.6e",
+      "title": "Use threat indicator information and effective mitigations obtained from organizational or external sources to guide and inform intrusion detection and threat hunting",
+      "description": "Use threat indicator information and effective mitigations obtained from organizational or external sources to guide and inform intrusion detection and threat hunting",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "3.14.7e",
+      "title": "Verify the correctness of security-critical or essential software, firmware, and hardware components using developer-provided tools, techniques, methods, and formal verification methodologies",
+      "description": "Verify the correctness of security-critical or essential software, firmware, and hardware components using developer-provided tools, techniques, methods, and formal verification methodologies",
+      "family": "3.14 System and Information Integrity"
+    }
+  ]
+}

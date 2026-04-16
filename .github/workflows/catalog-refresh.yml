@@ -1,0 +1,126 @@
+# Catalog Refresh CI — detects upstream drift in bundled framework catalogs.
+#
+# Runs scheduled per-category refresh scripts and opens a tracking issue
+# (never auto-commits) when any bundled catalog's upstream source has
+# changed. Human review is required for any control-text update — ships
+# no automated PRs.
+#
+# v0.2.0 ships the workflow with a single manual trigger; adapters
+# under scripts/catalogs/upstream/ land in v0.2.1 once upstream fetcher
+# scripts are authored and tested. Current state: the workflow is a
+# skeleton that runs the manifest regenerator as a smoke test.
+
+name: Catalog Refresh
+
+on:
+  schedule:
+    # Daily 06:00 UTC — fast-moving feeds (future: CISA KEV, ATT&CK)
+    - cron: "0 6 * * *"
+    # Monday 06:00 UTC — weekly feeds (future: FedRAMP, state privacy tracker)
+    - cron: "0 6 * * 1"
+    # 1st of month 06:00 UTC — slow feeds (future: NIST OSCAL, ACSC ISM)
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+    inputs:
+      framework_id:
+        description: "Specific framework to refresh (leave blank for all due)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Sync workspace
+        run: uv sync --all-packages
+
+      - name: Regenerate manifest from disk
+        id: regen
+        run: |
+          set -e
+          uv run python scripts/catalogs/regenerate_manifest.py | tee regen.out
+          # Detect drift against committed manifest
+          if git diff --quiet packages/controlbridge-core/src/controlbridge_core/catalogs/data/frameworks.yaml; then
+            echo "drift_detected=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift_detected=true" >> "$GITHUB_OUTPUT"
+            git diff packages/controlbridge-core/src/controlbridge_core/catalogs/data/frameworks.yaml > manifest-diff.txt
+          fi
+
+      - name: Run bundled catalog smoke tests
+        run: uv run pytest tests/unit/test_catalogs/ -q
+
+      # v0.2.1: per-adapter refresh steps will land here. Each adapter
+      # fetches from its upstream source, regenerates the affected
+      # catalog JSON, and sets `adapter_<id>_drift=true` if the content
+      # changed. A matrix strategy keyed on the schedule cadence
+      # (daily/weekly/monthly) filters which adapters run in this job.
+      #
+      # - name: Refresh CISA KEV (daily)
+      #   if: github.event.schedule == '0 6 * * *'
+      #   run: uv run python scripts/catalogs/upstream/cisa_kev.py
+      #
+      # - name: Refresh NIST OSCAL (monthly)
+      #   if: github.event.schedule == '0 6 1 * *'
+      #   run: uv run python scripts/catalogs/upstream/nist_oscal.py
+
+      - name: Open tracking issue if drift detected
+        if: steps.regen.outputs.drift_detected == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const diff = fs.existsSync('manifest-diff.txt')
+              ? fs.readFileSync('manifest-diff.txt', 'utf8').slice(0, 40000)
+              : '(no diff file produced)';
+            const today = new Date().toISOString().slice(0, 10);
+            const title = `Catalog upstream drift — ${today}`;
+
+            // Reuse today's issue if one already exists
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'catalog-refresh',
+            });
+            const match = existing.find(i => i.title === title);
+            const body = [
+              '## Catalog drift detected',
+              '',
+              'Bundled `frameworks.yaml` differs from on-disk catalog JSONs.',
+              'Human review required — no auto-PR is created for control text changes.',
+              '',
+              '```diff',
+              diff,
+              '```',
+            ].join('\n');
+
+            if (match) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: match.number,
+                body: '### Additional drift detected in this run\n\n' + body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['catalog-refresh'],
+              });
+            }

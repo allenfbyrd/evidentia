@@ -1,0 +1,134 @@
+{
+  "framework_id": "cisa-kev",
+  "framework_name": "CISA Known Exploited Vulnerabilities (sample)",
+  "version": "Continuously updated (sample as of early 2026)",
+  "source": "CISA — https://www.cisa.gov/known-exploited-vulnerabilities-catalog (U.S. Government work)",
+  "tier": "B",
+  "category": "vulnerability",
+  "placeholder": false,
+  "vulnerabilities": [
+    {
+      "cve_id": "CVE-2021-44228",
+      "vendor": "Apache Software Foundation",
+      "product": "Log4j2",
+      "vulnerability_name": "Apache Log4j2 Remote Code Execution (Log4Shell)",
+      "description": "Apache Log4j2 JNDI features do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers.",
+      "cwe_ids": [
+        "CWE-20",
+        "CWE-400",
+        "CWE-502"
+      ],
+      "date_added": "2021-12-10",
+      "known_ransomware_use": true,
+      "required_action": "Apply vendor updates; enable log4j2.formatMsgNoLookups=true or remove JndiLookup class.",
+      "cvss_v3_score": 10.0,
+      "due_date": "2021-12-24"
+    },
+    {
+      "cve_id": "CVE-2023-34362",
+      "vendor": "Progress Software",
+      "product": "MOVEit Transfer",
+      "vulnerability_name": "Progress MOVEit Transfer SQL Injection",
+      "description": "Progress MOVEit Transfer contains a SQL injection vulnerability that could allow an unauthenticated attacker to access the MOVEit database.",
+      "cwe_ids": [
+        "CWE-89"
+      ],
+      "date_added": "2023-06-02",
+      "known_ransomware_use": true,
+      "required_action": "Apply vendor patches.",
+      "cvss_v3_score": 9.8,
+      "due_date": "2023-06-23"
+    },
+    {
+      "cve_id": "CVE-2024-21887",
+      "vendor": "Ivanti",
+      "product": "Connect Secure and Policy Secure",
+      "vulnerability_name": "Ivanti Connect Secure and Policy Secure Command Injection",
+      "description": "A command injection vulnerability in web components of Ivanti Connect Secure and Ivanti Policy Secure allows an authenticated administrator to send specially crafted requests and execute arbitrary commands on the appliance.",
+      "cwe_ids": [
+        "CWE-77"
+      ],
+      "date_added": "2024-01-10",
+      "known_ransomware_use": false,
+      "required_action": "Apply mitigations per vendor instructions; apply updates when available.",
+      "cvss_v3_score": 9.1,
+      "due_date": "2024-01-22"
+    },
+    {
+      "cve_id": "CVE-2017-0144",
+      "vendor": "Microsoft",
+      "product": "SMBv1 Server",
+      "vulnerability_name": "Microsoft SMBv1 Remote Code Execution (EternalBlue)",
+      "description": "The SMBv1 server in Microsoft Windows allows remote attackers to execute arbitrary code via crafted packets.",
+      "cwe_ids": [
+        "CWE-20"
+      ],
+      "date_added": "2022-03-25",
+      "known_ransomware_use": true,
+      "required_action": "Apply MS17-010; disable SMBv1.",
+      "cvss_v3_score": 8.8,
+      "due_date": "2022-04-15"
+    },
+    {
+      "cve_id": "CVE-2019-19781",
+      "vendor": "Citrix",
+      "product": "ADC and Gateway",
+      "vulnerability_name": "Citrix ADC and Gateway Directory Traversal",
+      "description": "Directory traversal vulnerability in Citrix ADC and Citrix Gateway allows unauthenticated remote code execution.",
+      "cwe_ids": [
+        "CWE-22"
+      ],
+      "date_added": "2021-11-03",
+      "known_ransomware_use": true,
+      "required_action": "Apply Citrix security bulletin CTX267027.",
+      "cvss_v3_score": 9.8,
+      "due_date": "2021-11-17"
+    },
+    {
+      "cve_id": "CVE-2023-23397",
+      "vendor": "Microsoft",
+      "product": "Outlook",
+      "vulnerability_name": "Microsoft Outlook Privilege Escalation",
+      "description": "An NTLM relay vulnerability in Microsoft Outlook that allows attackers to steal credentials and gain elevated privileges.",
+      "cwe_ids": [
+        "CWE-294"
+      ],
+      "date_added": "2023-03-14",
+      "known_ransomware_use": true,
+      "required_action": "Apply Microsoft patches.",
+      "cvss_v3_score": 9.8,
+      "due_date": "2023-04-04"
+    },
+    {
+      "cve_id": "CVE-2022-26134",
+      "vendor": "Atlassian",
+      "product": "Confluence Server and Data Center",
+      "vulnerability_name": "Atlassian Confluence Server and Data Center OGNL Injection",
+      "description": "An unauthenticated, remote attacker could execute arbitrary code on Confluence Server or Data Center.",
+      "cwe_ids": [
+        "CWE-94"
+      ],
+      "date_added": "2022-06-02",
+      "known_ransomware_use": true,
+      "required_action": "Apply Atlassian patches or take servers offline.",
+      "cvss_v3_score": 9.8,
+      "due_date": "2022-06-06"
+    },
+    {
+      "cve_id": "CVE-2024-3400",
+      "vendor": "Palo Alto Networks",
+      "product": "PAN-OS",
+      "vulnerability_name": "Palo Alto Networks PAN-OS Command Injection",
+      "description": "A command injection vulnerability in the GlobalProtect feature of PAN-OS software for specific versions with specific feature configurations may allow an unauthenticated attacker to execute arbitrary code with root privileges on the firewall.",
+      "cwe_ids": [
+        "CWE-77"
+      ],
+      "date_added": "2024-04-12",
+      "known_ransomware_use": false,
+      "required_action": "Apply vendor hotfixes.",
+      "cvss_v3_score": 10.0,
+      "due_date": "2024-04-19"
+    }
+  ],
+  "license_terms": "U.S. Government work, public domain. Sample bundled in ControlBridge; refresh CI pulls the full KEV daily."
+}

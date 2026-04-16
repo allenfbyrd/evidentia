@@ -1,0 +1,197 @@
+{
+  "framework_id": "cis-controls-v8.1",
+  "framework_name": "CIS Critical Security Controls v8.1",
+  "version": "v8.1 (2024)",
+  "source": "Center for Internet Security (CIS)",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "CIS Controls"
+  ],
+  "controls": [
+    {
+      "id": "CIS.1",
+      "title": "Inventory and Control of Enterprise Assets",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.2",
+      "title": "Inventory and Control of Software Assets",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.3",
+      "title": "Data Protection",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.4",
+      "title": "Secure Configuration of Enterprise Assets and Software",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.5",
+      "title": "Account Management",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.6",
+      "title": "Access Control Management",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.7",
+      "title": "Continuous Vulnerability Management",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.8",
+      "title": "Audit Log Management",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.9",
+      "title": "Email and Web Browser Protections",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.10",
+      "title": "Malware Defenses",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.11",
+      "title": "Data Recovery",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.12",
+      "title": "Network Infrastructure Management",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.13",
+      "title": "Network Monitoring and Defense",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.14",
+      "title": "Security Awareness and Skills Training",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.15",
+      "title": "Service Provider Management",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.16",
+      "title": "Application Software Security",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.17",
+      "title": "Incident Response Management",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    },
+    {
+      "id": "CIS.18",
+      "title": "Penetration Testing",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "CIS Controls",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.cisecurity.org/controls"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© Center for Internet Security. CIS Controls are freely available under CIS's terms; however, redistribution in catalog form requires CIS licensing. Ships as stub — download from cisecurity.org and import.",
+  "license_url": "https://www.cisecurity.org/controls"
+}

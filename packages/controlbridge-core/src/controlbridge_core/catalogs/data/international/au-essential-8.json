@@ -1,0 +1,62 @@
+{
+  "framework_id": "au-essential-8",
+  "framework_name": "Australian Essential Eight",
+  "version": "Nov 2023",
+  "source": "Australian Cyber Security Centre (ACSC) — https://cyber.gov.au/essential-eight (Creative Commons BY 4.0)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Essential Eight Strategies"
+  ],
+  "controls": [
+    {
+      "id": "E8.1",
+      "title": "Application Control",
+      "description": "Application Control",
+      "family": "Essential Eight Strategies"
+    },
+    {
+      "id": "E8.2",
+      "title": "Patch Applications",
+      "description": "Patch Applications",
+      "family": "Essential Eight Strategies"
+    },
+    {
+      "id": "E8.3",
+      "title": "Configure Microsoft Office Macro Settings",
+      "description": "Configure Microsoft Office Macro Settings",
+      "family": "Essential Eight Strategies"
+    },
+    {
+      "id": "E8.4",
+      "title": "User Application Hardening",
+      "description": "User Application Hardening",
+      "family": "Essential Eight Strategies"
+    },
+    {
+      "id": "E8.5",
+      "title": "Restrict Administrative Privileges",
+      "description": "Restrict Administrative Privileges",
+      "family": "Essential Eight Strategies"
+    },
+    {
+      "id": "E8.6",
+      "title": "Patch Operating Systems",
+      "description": "Patch Operating Systems",
+      "family": "Essential Eight Strategies"
+    },
+    {
+      "id": "E8.7",
+      "title": "Multi-Factor Authentication",
+      "description": "Multi-Factor Authentication",
+      "family": "Essential Eight Strategies"
+    },
+    {
+      "id": "E8.8",
+      "title": "Regular Backups",
+      "description": "Regular Backups",
+      "family": "Essential Eight Strategies"
+    }
+  ]
+}

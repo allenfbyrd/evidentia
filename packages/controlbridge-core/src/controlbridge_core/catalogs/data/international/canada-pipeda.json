@@ -1,0 +1,105 @@
+{
+  "framework_id": "canada-pipeda",
+  "framework_name": "Canada PIPEDA — Personal Information Protection and Electronic Documents Act",
+  "version": "S.C. 2000, c. 5 (current)",
+  "source": "Government of Canada — https://laws-lois.justice.gc.ca/eng/acts/P-8.6/ (federal statute)",
+  "tier": "D",
+  "category": "obligation",
+  "placeholder": false,
+  "regime": {
+    "jurisdiction": "CA",
+    "effective_date": "2001-01-01",
+    "amendments": [
+      "Digital Privacy Act 2015 (PIPEDA breach notification)"
+    ],
+    "subject_rights": [
+      "access",
+      "correct"
+    ],
+    "data_minimization_required": true,
+    "breach_notification_threshold_days": null,
+    "breach_notification_to_subjects": true,
+    "private_right_of_action": false,
+    "regulator": "Office of the Privacy Commissioner of Canada (OPC)",
+    "notes": "Based on 10 fair information principles derived from the CSA Privacy Code."
+  },
+  "obligations": [
+    {
+      "id": "PIPEDA.P1",
+      "title": "Accountability",
+      "description": "Organization is responsible for personal information under its control; designate a privacy officer.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.1"
+    },
+    {
+      "id": "PIPEDA.P2",
+      "title": "Identifying Purposes",
+      "description": "Identify purposes for collecting personal information at or before collection.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.2"
+    },
+    {
+      "id": "PIPEDA.P3",
+      "title": "Consent",
+      "description": "Knowledge and consent required, subject to limited exceptions.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.3"
+    },
+    {
+      "id": "PIPEDA.P4",
+      "title": "Limiting Collection",
+      "description": "Collection limited to what is necessary for identified purposes.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.4"
+    },
+    {
+      "id": "PIPEDA.P5",
+      "title": "Limiting Use, Disclosure, and Retention",
+      "description": "Use and disclose only for identified purposes; retain only as long as necessary.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.5"
+    },
+    {
+      "id": "PIPEDA.P6",
+      "title": "Accuracy",
+      "description": "Keep information as accurate, complete, and up-to-date as necessary.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.6"
+    },
+    {
+      "id": "PIPEDA.P7",
+      "title": "Safeguards",
+      "description": "Safeguards appropriate to the sensitivity of the information.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.7"
+    },
+    {
+      "id": "PIPEDA.P8",
+      "title": "Openness",
+      "description": "Make policies and practices readily available.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.8"
+    },
+    {
+      "id": "PIPEDA.P9",
+      "title": "Individual Access",
+      "description": "Right of access to one's own information, subject to exceptions.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.9"
+    },
+    {
+      "id": "PIPEDA.P10",
+      "title": "Challenging Compliance",
+      "description": "Provide a mechanism to challenge compliance.",
+      "category": "Principles",
+      "citation": "Schedule 1, 4.10"
+    },
+    {
+      "id": "PIPEDA.10.1",
+      "title": "Breach reporting and record-keeping",
+      "description": "Report breaches of security safeguards to Privacy Commissioner and affected individuals when there is real risk of significant harm.",
+      "category": "Breach Notification",
+      "citation": "Section 10.1"
+    }
+  ]
+}

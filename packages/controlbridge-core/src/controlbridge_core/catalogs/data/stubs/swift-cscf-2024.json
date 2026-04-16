@@ -1,0 +1,353 @@
+{
+  "framework_id": "swift-cscf-2024",
+  "framework_name": "SWIFT Customer Security Controls Framework (CSCF) v2024",
+  "version": "v2024",
+  "source": "SWIFT",
+  "tier": "C",
+  "category": "control",
+  "placeholder": true,
+  "families": [
+    "1. Restrict Internet Access and Protect Critical Systems",
+    "2. Reduce Attack Surface and Vulnerabilities",
+    "3. Physically Secure the Environment",
+    "4. Prevent Compromise of Credentials",
+    "5. Manage Identities and Segregate Privileges",
+    "6. Detect Anomalous Activity to Systems or Transaction Records",
+    "7. Plan for Incident Response and Information Sharing"
+  ],
+  "controls": [
+    {
+      "id": "1.1",
+      "title": "SWIFT Environment Protection",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "1. Restrict Internet Access and Protect Critical Systems",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "1.2",
+      "title": "Operating System Privileged Account Control",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "1. Restrict Internet Access and Protect Critical Systems",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "1.3",
+      "title": "Virtualisation or Cloud Platform Protection",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "1. Restrict Internet Access and Protect Critical Systems",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "1.4",
+      "title": "Restriction of Internet Access",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "1. Restrict Internet Access and Protect Critical Systems",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "1.5",
+      "title": "Customer Environment Protection (A4 architecture)",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "1. Restrict Internet Access and Protect Critical Systems",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.1",
+      "title": "Internal Data Flow Security",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.2",
+      "title": "Security Updates",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.3",
+      "title": "System Hardening",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.4A",
+      "title": "Back Office Data Flow Security",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.5A",
+      "title": "External Transmission Data Protection",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.6",
+      "title": "Operator Session Confidentiality and Integrity",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.7",
+      "title": "Vulnerability Scanning",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.8A",
+      "title": "Critical Activity Outsourcing",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.9",
+      "title": "Transaction Business Controls",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.10",
+      "title": "Application Hardening",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "2.11A",
+      "title": "RMA Business Controls",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "2. Reduce Attack Surface and Vulnerabilities",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "3.1",
+      "title": "Physical Security",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "3. Physically Secure the Environment",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "4.1",
+      "title": "Password Policy",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "4. Prevent Compromise of Credentials",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "4.2",
+      "title": "Multi-factor Authentication",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "4. Prevent Compromise of Credentials",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "5.1",
+      "title": "Logical Access Control",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "5. Manage Identities and Segregate Privileges",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "5.2",
+      "title": "Token Management",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "5. Manage Identities and Segregate Privileges",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "5.3A",
+      "title": "Personnel Vetting Process",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "5. Manage Identities and Segregate Privileges",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "5.4",
+      "title": "Physical and Logical Password Storage",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "5. Manage Identities and Segregate Privileges",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "6.1",
+      "title": "Malware Protection",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "6. Detect Anomalous Activity to Systems or Transaction Records",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "6.2",
+      "title": "Software Integrity",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "6. Detect Anomalous Activity to Systems or Transaction Records",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "6.3",
+      "title": "Database Integrity",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "6. Detect Anomalous Activity to Systems or Transaction Records",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "6.4",
+      "title": "Logging and Monitoring",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "6. Detect Anomalous Activity to Systems or Transaction Records",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "6.5A",
+      "title": "Intrusion Detection",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "6. Detect Anomalous Activity to Systems or Transaction Records",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "7.1",
+      "title": "Cyber Incident Response Planning",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "7. Plan for Incident Response and Information Sharing",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "7.2",
+      "title": "Security Training and Awareness",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "7. Plan for Incident Response and Information Sharing",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "7.3A",
+      "title": "Penetration Testing",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "7. Plan for Incident Response and Information Sharing",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "7.4A",
+      "title": "Scenario Risk Assessment",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "7. Plan for Incident Response and Information Sharing",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    },
+    {
+      "id": "7.5",
+      "title": "Incident Response Collaboration",
+      "description": "[Licensed content — see license_url for authoritative text.]",
+      "family": "7. Plan for Incident Response and Information Sharing",
+      "placeholder": true,
+      "tier": "C",
+      "license_required": true,
+      "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+    }
+  ],
+  "license_required": true,
+  "license_terms": "© SWIFT. CSCF is available to SWIFT customers via MySWIFT.",
+  "license_url": "https://www.swift.com/myswift/customer-security-programme-csp"
+}

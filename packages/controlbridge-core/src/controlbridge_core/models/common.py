@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from datetime import UTC, datetime
 from enum import Enum
 from uuid import uuid4
@@ -60,21 +61,46 @@ class Severity(str, Enum):
     INFORMATIONAL = "informational"
 
 
-class FrameworkId(str, Enum):
-    """Canonical framework identifiers for frameworks bundled in this package.
+class _FrameworkIdImpl(str, Enum):
+    """Canonical framework identifiers (DEPRECATED in v0.2.0).
 
-    v0.1.1 ships only the two frameworks that have backing catalog data
-    on disk. The v0.1.0 enum advertised 7 additional IDs without backing
-    data; those have been removed to prevent misleading consumers.
+    .. deprecated:: 0.2.0
+        The enum-based framework ID approach cannot scale to the ~50
+        bundled frameworks introduced in v0.2.0. Use the string-valued
+        framework IDs from the manifest-driven registry instead:
+        :func:`controlbridge_core.catalogs.manifest.load_manifest`.
+        This enum will be removed in v0.3.0.
 
-    Note: ``ControlMapping.framework`` uses free-form ``str``, so any
-    framework ID can be used in mappings regardless of this enum.
-    v0.2.0 will deprecate this enum entirely in favor of a
-    manifest-driven registry.
+    Note: ``ControlMapping.framework`` already uses free-form ``str``,
+    so any framework ID can be used in mappings regardless of this enum.
     """
 
     NIST_800_53_MOD = "nist-800-53-mod"
     SOC2_TSC = "soc2-tsc"
+
+
+def __getattr__(name: str) -> object:
+    """Emit a DeprecationWarning when ``FrameworkId`` is imported.
+
+    Python only consults module-level ``__getattr__`` when normal
+    attribute lookup fails — so we deliberately do **not** bind
+    ``FrameworkId`` at module scope. The implementation lives under
+    ``_FrameworkIdImpl``; public access goes through here so every
+    ``from ... import FrameworkId`` triggers the warning exactly once
+    per ``warnings`` filter.
+    """
+    if name == "FrameworkId":
+        warnings.warn(
+            "controlbridge_core.models.common.FrameworkId is deprecated in "
+            "v0.2.0 and will be removed in v0.3.0. Use "
+            "controlbridge_core.catalogs.manifest.load_manifest() for the "
+            "authoritative list of bundled frameworks, and plain string "
+            "framework IDs (e.g., 'nist-800-53-mod') in ControlMapping.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _FrameworkIdImpl
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class ControlMapping(ControlBridgeModel):

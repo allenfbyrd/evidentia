@@ -1,0 +1,112 @@
+{
+  "framework_id": "hipaa-privacy",
+  "framework_name": "HIPAA Privacy Rule (45 CFR § 164 Subpart E)",
+  "version": "2013 (Omnibus Rule)",
+  "source": "HHS OCR — 45 CFR 164 Subpart E (U.S. federal regulation)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "General Provisions",
+    "Individual Rights",
+    "Administrative Requirements"
+  ],
+  "controls": [
+    {
+      "id": "164.500",
+      "title": "Applicability",
+      "description": "Applicability",
+      "family": "General Provisions"
+    },
+    {
+      "id": "164.502",
+      "title": "Uses and disclosures of PHI — general rules",
+      "description": "Uses and disclosures of PHI — general rules",
+      "family": "General Provisions"
+    },
+    {
+      "id": "164.504",
+      "title": "Uses and disclosures — organizational requirements",
+      "description": "Uses and disclosures — organizational requirements",
+      "family": "General Provisions"
+    },
+    {
+      "id": "164.506",
+      "title": "Uses and disclosures to carry out treatment, payment, or health care operations",
+      "description": "Uses and disclosures to carry out treatment, payment, or health care operations",
+      "family": "General Provisions"
+    },
+    {
+      "id": "164.508",
+      "title": "Uses and disclosures requiring an authorization",
+      "description": "Uses and disclosures requiring an authorization",
+      "family": "General Provisions"
+    },
+    {
+      "id": "164.510",
+      "title": "Uses and disclosures requiring an opportunity to agree or object",
+      "description": "Uses and disclosures requiring an opportunity to agree or object",
+      "family": "General Provisions"
+    },
+    {
+      "id": "164.512",
+      "title": "Uses and disclosures for which authorization or opportunity to agree is not required",
+      "description": "Uses and disclosures for which authorization or opportunity to agree is not required",
+      "family": "General Provisions"
+    },
+    {
+      "id": "164.514",
+      "title": "Other requirements relating to uses and disclosures of PHI",
+      "description": "Other requirements relating to uses and disclosures of PHI",
+      "family": "General Provisions"
+    },
+    {
+      "id": "164.520",
+      "title": "Notice of privacy practices for PHI",
+      "description": "Notice of privacy practices for PHI",
+      "family": "Individual Rights"
+    },
+    {
+      "id": "164.522",
+      "title": "Rights to request privacy protection for PHI",
+      "description": "Rights to request privacy protection for PHI",
+      "family": "Individual Rights"
+    },
+    {
+      "id": "164.524",
+      "title": "Access of individuals to PHI",
+      "description": "Access of individuals to PHI",
+      "family": "Individual Rights"
+    },
+    {
+      "id": "164.526",
+      "title": "Amendment of PHI",
+      "description": "Amendment of PHI",
+      "family": "Individual Rights"
+    },
+    {
+      "id": "164.528",
+      "title": "Accounting of disclosures of PHI",
+      "description": "Accounting of disclosures of PHI",
+      "family": "Individual Rights"
+    },
+    {
+      "id": "164.530",
+      "title": "Administrative requirements",
+      "description": "Administrative requirements",
+      "family": "Administrative Requirements"
+    },
+    {
+      "id": "164.532",
+      "title": "Transition provisions",
+      "description": "Transition provisions",
+      "family": "Administrative Requirements"
+    },
+    {
+      "id": "164.534",
+      "title": "Compliance dates for initial implementation",
+      "description": "Compliance dates for initial implementation",
+      "family": "Administrative Requirements"
+    }
+  ]
+}

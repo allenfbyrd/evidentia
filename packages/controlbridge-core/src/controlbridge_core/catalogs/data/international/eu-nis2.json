@@ -1,0 +1,104 @@
+{
+  "framework_id": "eu-nis2",
+  "framework_name": "EU NIS2 Directive",
+  "version": "Directive (EU) 2022/2555",
+  "source": "Official Journal of the European Union — NIS2 Directive (regulation text)",
+  "tier": "D",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "Governance",
+    "Risk Management",
+    "Incident Response",
+    "Business Continuity",
+    "Supply Chain",
+    "SDLC",
+    "Assurance",
+    "Training",
+    "Cryptography",
+    "HR Security",
+    "Authentication",
+    "Incident Reporting",
+    "Certification"
+  ],
+  "controls": [
+    {
+      "id": "NIS2.Art.20",
+      "title": "Governance — management body approval and oversight",
+      "description": "Governance — management body approval and oversight",
+      "family": "Governance"
+    },
+    {
+      "id": "NIS2.Art.21(2)(a)",
+      "title": "Policies on risk analysis and information system security",
+      "description": "Policies on risk analysis and information system security",
+      "family": "Risk Management"
+    },
+    {
+      "id": "NIS2.Art.21(2)(b)",
+      "title": "Incident handling",
+      "description": "Incident handling",
+      "family": "Incident Response"
+    },
+    {
+      "id": "NIS2.Art.21(2)(c)",
+      "title": "Business continuity (backup, disaster recovery, crisis management)",
+      "description": "Business continuity (backup, disaster recovery, crisis management)",
+      "family": "Business Continuity"
+    },
+    {
+      "id": "NIS2.Art.21(2)(d)",
+      "title": "Supply chain security",
+      "description": "Supply chain security",
+      "family": "Supply Chain"
+    },
+    {
+      "id": "NIS2.Art.21(2)(e)",
+      "title": "Security in network and information systems acquisition, development, and maintenance, including vulnerability handling and disclosure",
+      "description": "Security in network and information systems acquisition, development, and maintenance, including vulnerability handling and disclosure",
+      "family": "SDLC"
+    },
+    {
+      "id": "NIS2.Art.21(2)(f)",
+      "title": "Policies and procedures to assess effectiveness of cybersecurity risk-management measures",
+      "description": "Policies and procedures to assess effectiveness of cybersecurity risk-management measures",
+      "family": "Assurance"
+    },
+    {
+      "id": "NIS2.Art.21(2)(g)",
+      "title": "Basic cyber hygiene practices and training",
+      "description": "Basic cyber hygiene practices and training",
+      "family": "Training"
+    },
+    {
+      "id": "NIS2.Art.21(2)(h)",
+      "title": "Policies and procedures regarding the use of cryptography and encryption",
+      "description": "Policies and procedures regarding the use of cryptography and encryption",
+      "family": "Cryptography"
+    },
+    {
+      "id": "NIS2.Art.21(2)(i)",
+      "title": "Human resources security, access control policies and asset management",
+      "description": "Human resources security, access control policies and asset management",
+      "family": "HR Security"
+    },
+    {
+      "id": "NIS2.Art.21(2)(j)",
+      "title": "Use of multi-factor authentication, secured communications, and emergency comms",
+      "description": "Use of multi-factor authentication, secured communications, and emergency comms",
+      "family": "Authentication"
+    },
+    {
+      "id": "NIS2.Art.23",
+      "title": "Reporting obligations — 24h early warning, 72h incident notification, 1-month final report",
+      "description": "Reporting obligations — 24h early warning, 72h incident notification, 1-month final report",
+      "family": "Incident Reporting"
+    },
+    {
+      "id": "NIS2.Art.24",
+      "title": "Use of certified ICT products, services, and processes",
+      "description": "Use of certified ICT products, services, and processes",
+      "family": "Certification"
+    }
+  ]
+}

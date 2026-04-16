@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge"
-version = "0.1.2"
+version = "0.2.0"
 description = "Open-source GRC tool: gap analysis, risk statements, evidence collection, and compliance automation"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
@@ -17,10 +17,10 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "controlbridge-core>=0.1.0,<0.2.0",
-    "controlbridge-ai>=0.1.0,<0.2.0",
-    "controlbridge-collectors>=0.1.0,<0.2.0",
-    "controlbridge-integrations>=0.1.0,<0.2.0",
+    "controlbridge-core>=0.2.0,<0.3.0",
+    "controlbridge-ai>=0.2.0,<0.3.0",
+    "controlbridge-collectors>=0.2.0,<0.3.0",
+    "controlbridge-integrations>=0.2.0,<0.3.0",
     "typer>=0.14",
     "rich>=13.0",
     "fastapi>=0.115",

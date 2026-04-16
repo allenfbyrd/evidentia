@@ -1,0 +1,612 @@
+{
+  "framework_id": "nist-800-171-r3",
+  "framework_name": "NIST SP 800-171 Rev 3 — Protecting CUI in Nonfederal Systems",
+  "version": "Rev 3 (May 2024)",
+  "source": "NIST (U.S. Government work, public domain) — https://csrc.nist.gov/pubs/sp/800/171/r3/final",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "3.1 Access Control",
+    "3.10 Physical Protection",
+    "3.11 Risk Assessment",
+    "3.12 Security Assessment and Monitoring",
+    "3.13 System and Communications Protection",
+    "3.14 System and Information Integrity",
+    "3.15 Planning",
+    "3.16 System and Services Acquisition",
+    "3.17 Supply Chain Risk Management",
+    "3.2 Awareness and Training",
+    "3.3 Audit and Accountability",
+    "3.4 Configuration Management",
+    "3.5 Identification and Authentication",
+    "3.6 Incident Response",
+    "3.7 Maintenance",
+    "3.8 Media Protection",
+    "3.9 Personnel Security"
+  ],
+  "controls": [
+    {
+      "id": "03.01.01",
+      "title": "Account Management",
+      "description": "Account Management",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.02",
+      "title": "Access Enforcement",
+      "description": "Access Enforcement",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.03",
+      "title": "Information Flow Enforcement",
+      "description": "Information Flow Enforcement",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.04",
+      "title": "Separation of Duties",
+      "description": "Separation of Duties",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.05",
+      "title": "Least Privilege",
+      "description": "Least Privilege",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.06",
+      "title": "Least Privilege — Privileged Accounts",
+      "description": "Least Privilege — Privileged Accounts",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.07",
+      "title": "Least Privilege — Privileged Functions",
+      "description": "Least Privilege — Privileged Functions",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.08",
+      "title": "Unsuccessful Logon Attempts",
+      "description": "Unsuccessful Logon Attempts",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.09",
+      "title": "System Use Notification",
+      "description": "System Use Notification",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.10",
+      "title": "Device Lock",
+      "description": "Device Lock",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.11",
+      "title": "Session Termination",
+      "description": "Session Termination",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.12",
+      "title": "Remote Access",
+      "description": "Remote Access",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.16",
+      "title": "Wireless Access",
+      "description": "Wireless Access",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.18",
+      "title": "Access Control for Mobile Devices",
+      "description": "Access Control for Mobile Devices",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.20",
+      "title": "Use of External Systems",
+      "description": "Use of External Systems",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.01.22",
+      "title": "Publicly Accessible Content",
+      "description": "Publicly Accessible Content",
+      "family": "3.1 Access Control"
+    },
+    {
+      "id": "03.02.01",
+      "title": "Literacy Training and Awareness",
+      "description": "Literacy Training and Awareness",
+      "family": "3.2 Awareness and Training"
+    },
+    {
+      "id": "03.02.02",
+      "title": "Role-Based Training",
+      "description": "Role-Based Training",
+      "family": "3.2 Awareness and Training"
+    },
+    {
+      "id": "03.03.01",
+      "title": "Event Logging",
+      "description": "Event Logging",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "03.03.02",
+      "title": "Audit Record Content",
+      "description": "Audit Record Content",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "03.03.03",
+      "title": "Audit Record Generation",
+      "description": "Audit Record Generation",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "03.03.04",
+      "title": "Response to Audit Logging Process Failures",
+      "description": "Response to Audit Logging Process Failures",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "03.03.05",
+      "title": "Audit Record Review, Analysis, and Reporting",
+      "description": "Audit Record Review, Analysis, and Reporting",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "03.03.06",
+      "title": "Audit Record Reduction and Report Generation",
+      "description": "Audit Record Reduction and Report Generation",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "03.03.07",
+      "title": "Time Stamps",
+      "description": "Time Stamps",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "03.03.08",
+      "title": "Protection of Audit Information",
+      "description": "Protection of Audit Information",
+      "family": "3.3 Audit and Accountability"
+    },
+    {
+      "id": "03.04.01",
+      "title": "Baseline Configuration",
+      "description": "Baseline Configuration",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.02",
+      "title": "Configuration Settings",
+      "description": "Configuration Settings",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.03",
+      "title": "Configuration Change Control",
+      "description": "Configuration Change Control",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.04",
+      "title": "Impact Analyses",
+      "description": "Impact Analyses",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.05",
+      "title": "Access Restrictions for Change",
+      "description": "Access Restrictions for Change",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.06",
+      "title": "Least Functionality",
+      "description": "Least Functionality",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.08",
+      "title": "Authorized Software — Allow by Exception",
+      "description": "Authorized Software — Allow by Exception",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.10",
+      "title": "System Component Inventory",
+      "description": "System Component Inventory",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.11",
+      "title": "Information Location",
+      "description": "Information Location",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.04.12",
+      "title": "System and Component Configuration for High-Risk Areas",
+      "description": "System and Component Configuration for High-Risk Areas",
+      "family": "3.4 Configuration Management"
+    },
+    {
+      "id": "03.05.01",
+      "title": "User Identification and Authentication",
+      "description": "User Identification and Authentication",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "03.05.02",
+      "title": "Device Identification and Authentication",
+      "description": "Device Identification and Authentication",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "03.05.03",
+      "title": "Multi-Factor Authentication",
+      "description": "Multi-Factor Authentication",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "03.05.04",
+      "title": "Replay-Resistant Authentication",
+      "description": "Replay-Resistant Authentication",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "03.05.05",
+      "title": "Identifier Management",
+      "description": "Identifier Management",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "03.05.07",
+      "title": "Password Management",
+      "description": "Password Management",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "03.05.11",
+      "title": "Authentication Feedback",
+      "description": "Authentication Feedback",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "03.05.12",
+      "title": "Authenticator Management",
+      "description": "Authenticator Management",
+      "family": "3.5 Identification and Authentication"
+    },
+    {
+      "id": "03.06.01",
+      "title": "Incident Handling",
+      "description": "Incident Handling",
+      "family": "3.6 Incident Response"
+    },
+    {
+      "id": "03.06.02",
+      "title": "Incident Monitoring, Reporting, and Response Assistance",
+      "description": "Incident Monitoring, Reporting, and Response Assistance",
+      "family": "3.6 Incident Response"
+    },
+    {
+      "id": "03.06.03",
+      "title": "Incident Response Testing",
+      "description": "Incident Response Testing",
+      "family": "3.6 Incident Response"
+    },
+    {
+      "id": "03.06.04",
+      "title": "Incident Response Training",
+      "description": "Incident Response Training",
+      "family": "3.6 Incident Response"
+    },
+    {
+      "id": "03.06.05",
+      "title": "Incident Response Plan",
+      "description": "Incident Response Plan",
+      "family": "3.6 Incident Response"
+    },
+    {
+      "id": "03.07.04",
+      "title": "Maintenance Tools",
+      "description": "Maintenance Tools",
+      "family": "3.7 Maintenance"
+    },
+    {
+      "id": "03.07.05",
+      "title": "Nonlocal Maintenance",
+      "description": "Nonlocal Maintenance",
+      "family": "3.7 Maintenance"
+    },
+    {
+      "id": "03.07.06",
+      "title": "Maintenance Personnel",
+      "description": "Maintenance Personnel",
+      "family": "3.7 Maintenance"
+    },
+    {
+      "id": "03.08.01",
+      "title": "Media Storage",
+      "description": "Media Storage",
+      "family": "3.8 Media Protection"
+    },
+    {
+      "id": "03.08.02",
+      "title": "Media Access",
+      "description": "Media Access",
+      "family": "3.8 Media Protection"
+    },
+    {
+      "id": "03.08.03",
+      "title": "Media Sanitization",
+      "description": "Media Sanitization",
+      "family": "3.8 Media Protection"
+    },
+    {
+      "id": "03.08.04",
+      "title": "Media Marking",
+      "description": "Media Marking",
+      "family": "3.8 Media Protection"
+    },
+    {
+      "id": "03.08.05",
+      "title": "Media Transport",
+      "description": "Media Transport",
+      "family": "3.8 Media Protection"
+    },
+    {
+      "id": "03.08.07",
+      "title": "Media Use",
+      "description": "Media Use",
+      "family": "3.8 Media Protection"
+    },
+    {
+      "id": "03.08.09",
+      "title": "System Backup — Cryptographic Protection",
+      "description": "System Backup — Cryptographic Protection",
+      "family": "3.8 Media Protection"
+    },
+    {
+      "id": "03.09.01",
+      "title": "Personnel Screening",
+      "description": "Personnel Screening",
+      "family": "3.9 Personnel Security"
+    },
+    {
+      "id": "03.09.02",
+      "title": "Personnel Termination and Transfer",
+      "description": "Personnel Termination and Transfer",
+      "family": "3.9 Personnel Security"
+    },
+    {
+      "id": "03.10.01",
+      "title": "Physical Access Authorizations",
+      "description": "Physical Access Authorizations",
+      "family": "3.10 Physical Protection"
+    },
+    {
+      "id": "03.10.02",
+      "title": "Monitoring Physical Access",
+      "description": "Monitoring Physical Access",
+      "family": "3.10 Physical Protection"
+    },
+    {
+      "id": "03.10.06",
+      "title": "Alternate Work Site",
+      "description": "Alternate Work Site",
+      "family": "3.10 Physical Protection"
+    },
+    {
+      "id": "03.10.07",
+      "title": "Physical Access Control",
+      "description": "Physical Access Control",
+      "family": "3.10 Physical Protection"
+    },
+    {
+      "id": "03.10.08",
+      "title": "Access Control for Transmission",
+      "description": "Access Control for Transmission",
+      "family": "3.10 Physical Protection"
+    },
+    {
+      "id": "03.11.01",
+      "title": "Risk Assessment",
+      "description": "Risk Assessment",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "03.11.02",
+      "title": "Vulnerability Monitoring and Scanning",
+      "description": "Vulnerability Monitoring and Scanning",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "03.11.04",
+      "title": "Risk Response",
+      "description": "Risk Response",
+      "family": "3.11 Risk Assessment"
+    },
+    {
+      "id": "03.12.01",
+      "title": "Security Assessment",
+      "description": "Security Assessment",
+      "family": "3.12 Security Assessment and Monitoring"
+    },
+    {
+      "id": "03.12.02",
+      "title": "Plan of Action and Milestones",
+      "description": "Plan of Action and Milestones",
+      "family": "3.12 Security Assessment and Monitoring"
+    },
+    {
+      "id": "03.12.03",
+      "title": "Continuous Monitoring",
+      "description": "Continuous Monitoring",
+      "family": "3.12 Security Assessment and Monitoring"
+    },
+    {
+      "id": "03.12.05",
+      "title": "Information Exchange",
+      "description": "Information Exchange",
+      "family": "3.12 Security Assessment and Monitoring"
+    },
+    {
+      "id": "03.13.01",
+      "title": "Boundary Protection",
+      "description": "Boundary Protection",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.04",
+      "title": "Information in Shared System Resources",
+      "description": "Information in Shared System Resources",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.06",
+      "title": "Network Communications — Deny by Default",
+      "description": "Network Communications — Deny by Default",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.08",
+      "title": "Transmission and Storage Confidentiality",
+      "description": "Transmission and Storage Confidentiality",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.09",
+      "title": "Network Disconnect",
+      "description": "Network Disconnect",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.10",
+      "title": "Cryptographic Key Establishment and Management",
+      "description": "Cryptographic Key Establishment and Management",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.11",
+      "title": "Cryptographic Protection",
+      "description": "Cryptographic Protection",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.12",
+      "title": "Collaborative Computing Devices and Applications",
+      "description": "Collaborative Computing Devices and Applications",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.13",
+      "title": "Mobile Code",
+      "description": "Mobile Code",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.13.15",
+      "title": "Session Authenticity",
+      "description": "Session Authenticity",
+      "family": "3.13 System and Communications Protection"
+    },
+    {
+      "id": "03.14.01",
+      "title": "Flaw Remediation",
+      "description": "Flaw Remediation",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "03.14.02",
+      "title": "Malicious Code Protection",
+      "description": "Malicious Code Protection",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "03.14.03",
+      "title": "Security Alerts, Advisories, and Directives",
+      "description": "Security Alerts, Advisories, and Directives",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "03.14.06",
+      "title": "System Monitoring",
+      "description": "System Monitoring",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "03.14.08",
+      "title": "Information Management and Retention",
+      "description": "Information Management and Retention",
+      "family": "3.14 System and Information Integrity"
+    },
+    {
+      "id": "03.15.01",
+      "title": "Policy and Procedures",
+      "description": "Policy and Procedures",
+      "family": "3.15 Planning"
+    },
+    {
+      "id": "03.15.02",
+      "title": "System Security Plan",
+      "description": "System Security Plan",
+      "family": "3.15 Planning"
+    },
+    {
+      "id": "03.15.03",
+      "title": "Rules of Behavior",
+      "description": "Rules of Behavior",
+      "family": "3.15 Planning"
+    },
+    {
+      "id": "03.16.01",
+      "title": "Allocation of Resources",
+      "description": "Allocation of Resources",
+      "family": "3.16 System and Services Acquisition"
+    },
+    {
+      "id": "03.16.02",
+      "title": "System Development Life Cycle",
+      "description": "System Development Life Cycle",
+      "family": "3.16 System and Services Acquisition"
+    },
+    {
+      "id": "03.16.03",
+      "title": "External System Services",
+      "description": "External System Services",
+      "family": "3.16 System and Services Acquisition"
+    },
+    {
+      "id": "03.17.01",
+      "title": "Supply Chain Risk Management Plan",
+      "description": "Supply Chain Risk Management Plan",
+      "family": "3.17 Supply Chain Risk Management"
+    },
+    {
+      "id": "03.17.02",
+      "title": "Acquisition Strategies, Tools, and Methods",
+      "description": "Acquisition Strategies, Tools, and Methods",
+      "family": "3.17 Supply Chain Risk Management"
+    },
+    {
+      "id": "03.17.03",
+      "title": "Supply Chain Controls and Processes",
+      "description": "Supply Chain Controls and Processes",
+      "family": "3.17 Supply Chain Risk Management"
+    }
+  ]
+}
