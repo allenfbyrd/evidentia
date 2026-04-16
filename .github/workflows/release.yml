@@ -17,7 +17,6 @@ jobs:
       name: pypi
       url: https://pypi.org/project/controlbridge/
     permissions:
-      id-token: write  # OIDC trusted publishing to PyPI
       contents: read
 
     steps:
@@ -44,9 +43,10 @@ jobs:
           ls -la dist/
           uvx twine check dist/*
 
-      - name: Publish to PyPI via trusted publishing
+      - name: Publish to PyPI via API token
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: false
           verbose: true
