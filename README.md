@@ -9,6 +9,7 @@ AI-generated risk statements, automated evidence collection, and compliance
 reporting — all usable from a Python library, a CLI, or a REST API.
 
 [![tests](https://github.com/allenfbyrd/controlbridge/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/allenfbyrd/controlbridge/actions/workflows/test.yml)
+[![PyPI version](https://img.shields.io/pypi/v/controlbridge.svg)](https://pypi.org/project/controlbridge/)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)
 ![Status: Phase 1 MVP](https://img.shields.io/badge/status-Phase%201%20MVP-yellow.svg)
@@ -148,7 +149,17 @@ Setting expectations matters. Phase 1 does NOT yet include:
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/) 0.4+ (recommended) or pip
 
-### Install from source
+### Install from PyPI
+
+```bash
+pip install controlbridge
+```
+
+This installs the `controlbridge` and `cb` CLI commands, plus the four workspace
+sub-packages as transitive dependencies (`controlbridge-core`, `controlbridge-ai`,
+`controlbridge-collectors`, `controlbridge-integrations`).
+
+### Install from source (for contributors)
 
 ```bash
 git clone https://github.com/allenfbyrd/controlbridge.git

@@ -3,14 +3,31 @@ name = "controlbridge-ai"
 version = "0.1.0"
 description = "LLM-powered risk statement generator and evidence validator for ControlBridge"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
+license = "Apache-2.0"
 requires-python = ">=3.12"
+keywords = ["grc", "compliance", "llm", "risk-statement", "nist-800-30", "litellm", "instructor"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
 dependencies = [
-    "controlbridge-core",
+    "controlbridge-core>=0.1.0,<0.2.0",
     "litellm>=1.50",
     "instructor>=1.6",
     "tenacity>=9.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/allenfbyrd/controlbridge"
+Repository = "https://github.com/allenfbyrd/controlbridge"
+Issues = "https://github.com/allenfbyrd/controlbridge/issues"
+Changelog = "https://github.com/allenfbyrd/controlbridge/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]

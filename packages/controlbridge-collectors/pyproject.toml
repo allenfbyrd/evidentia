@@ -3,10 +3,21 @@ name = "controlbridge-collectors"
 version = "0.1.0"
 description = "Evidence collection agents for AWS, Azure, GCP, GitHub, and Okta"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
+license = "Apache-2.0"
 requires-python = ">=3.12"
+keywords = ["grc", "compliance", "evidence-collection", "aws", "azure", "gcp", "github", "okta"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
+]
 dependencies = [
-    "controlbridge-core",
+    "controlbridge-core>=0.1.0,<0.2.0",
     "httpx>=0.27",
 ]
 
@@ -24,6 +35,12 @@ all = [
     "pygithub>=2.4",
     "okta>=2.9",
 ]
+
+[project.urls]
+Homepage = "https://github.com/allenfbyrd/controlbridge"
+Repository = "https://github.com/allenfbyrd/controlbridge"
+Issues = "https://github.com/allenfbyrd/controlbridge/issues"
+Changelog = "https://github.com/allenfbyrd/controlbridge/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]
