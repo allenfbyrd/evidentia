@@ -351,7 +351,7 @@ ControlBridge is a **uv workspace monorepo** of five composable Python packages:
 - [x] AI risk statement generator
 - [x] CLI (init, catalog, gap, risk, doctor)
 - [x] Sample data + end-to-end walkthrough
-- [ ] **Phase 1.5 (v0.2.0 big-bang):** exhaustive framework expansion
+- [x] **Phase 1.5 (v0.2.0 big-bang):** exhaustive framework expansion
       — full upstream NIST 800-53 Rev 5 OSCAL (~1189 controls + Low/Mod/High/Privacy baselines),
       NIST 800-171 r2/r3, 800-172, CSF 2.0, AI RMF, SSDF, Privacy Framework;
       FedRAMP Rev 5 baselines; CMMC 2.0 L1/L2/L3; CJIS, CISA CPGs, HIPAA,
