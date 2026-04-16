@@ -15,22 +15,6 @@ from controlbridge_core.models.common import (
     new_id,
     utc_now,
 )
-
-# FrameworkId is deprecated in v0.2.0 — access it through the
-# module that owns it; importing it from the package re-export would
-# trigger the DeprecationWarning during package init on every import.
-# Kept in __all__ for discoverability; users get the warning when they
-# actually reference it.
-
-
-def __getattr__(name: str):  # type: ignore[no-untyped-def]
-    if name == "FrameworkId":
-        from controlbridge_core.models.common import (  # noqa: F401
-            FrameworkId as _FI,
-        )
-
-        return _FI
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 from controlbridge_core.models.control import (
     ControlImplementation,
     ControlInventory,
@@ -75,6 +59,20 @@ from controlbridge_core.models.threat import (
     Vulnerability,
     VulnerabilityCatalog,
 )
+
+# FrameworkId is deprecated in v0.2.0 — access it through the
+# module that owns it; importing it from the package re-export would
+# trigger the DeprecationWarning during package init on every import.
+# Kept in __all__ for discoverability; users get the warning when they
+# actually reference it.
+
+
+def __getattr__(name: str):  # type: ignore[no-untyped-def]
+    if name == "FrameworkId":
+        from controlbridge_core.models.common import FrameworkId as _FI
+
+        return _FI
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 __all__ = [
     "AttackTechnique",

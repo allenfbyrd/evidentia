@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 
 import pytest
-
 from controlbridge_core.catalogs.manifest import (
     FrameworkManifest,
     FrameworkManifestEntry,
@@ -104,7 +103,7 @@ def test_user_entry_shadows_bundled(tmp_path) -> None:
         tmp_path,
     )
 
-    path, entry, source = resolve_catalog_path(
+    path, _entry, source = resolve_catalog_path(
         "nist-800-53-mod",
         bundled_manifest=bundled,
         user_dir_override=tmp_path,
@@ -115,7 +114,7 @@ def test_user_entry_shadows_bundled(tmp_path) -> None:
 
 def test_resolve_falls_through_to_bundled(tmp_path) -> None:
     bundled = load_manifest()
-    path, entry, source = resolve_catalog_path(
+    path, _entry, source = resolve_catalog_path(
         "nist-800-53-mod",
         bundled_manifest=bundled,
         user_dir_override=tmp_path,

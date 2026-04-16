@@ -10,7 +10,7 @@ def test_framework_id_import_warns() -> None:
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         # Fresh import path — use module-level __getattr__ via dotted access
-        import controlbridge_core.models.common as common  # noqa: F401
+        from controlbridge_core.models import common
 
         _ = common.FrameworkId  # triggers __getattr__
     deprecation_warnings = [

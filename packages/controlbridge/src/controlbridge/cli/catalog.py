@@ -298,7 +298,7 @@ def import_catalog(
                 override_framework_id=framework_id,
                 override_framework_name=name,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             console.print(f"[red]Profile resolution failed: {exc}[/red]")
             raise typer.Exit(code=1) from exc
 

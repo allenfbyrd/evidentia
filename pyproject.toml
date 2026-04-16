@@ -32,6 +32,10 @@ controlbridge = { workspace = true }
 [tool.ruff]
 target-version = "py312"
 line-length = 120
+# scripts/catalogs/ are build-time catalog generators with long one-liner
+# data tuples (control IDs + titles + families). Long lines are the point —
+# one tuple per row makes these files diff-reviewable. dist/ is build output.
+extend-exclude = ["scripts/catalogs/", "dist/"]
 
 [tool.ruff.lint]
 select = [
