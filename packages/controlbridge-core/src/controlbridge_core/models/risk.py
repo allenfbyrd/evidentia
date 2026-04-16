@@ -12,7 +12,12 @@ from enum import Enum
 
 from pydantic import Field
 
-from controlbridge_core.models.common import ControlBridgeModel, new_id, utc_now
+from controlbridge_core.models.common import (
+    ControlBridgeModel,
+    current_version,
+    new_id,
+    utc_now,
+)
 
 
 class RiskLevel(str, Enum):
@@ -161,7 +166,10 @@ class RiskRegister(ControlBridgeModel):
     system_name: str
     generated_at: datetime = Field(default_factory=utc_now)
     risks: list[RiskStatement] = Field(default_factory=list)
-    controlbridge_version: str = Field(default="0.1.0")
+    controlbridge_version: str = Field(
+        default_factory=current_version,
+        description="Version of controlbridge-core that produced this register",
+    )
 
     @property
     def critical_count(self) -> int:

@@ -19,6 +19,19 @@ def new_id() -> str:
     return str(uuid4())
 
 
+def current_version() -> str:
+    """Return the installed controlbridge-core version.
+
+    Used as a ``default_factory`` on report-stamp fields
+    (``GapReport.controlbridge_version`` etc.) so exported artifacts
+    accurately record the version that produced them. Resolves via
+    ``importlib.metadata`` — always matches the installed wheel.
+    """
+    from controlbridge_core import __version__
+
+    return __version__
+
+
 class ControlBridgeModel(BaseModel):
     """Base model for all ControlBridge objects.
 

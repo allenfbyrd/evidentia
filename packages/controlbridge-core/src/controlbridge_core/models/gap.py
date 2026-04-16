@@ -12,7 +12,12 @@ from enum import Enum
 
 from pydantic import Field
 
-from controlbridge_core.models.common import ControlBridgeModel, new_id, utc_now
+from controlbridge_core.models.common import (
+    ControlBridgeModel,
+    current_version,
+    new_id,
+    utc_now,
+)
 
 
 class GapSeverity(str, Enum):
@@ -189,5 +194,8 @@ class GapAnalysisReport(ControlBridgeModel):
         default=None,
         description="Path to the inventory file used",
     )
-    controlbridge_version: str = Field(default="0.1.0")
+    controlbridge_version: str = Field(
+        default_factory=current_version,
+        description="Version of controlbridge-core that produced this report",
+    )
     notes: str | None = Field(default=None)

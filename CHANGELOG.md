@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-04-16
+
+Version-reporting truth-up patch. Follow-up to v0.1.1. No functional
+changes — the installed packages already reported their real versions
+to package managers (`pip show`, PyPI metadata); this patch fixes the
+version strings that ControlBridge itself prints and embeds in
+exported artifacts.
+
+### Fixed
+
+- `controlbridge version` CLI output reported `"0.1.0"` regardless of
+  which version was actually installed, because every package's
+  `__version__` was a hardcoded string literal. All five `__init__.py`
+  modules now resolve `__version__` from `importlib.metadata` at
+  import time — the reported version always matches the installed
+  wheel and will never drift again.
+- `GapReport.controlbridge_version`, `RiskRegister.controlbridge_version`,
+  and `EvidenceBundle.controlbridge_version` all defaulted to `"0.1.0"`.
+  They now use a `default_factory` that resolves the live
+  `controlbridge-core` version, so exported audit artifacts accurately
+  record the version that produced them.
+
+### Added
+
+- `controlbridge_core.models.common.current_version()` helper that
+  returns the installed `controlbridge-core` version, used as the
+  `default_factory` for all report-stamp fields.
+
 ## [0.1.1] - 2026-04-16
 
 Legal remediation + registry truth-up patch. No API breakage — all changes
@@ -113,6 +141,7 @@ where language understanding is the bottleneck.
   has 16 hand-curated controls for demonstration, not the full ~323 from the
   NIST OSCAL content repo — planned for Phase 1.5
 
-[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/allenfbyrd/controlbridge/releases/tag/v0.1.0

@@ -17,6 +17,7 @@ from pydantic import Field
 from controlbridge_core.models.common import (
     ControlBridgeModel,
     ControlMapping,
+    current_version,
     new_id,
     utc_now,
 )
@@ -191,7 +192,10 @@ class EvidenceBundle(ControlBridgeModel):
         description="When this bundle expires (e.g., end of audit period)",
     )
     notes: str | None = Field(default=None)
-    controlbridge_version: str = Field(default="0.1.0")
+    controlbridge_version: str = Field(
+        default_factory=current_version,
+        description="Version of controlbridge-core that produced this bundle",
+    )
 
     @property
     def artifact_count(self) -> int:

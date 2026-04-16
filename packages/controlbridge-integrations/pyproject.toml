@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-integrations"
-version = "0.1.1"
+version = "0.1.2"
 description = "Output integrations for Jira and ServiceNow"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
