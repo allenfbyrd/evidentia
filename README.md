@@ -496,3 +496,8 @@ ControlBridge stands on the shoulders of excellent open-source projects:
 - **[Typer](https://typer.tiangolo.com/)** and **[Rich](https://rich.readthedocs.io/)** — the CLI is only as good as the framework
 - **[uv](https://docs.astral.sh/uv/)** — Python packaging that finally feels modern
 
+## AI assistance
+
+This project was developed alongside AI platforms.
+
+Models used: Claude Opus 4.6, Claude Opus 4.7, Sonar Deep Research
