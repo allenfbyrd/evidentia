@@ -95,6 +95,16 @@ class ControlInventory(ControlBridgeModel):
     organization: str = Field(
         description="Organization name, used in report headers",
     )
+    system_name: str | None = Field(
+        default=None,
+        description=(
+            "Optional system / product name the controls are scoped to "
+            "(e.g. 'Prod SaaS Platform'). Surfaces in report headers "
+            "alongside organization. Added in v0.2.1 to pair with the new "
+            "CLI `--system-name` flag and the `system_name:` key in "
+            "`controlbridge.yaml`."
+        ),
+    )
     created_at: datetime = Field(
         default_factory=utc_now,
         description="When this inventory was created",

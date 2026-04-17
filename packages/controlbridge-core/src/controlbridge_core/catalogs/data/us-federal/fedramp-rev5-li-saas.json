@@ -31,902 +31,902 @@
   "controls": [
     {
       "id": "AC-1",
-      "title": "NIST 800-53 Rev 5 control AC-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-1 in family AC — Access Control.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, ac-1_prm_1 }}:\n{{ insert: param, ac-01_odp.03 }} access control policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the access control policy and the associated access controls;\nDesignate an {{ insert: param, ac-01_odp.04 }} to manage the development, documentation, and dissemination of the access control policy and procedures; and\nReview and update the current access control:\nPolicy {{ insert: param, ac-01_odp.05 }} and following {{ insert: param, ac-01_odp.06 }} ; and\nProcedures {{ insert: param, ac-01_odp.07 }} and following {{ insert: param, ac-01_odp.08 }}.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-2",
-      "title": "NIST 800-53 Rev 5 control AC-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-2 in family AC — Access Control.",
+      "title": "Account Management",
+      "description": "Define and document the types of accounts allowed and specifically prohibited for use within the system;\nAssign account managers;\nRequire {{ insert: param, ac-02_odp.01 }} for group and role membership;\nSpecify:\nAuthorized users of the system;\nGroup and role membership; and\nAccess authorizations (i.e., privileges) and {{ insert: param, ac-02_odp.02 }} for each account;\nRequire approvals by {{ insert: param, ac-02_odp.03 }} for requests to create accounts;\nCreate, enable, modify, disable, and remove accounts in accordance with {{ insert: param, ac-02_odp.04 }};\nMonitor the use of accounts;\nNotify account managers and {{ insert: param, ac-02_odp.05 }} within:\n{{ insert: param, ac-02_odp.06 }} when accounts are no longer required;\n{{ insert: param, ac-02_odp.07 }} when users are terminated or transferred; and\n{{ insert: param, ac-02_odp.08 }} when system usage or need-to-know changes for an individual;\nAuthorize access to the system based on:\nA valid access authorization;\nIntended system usage; and\n{{ insert: param, ac-02_odp.09 }};\nReview accounts for compliance with account management requirements {{ insert: param, ac-02_odp.10 }};\nEstablish and implement a process for changing shared or group account authenticators (if deployed) when individuals are removed from the group; and\nAlign account management processes with personnel termination and transfer processes.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-3",
-      "title": "NIST 800-53 Rev 5 control AC-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-3 in family AC — Access Control.",
+      "title": "Access Enforcement",
+      "description": "Enforce approved authorizations for logical access to information and system resources in accordance with applicable access control policies.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-4",
-      "title": "NIST 800-53 Rev 5 control AC-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-4 in family AC — Access Control.",
+      "title": "Information Flow Enforcement",
+      "description": "Enforce approved authorizations for controlling the flow of information within the system and between connected systems based on {{ insert: param, ac-04_odp }}.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-5",
-      "title": "NIST 800-53 Rev 5 control AC-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-5 in family AC — Access Control.",
+      "title": "Separation of Duties",
+      "description": "Identify and document {{ insert: param, ac-05_odp }} ; and\nDefine system access authorizations to support separation of duties.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-6",
-      "title": "NIST 800-53 Rev 5 control AC-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-6 in family AC — Access Control.",
+      "title": "Least Privilege",
+      "description": "Employ the principle of least privilege, allowing only authorized accesses for users (or processes acting on behalf of users) that are necessary to accomplish assigned organizational tasks.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-7",
-      "title": "NIST 800-53 Rev 5 control AC-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-7 in family AC — Access Control.",
+      "title": "Unsuccessful Logon Attempts",
+      "description": "Enforce a limit of {{ insert: param, ac-07_odp.01 }} consecutive invalid logon attempts by a user during a {{ insert: param, ac-07_odp.02 }} ; and\nAutomatically {{ insert: param, ac-07_odp.03 }} when the maximum number of unsuccessful attempts is exceeded.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-8",
-      "title": "NIST 800-53 Rev 5 control AC-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-8 in family AC — Access Control.",
+      "title": "System Use Notification",
+      "description": "Display {{ insert: param, ac-08_odp.01 }} to users before granting access to the system that provides privacy and security notices consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines and state that:\nUsers are accessing a U.S. Government system;\nSystem usage may be monitored, recorded, and subject to audit;\nUnauthorized use of the system is prohibited and subject to criminal and civil penalties; and\nUse of the system indicates consent to monitoring and recording;\nRetain the notification message or banner on the screen until users acknowledge the usage conditions and take explicit actions to log on to or further access the system; and\nFor publicly accessible systems:\nDisplay system use information {{ insert: param, ac-08_odp.02 }} , before granting further access to the publicly accessible system;\nDisplay references, if any, to monitoring, recording, or auditing that are consistent with privacy accommodations for such systems that generally prohibit those activities; and\nInclude a description of the authorized uses of the system.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-11",
-      "title": "NIST 800-53 Rev 5 control AC-11",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-11 in family AC — Access Control.",
+      "title": "Device Lock",
+      "description": "Prevent further access to the system by {{ insert: param, ac-11_odp.01 }} ; and\nRetain the device lock until the user reestablishes access using established identification and authentication procedures.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-12",
-      "title": "NIST 800-53 Rev 5 control AC-12",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-12 in family AC — Access Control.",
+      "title": "Session Termination",
+      "description": "Automatically terminate a user session after {{ insert: param, ac-12_odp }}.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-14",
-      "title": "NIST 800-53 Rev 5 control AC-14",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-14 in family AC — Access Control.",
+      "title": "Permitted Actions Without Identification or Authentication",
+      "description": "Identify {{ insert: param, ac-14_odp }} that can be performed on the system without identification or authentication consistent with organizational mission and business functions; and\nDocument and provide supporting rationale in the security plan for the system, user actions not requiring identification or authentication.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-17",
-      "title": "NIST 800-53 Rev 5 control AC-17",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-17 in family AC — Access Control.",
+      "title": "Remote Access",
+      "description": "Establish and document usage restrictions, configuration/connection requirements, and implementation guidance for each type of remote access allowed; and\nAuthorize each type of remote access to the system prior to allowing such connections.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-18",
-      "title": "NIST 800-53 Rev 5 control AC-18",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-18 in family AC — Access Control.",
+      "title": "Wireless Access",
+      "description": "Establish configuration requirements, connection requirements, and implementation guidance for each type of wireless access; and\nAuthorize each type of wireless access to the system prior to allowing such connections.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-19",
-      "title": "NIST 800-53 Rev 5 control AC-19",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-19 in family AC — Access Control.",
+      "title": "Access Control for Mobile Devices",
+      "description": "Establish configuration requirements, connection requirements, and implementation guidance for organization-controlled mobile devices, to include when such devices are outside of controlled areas; and\nAuthorize the connection of mobile devices to organizational systems.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-20",
-      "title": "NIST 800-53 Rev 5 control AC-20",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-20 in family AC — Access Control.",
+      "title": "Use of External Systems",
+      "description": "{{ insert: param, ac-20_odp.01 }} , consistent with the trust relationships established with other organizations owning, operating, and/or maintaining external systems, allowing authorized individuals to:\nAccess the system from external systems; and\nProcess, store, or transmit organization-controlled information using external systems; or\nProhibit the use of {{ insert: param, ac-20_odp.04 }}.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-21",
-      "title": "NIST 800-53 Rev 5 control AC-21",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-21 in family AC — Access Control.",
+      "title": "Information Sharing",
+      "description": "Enable authorized users to determine whether access authorizations assigned to a sharing partner match the information’s access and use restrictions for {{ insert: param, ac-21_odp.01 }} ; and\nEmploy {{ insert: param, ac-21_odp.02 }} to assist users in making information sharing and collaboration decisions.",
       "family": "AC — Access Control"
     },
     {
       "id": "AC-22",
-      "title": "NIST 800-53 Rev 5 control AC-22",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AC-22 in family AC — Access Control.",
+      "title": "Publicly Accessible Content",
+      "description": "Designate individuals authorized to make information publicly accessible;\nTrain authorized individuals to ensure that publicly accessible information does not contain nonpublic information;\nReview the proposed content of information prior to posting onto the publicly accessible system to ensure that nonpublic information is not included; and\nReview the content on the publicly accessible system for nonpublic information {{ insert: param, ac-22_odp }} and remove such information, if discovered.",
       "family": "AC — Access Control"
     },
     {
       "id": "AT-1",
-      "title": "NIST 800-53 Rev 5 control AT-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AT-1 in family AT — Awareness and Training.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, at-1_prm_1 }}:\n{{ insert: param, at-01_odp.03 }} awareness and training policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the awareness and training policy and the associated awareness and training controls;\nDesignate an {{ insert: param, at-01_odp.04 }} to manage the development, documentation, and dissemination of the awareness and training policy and procedures; and\nReview and update the current awareness and training:\nPolicy {{ insert: param, at-01_odp.05 }} and following {{ insert: param, at-01_odp.06 }} ; and\nProcedures {{ insert: param, at-01_odp.07 }} and following {{ insert: param, at-01_odp.08 }}.",
       "family": "AT — Awareness and Training"
     },
     {
       "id": "AT-2",
-      "title": "NIST 800-53 Rev 5 control AT-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AT-2 in family AT — Awareness and Training.",
+      "title": "Literacy Training and Awareness",
+      "description": "Provide security and privacy literacy training to system users (including managers, senior executives, and contractors):\nAs part of initial training for new users and {{ insert: param, at-2_prm_1 }} thereafter; and\nWhen required by system changes or following {{ insert: param, at-2_prm_2 }};\nEmploy the following techniques to increase the security and privacy awareness of system users {{ insert: param, at-02_odp.05 }};\nUpdate literacy training and awareness content {{ insert: param, at-02_odp.06 }} and following {{ insert: param, at-02_odp.07 }} ; and\nIncorporate lessons learned from internal or external security incidents or breaches into literacy training and awareness techniques.",
       "family": "AT — Awareness and Training"
     },
     {
       "id": "AT-3",
-      "title": "NIST 800-53 Rev 5 control AT-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AT-3 in family AT — Awareness and Training.",
+      "title": "Role-based Training",
+      "description": "Provide role-based security and privacy training to personnel with the following roles and responsibilities: {{ insert: param, at-3_prm_1 }}:\nBefore authorizing access to the system, information, or performing assigned duties, and {{ insert: param, at-03_odp.03 }} thereafter; and\nWhen required by system changes;\nUpdate role-based training content {{ insert: param, at-03_odp.04 }} and following {{ insert: param, at-03_odp.05 }} ; and\nIncorporate lessons learned from internal or external security incidents or breaches into role-based training.",
       "family": "AT — Awareness and Training"
     },
     {
       "id": "AT-4",
-      "title": "NIST 800-53 Rev 5 control AT-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AT-4 in family AT — Awareness and Training.",
+      "title": "Training Records",
+      "description": "Document and monitor information security and privacy training activities, including security and privacy awareness training and specific role-based security and privacy training; and\nRetain individual training records for {{ insert: param, at-04_odp }}.",
       "family": "AT — Awareness and Training"
     },
     {
       "id": "AU-1",
-      "title": "NIST 800-53 Rev 5 control AU-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-1 in family AU — Audit and Accountability.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, au-1_prm_1 }}:\n{{ insert: param, au-01_odp.03 }} audit and accountability policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the audit and accountability policy and the associated audit and accountability controls;\nDesignate an {{ insert: param, au-01_odp.04 }} to manage the development, documentation, and dissemination of the audit and accountability policy and procedures; and\nReview and update the current audit and accountability:\nPolicy {{ insert: param, au-01_odp.05 }} and following {{ insert: param, au-01_odp.06 }} ; and\nProcedures {{ insert: param, au-01_odp.07 }} and following {{ insert: param, au-01_odp.08 }}.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-2",
-      "title": "NIST 800-53 Rev 5 control AU-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-2 in family AU — Audit and Accountability.",
+      "title": "Event Logging",
+      "description": "Identify the types of events that the system is capable of logging in support of the audit function: {{ insert: param, au-02_odp.01 }};\nCoordinate the event logging function with other organizational entities requiring audit-related information to guide and inform the selection criteria for events to be logged;\nSpecify the following event types for logging within the system: {{ insert: param, au-2_prm_2 }};\nProvide a rationale for why the event types selected for logging are deemed to be adequate to support after-the-fact investigations of incidents; and\nReview and update the event types selected for logging {{ insert: param, au-02_odp.04 }}.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-3",
-      "title": "NIST 800-53 Rev 5 control AU-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-3 in family AU — Audit and Accountability.",
+      "title": "Content of Audit Records",
+      "description": "Ensure that audit records contain information that establishes the following:\nWhat type of event occurred;\nWhen the event occurred;\nWhere the event occurred;\nSource of the event;\nOutcome of the event; and\nIdentity of any individuals, subjects, or objects/entities associated with the event.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-4",
-      "title": "NIST 800-53 Rev 5 control AU-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-4 in family AU — Audit and Accountability.",
+      "title": "Audit Log Storage Capacity",
+      "description": "Allocate audit log storage capacity to accommodate {{ insert: param, au-04_odp }}.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-5",
-      "title": "NIST 800-53 Rev 5 control AU-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-5 in family AU — Audit and Accountability.",
+      "title": "Response to Audit Logging Process Failures",
+      "description": "Alert {{ insert: param, au-05_odp.01 }} within {{ insert: param, au-05_odp.02 }} in the event of an audit logging process failure; and\nTake the following additional actions: {{ insert: param, au-05_odp.03 }}.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-6",
-      "title": "NIST 800-53 Rev 5 control AU-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-6 in family AU — Audit and Accountability.",
+      "title": "Audit Record Review, Analysis, and Reporting",
+      "description": "Review and analyze system audit records {{ insert: param, au-06_odp.01 }} for indications of {{ insert: param, au-06_odp.02 }} and the potential impact of the inappropriate or unusual activity;\nReport findings to {{ insert: param, au-06_odp.03 }} ; and\nAdjust the level of audit record review, analysis, and reporting within the system when there is a change in risk based on law enforcement information, intelligence information, or other credible sources of information.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-7",
-      "title": "NIST 800-53 Rev 5 control AU-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-7 in family AU — Audit and Accountability.",
+      "title": "Audit Record Reduction and Report Generation",
+      "description": "Provide and implement an audit record reduction and report generation capability that:\nSupports on-demand audit record review, analysis, and reporting requirements and after-the-fact investigations of incidents; and\nDoes not alter the original content or time ordering of audit records.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-8",
-      "title": "NIST 800-53 Rev 5 control AU-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-8 in family AU — Audit and Accountability.",
+      "title": "Time Stamps",
+      "description": "Use internal system clocks to generate time stamps for audit records; and\nRecord time stamps for audit records that meet {{ insert: param, au-08_odp }} and that use Coordinated Universal Time, have a fixed local time offset from Coordinated Universal Time, or that include the local time offset as part of the time stamp.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-9",
-      "title": "NIST 800-53 Rev 5 control AU-9",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-9 in family AU — Audit and Accountability.",
+      "title": "Protection of Audit Information",
+      "description": "Protect audit information and audit logging tools from unauthorized access, modification, and deletion; and\nAlert {{ insert: param, au-09_odp }} upon detection of unauthorized access, modification, or deletion of audit information.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-11",
-      "title": "NIST 800-53 Rev 5 control AU-11",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-11 in family AU — Audit and Accountability.",
+      "title": "Audit Record Retention",
+      "description": "Retain audit records for {{ insert: param, au-11_odp }} to provide support for after-the-fact investigations of incidents and to meet regulatory and organizational information retention requirements.",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "AU-12",
-      "title": "NIST 800-53 Rev 5 control AU-12",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control AU-12 in family AU — Audit and Accountability.",
+      "title": "Audit Record Generation",
+      "description": "Provide audit record generation capability for the event types the system is capable of auditing as defined in [AU-2a](#au-2_smt.a) on {{ insert: param, au-12_odp.01 }};\nAllow {{ insert: param, au-12_odp.02 }} to select the event types that are to be logged by specific components of the system; and\nGenerate audit records for the event types defined in [AU-2c](#au-2_smt.c) that include the audit record content defined in [AU-3](#au-3).",
       "family": "AU — Audit and Accountability"
     },
     {
       "id": "CA-1",
-      "title": "NIST 800-53 Rev 5 control CA-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-1 in family CA — Assessment, Authorization, and Monitoring.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, ca-1_prm_1 }}:\n{{ insert: param, ca-01_odp.03 }} assessment, authorization, and monitoring policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the assessment, authorization, and monitoring policy and the associated assessment, authorization, and monitoring controls;\nDesignate an {{ insert: param, ca-01_odp.04 }} to manage the development, documentation, and dissemination of the assessment, authorization, and monitoring policy and procedures; and\nReview and update the current assessment, authorization, and monitoring:\nPolicy {{ insert: param, ca-01_odp.05 }} and following {{ insert: param, ca-01_odp.06 }} ; and\nProcedures {{ insert: param, ca-01_odp.07 }} and following {{ insert: param, ca-01_odp.08 }}.",
       "family": "CA — Assessment, Authorization, and Monitoring"
     },
     {
       "id": "CA-2",
-      "title": "NIST 800-53 Rev 5 control CA-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-2 in family CA — Assessment, Authorization, and Monitoring.",
+      "title": "Control Assessments",
+      "description": "Select the appropriate assessor or assessment team for the type of assessment to be conducted;\nDevelop a control assessment plan that describes the scope of the assessment including:\nControls and control enhancements under assessment;\nAssessment procedures to be used to determine control effectiveness; and\nAssessment environment, assessment team, and assessment roles and responsibilities;\nEnsure the control assessment plan is reviewed and approved by the authorizing official or designated representative prior to conducting the assessment;\nAssess the controls in the system and its environment of operation {{ insert: param, ca-02_odp.01 }} to determine the extent to which the controls are implemented correctly, operating as intended, and producing the desired outcome with respect to meeting established security and privacy requirements;\nProduce a control assessment report that document the results of the assessment; and\nProvide the results of the control assessment to {{ insert: param, ca-02_odp.02 }}.",
       "family": "CA — Assessment, Authorization, and Monitoring"
     },
     {
       "id": "CA-3",
-      "title": "NIST 800-53 Rev 5 control CA-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-3 in family CA — Assessment, Authorization, and Monitoring.",
+      "title": "Information Exchange",
+      "description": "Approve and manage the exchange of information between the system and other systems using {{ insert: param, ca-03_odp.01 }};\nDocument, as part of each exchange agreement, the interface characteristics, security and privacy requirements, controls, and responsibilities for each system, and the impact level of the information communicated; and\nReview and update the agreements {{ insert: param, ca-03_odp.03 }}.",
       "family": "CA — Assessment, Authorization, and Monitoring"
     },
     {
       "id": "CA-5",
-      "title": "NIST 800-53 Rev 5 control CA-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-5 in family CA — Assessment, Authorization, and Monitoring.",
+      "title": "Plan of Action and Milestones",
+      "description": "Develop a plan of action and milestones for the system to document the planned remediation actions of the organization to correct weaknesses or deficiencies noted during the assessment of the controls and to reduce or eliminate known vulnerabilities in the system; and\nUpdate existing plan of action and milestones {{ insert: param, ca-05_odp }} based on the findings from control assessments, independent audits or reviews, and continuous monitoring activities.",
       "family": "CA — Assessment, Authorization, and Monitoring"
     },
     {
       "id": "CA-6",
-      "title": "NIST 800-53 Rev 5 control CA-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-6 in family CA — Assessment, Authorization, and Monitoring.",
+      "title": "Authorization",
+      "description": "Assign a senior official as the authorizing official for the system;\nAssign a senior official as the authorizing official for common controls available for inheritance by organizational systems;\nEnsure that the authorizing official for the system, before commencing operations:\nAccepts the use of common controls inherited by the system; and\nAuthorizes the system to operate;\nEnsure that the authorizing official for common controls authorizes the use of those controls for inheritance by organizational systems;\nUpdate the authorizations {{ insert: param, ca-06_odp }}.",
       "family": "CA — Assessment, Authorization, and Monitoring"
     },
     {
       "id": "CA-7",
-      "title": "NIST 800-53 Rev 5 control CA-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-7 in family CA — Assessment, Authorization, and Monitoring.",
+      "title": "Continuous Monitoring",
+      "description": "Develop a system-level continuous monitoring strategy and implement continuous monitoring in accordance with the organization-level continuous monitoring strategy that includes:\nEstablishing the following system-level metrics to be monitored: {{ insert: param, ca-07_odp.01 }};\nEstablishing {{ insert: param, ca-07_odp.02 }} for monitoring and {{ insert: param, ca-07_odp.03 }} for assessment of control effectiveness;\nOngoing control assessments in accordance with the continuous monitoring strategy;\nOngoing monitoring of system and organization-defined metrics in accordance with the continuous monitoring strategy;\nCorrelation and analysis of information generated by control assessments and monitoring;\nResponse actions to address results of the analysis of control assessment and monitoring information; and\nReporting the security and privacy status of the system to {{ insert: param, ca-7_prm_4 }} {{ insert: param, ca-7_prm_5 }}.",
       "family": "CA — Assessment, Authorization, and Monitoring"
     },
     {
       "id": "CA-8",
-      "title": "NIST 800-53 Rev 5 control CA-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-8 in family CA — Assessment, Authorization, and Monitoring.",
+      "title": "Penetration Testing",
+      "description": "Conduct penetration testing {{ insert: param, ca-08_odp.01 }} on {{ insert: param, ca-08_odp.02 }}.",
       "family": "CA — Assessment, Authorization, and Monitoring"
     },
     {
       "id": "CA-9",
-      "title": "NIST 800-53 Rev 5 control CA-9",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CA-9 in family CA — Assessment, Authorization, and Monitoring.",
+      "title": "Internal System Connections",
+      "description": "Authorize internal connections of {{ insert: param, ca-09_odp.01 }} to the system;\nDocument, for each internal connection, the interface characteristics, security and privacy requirements, and the nature of the information communicated;\nTerminate internal system connections after {{ insert: param, ca-09_odp.02 }} ; and\nReview {{ insert: param, ca-09_odp.03 }} the continued need for each internal connection.",
       "family": "CA — Assessment, Authorization, and Monitoring"
     },
     {
       "id": "CM-1",
-      "title": "NIST 800-53 Rev 5 control CM-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-1 in family CM — Configuration Management.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, cm-1_prm_1 }}:\n{{ insert: param, cm-01_odp.03 }} configuration management policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the configuration management policy and the associated configuration management controls;\nDesignate an {{ insert: param, cm-01_odp.04 }} to manage the development, documentation, and dissemination of the configuration management policy and procedures; and\nReview and update the current configuration management:\nPolicy {{ insert: param, cm-01_odp.05 }} and following {{ insert: param, cm-01_odp.06 }} ; and\nProcedures {{ insert: param, cm-01_odp.07 }} and following {{ insert: param, cm-01_odp.08 }}.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-2",
-      "title": "NIST 800-53 Rev 5 control CM-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-2 in family CM — Configuration Management.",
+      "title": "Baseline Configuration",
+      "description": "Develop, document, and maintain under configuration control, a current baseline configuration of the system; and\nReview and update the baseline configuration of the system:\n{{ insert: param, cm-02_odp.01 }};\nWhen required due to {{ insert: param, cm-02_odp.02 }} ; and\nWhen system components are installed or upgraded.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-3",
-      "title": "NIST 800-53 Rev 5 control CM-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-3 in family CM — Configuration Management.",
+      "title": "Configuration Change Control",
+      "description": "Determine and document the types of changes to the system that are configuration-controlled;\nReview proposed configuration-controlled changes to the system and approve or disapprove such changes with explicit consideration for security and privacy impact analyses;\nDocument configuration change decisions associated with the system;\nImplement approved configuration-controlled changes to the system;\nRetain records of configuration-controlled changes to the system for {{ insert: param, cm-03_odp.01 }};\nMonitor and review activities associated with configuration-controlled changes to the system; and\nCoordinate and provide oversight for configuration change control activities through {{ insert: param, cm-03_odp.02 }} that convenes {{ insert: param, cm-03_odp.03 }}.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-4",
-      "title": "NIST 800-53 Rev 5 control CM-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-4 in family CM — Configuration Management.",
+      "title": "Impact Analyses",
+      "description": "Analyze changes to the system to determine potential security and privacy impacts prior to change implementation.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-5",
-      "title": "NIST 800-53 Rev 5 control CM-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-5 in family CM — Configuration Management.",
+      "title": "Access Restrictions for Change",
+      "description": "Define, document, approve, and enforce physical and logical access restrictions associated with changes to the system.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-6",
-      "title": "NIST 800-53 Rev 5 control CM-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-6 in family CM — Configuration Management.",
+      "title": "Configuration Settings",
+      "description": "Establish and document configuration settings for components employed within the system that reflect the most restrictive mode consistent with operational requirements using {{ insert: param, cm-06_odp.01 }};\nImplement the configuration settings;\nIdentify, document, and approve any deviations from established configuration settings for {{ insert: param, cm-06_odp.02 }} based on {{ insert: param, cm-06_odp.03 }} ; and\nMonitor and control changes to the configuration settings in accordance with organizational policies and procedures.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-7",
-      "title": "NIST 800-53 Rev 5 control CM-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-7 in family CM — Configuration Management.",
+      "title": "Least Functionality",
+      "description": "Configure the system to provide only {{ insert: param, cm-07_odp.01 }} ; and\nProhibit or restrict the use of the following functions, ports, protocols, software, and/or services: {{ insert: param, cm-7_prm_2 }}.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-8",
-      "title": "NIST 800-53 Rev 5 control CM-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-8 in family CM — Configuration Management.",
+      "title": "System Component Inventory",
+      "description": "Develop and document an inventory of system components that:\nAccurately reflects the system;\nIncludes all components within the system;\nDoes not include duplicate accounting of components or components assigned to any other system;\nIs at the level of granularity deemed necessary for tracking and reporting; and\nIncludes the following information to achieve system component accountability: {{ insert: param, cm-08_odp.01 }} ; and\nReview and update the system component inventory {{ insert: param, cm-08_odp.02 }}.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-9",
-      "title": "NIST 800-53 Rev 5 control CM-9",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-9 in family CM — Configuration Management.",
+      "title": "Configuration Management Plan",
+      "description": "Develop, document, and implement a configuration management plan for the system that:\nAddresses roles, responsibilities, and configuration management processes and procedures;\nEstablishes a process for identifying configuration items throughout the system development life cycle and for managing the configuration of the configuration items;\nDefines the configuration items for the system and places the configuration items under configuration management;\nIs reviewed and approved by {{ insert: param, cm-09_odp }} ; and\nProtects the configuration management plan from unauthorized disclosure and modification.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-10",
-      "title": "NIST 800-53 Rev 5 control CM-10",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-10 in family CM — Configuration Management.",
+      "title": "Software Usage Restrictions",
+      "description": "Use software and associated documentation in accordance with contract agreements and copyright laws;\nTrack the use of software and associated documentation protected by quantity licenses to control copying and distribution; and\nControl and document the use of peer-to-peer file sharing technology to ensure that this capability is not used for the unauthorized distribution, display, performance, or reproduction of copyrighted work.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CM-11",
-      "title": "NIST 800-53 Rev 5 control CM-11",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CM-11 in family CM — Configuration Management.",
+      "title": "User-installed Software",
+      "description": "Establish {{ insert: param, cm-11_odp.01 }} governing the installation of software by users;\nEnforce software installation policies through the following methods: {{ insert: param, cm-11_odp.02 }} ; and\nMonitor policy compliance {{ insert: param, cm-11_odp.03 }}.",
       "family": "CM — Configuration Management"
     },
     {
       "id": "CP-1",
-      "title": "NIST 800-53 Rev 5 control CP-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-1 in family CP — Contingency Planning.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, cp-1_prm_1 }}:\n{{ insert: param, cp-01_odp.03 }} contingency planning policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the contingency planning policy and the associated contingency planning controls;\nDesignate an {{ insert: param, cp-01_odp.04 }} to manage the development, documentation, and dissemination of the contingency planning policy and procedures; and\nReview and update the current contingency planning:\nPolicy {{ insert: param, cp-01_odp.05 }} and following {{ insert: param, cp-01_odp.06 }} ; and\nProcedures {{ insert: param, cp-01_odp.07 }} and following {{ insert: param, cp-01_odp.08 }}.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "CP-2",
-      "title": "NIST 800-53 Rev 5 control CP-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-2 in family CP — Contingency Planning.",
+      "title": "Contingency Plan",
+      "description": "Develop a contingency plan for the system that:\nIdentifies essential mission and business functions and associated contingency requirements;\nProvides recovery objectives, restoration priorities, and metrics;\nAddresses contingency roles, responsibilities, assigned individuals with contact information;\nAddresses maintaining essential mission and business functions despite a system disruption, compromise, or failure;\nAddresses eventual, full system restoration without deterioration of the controls originally planned and implemented;\nAddresses the sharing of contingency information; and\nIs reviewed and approved by {{ insert: param, cp-2_prm_1 }};\nDistribute copies of the contingency plan to {{ insert: param, cp-2_prm_2 }};\nCoordinate contingency planning activities with incident handling activities;\nReview the contingency plan for the system {{ insert: param, cp-02_odp.05 }};\nUpdate the contingency plan to address changes to the organization, system, or environment of operation and problems encountered during contingency plan implementation, execution, or testing;\nCommunicate contingency plan changes to {{ insert: param, cp-2_prm_4 }};\nIncorporate lessons learned from contingency plan testing, training, or actual contingency activities into contingency testing and training; and\nProtect the contingency plan from unauthorized disclosure and modification.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "CP-3",
-      "title": "NIST 800-53 Rev 5 control CP-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-3 in family CP — Contingency Planning.",
+      "title": "Contingency Training",
+      "description": "Provide contingency training to system users consistent with assigned roles and responsibilities:\nWithin {{ insert: param, cp-03_odp.01 }} of assuming a contingency role or responsibility;\nWhen required by system changes; and\n{{ insert: param, cp-03_odp.02 }} thereafter; and\nReview and update contingency training content {{ insert: param, cp-03_odp.03 }} and following {{ insert: param, cp-03_odp.04 }}.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "CP-4",
-      "title": "NIST 800-53 Rev 5 control CP-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-4 in family CP — Contingency Planning.",
+      "title": "Contingency Plan Testing",
+      "description": "Test the contingency plan for the system {{ insert: param, cp-04_odp.01 }} using the following tests to determine the effectiveness of the plan and the readiness to execute the plan: {{ insert: param, cp-4_prm_2 }}.\nReview the contingency plan test results; and\nInitiate corrective actions, if needed.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "CP-6",
-      "title": "NIST 800-53 Rev 5 control CP-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-6 in family CP — Contingency Planning.",
+      "title": "Alternate Storage Site",
+      "description": "Establish an alternate storage site, including necessary agreements to permit the storage and retrieval of system backup information; and\nEnsure that the alternate storage site provides controls equivalent to that of the primary site.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "CP-7",
-      "title": "NIST 800-53 Rev 5 control CP-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-7 in family CP — Contingency Planning.",
+      "title": "Alternate Processing Site",
+      "description": "Establish an alternate processing site, including necessary agreements to permit the transfer and resumption of {{ insert: param, cp-07_odp.01 }} for essential mission and business functions within {{ insert: param, cp-07_odp.02 }} when the primary processing capabilities are unavailable;\nMake available at the alternate processing site, the equipment and supplies required to transfer and resume operations or put contracts in place to support delivery to the site within the organization-defined time period for transfer and resumption; and\nProvide controls at the alternate processing site that are equivalent to those at the primary site.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "CP-8",
-      "title": "NIST 800-53 Rev 5 control CP-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-8 in family CP — Contingency Planning.",
+      "title": "Telecommunications Services",
+      "description": "Establish alternate telecommunications services, including necessary agreements to permit the resumption of {{ insert: param, cp-08_odp.01 }} for essential mission and business functions within {{ insert: param, cp-08_odp.02 }} when the primary telecommunications capabilities are unavailable at either the primary or alternate processing or storage sites.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "CP-9",
-      "title": "NIST 800-53 Rev 5 control CP-9",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-9 in family CP — Contingency Planning.",
+      "title": "System Backup",
+      "description": "Conduct backups of user-level information contained in {{ insert: param, cp-09_odp.01 }} {{ insert: param, cp-09_odp.02 }};\nConduct backups of system-level information contained in the system {{ insert: param, cp-09_odp.03 }};\nConduct backups of system documentation, including security- and privacy-related documentation {{ insert: param, cp-09_odp.04 }} ; and\nProtect the confidentiality, integrity, and availability of backup information.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "CP-10",
-      "title": "NIST 800-53 Rev 5 control CP-10",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control CP-10 in family CP — Contingency Planning.",
+      "title": "System Recovery and Reconstitution",
+      "description": "Provide for the recovery and reconstitution of the system to a known state within {{ insert: param, cp-10_prm_1 }} after a disruption, compromise, or failure.",
       "family": "CP — Contingency Planning"
     },
     {
       "id": "IA-1",
-      "title": "NIST 800-53 Rev 5 control IA-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-1 in family IA — Identification and Authentication.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, ia-1_prm_1 }}:\n{{ insert: param, ia-01_odp.03 }} identification and authentication policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the identification and authentication policy and the associated identification and authentication controls;\nDesignate an {{ insert: param, ia-01_odp.04 }} to manage the development, documentation, and dissemination of the identification and authentication policy and procedures; and\nReview and update the current identification and authentication:\nPolicy {{ insert: param, ia-01_odp.05 }} and following {{ insert: param, ia-01_odp.06 }} ; and\nProcedures {{ insert: param, ia-01_odp.07 }} and following {{ insert: param, ia-01_odp.08 }}.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-2",
-      "title": "NIST 800-53 Rev 5 control IA-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-2 in family IA — Identification and Authentication.",
+      "title": "Identification and Authentication (Organizational Users)",
+      "description": "Uniquely identify and authenticate organizational users and associate that unique identification with processes acting on behalf of those users.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-3",
-      "title": "NIST 800-53 Rev 5 control IA-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-3 in family IA — Identification and Authentication.",
+      "title": "Device Identification and Authentication",
+      "description": "Uniquely identify and authenticate {{ insert: param, ia-03_odp.01 }} before establishing a {{ insert: param, ia-03_odp.02 }} connection.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-4",
-      "title": "NIST 800-53 Rev 5 control IA-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-4 in family IA — Identification and Authentication.",
+      "title": "Identifier Management",
+      "description": "Manage system identifiers by:\nReceiving authorization from {{ insert: param, ia-04_odp.01 }} to assign an individual, group, role, service, or device identifier;\nSelecting an identifier that identifies an individual, group, role, service, or device;\nAssigning the identifier to the intended individual, group, role, service, or device; and\nPreventing reuse of identifiers for {{ insert: param, ia-04_odp.02 }}.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-5",
-      "title": "NIST 800-53 Rev 5 control IA-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-5 in family IA — Identification and Authentication.",
+      "title": "Authenticator Management",
+      "description": "Manage system authenticators by:\nVerifying, as part of the initial authenticator distribution, the identity of the individual, group, role, service, or device receiving the authenticator;\nEstablishing initial authenticator content for any authenticators issued by the organization;\nEnsuring that authenticators have sufficient strength of mechanism for their intended use;\nEstablishing and implementing administrative procedures for initial authenticator distribution, for lost or compromised or damaged authenticators, and for revoking authenticators;\nChanging default authenticators prior to first use;\nChanging or refreshing authenticators {{ insert: param, ia-05_odp.01 }} or when {{ insert: param, ia-05_odp.02 }} occur;\nProtecting authenticator content from unauthorized disclosure and modification;\nRequiring individuals to take, and having devices implement, specific controls to protect authenticators; and\nChanging authenticators for group or role accounts when membership to those accounts changes.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-6",
-      "title": "NIST 800-53 Rev 5 control IA-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-6 in family IA — Identification and Authentication.",
+      "title": "Authentication Feedback",
+      "description": "Obscure feedback of authentication information during the authentication process to protect the information from possible exploitation and use by unauthorized individuals.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-7",
-      "title": "NIST 800-53 Rev 5 control IA-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-7 in family IA — Identification and Authentication.",
+      "title": "Cryptographic Module Authentication",
+      "description": "Implement mechanisms for authentication to a cryptographic module that meet the requirements of applicable laws, executive orders, directives, policies, regulations, standards, and guidelines for such authentication.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-8",
-      "title": "NIST 800-53 Rev 5 control IA-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-8 in family IA — Identification and Authentication.",
+      "title": "Identification and Authentication (Non-organizational Users)",
+      "description": "Uniquely identify and authenticate non-organizational users or processes acting on behalf of non-organizational users.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-11",
-      "title": "NIST 800-53 Rev 5 control IA-11",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-11 in family IA — Identification and Authentication.",
+      "title": "Re-authentication",
+      "description": "Require users to re-authenticate when {{ insert: param, ia-11_odp }}.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IA-12",
-      "title": "NIST 800-53 Rev 5 control IA-12",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IA-12 in family IA — Identification and Authentication.",
+      "title": "Identity Proofing",
+      "description": "Identity proof users that require accounts for logical access to systems based on appropriate identity assurance level requirements as specified in applicable standards and guidelines;\nResolve user identities to a unique individual; and\nCollect, validate, and verify identity evidence.",
       "family": "IA — Identification and Authentication"
     },
     {
       "id": "IR-1",
-      "title": "NIST 800-53 Rev 5 control IR-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-1 in family IR — Incident Response.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, ir-1_prm_1 }}:\n{{ insert: param, ir-01_odp.03 }} incident response policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the incident response policy and the associated incident response controls;\nDesignate an {{ insert: param, ir-01_odp.04 }} to manage the development, documentation, and dissemination of the incident response policy and procedures; and\nReview and update the current incident response:\nPolicy {{ insert: param, ir-01_odp.05 }} and following {{ insert: param, ir-01_odp.06 }} ; and\nProcedures {{ insert: param, ir-01_odp.07 }} and following {{ insert: param, ir-01_odp.08 }}.",
       "family": "IR — Incident Response"
     },
     {
       "id": "IR-2",
-      "title": "NIST 800-53 Rev 5 control IR-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-2 in family IR — Incident Response.",
+      "title": "Incident Response Training",
+      "description": "Provide incident response training to system users consistent with assigned roles and responsibilities:\nWithin {{ insert: param, ir-02_odp.01 }} of assuming an incident response role or responsibility or acquiring system access;\nWhen required by system changes; and\n{{ insert: param, ir-02_odp.02 }} thereafter; and\nReview and update incident response training content {{ insert: param, ir-02_odp.03 }} and following {{ insert: param, ir-02_odp.04 }}.",
       "family": "IR — Incident Response"
     },
     {
       "id": "IR-3",
-      "title": "NIST 800-53 Rev 5 control IR-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-3 in family IR — Incident Response.",
+      "title": "Incident Response Testing",
+      "description": "Test the effectiveness of the incident response capability for the system {{ insert: param, ir-03_odp.01 }} using the following tests: {{ insert: param, ir-03_odp.02 }}.",
       "family": "IR — Incident Response"
     },
     {
       "id": "IR-4",
-      "title": "NIST 800-53 Rev 5 control IR-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-4 in family IR — Incident Response.",
+      "title": "Incident Handling",
+      "description": "Implement an incident handling capability for incidents that is consistent with the incident response plan and includes preparation, detection and analysis, containment, eradication, and recovery;\nCoordinate incident handling activities with contingency planning activities;\nIncorporate lessons learned from ongoing incident handling activities into incident response procedures, training, and testing, and implement the resulting changes accordingly; and\nEnsure the rigor, intensity, scope, and results of incident handling activities are comparable and predictable across the organization.",
       "family": "IR — Incident Response"
     },
     {
       "id": "IR-5",
-      "title": "NIST 800-53 Rev 5 control IR-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-5 in family IR — Incident Response.",
+      "title": "Incident Monitoring",
+      "description": "Track and document incidents.",
       "family": "IR — Incident Response"
     },
     {
       "id": "IR-6",
-      "title": "NIST 800-53 Rev 5 control IR-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-6 in family IR — Incident Response.",
+      "title": "Incident Reporting",
+      "description": "Require personnel to report suspected incidents to the organizational incident response capability within {{ insert: param, ir-06_odp.01 }} ; and\nReport incident information to {{ insert: param, ir-06_odp.02 }}.",
       "family": "IR — Incident Response"
     },
     {
       "id": "IR-7",
-      "title": "NIST 800-53 Rev 5 control IR-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-7 in family IR — Incident Response.",
+      "title": "Incident Response Assistance",
+      "description": "Provide an incident response support resource, integral to the organizational incident response capability, that offers advice and assistance to users of the system for the handling and reporting of incidents.",
       "family": "IR — Incident Response"
     },
     {
       "id": "IR-8",
-      "title": "NIST 800-53 Rev 5 control IR-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control IR-8 in family IR — Incident Response.",
+      "title": "Incident Response Plan",
+      "description": "Develop an incident response plan that:\nProvides the organization with a roadmap for implementing its incident response capability;\nDescribes the structure and organization of the incident response capability;\nProvides a high-level approach for how the incident response capability fits into the overall organization;\nMeets the unique requirements of the organization, which relate to mission, size, structure, and functions;\nDefines reportable incidents;\nProvides metrics for measuring the incident response capability within the organization;\nDefines the resources and management support needed to effectively maintain and mature an incident response capability;\nAddresses the sharing of incident information;\nIs reviewed and approved by {{ insert: param, ir-08_odp.01 }} {{ insert: param, ir-08_odp.02 }} ; and\nExplicitly designates responsibility for incident response to {{ insert: param, ir-08_odp.03 }}.\nDistribute copies of the incident response plan to {{ insert: param, ir-08_odp.04 }};\nUpdate the incident response plan to address system and organizational changes or problems encountered during plan implementation, execution, or testing;\nCommunicate incident response plan changes to {{ insert: param, ir-8_prm_5 }} ; and\nProtect the incident response plan from unauthorized disclosure and modification.",
       "family": "IR — Incident Response"
     },
     {
       "id": "MA-1",
-      "title": "NIST 800-53 Rev 5 control MA-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-1 in family MA — Maintenance.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, ma-1_prm_1 }}:\n{{ insert: param, ma-01_odp.03 }} maintenance policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the maintenance policy and the associated maintenance controls;\nDesignate an {{ insert: param, ma-01_odp.04 }} to manage the development, documentation, and dissemination of the maintenance policy and procedures; and\nReview and update the current maintenance:\nPolicy {{ insert: param, ma-01_odp.05 }} and following {{ insert: param, ma-01_odp.06 }} ; and\nProcedures {{ insert: param, ma-01_odp.07 }} and following {{ insert: param, ma-01_odp.08 }}.",
       "family": "MA — Maintenance"
     },
     {
       "id": "MA-2",
-      "title": "NIST 800-53 Rev 5 control MA-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-2 in family MA — Maintenance.",
+      "title": "Controlled Maintenance",
+      "description": "Schedule, document, and review records of maintenance, repair, and replacement on system components in accordance with manufacturer or vendor specifications and/or organizational requirements;\nApprove and monitor all maintenance activities, whether performed on site or remotely and whether the system or system components are serviced on site or removed to another location;\nRequire that {{ insert: param, ma-02_odp.01 }} explicitly approve the removal of the system or system components from organizational facilities for off-site maintenance, repair, or replacement;\nSanitize equipment to remove the following information from associated media prior to removal from organizational facilities for off-site maintenance, repair, or replacement: {{ insert: param, ma-02_odp.02 }};\nCheck all potentially impacted controls to verify that the controls are still functioning properly following maintenance, repair, or replacement actions; and\nInclude the following information in organizational maintenance records: {{ insert: param, ma-02_odp.03 }}.",
       "family": "MA — Maintenance"
     },
     {
       "id": "MA-3",
-      "title": "NIST 800-53 Rev 5 control MA-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-3 in family MA — Maintenance.",
+      "title": "Maintenance Tools",
+      "description": "Approve, control, and monitor the use of system maintenance tools; and\nReview previously approved system maintenance tools {{ insert: param, ma-03_odp }}.",
       "family": "MA — Maintenance"
     },
     {
       "id": "MA-4",
-      "title": "NIST 800-53 Rev 5 control MA-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-4 in family MA — Maintenance.",
+      "title": "Nonlocal Maintenance",
+      "description": "Approve and monitor nonlocal maintenance and diagnostic activities;\nAllow the use of nonlocal maintenance and diagnostic tools only as consistent with organizational policy and documented in the security plan for the system;\nEmploy strong authentication in the establishment of nonlocal maintenance and diagnostic sessions;\nMaintain records for nonlocal maintenance and diagnostic activities; and\nTerminate session and network connections when nonlocal maintenance is completed.",
       "family": "MA — Maintenance"
     },
     {
       "id": "MA-5",
-      "title": "NIST 800-53 Rev 5 control MA-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-5 in family MA — Maintenance.",
+      "title": "Maintenance Personnel",
+      "description": "Establish a process for maintenance personnel authorization and maintain a list of authorized maintenance organizations or personnel;\nVerify that non-escorted personnel performing maintenance on the system possess the required access authorizations; and\nDesignate organizational personnel with required access authorizations and technical competence to supervise the maintenance activities of personnel who do not possess the required access authorizations.",
       "family": "MA — Maintenance"
     },
     {
       "id": "MA-6",
-      "title": "NIST 800-53 Rev 5 control MA-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MA-6 in family MA — Maintenance.",
+      "title": "Timely Maintenance",
+      "description": "Obtain maintenance support and/or spare parts for {{ insert: param, ma-06_odp.01 }} within {{ insert: param, ma-06_odp.02 }} of failure.",
       "family": "MA — Maintenance"
     },
     {
       "id": "MP-1",
-      "title": "NIST 800-53 Rev 5 control MP-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-1 in family MP — Media Protection.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, mp-1_prm_1 }}:\n{{ insert: param, mp-01_odp.03 }} media protection policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the media protection policy and the associated media protection controls;\nDesignate an {{ insert: param, mp-01_odp.04 }} to manage the development, documentation, and dissemination of the media protection policy and procedures; and\nReview and update the current media protection:\nPolicy {{ insert: param, mp-01_odp.05 }} and following {{ insert: param, mp-01_odp.06 }} ; and\nProcedures {{ insert: param, mp-01_odp.07 }} and following {{ insert: param, mp-01_odp.08 }}.",
       "family": "MP — Media Protection"
     },
     {
       "id": "MP-2",
-      "title": "NIST 800-53 Rev 5 control MP-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-2 in family MP — Media Protection.",
+      "title": "Media Access",
+      "description": "Restrict access to {{ insert: param, mp-2_prm_1 }} to {{ insert: param, mp-2_prm_2 }}.",
       "family": "MP — Media Protection"
     },
     {
       "id": "MP-3",
-      "title": "NIST 800-53 Rev 5 control MP-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-3 in family MP — Media Protection.",
+      "title": "Media Marking",
+      "description": "Mark system media indicating the distribution limitations, handling caveats, and applicable security markings (if any) of the information; and\nExempt {{ insert: param, mp-03_odp.01 }} from marking if the media remain within {{ insert: param, mp-03_odp.02 }}.",
       "family": "MP — Media Protection"
     },
     {
       "id": "MP-4",
-      "title": "NIST 800-53 Rev 5 control MP-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-4 in family MP — Media Protection.",
+      "title": "Media Storage",
+      "description": "Physically control and securely store {{ insert: param, mp-4_prm_1 }} within {{ insert: param, mp-4_prm_2 }} ; and\nProtect system media types defined in MP-4a until the media are destroyed or sanitized using approved equipment, techniques, and procedures.",
       "family": "MP — Media Protection"
     },
     {
       "id": "MP-5",
-      "title": "NIST 800-53 Rev 5 control MP-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-5 in family MP — Media Protection.",
+      "title": "Media Transport",
+      "description": "Protect and control {{ insert: param, mp-05_odp.01 }} during transport outside of controlled areas using {{ insert: param, mp-5_prm_2 }};\nMaintain accountability for system media during transport outside of controlled areas;\nDocument activities associated with the transport of system media; and\nRestrict the activities associated with the transport of system media to authorized personnel.",
       "family": "MP — Media Protection"
     },
     {
       "id": "MP-6",
-      "title": "NIST 800-53 Rev 5 control MP-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-6 in family MP — Media Protection.",
+      "title": "Media Sanitization",
+      "description": "Sanitize {{ insert: param, mp-6_prm_1 }} prior to disposal, release out of organizational control, or release for reuse using {{ insert: param, mp-6_prm_2 }} ; and\nEmploy sanitization mechanisms with the strength and integrity commensurate with the security category or classification of the information.",
       "family": "MP — Media Protection"
     },
     {
       "id": "MP-7",
-      "title": "NIST 800-53 Rev 5 control MP-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control MP-7 in family MP — Media Protection.",
+      "title": "Media Use",
+      "description": "{{ insert: param, mp-07_odp.02 }} the use of {{ insert: param, mp-07_odp.01 }} on {{ insert: param, mp-07_odp.03 }} using {{ insert: param, mp-07_odp.04 }} ; and\nProhibit the use of portable storage devices in organizational systems when such devices have no identifiable owner.",
       "family": "MP — Media Protection"
     },
     {
       "id": "PE-1",
-      "title": "NIST 800-53 Rev 5 control PE-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-1 in family PE — Physical and Environmental Protection.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, pe-1_prm_1 }}:\n{{ insert: param, pe-01_odp.03 }} physical and environmental protection policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the physical and environmental protection policy and the associated physical and environmental protection controls;\nDesignate an {{ insert: param, pe-01_odp.04 }} to manage the development, documentation, and dissemination of the physical and environmental protection policy and procedures; and\nReview and update the current physical and environmental protection:\nPolicy {{ insert: param, pe-01_odp.05 }} and following {{ insert: param, pe-01_odp.06 }} ; and\nProcedures {{ insert: param, pe-01_odp.07 }} and following {{ insert: param, pe-01_odp.08 }}.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-2",
-      "title": "NIST 800-53 Rev 5 control PE-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-2 in family PE — Physical and Environmental Protection.",
+      "title": "Physical Access Authorizations",
+      "description": "Develop, approve, and maintain a list of individuals with authorized access to the facility where the system resides;\nIssue authorization credentials for facility access;\nReview the access list detailing authorized facility access by individuals {{ insert: param, pe-02_odp }} ; and\nRemove individuals from the facility access list when access is no longer required.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-3",
-      "title": "NIST 800-53 Rev 5 control PE-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-3 in family PE — Physical and Environmental Protection.",
+      "title": "Physical Access Control",
+      "description": "Enforce physical access authorizations at {{ insert: param, pe-03_odp.01 }} by:\nVerifying individual access authorizations before granting access to the facility; and\nControlling ingress and egress to the facility using {{ insert: param, pe-03_odp.02 }};\nMaintain physical access audit logs for {{ insert: param, pe-03_odp.04 }};\nControl access to areas within the facility designated as publicly accessible by implementing the following controls: {{ insert: param, pe-03_odp.05 }};\nEscort visitors and control visitor activity {{ insert: param, pe-03_odp.06 }};\nSecure keys, combinations, and other physical access devices;\nInventory {{ insert: param, pe-03_odp.07 }} every {{ insert: param, pe-03_odp.08 }} ; and\nChange combinations and keys {{ insert: param, pe-3_prm_9 }} and/or when keys are lost, combinations are compromised, or when individuals possessing the keys or combinations are transferred or terminated.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-4",
-      "title": "NIST 800-53 Rev 5 control PE-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-4 in family PE — Physical and Environmental Protection.",
+      "title": "Access Control for Transmission",
+      "description": "Control physical access to {{ insert: param, pe-04_odp.01 }} within organizational facilities using {{ insert: param, pe-04_odp.02 }}.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-5",
-      "title": "NIST 800-53 Rev 5 control PE-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-5 in family PE — Physical and Environmental Protection.",
+      "title": "Access Control for Output Devices",
+      "description": "Control physical access to output from {{ insert: param, pe-05_odp }} to prevent unauthorized individuals from obtaining the output.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-6",
-      "title": "NIST 800-53 Rev 5 control PE-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-6 in family PE — Physical and Environmental Protection.",
+      "title": "Monitoring Physical Access",
+      "description": "Monitor physical access to the facility where the system resides to detect and respond to physical security incidents;\nReview physical access logs {{ insert: param, pe-06_odp.01 }} and upon occurrence of {{ insert: param, pe-06_odp.02 }} ; and\nCoordinate results of reviews and investigations with the organizational incident response capability.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-8",
-      "title": "NIST 800-53 Rev 5 control PE-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-8 in family PE — Physical and Environmental Protection.",
+      "title": "Visitor Access Records",
+      "description": "Maintain visitor access records to the facility where the system resides for {{ insert: param, pe-08_odp.01 }};\nReview visitor access records {{ insert: param, pe-08_odp.02 }} ; and\nReport anomalies in visitor access records to {{ insert: param, pe-08_odp.03 }}.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-9",
-      "title": "NIST 800-53 Rev 5 control PE-9",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-9 in family PE — Physical and Environmental Protection.",
+      "title": "Power Equipment and Cabling",
+      "description": "Protect power equipment and power cabling for the system from damage and destruction.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-10",
-      "title": "NIST 800-53 Rev 5 control PE-10",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-10 in family PE — Physical and Environmental Protection.",
+      "title": "Emergency Shutoff",
+      "description": "Provide the capability of shutting off power to {{ insert: param, pe-10_odp.01 }} in emergency situations;\nPlace emergency shutoff switches or devices in {{ insert: param, pe-10_odp.02 }} to facilitate access for authorized personnel; and\nProtect emergency power shutoff capability from unauthorized activation.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-11",
-      "title": "NIST 800-53 Rev 5 control PE-11",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-11 in family PE — Physical and Environmental Protection.",
+      "title": "Emergency Power",
+      "description": "Provide an uninterruptible power supply to facilitate {{ insert: param, pe-11_odp }} in the event of a primary power source loss.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-12",
-      "title": "NIST 800-53 Rev 5 control PE-12",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-12 in family PE — Physical and Environmental Protection.",
+      "title": "Emergency Lighting",
+      "description": "Employ and maintain automatic emergency lighting for the system that activates in the event of a power outage or disruption and that covers emergency exits and evacuation routes within the facility.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-13",
-      "title": "NIST 800-53 Rev 5 control PE-13",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-13 in family PE — Physical and Environmental Protection.",
+      "title": "Fire Protection",
+      "description": "Employ and maintain fire detection and suppression systems that are supported by an independent energy source.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-14",
-      "title": "NIST 800-53 Rev 5 control PE-14",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-14 in family PE — Physical and Environmental Protection.",
+      "title": "Environmental Controls",
+      "description": "Maintain {{ insert: param, pe-14_odp.01 }} levels within the facility where the system resides at {{ insert: param, pe-14_odp.03 }} ; and\nMonitor environmental control levels {{ insert: param, pe-14_odp.04 }}.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-15",
-      "title": "NIST 800-53 Rev 5 control PE-15",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-15 in family PE — Physical and Environmental Protection.",
+      "title": "Water Damage Protection",
+      "description": "Protect the system from damage resulting from water leakage by providing master shutoff or isolation valves that are accessible, working properly, and known to key personnel.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-16",
-      "title": "NIST 800-53 Rev 5 control PE-16",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-16 in family PE — Physical and Environmental Protection.",
+      "title": "Delivery and Removal",
+      "description": "Authorize and control {{ insert: param, pe-16_prm_1 }} entering and exiting the facility; and\nMaintain records of the system components.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PE-17",
-      "title": "NIST 800-53 Rev 5 control PE-17",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PE-17 in family PE — Physical and Environmental Protection.",
+      "title": "Alternate Work Site",
+      "description": "Determine and document the {{ insert: param, pe-17_odp.01 }} allowed for use by employees;\nEmploy the following controls at alternate work sites: {{ insert: param, pe-17_odp.02 }};\nAssess the effectiveness of controls at alternate work sites; and\nProvide a means for employees to communicate with information security and privacy personnel in case of incidents.",
       "family": "PE — Physical and Environmental Protection"
     },
     {
       "id": "PL-1",
-      "title": "NIST 800-53 Rev 5 control PL-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-1 in family PL — Planning.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, pl-1_prm_1 }}:\n{{ insert: param, pl-01_odp.03 }} planning policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the planning policy and the associated planning controls;\nDesignate an {{ insert: param, pl-01_odp.04 }} to manage the development, documentation, and dissemination of the planning policy and procedures; and\nReview and update the current planning:\nPolicy {{ insert: param, pl-01_odp.05 }} and following {{ insert: param, pl-01_odp.06 }} ; and\nProcedures {{ insert: param, pl-01_odp.07 }} and following {{ insert: param, pl-01_odp.08 }}.",
       "family": "PL — Planning"
     },
     {
       "id": "PL-2",
-      "title": "NIST 800-53 Rev 5 control PL-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-2 in family PL — Planning.",
+      "title": "System Security and Privacy Plans",
+      "description": "Develop security and privacy plans for the system that:\nAre consistent with the organization’s enterprise architecture;\nExplicitly define the constituent system components;\nDescribe the operational context of the system in terms of mission and business processes;\nIdentify the individuals that fulfill system roles and responsibilities;\nIdentify the information types processed, stored, and transmitted by the system;\nProvide the security categorization of the system, including supporting rationale;\nDescribe any specific threats to the system that are of concern to the organization;\nProvide the results of a privacy risk assessment for systems processing personally identifiable information;\nDescribe the operational environment for the system and any dependencies on or connections to other systems or system components;\nProvide an overview of the security and privacy requirements for the system;\nIdentify any relevant control baselines or overlays, if applicable;\nDescribe the controls in place or planned for meeting the security and privacy requirements, including a rationale for any tailoring decisions;\nInclude risk determinations for security and privacy architecture and design decisions;\nInclude security- and privacy-related activities affecting the system that require planning and coordination with {{ insert: param, pl-02_odp.01 }} ; and\nAre reviewed and approved by the authorizing official or designated representative prior to plan implementation.\nDistribute copies of the plans and communicate subsequent changes to the plans to {{ insert: param, pl-02_odp.02 }};\nReview the plans {{ insert: param, pl-02_odp.03 }};\nUpdate the plans to address changes to the system and environment of operation or problems identified during plan implementation or control assessments; and\nProtect the plans from unauthorized disclosure and modification.",
       "family": "PL — Planning"
     },
     {
       "id": "PL-4",
-      "title": "NIST 800-53 Rev 5 control PL-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-4 in family PL — Planning.",
+      "title": "Rules of Behavior",
+      "description": "Establish and provide to individuals requiring access to the system, the rules that describe their responsibilities and expected behavior for information and system usage, security, and privacy;\nReceive a documented acknowledgment from such individuals, indicating that they have read, understand, and agree to abide by the rules of behavior, before authorizing access to information and the system;\nReview and update the rules of behavior {{ insert: param, pl-04_odp.01 }} ; and\nRequire individuals who have acknowledged a previous version of the rules of behavior to read and re-acknowledge {{ insert: param, pl-04_odp.02 }}.",
       "family": "PL — Planning"
     },
     {
       "id": "PL-8",
-      "title": "NIST 800-53 Rev 5 control PL-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-8 in family PL — Planning.",
+      "title": "Security and Privacy Architectures",
+      "description": "Develop security and privacy architectures for the system that:\nDescribe the requirements and approach to be taken for protecting the confidentiality, integrity, and availability of organizational information;\nDescribe the requirements and approach to be taken for processing personally identifiable information to minimize privacy risk to individuals;\nDescribe how the architectures are integrated into and support the enterprise architecture; and\nDescribe any assumptions about, and dependencies on, external systems and services;\nReview and update the architectures {{ insert: param, pl-08_odp }} to reflect changes in the enterprise architecture; and\nReflect planned architecture changes in security and privacy plans, Concept of Operations (CONOPS), criticality analysis, organizational procedures, and procurements and acquisitions.",
       "family": "PL — Planning"
     },
     {
       "id": "PL-10",
-      "title": "NIST 800-53 Rev 5 control PL-10",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-10 in family PL — Planning.",
+      "title": "Baseline Selection",
+      "description": "Select a control baseline for the system.",
       "family": "PL — Planning"
     },
     {
       "id": "PL-11",
-      "title": "NIST 800-53 Rev 5 control PL-11",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PL-11 in family PL — Planning.",
+      "title": "Baseline Tailoring",
+      "description": "Tailor the selected control baseline by applying specified tailoring actions.",
       "family": "PL — Planning"
     },
     {
       "id": "PM-1",
-      "title": "NIST 800-53 Rev 5 control PM-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-1 in family PM — Program Management.",
+      "title": "Information Security Program Plan",
+      "description": "Develop and disseminate an organization-wide information security program plan that:\nProvides an overview of the requirements for the security program and a description of the security program management controls and common controls in place or planned for meeting those requirements;\nIncludes the identification and assignment of roles, responsibilities, management commitment, coordination among organizational entities, and compliance;\nReflects the coordination among organizational entities responsible for information security; and\nIs approved by a senior official with responsibility and accountability for the risk being incurred to organizational operations (including mission, functions, image, and reputation), organizational assets, individuals, other organizations, and the Nation;\nReview and update the organization-wide information security program plan {{ insert: param, pm-01_odp.01 }} and following {{ insert: param, pm-01_odp.02 }} ; and\nProtect the information security program plan from unauthorized disclosure and modification.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-2",
-      "title": "NIST 800-53 Rev 5 control PM-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-2 in family PM — Program Management.",
+      "title": "Information Security Program Leadership Role",
+      "description": "Appoint a senior agency information security officer with the mission and resources to coordinate, develop, implement, and maintain an organization-wide information security program.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-3",
-      "title": "NIST 800-53 Rev 5 control PM-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-3 in family PM — Program Management.",
+      "title": "Information Security and Privacy Resources",
+      "description": "Include the resources needed to implement the information security and privacy programs in capital planning and investment requests and document all exceptions to this requirement;\nPrepare documentation required for addressing information security and privacy programs in capital planning and investment requests in accordance with applicable laws, executive orders, directives, policies, regulations, standards; and\nMake available for expenditure, the planned information security and privacy resources.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-4",
-      "title": "NIST 800-53 Rev 5 control PM-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-4 in family PM — Program Management.",
+      "title": "Plan of Action and Milestones Process",
+      "description": "Implement a process to ensure that plans of action and milestones for the information security, privacy, and supply chain risk management programs and associated organizational systems:\nAre developed and maintained;\nDocument the remedial information security, privacy, and supply chain risk management actions to adequately respond to risk to organizational operations and assets, individuals, other organizations, and the Nation; and\nAre reported in accordance with established reporting requirements.\nReview plans of action and milestones for consistency with the organizational risk management strategy and organization-wide priorities for risk response actions.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-5",
-      "title": "NIST 800-53 Rev 5 control PM-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-5 in family PM — Program Management.",
+      "title": "System Inventory",
+      "description": "Develop and update {{ insert: param, pm-05_odp }} an inventory of organizational systems.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-6",
-      "title": "NIST 800-53 Rev 5 control PM-6",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-6 in family PM — Program Management.",
+      "title": "Measures of Performance",
+      "description": "Develop, monitor, and report on the results of information security and privacy measures of performance.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-7",
-      "title": "NIST 800-53 Rev 5 control PM-7",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-7 in family PM — Program Management.",
+      "title": "Enterprise Architecture",
+      "description": "Develop and maintain an enterprise architecture with consideration for information security, privacy, and the resulting risk to organizational operations and assets, individuals, other organizations, and the Nation.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-8",
-      "title": "NIST 800-53 Rev 5 control PM-8",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-8 in family PM — Program Management.",
+      "title": "Critical Infrastructure Plan",
+      "description": "Address information security and privacy issues in the development, documentation, and updating of a critical infrastructure and key resources protection plan.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-9",
-      "title": "NIST 800-53 Rev 5 control PM-9",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-9 in family PM — Program Management.",
+      "title": "Risk Management Strategy",
+      "description": "Develops a comprehensive strategy to manage:\nSecurity risk to organizational operations and assets, individuals, other organizations, and the Nation associated with the operation and use of organizational systems; and\nPrivacy risk to individuals resulting from the authorized processing of personally identifiable information;\nImplement the risk management strategy consistently across the organization; and\nReview and update the risk management strategy {{ insert: param, pm-09_odp }} or as required, to address organizational changes.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-10",
-      "title": "NIST 800-53 Rev 5 control PM-10",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-10 in family PM — Program Management.",
+      "title": "Authorization Process",
+      "description": "Manage the security and privacy state of organizational systems and the environments in which those systems operate through authorization processes;\nDesignate individuals to fulfill specific roles and responsibilities within the organizational risk management process; and\nIntegrate the authorization processes into an organization-wide risk management program.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-11",
-      "title": "NIST 800-53 Rev 5 control PM-11",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-11 in family PM — Program Management.",
+      "title": "Mission and Business Process Definition",
+      "description": "Define organizational mission and business processes with consideration for information security and privacy and the resulting risk to organizational operations, organizational assets, individuals, other organizations, and the Nation; and\nDetermine information protection and personally identifiable information processing needs arising from the defined mission and business processes; and\nReview and revise the mission and business processes {{ insert: param, pm-11_odp }}.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-12",
-      "title": "NIST 800-53 Rev 5 control PM-12",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-12 in family PM — Program Management.",
+      "title": "Insider Threat Program",
+      "description": "Implement an insider threat program that includes a cross-discipline insider threat incident handling team.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-13",
-      "title": "NIST 800-53 Rev 5 control PM-13",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-13 in family PM — Program Management.",
+      "title": "Security and Privacy Workforce",
+      "description": "Establish a security and privacy workforce development and improvement program.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-14",
-      "title": "NIST 800-53 Rev 5 control PM-14",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-14 in family PM — Program Management.",
+      "title": "Testing, Training, and Monitoring",
+      "description": "Implement a process for ensuring that organizational plans for conducting security and privacy testing, training, and monitoring activities associated with organizational systems:\nAre developed and maintained; and\nContinue to be executed; and\nReview testing, training, and monitoring plans for consistency with the organizational risk management strategy and organization-wide priorities for risk response actions.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-15",
-      "title": "NIST 800-53 Rev 5 control PM-15",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-15 in family PM — Program Management.",
+      "title": "Security and Privacy Groups and Associations",
+      "description": "Establish and institutionalize contact with selected groups and associations within the security and privacy communities:\nTo facilitate ongoing security and privacy education and training for organizational personnel;\nTo maintain currency with recommended security and privacy practices, techniques, and technologies; and\nTo share current security and privacy information, including threats, vulnerabilities, and incidents.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-16",
-      "title": "NIST 800-53 Rev 5 control PM-16",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-16 in family PM — Program Management.",
+      "title": "Threat Awareness Program",
+      "description": "Implement a threat awareness program that includes a cross-organization information-sharing capability for threat intelligence.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-17",
-      "title": "NIST 800-53 Rev 5 control PM-17",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-17 in family PM — Program Management.",
+      "title": "Protecting Controlled Unclassified Information on External Systems",
+      "description": "Establish policy and procedures to ensure that requirements for the protection of controlled unclassified information that is processed, stored or transmitted on external systems, are implemented in accordance with applicable laws, executive orders, directives, policies, regulations, and standards; and\nReview and update the policy and procedures {{ insert: param, pm-17_prm_1 }}.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-18",
-      "title": "NIST 800-53 Rev 5 control PM-18",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-18 in family PM — Program Management.",
+      "title": "Privacy Program Plan",
+      "description": "Develop and disseminate an organization-wide privacy program plan that provides an overview of the agency’s privacy program, and:\nIncludes a description of the structure of the privacy program and the resources dedicated to the privacy program;\nProvides an overview of the requirements for the privacy program and a description of the privacy program management controls and common controls in place or planned for meeting those requirements;\nIncludes the role of the senior agency official for privacy and the identification and assignment of roles of other privacy officials and staff and their responsibilities;\nDescribes management commitment, compliance, and the strategic goals and objectives of the privacy program;\nReflects coordination among organizational entities responsible for the different aspects of privacy; and\nIs approved by a senior official with responsibility and accountability for the privacy risk being incurred to organizational operations (including mission, functions, image, and reputation), organizational assets, individuals, other organizations, and the Nation; and\nUpdate the plan {{ insert: param, pm-18_odp }} and to address changes in federal privacy laws and policy and organizational changes and problems identified during plan implementation or privacy control assessments.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-19",
-      "title": "NIST 800-53 Rev 5 control PM-19",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-19 in family PM — Program Management.",
+      "title": "Privacy Program Leadership Role",
+      "description": "Appoint a senior agency official for privacy with the authority, mission, accountability, and resources to coordinate, develop, and implement, applicable privacy requirements and manage privacy risks through the organization-wide privacy program.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-20",
-      "title": "NIST 800-53 Rev 5 control PM-20",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-20 in family PM — Program Management.",
+      "title": "Dissemination of Privacy Program Information",
+      "description": "Maintain a central resource webpage on the organization’s principal public website that serves as a central source of information about the organization’s privacy program and that:\nEnsures that the public has access to information about organizational privacy activities and can communicate with its senior agency official for privacy;\nEnsures that organizational privacy practices and reports are publicly available; and\nEmploys publicly facing email addresses and/or phone lines to enable the public to provide feedback and/or direct questions to privacy offices regarding privacy practices.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-21",
-      "title": "NIST 800-53 Rev 5 control PM-21",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-21 in family PM — Program Management.",
+      "title": "Accounting of Disclosures",
+      "description": "Develop and maintain an accurate accounting of disclosures of personally identifiable information, including:\nDate, nature, and purpose of each disclosure; and\nName and address, or other contact information of the individual or organization to which the disclosure was made;\nRetain the accounting of disclosures for the length of the time the personally identifiable information is maintained or five years after the disclosure is made, whichever is longer; and\nMake the accounting of disclosures available to the individual to whom the personally identifiable information relates upon request.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-22",
-      "title": "NIST 800-53 Rev 5 control PM-22",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-22 in family PM — Program Management.",
+      "title": "Personally Identifiable Information Quality Management",
+      "description": "Develop and document organization-wide policies and procedures for:\nReviewing for the accuracy, relevance, timeliness, and completeness of personally identifiable information across the information life cycle;\nCorrecting or deleting inaccurate or outdated personally identifiable information;\nDisseminating notice of corrected or deleted personally identifiable information to individuals or other appropriate entities; and\nAppeals of adverse decisions on correction or deletion requests.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-23",
-      "title": "NIST 800-53 Rev 5 control PM-23",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-23 in family PM — Program Management.",
+      "title": "Data Governance Body",
+      "description": "Establish a Data Governance Body consisting of {{ insert: param, pm-23_odp.01 }} with {{ insert: param, pm-23_odp.02 }}.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-24",
-      "title": "NIST 800-53 Rev 5 control PM-24",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-24 in family PM — Program Management.",
+      "title": "Data Integrity Board",
+      "description": "Establish a Data Integrity Board to:\nReview proposals to conduct or participate in a matching program; and\nConduct an annual review of all matching programs in which the agency has participated.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-25",
-      "title": "NIST 800-53 Rev 5 control PM-25",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-25 in family PM — Program Management.",
+      "title": "Minimization of Personally Identifiable Information Used in Testing, Training, and Research",
+      "description": "Develop, document, and implement policies and procedures that address the use of personally identifiable information for internal testing, training, and research;\nLimit or minimize the amount of personally identifiable information used for internal testing, training, and research purposes;\nAuthorize the use of personally identifiable information when such information is required for internal testing, training, and research; and\nReview and update policies and procedures {{ insert: param, pm-25_prm_1 }}.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-26",
-      "title": "NIST 800-53 Rev 5 control PM-26",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-26 in family PM — Program Management.",
+      "title": "Complaint Management",
+      "description": "Implement a process for receiving and responding to complaints, concerns, or questions from individuals about the organizational security and privacy practices that includes:\nMechanisms that are easy to use and readily accessible by the public;\nAll information necessary for successfully filing complaints;\nTracking mechanisms to ensure all complaints received are reviewed and addressed within {{ insert: param, pm-26_prm_1 }};\nAcknowledgement of receipt of complaints, concerns, or questions from individuals within {{ insert: param, pm-26_odp.03 }} ; and\nResponse to complaints, concerns, or questions from individuals within {{ insert: param, pm-26_odp.04 }}.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-27",
-      "title": "NIST 800-53 Rev 5 control PM-27",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-27 in family PM — Program Management.",
+      "title": "Privacy Reporting",
+      "description": "Develop {{ insert: param, pm-27_odp.01 }} and disseminate to:\n{{ insert: param, pm-27_odp.02 }} to demonstrate accountability with statutory, regulatory, and policy privacy mandates; and\n{{ insert: param, pm-27_odp.03 }} and other personnel with responsibility for monitoring privacy program compliance; and\nReview and update privacy reports {{ insert: param, pm-27_odp.04 }}.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-28",
-      "title": "NIST 800-53 Rev 5 control PM-28",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-28 in family PM — Program Management.",
+      "title": "Risk Framing",
+      "description": "Identify and document:\nAssumptions affecting risk assessments, risk responses, and risk monitoring;\nConstraints affecting risk assessments, risk responses, and risk monitoring;\nPriorities and trade-offs considered by the organization for managing risk; and\nOrganizational risk tolerance;\nDistribute the results of risk framing activities to {{ insert: param, pm-28_odp.01 }} ; and\nReview and update risk framing considerations {{ insert: param, pm-28_odp.02 }}.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-29",
-      "title": "NIST 800-53 Rev 5 control PM-29",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-29 in family PM — Program Management.",
+      "title": "Risk Management Program Leadership Roles",
+      "description": "Appoint a Senior Accountable Official for Risk Management to align organizational information security and privacy management processes with strategic, operational, and budgetary planning processes; and\nEstablish a Risk Executive (function) to view and analyze risk from an organization-wide perspective and ensure management of risk is consistent across the organization.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-30",
-      "title": "NIST 800-53 Rev 5 control PM-30",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-30 in family PM — Program Management.",
+      "title": "Supply Chain Risk Management Strategy",
+      "description": "Develop an organization-wide strategy for managing supply chain risks associated with the development, acquisition, maintenance, and disposal of systems, system components, and system services;\nImplement the supply chain risk management strategy consistently across the organization; and\nReview and update the supply chain risk management strategy on {{ insert: param, pm-30_odp }} or as required, to address organizational changes.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-31",
-      "title": "NIST 800-53 Rev 5 control PM-31",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-31 in family PM — Program Management.",
+      "title": "Continuous Monitoring Strategy",
+      "description": "Develop an organization-wide continuous monitoring strategy and implement continuous monitoring programs that include:\nEstablishing the following organization-wide metrics to be monitored: {{ insert: param, pm-31_odp.01 }};\nEstablishing {{ insert: param, pm-31_odp.02 }} and {{ insert: param, pm-31_odp.03 }} for control effectiveness;\nOngoing monitoring of organizationally-defined metrics in accordance with the continuous monitoring strategy;\nCorrelation and analysis of information generated by control assessments and monitoring;\nResponse actions to address results of the analysis of control assessment and monitoring information; and\nReporting the security and privacy status of organizational systems to {{ insert: param, pm-31_prm_4 }} {{ insert: param, pm-31_prm_5 }}.",
       "family": "PM — Program Management"
     },
     {
       "id": "PM-32",
-      "title": "NIST 800-53 Rev 5 control PM-32",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PM-32 in family PM — Program Management.",
+      "title": "Purposing",
+      "description": "Analyze {{ insert: param, pm-32_odp }} supporting mission essential services or functions to ensure that the information resources are being used consistent with their intended purpose.",
       "family": "PM — Program Management"
     },
     {
       "id": "PS-1",
-      "title": "NIST 800-53 Rev 5 control PS-1",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-1 in family PS — Personnel Security.",
+      "title": "Policy and Procedures",
+      "description": "Develop, document, and disseminate to {{ insert: param, ps-1_prm_1 }}:\n{{ insert: param, ps-01_odp.03 }} personnel security policy that:\nAddresses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance; and\nIs consistent with applicable laws, executive orders, directives, regulations, policies, standards, and guidelines; and\nProcedures to facilitate the implementation of the personnel security policy and the associated personnel security controls;\nDesignate an {{ insert: param, ps-01_odp.04 }} to manage the development, documentation, and dissemination of the personnel security policy and procedures; and\nReview and update the current personnel security:\nPolicy {{ insert: param, ps-01_odp.05 }} and following {{ insert: param, ps-01_odp.06 }} ; and\nProcedures {{ insert: param, ps-01_odp.07 }} and following {{ insert: param, ps-01_odp.08 }}.",
       "family": "PS — Personnel Security"
     },
     {
       "id": "PS-2",
-      "title": "NIST 800-53 Rev 5 control PS-2",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-2 in family PS — Personnel Security.",
+      "title": "Position Risk Designation",
+      "description": "Assign a risk designation to all organizational positions;\nEstablish screening criteria for individuals filling those positions; and\nReview and update position risk designations {{ insert: param, ps-02_odp }}.",
       "family": "PS — Personnel Security"
     },
     {
       "id": "PS-3",
-      "title": "NIST 800-53 Rev 5 control PS-3",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-3 in family PS — Personnel Security.",
+      "title": "Personnel Screening",
+      "description": "Screen individuals prior to authorizing access to the system; and\nRescreen individuals in accordance with {{ insert: param, ps-3_prm_1 }}.",
       "family": "PS — Personnel Security"
     },
     {
       "id": "PS-4",
-      "title": "NIST 800-53 Rev 5 control PS-4",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-4 in family PS — Personnel Security.",
+      "title": "Personnel Termination",
+      "description": "Upon termination of individual employment:\nDisable system access within {{ insert: param, ps-04_odp.01 }};\nTerminate or revoke any authenticators and credentials associated with the individual;\nConduct exit interviews that include a discussion of {{ insert: param, ps-04_odp.02 }};\nRetrieve all security-related organizational system-related property; and\nRetain access to organizational information and systems formerly controlled by terminated individual.",
       "family": "PS — Personnel Security"
     },
     {
       "id": "PS-5",
-      "title": "NIST 800-53 Rev 5 control PS-5",
-      "description": "See nist-800-53-rev5 catalog for full control text (baseline references). Control PS-5 in family PS — Personnel Security.",
+      "title": "Personnel Transfer",
+      "description": "Review and confirm ongoing operational need for current logical and physical access authorizations to systems and facilities when individuals are reassigned or transferred to other positions within the organization;\nInitiate {{ insert: param, ps-05_odp.01 }} within {{ insert: param, ps-05_odp.02 }};\nModify access authorization as needed to correspond with any changes in operational need due to reassignment or transfer; and\nNotify {{ insert: param, ps-05_odp.03 }} within {{ insert: param, ps-05_odp.04 }}.",
       "family": "PS — Personnel Security"
     }
   ]

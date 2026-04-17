@@ -60,3 +60,34 @@ jobs:
 
       - name: Run ruff
         run: uv run ruff check .
+
+  typecheck:
+    name: mypy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync workspace
+        run: uv sync --all-packages
+
+      # v0.2.1: added to CI to catch annotation regressions. Starting with
+      # --strict-optional only (not full --strict) because the existing
+      # codebase has some untyped helper functions from v0.1.x. v0.3.0 will
+      # tighten to --strict once those are annotated.
+      - name: Run mypy
+        run: |
+          uv run mypy \
+            packages/controlbridge-core/src/controlbridge_core \
+            packages/controlbridge/src/controlbridge \
+            --strict-optional
+        continue-on-error: true  # v0.2.1: advisory-only until annotations catch up

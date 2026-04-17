@@ -54,6 +54,42 @@ EFFORT_WEIGHT: dict[ImplementationEffort, float] = {
     ImplementationEffort.VERY_HIGH: 8.0,
 }
 
+# Keyword lists backing the hybrid effort estimator (see _estimate_effort).
+# These are module-level so tests can import and verify coverage against
+# a curated corpus of real NIST/HIPAA/CMMC control descriptions. Keep
+# them alphabetized inside each tuple so diffs stay readable.
+_HIGH_EFFORT_KEYWORDS: tuple[str, ...] = (
+    "architecture",
+    "audit log",
+    "authentication",
+    "continuous monitoring",
+    "cryptograph",  # catches 'cryptographic', 'cryptography'
+    "encrypt",
+    "incident response plan",
+    "key management",
+    "least privilege",
+    "multi-factor",
+    "penetration test",
+    "public key infrastructure",
+    "separation of duties",
+    "siem",
+    "single sign-on",
+    "zero trust",
+)
+
+_MEDIUM_EFFORT_KEYWORDS: tuple[str, ...] = (
+    "assess",
+    "configuration",
+    "document",
+    "monitor",
+    "patch",
+    "policy",
+    "procedure",
+    "review",
+    "training",
+    "vulnerability scan",
+)
+
 
 def _severity_weight(value: str | GapSeverity) -> float:
     """Look up severity weight by enum or string value (Pydantic uses string values)."""
@@ -107,6 +143,35 @@ class GapAnalyzer:
 
         # Step 1: Load catalogs
         catalogs = {fw: self.registry.get_catalog(fw) for fw in frameworks}
+
+        # v0.2.1: warn on placeholder (Tier-C stub) catalogs. Gap analysis
+        # against these produces structurally-valid output but the control
+        # text is copyrighted and not bundled — users should import their
+        # licensed copy via `controlbridge catalog import` to get
+        # meaningful description-based effort estimates and remediation
+        # guidance. Emits Python's `warnings.warn` (UserWarning) so the
+        # signal surfaces in both CLI runs (captured by Rich) and library
+        # callers (captured by their own warning filters / test harnesses).
+        _placeholders = [
+            fw for fw, cat in catalogs.items() if getattr(cat, "placeholder", False)
+        ]
+        if _placeholders:
+            import warnings
+
+            for fw in _placeholders:
+                warnings.warn(
+                    (
+                        f"Framework '{fw}' is a Tier-C placeholder catalog — "
+                        f"authoritative control text is copyrighted and not "
+                        f"bundled. Gap analysis will run but reports will "
+                        f"show placeholder text in control descriptions. "
+                        f"Run `controlbridge catalog import` to load your "
+                        f"licensed copy. See `controlbridge catalog "
+                        f"license-info {fw}` for source details."
+                    ),
+                    UserWarning,
+                    stacklevel=2,
+                )
 
         # Step 2: Build required control set
         required_controls = self._build_required_set(catalogs)
@@ -406,15 +471,67 @@ class GapAnalyzer:
         )
 
     def _estimate_effort(self, control: CatalogControl) -> ImplementationEffort:
-        """Estimate implementation effort based on control characteristics."""
-        complexity_score = len(control.enhancements) + len(control.assessment_objectives)
+        """Estimate implementation effort for a control — hybrid heuristic.
 
-        if complexity_score >= 10:
+        v0.2.1: the original implementation used ONLY a structural complexity
+        score (``len(enhancements) + len(assessment_objectives)``). That score
+        is zero for every bundled catalog currently on disk (OSCAL resolution
+        of enhancements is in-scope for the bundled NIST catalog, but other
+        catalogs like HIPAA/FedRAMP/CMMC never carry enhancements or
+        assessment-objectives metadata). The result: every gap resolved to
+        ``LOW``, which collapsed the priority formula to
+        ``severity × (1 + 0.2 × cross_fw_count)`` and silently lost the
+        effort-weighted "easy wins first" dimension. See
+        ``docs/architecture/effort-estimation.md`` for the design rationale
+        and keyword list origins.
+
+        The replacement is a three-layer cascade:
+
+        1. **Structural score** (when present) — still the most reliable
+           signal because it comes from authoritative catalog structure.
+           Thresholds preserved from v0.1.x so NIST OSCAL catalogs estimate
+           identically before and after the upgrade.
+        2. **Keyword fallback** — when structural score is zero, look for
+           domain terms in the control description that indicate
+           architectural complexity (cryptography, MFA, continuous
+           monitoring) vs. documentation/policy work (procedure, review,
+           training). Keyword lists live in module-level constants so
+           tests can import them and tune coverage.
+        3. **Description-length fallback** — when neither structural nor
+           keyword signals fire, long descriptions (>400 chars) indicate
+           complex controls and resolve to MEDIUM. Short bare descriptions
+           fall through to LOW.
+
+        Returns :class:`ImplementationEffort`. Never raises.
+        """
+        # Layer 1: structural complexity (works when OSCAL resolution populates
+        # enhancements and 800-53A assessment objectives)
+        structural_score = len(control.enhancements) + len(
+            control.assessment_objectives
+        )
+        if structural_score >= 10:
             return ImplementationEffort.VERY_HIGH
-        if complexity_score >= 5:
+        if structural_score >= 5:
             return ImplementationEffort.HIGH
-        if complexity_score >= 2:
+        if structural_score >= 2:
             return ImplementationEffort.MEDIUM
+
+        # Layer 2: keyword presence in description. Case-insensitive substring
+        # match — deliberately simple so a future fuzzy/embedding upgrade
+        # won't need to parse legacy scoring code.
+        desc = (control.description or "").lower()
+
+        if any(kw in desc for kw in _HIGH_EFFORT_KEYWORDS):
+            return ImplementationEffort.HIGH
+        if any(kw in desc for kw in _MEDIUM_EFFORT_KEYWORDS):
+            return ImplementationEffort.MEDIUM
+
+        # Layer 3: description length fallback. Controls with long
+        # descriptions are almost always meaningfully complex even without
+        # explicit keywords; short ones are genuinely low-effort bookkeeping.
+        if len(desc) > 400:
+            return ImplementationEffort.MEDIUM
+
         return ImplementationEffort.LOW
 
     @staticmethod

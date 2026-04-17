@@ -85,11 +85,32 @@ ControlBridge is built on four principles:
 
 ---
 
-## Current status: Phase 1.5 — 77 frameworks bundled
+## Current status: Phase 1.5 — 82 frameworks bundled, 352 tests passing
 
-v0.2.0 (released April 2026) is the Phase 1.5 big-bang: a comprehensive
-GRC catalog library so the common workflows work out of the box without
-digging. All code here runs today; there is no vaporware in v0.2.0.
+v0.2.0 (Phase 1.5 big-bang, April 2026) added 77 bundled frameworks and
+the manifest-driven registry. **v0.2.1 (April 2026) is a correctness
+patch** that:
+
+- Bundles the full **NIST SP 800-53 Rev 5** catalog (1,196 controls,
+  verbatim from `usnistgov/oscal-content`) plus the four resolved
+  **Low / Moderate / High / Privacy baselines** — so `gap analyze
+  --framework nist-800-53-rev5-moderate` actually runs against the real
+  287-control baseline instead of a 16-control sample.
+- Rewrites the FedRAMP baselines with real NIST text (v0.2.0 shipped them
+  as pointer-only stubs).
+- Replaces the always-LOW gap effort estimator with a keyword-aware
+  hybrid heuristic, so the prioritized roadmap actually surfaces
+  easy-win controls.
+- Wires the `controlbridge.yaml` project config loader that `init` has
+  been generating since v0.1.0 but nothing read. Precedence:
+  **CLI flag > env var > yaml > built-in default**.
+- Persists gap reports to a user-dir store, making `risk generate
+  --gap-id GAP-…` work without re-running `gap analyze`.
+- +221 new tests (131 → 352 passing); all `controlbridge catalog`
+  subcommands now covered; OSCAL profile resolver tested end-to-end.
+
+See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
+[`docs/ROADMAP.md`](docs/ROADMAP.md) for the v0.3.0+ plan.
 
 ### What works today
 
@@ -158,7 +179,7 @@ digging. All code here runs today; there is no vaporware in v0.2.0.
   filters; `catalog import` accepts direct JSON or an OSCAL profile (via
   `--profile <profile.json> --catalog <source.json>`).
 
-- **131 passing pytest tests** covering models, catalog loading (with a
+- **352 passing pytest tests** covering models, catalog loading (with a
   parametric smoke test per bundled framework), recursive enhancement
   flattener for NIST Rev 5 3-level IDs, tier invariants, OSCAL profile
   resolution, user-import directory precedence, `FrameworkId` deprecation,

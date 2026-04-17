@@ -7,6 +7,208 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-04-16
+
+Correctness and integrity release. Follow-up to the v0.2.0 Phase 1.5
+big-bang: fixes bugs an external code audit surfaced, bundles the full
+NIST SP 800-53 Rev 5 catalog (1,196 controls + 4 resolved baselines),
+adds 221 new tests, and lights up a working `controlbridge.yaml`
+project-config loader. No breaking API changes — all additions are
+either additive (new CLI flags, new config keys) or transparent
+(richer data, better defaults).
+
+See `docs/ROADMAP.md` for the v0.3.0+ plan.
+
+### Added
+
+- **Full NIST SP 800-53 Rev 5 catalog** bundled verbatim from the CC0
+  `usnistgov/oscal-content` repository at pinned tag `v1.4.0`. Ships as
+  `nist-800-53-rev5.json` (1,196 controls across 20 families, including
+  all enhancements) plus 4 resolved baseline catalogs:
+
+  | Framework ID                    | Controls (inc. enhancements) | Use case                     |
+  |---------------------------------|------------------------------|------------------------------|
+  | `nist-800-53-rev5-low`          | 149                          | Low-impact FISMA systems     |
+  | `nist-800-53-rev5-moderate`     | 287                          | Most federal / FedRAMP Mod   |
+  | `nist-800-53-rev5-high`         | 370                          | High-impact FISMA / FedRAMP High |
+  | `nist-800-53-rev5-privacy`      | 102                          | Privacy overlay              |
+
+  Resolution uses the OSCAL profile resolver shipped in v0.2.0 (plus
+  the fragment-href back-matter fix described under **Fixed** below).
+  New script `scripts/catalogs/fetch_nist_oscal.py` regenerates these
+  at release time against a pinned upstream tag.
+
+- **FedRAMP baselines (`fedramp-rev5-low/moderate/high/li-saas`)** now
+  carry real NIST 800-53 control text. v0.2.0 shipped these as
+  pointer-only catalogs where every description was literally
+  "See nist-800-53-rev5 catalog for full control text". v0.2.1 resolves
+  each FedRAMP control ID against the bundled NIST catalog and
+  substitutes real titles + descriptions (1,008 control descriptions
+  replaced; zero unresolved).
+
+- **Hybrid effort estimator** (`GapAnalyzer._estimate_effort`). v0.2.0
+  used only a structural complexity score derived from
+  `len(enhancements) + len(assessment_objectives)`, which was zero for
+  every bundled catalog except the new NIST OSCAL one — meaning every
+  gap scored `LOW` and the priority formula silently collapsed to
+  `severity × (1 + 0.2 × cross_fw_count)`. The replacement is a
+  three-layer cascade: structural score → keyword presence in the
+  description → description-length fallback. See
+  `docs/architecture/effort-estimation.md` for keyword lists and
+  scoring rationale.
+
+- **`controlbridge.yaml` project-config loader** (`controlbridge/config.py`).
+  `controlbridge init` has generated this file since v0.1.0 but no
+  subcommand read it. v0.2.1 walks CWD → parents looking for the first
+  `controlbridge.yaml`, validates a strict schema, and applies values
+  via precedence: **CLI flag > env var > yaml > built-in default**.
+  Honored keys for v0.2.1:
+
+  - `organization` / `system_name` — auto-populates inventory metadata
+  - `frameworks:` — default set for `gap analyze`; CLI `--frameworks`
+    replaces (does not union)
+  - `llm.model` / `llm.temperature` — defaults for `risk generate`;
+    overridden by env `CONTROLBRIDGE_LLM_MODEL` / `CONTROLBRIDGE_LLM_TEMPERATURE`
+
+  Legacy v0.2.0 keys (`storage:`, `logging:`, nested `frameworks.default:`)
+  are accepted without validation errors; `frameworks.default` triggers
+  a deprecation warning pointing at the flattened v0.2.1 shape.
+  `${ENV_VAR}` interpolation is supported in any string value.
+
+- **Persistent gap report store** (`controlbridge_core/gap_store.py`).
+  Every `gap analyze` run writes a canonical snapshot to
+  `<platformdirs>/controlbridge/gap_store/<hash>.json`. `risk generate
+  --gap-id GAP-…` (without `--gaps`) now loads the most-recent report
+  from the store automatically. Override location via
+  `CONTROLBRIDGE_GAP_STORE_DIR`.
+
+- **`--organization` / `--system-name` CLI flags on `gap analyze`**.
+  Override inventory metadata for CSV-sourced runs (which previously
+  hardcoded `"Unknown Organization (from CSV)"`) or when the inventory
+  file's org name doesn't match the report recipient.
+
+- **Placeholder-catalog warning**. Running `gap analyze` against a
+  Tier-C stub catalog (e.g., `soc2-tsc`) now emits a prominent
+  `UserWarning` telling users the control text isn't authoritative and
+  pointing them at `controlbridge catalog import` to load their
+  licensed copy.
+
+- **mypy CI job** (`.github/workflows/test.yml`). Runs `mypy --strict-optional`
+  against `packages/controlbridge-core/src` and
+  `packages/controlbridge/src`. Advisory-only for v0.2.1 (`continue-on-error`)
+  because the existing v0.1.x codebase has some untyped helpers; will be
+  tightened in v0.3.0.
+
+- **221 new tests, bringing total from 131 → 352 passing**. New suites:
+
+  - `tests/unit/test_gap_analyzer/test_effort_estimator.py` — 44 cases
+    covering structural layer, all keyword substitutions, length fallback,
+    regression guard for the v0.2.0 "everything is LOW" bug.
+  - `tests/unit/test_gap_analyzer/test_priority_math.py` — 85 cases
+    parameterized over every severity × effort × cross-fw-count
+    combination, asserting priority matches the documented formula
+    exactly.
+  - `tests/unit/test_gap_analyzer/test_gap_store.py` — 14 cases for
+    the persistent gap-store facility (directory resolution
+    precedence, hash-key determinism, roundtrip integrity, latest-by-mtime
+    lookup).
+  - `tests/unit/test_oscal/test_profile_resolver.py` — 12 cases for
+    OSCAL profile resolution edge cases (relative paths, `file://` URIs,
+    fragment-href back-matter lookup, JSON-rlink preference,
+    include/exclude filters, override IDs, missing-import errors).
+  - `tests/unit/test_oscal/test_exporter.py` — 5 cases pinning the
+    shape of OSCAL Assessment Results exports.
+  - `tests/unit/test_config.py` — 24 cases for the new
+    `controlbridge.yaml` loader (schema validation, precedence chain,
+    legacy-shape warnings, env-var interpolation).
+  - `tests/unit/test_models/test_control_id_normalization.py` — 20
+    cases covering the NIST-publication style (`AC-2(1)(a)`) vs.
+    NIST-OSCAL style (`ac-2.1.a`) normalization added to support the
+    bundled NIST catalog.
+  - `tests/integration/test_cli/test_catalog_cli.py` — 12 cases for
+    the v0.2.0 CLI subcommands (`import`, `where`, `license-info`,
+    `remove`, `list --tier`, `list --category`, shadow-resolution,
+    duplicate-import behavior, `doctor`, `version`) that previously had
+    zero coverage.
+
+- **`docs/ROADMAP.md`** — forward plan for v0.3.0 through v0.6.0+ with
+  scope-locked priorities (compliance-as-code diff, plain-English
+  explanations, Phase 2 integrations, air-gapped mode, evidence chain
+  of custody, etc.).
+
+- **`docs/architecture/effort-estimation.md`** — design doc for the new
+  hybrid estimator so future reviewers don't re-derive the keyword
+  lists from code.
+
+### Fixed
+
+- **OSCAL profile resolver — back-matter fragment href resolution.**
+  v0.2.0's resolver rejected `href: "#<uuid>"` references (raising
+  `ProfileResolutionError: Fragment-only hrefs not yet supported`),
+  which meant every real-world OSCAL profile (including every NIST
+  baseline) couldn't be resolved. v0.2.1 looks up the UUID in the
+  profile's `back-matter.resources[].uuid`, walks the first JSON-media
+  `rlinks[].href`, and follows it. Falls back to the first non-empty
+  rlink when no JSON-flagged entry exists.
+
+- **Dual control-ID convention support.** NIST publications render
+  enhancement IDs as `AC-2(1)(a)`; NIST OSCAL renders them as
+  `ac-2.1.a`. v0.2.0's `ControlCatalog.get_control()` was strict
+  (did a `.upper()`-only lookup), so users typing one style against a
+  catalog indexed in the other got `None`. v0.2.1 normalizes both via
+  a new `_normalize_control_id()` helper: both
+  `catalog.get_control("AC-2(1)(a)")` and
+  `catalog.get_control("ac-2.1.a")` resolve to the same control.
+
+- **`controlbridge.yaml` is now actually read by subcommands** (see
+  **Added** above).
+
+- **`risk generate --gap-id` no longer unconditionally errors.** The
+  new gap-store lookup resolves `--gap-id` against the last-saved
+  report when `--gaps` is omitted. Provides a clear message
+  ("Run `controlbridge gap analyze ...` first") when no report exists.
+
+- **CSV organization override.** v0.2.0 hardcoded
+  `"Unknown Organization (from CSV)"` in the CSV inventory parser with
+  no override path. The new `--organization` / `--system-name` CLI
+  flags on `gap analyze` and the corresponding `controlbridge.yaml`
+  keys resolve this.
+
+### Changed
+
+- **`controlbridge init` template** updates the generated
+  `controlbridge.yaml` to the v0.2.1 schema with commented-out examples
+  of every honored key.
+
+- **`litellm` version pin tightened** from `>=1.50` to `>=1.50,<2.0`
+  (LiteLLM has historically broken minor-version APIs).
+
+- **`nist-800-53-mod` (the 16-control v0.1.x sample)** kept intact for
+  yaml-pin backward compatibility, but renamed in metadata to clearly
+  flag it as deprecated and point at `nist-800-53-rev5-moderate` (the
+  real 287-control baseline). Will be removed in v0.3.0.
+
+- **Framework count** in `controlbridge doctor` grows from 77 → 82 (5
+  new NIST catalogs).
+
+### Deferred / known follow-ups
+
+- **PyPI Trusted Publisher (OIDC) migration** — release workflow
+  continues to use `PYPI_API_TOKEN` for v0.2.1. Switching without
+  configuring a Trusted Publisher on PyPI's admin panel first would
+  break the release pipeline. Tracked in `docs/ROADMAP.md`.
+
+- **Full `--strict` mypy** — the advisory-mode `--strict-optional` job
+  added in v0.2.1 surfaces existing type-annotation gaps without
+  blocking releases. v0.3.0 will clean those up and switch to
+  strict-fail.
+
+- **v0.2.0 release-workflow API token rotation** — the v0.2.0 commit
+  that removed Claude co-authorship used `git filter-branch`; the
+  resulting force-push to `main` has been well-tolerated by PyPI, but
+  a future history-rewrite-heavy release should confirm PyPI token
+  validity before tagging.
+
 ## [0.2.0] - 2026-04-16
 
 **Phase 1.5 big-bang release — exhaustive framework expansion.** Follow-up
@@ -282,7 +484,8 @@ where language understanding is the bottleneck.
   has 16 hand-curated controls for demonstration, not the full ~323 from the
   NIST OSCAL content repo — planned for Phase 1.5
 
-[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.0...v0.1.1

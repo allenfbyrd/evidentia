@@ -15,6 +15,7 @@ console = Console()
 
 @app.command("analyze")
 def analyze(
+    ctx: typer.Context,
     inventory: Path = typer.Option(
         ...,
         "--inventory",
@@ -25,11 +26,14 @@ def analyze(
         readable=True,
         help="Path to control inventory (YAML, CSV, or JSON).",
     ),
-    frameworks: str = typer.Option(
-        ...,
+    frameworks: str | None = typer.Option(
+        None,
         "--frameworks",
         "-f",
-        help="Comma-separated framework IDs, e.g. 'nist-800-53-mod,soc2-tsc'.",
+        help=(
+            "Comma-separated framework IDs, e.g. 'nist-800-53-mod,soc2-tsc'. "
+            "Defaults to `frameworks:` list in controlbridge.yaml when omitted."
+        ),
     ),
     output: Path = typer.Option(
         ...,
@@ -52,18 +56,68 @@ def analyze(
         "--min-efficiency-frameworks",
         help="Minimum frameworks for an efficiency opportunity.",
     ),
+    organization: str | None = typer.Option(
+        None,
+        "--organization",
+        "-O",
+        help=(
+            "Override the organization name in the loaded inventory. "
+            "Useful for CSV inputs (which have no org field) or when the "
+            "inventory file's org name doesn't match the report recipient."
+        ),
+    ),
+    system_name: str | None = typer.Option(
+        None,
+        "--system-name",
+        help=(
+            "Override the system / product name in the loaded inventory. "
+            "Surfaces in report headers alongside the organization name."
+        ),
+    ),
 ) -> None:
     """Run gap analysis against one or more frameworks."""
-    framework_list = [f.strip() for f in frameworks.split(",") if f.strip()]
+    # v0.2.1: resolve inputs via the config-aware precedence chain:
+    # CLI flag > controlbridge.yaml > required-or-error.
+    from controlbridge.config import ControlBridgeConfig, get_default
+
+    cfg_obj = ctx.obj.get("config") if ctx.obj else None
+    cfg: ControlBridgeConfig = cfg_obj if cfg_obj is not None else ControlBridgeConfig()
+
+    resolved_frameworks = get_default(cfg, frameworks, "frameworks", builtin_default=None)
+    if not resolved_frameworks:
+        console.print(
+            "[red]Error: no frameworks specified.[/red] "
+            "Pass --frameworks on the command line or add a `frameworks: [...]` "
+            "list to your controlbridge.yaml."
+        )
+        raise typer.Exit(code=1)
+
+    if isinstance(resolved_frameworks, str):
+        framework_list = [f.strip() for f in resolved_frameworks.split(",") if f.strip()]
+    else:
+        framework_list = [f.strip() for f in resolved_frameworks if isinstance(f, str) and f.strip()]
 
     console.print(
         f"[cyan]Loading inventory from[/cyan] [bold]{inventory}[/bold]..."
     )
     inv = load_inventory(inventory)
-    console.print(
-        f"[green]Loaded[/green] {len(inv.controls)} controls for "
-        f"[bold]{inv.organization}[/bold]"
-    )
+
+    # v0.2.1: apply organization/system_name overrides via model_copy.
+    # Precedence: CLI flag > yaml > inventory file > hardcoded default.
+    resolved_org = get_default(cfg, organization, "organization", builtin_default=None)
+    resolved_system = get_default(cfg, system_name, "system_name", builtin_default=None)
+    overrides: dict[str, str] = {}
+    if resolved_org:
+        overrides["organization"] = resolved_org
+    if resolved_system:
+        overrides["system_name"] = resolved_system
+    if overrides:
+        inv = inv.model_copy(update=overrides)
+
+    header = f"[bold]{inv.organization}[/bold]"
+    if inv.system_name:
+        header += f" / [bold]{inv.system_name}[/bold]"
+    console.print(f"[green]Loaded[/green] {len(inv.controls)} controls for {header}")
 
     console.print(
         f"[cyan]Analyzing against[/cyan] {', '.join(framework_list)}..."
@@ -115,3 +169,20 @@ def analyze(
     console.print(
         f"[green]Report exported:[/green] [bold]{out_path}[/bold] ({format})"
     )
+
+    # v0.2.1: save a canonical copy to the user-dir gap store so
+    # `controlbridge risk generate --gap-id GAP-…` can find the latest
+    # report without the user re-specifying --gaps. Best-effort —
+    # failures here shouldn't break the user's explicit --output export.
+    try:
+        from controlbridge_core.gap_store import save_report
+
+        store_path = save_report(report)
+        console.print(
+            f"[dim]Gap store snapshot: {store_path} "
+            f"(used by `risk generate --gap-id`)[/dim]"
+        )
+    except Exception as exc:
+        console.print(
+            f"[yellow]Note: could not write gap store snapshot: {exc}[/yellow]"
+        )

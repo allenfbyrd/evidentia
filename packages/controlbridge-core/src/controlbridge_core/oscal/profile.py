@@ -51,20 +51,67 @@ def _load_oscal_json(path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
-def _resolve_href(href: str, base_dir: Path) -> Path:
+def _resolve_href(
+    href: str,
+    base_dir: Path,
+    profile: dict[str, Any] | None = None,
+) -> Path:
     """Resolve an OSCAL ``href`` to an absolute filesystem path.
 
     Supports:
-    - Relative paths (resolved against ``base_dir``)
-    - ``file://`` URIs
-    - Bundled hashes (e.g. ``#uuid`` — not yet supported; raises)
+
+    - ``file://`` URIs (absolute path after ``file://``)
+    - Absolute or relative filesystem paths (relative resolves against
+      ``base_dir``)
+    - **Fragment-only ``#uuid`` references** (v0.2.1): OSCAL profiles
+      commonly declare imported catalogs in ``back-matter.resources``
+      with a UUID, then reference that UUID via ``href: "#<uuid>"``.
+      When ``profile`` is supplied, we look up the UUID in
+      ``profile.back-matter.resources[*].uuid`` and follow the first
+      ``rlinks[*].href`` to get a concrete path.
     """
     if href.startswith("file://"):
         return Path(href[7:])
+
     if href.startswith("#"):
+        # OSCAL back-matter resource reference. The spec uses
+        # ``profile.back-matter.resources[*]`` with ``uuid`` + ``rlinks``.
+        # Each resource commonly has multiple ``rlinks`` for different
+        # media types (JSON/XML/YAML). We prefer JSON since our loader
+        # only handles JSON; fall back to the first rlink if no
+        # JSON-flagged entry exists.
+        if profile is None:
+            raise ProfileResolutionError(
+                f"Fragment-only href {href!r} requires the full profile "
+                "document for back-matter lookup; none was passed."
+            )
+        target_uuid = href[1:]
+        back_matter = profile.get("profile", {}).get("back-matter", {})
+        for resource in back_matter.get("resources", []):
+            if resource.get("uuid") != target_uuid:
+                continue
+            rlinks = resource.get("rlinks", [])
+            # First pass: prefer JSON media types
+            for rlink in rlinks:
+                media = rlink.get("media-type", "").lower()
+                rhref = rlink.get("href", "")
+                if not rhref or not media:
+                    continue
+                if "json" in media:
+                    return _resolve_href(rhref, base_dir, profile=None)
+            # Second pass: any non-empty href (may pick up XML/YAML, but
+            # downstream loader will fail with a clear message rather
+            # than silently succeeding)
+            for rlink in rlinks:
+                rhref = rlink.get("href", "")
+                if rhref:
+                    return _resolve_href(rhref, base_dir, profile=None)
         raise ProfileResolutionError(
-            f"Fragment-only hrefs not yet supported: {href!r}"
+            f"Fragment href {href!r} does not match any "
+            f"back-matter.resources[].uuid in the profile document, or all "
+            "matched resources had no usable rlinks"
         )
+
     p = Path(href)
     if p.is_absolute():
         return p
@@ -253,7 +300,7 @@ def _load_source_catalog(
             f"Profile {profile_path.name} first import missing href"
         )
 
-    catalog_path = _resolve_href(href, base_dir)
+    catalog_path = _resolve_href(href, base_dir, profile=profile)
     if not catalog_path.exists():
         raise ProfileResolutionError(
             f"Source catalog not found: {catalog_path} (profile href: {href!r})"

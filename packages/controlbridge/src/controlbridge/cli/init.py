@@ -11,25 +11,37 @@ console = Console()
 
 
 CONTROLBRIDGE_YAML = """\
-# ControlBridge configuration
-version: "1"
+# ControlBridge project configuration.
+#
+# v0.2.1: this file is now read by every `controlbridge` command (was
+# decorative in v0.1.x/v0.2.0). Precedence for every setting:
+#   CLI flag > CONTROLBRIDGE_* env var > this file > built-in default
+#
+# Supported keys as of v0.2.1 — everything else is accepted (for legacy
+# compatibility) but ignored.
 
+# Organization and system identity — overrides inventory-file values.
+# Pairs with `gap analyze --organization` / `--system-name`.
+organization: "Acme Corporation"
+# system_name: "Acme Customer Portal"
+
+# Default framework set for `gap analyze` when --frameworks is omitted.
+# Populate with the canonical compliance scope for this project. CLI
+# `--frameworks` replaces this list entirely (it does not union).
+# Warning fires if this list has more than 5 frameworks.
+frameworks:
+{frameworks_yaml}
+
+# LLM defaults for `risk generate`. Flag and
+# CONTROLBRIDGE_LLM_MODEL / CONTROLBRIDGE_LLM_TEMPERATURE env vars win.
 llm:
   model: "gpt-4o"
   temperature: 0.1
-  max_retries: 3
 
-storage:
-  type: "file"
-  path: "./.controlbridge"
-
-frameworks:
-  default:
-{frameworks_yaml}
-
-logging:
-  level: "INFO"
-  format: "rich"
+# ${{ENV_VAR}} interpolation is supported in any string value, e.g.:
+#   organization: "${{ORG_NAME}}"
+# so secrets and per-env settings can be hydrated from .env without
+# committing them.
 """
 
 MY_CONTROLS_YAML = """\

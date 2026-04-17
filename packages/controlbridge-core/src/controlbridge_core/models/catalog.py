@@ -13,11 +13,33 @@ defaults — existing v0.1.x catalog JSONs continue to parse under
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal
 
 from pydantic import Field, PrivateAttr
 
 from controlbridge_core.models.common import ControlBridgeModel
+
+# NIST publications render enhancement IDs as ``AC-2(1)(a)`` while NIST OSCAL
+# content renders them as ``ac-2.1.a``. Both are valid. We normalize to the
+# dotted, upper-case form for storage/lookup so either input convention
+# resolves the same control. Added in v0.2.1 when bundling the full NIST
+# OSCAL catalog revealed the dual-convention mismatch.
+_PAREN_TO_DOT = re.compile(r"\(([^)]+)\)")
+
+
+def _normalize_control_id(raw: str) -> str:
+    """Canonicalize a control ID to dotted, uppercase form.
+
+    ``AC-2(1)(a)`` → ``AC-2.1.A``; ``ac-2.1`` → ``AC-2.1``; ``  cc6.1 `` →
+    ``CC6.1``. Preserves hyphens, dots, and alphanumerics; strips
+    whitespace. Never raises — unparseable input is returned uppercased.
+    """
+    s = (raw or "").strip().upper()
+    # Convert parenthetical enhancement markers to dots, iteratively so
+    # nested groups like ``AC-2(1)(a)`` → ``AC-2.1.A`` land in one pass
+    # through the regex (sub() handles all non-overlapping matches).
+    return _PAREN_TO_DOT.sub(r".\1", s)
 
 # Crosswalk relationship vocabulary. Kept as a ``Literal`` constant so
 # tooling can type-check hand-authored mappings; ``FrameworkMapping.relationship``
@@ -175,14 +197,15 @@ class ControlCatalog(ControlBridgeModel):
         """Build recursive control index after initialization.
 
         v0.2.0: walks the full enhancement tree so 3-level NIST Rev 5
-        IDs like ``AC-2(1)(a)`` resolve via ``get_control``. The v0.1.x
-        implementation only indexed one level of enhancements, silently
-        losing 3rd-level items on a full NIST 800-53 Rev 5 catalog.
+        IDs like ``AC-2(1)(a)`` resolve via ``get_control``.
+        v0.2.1: normalizes via ``_normalize_control_id`` so the same
+        catalog exposes both NIST-publication-style (``AC-2(1)``) and
+        NIST-OSCAL-style (``ac-2.1``) lookups consistently.
         """
         self._index = {}
 
         def _walk(ctrl: CatalogControl) -> None:
-            self._index[ctrl.id.upper()] = ctrl
+            self._index[_normalize_control_id(ctrl.id)] = ctrl
             for e in ctrl.enhancements:
                 _walk(e)
 
@@ -190,8 +213,10 @@ class ControlCatalog(ControlBridgeModel):
             _walk(control)
 
     def get_control(self, control_id: str) -> CatalogControl | None:
-        """Look up a control by ID (case-insensitive)."""
-        return self._index.get(control_id.strip().upper())
+        """Look up a control by ID — accepts either NIST-pub (``AC-2(1)``) or
+        NIST-OSCAL (``ac-2.1``) style; case-insensitive; whitespace-tolerant.
+        """
+        return self._index.get(_normalize_control_id(control_id))
 
     def get_family(self, family: str) -> list[CatalogControl]:
         """Get all controls in a family."""

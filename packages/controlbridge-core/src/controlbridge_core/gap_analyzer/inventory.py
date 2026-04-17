@@ -222,8 +222,14 @@ def _parse_csv(content: str, source_path: str) -> ControlInventory:
         )
 
     logger.info("Parsed CSV inventory: %d controls from %s", len(controls), source_path)
+    # v0.2.1: CSV format has no dedicated organization field, so we fall
+    # back to a neutral placeholder. Callers that want a real org name
+    # should pass `--organization` on the CLI or set it in
+    # `controlbridge.yaml` — both paths apply `model_copy(update=...)` after
+    # load. The old ``"Unknown Organization (from CSV)"`` string leaked into
+    # every exported report header and had no override path.
     return ControlInventory(
-        organization="Unknown Organization (from CSV)",
+        organization="Unknown Organization",
         controls=controls,
         source_format="csv",
         source_file=source_path,

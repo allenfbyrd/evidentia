@@ -39,11 +39,20 @@ console = Console()
 
 @app.callback()
 def _global_options(
+    ctx: typer.Context,
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Enable verbose (DEBUG) logging."
     ),
     quiet: bool = typer.Option(
         False, "--quiet", "-q", help="Suppress non-error output."
+    ),
+    config: typer.FileText | None = typer.Option(
+        None,
+        "--config",
+        help=(
+            "Path to a controlbridge.yaml config file. Defaults to walking "
+            "CWD \u2192 parents for the first `controlbridge.yaml` found."
+        ),
     ),
 ) -> None:
     """Global options applied to all commands."""
@@ -52,6 +61,22 @@ def _global_options(
         level=level,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
+
+    # v0.2.1: load controlbridge.yaml once and make it available to every
+    # subcommand via ctx.obj. Subcommands consult it through
+    # `controlbridge.config.get_default()` with the precedence rule
+    # CLI flag > env var > yaml > built-in default.
+    from pathlib import Path
+
+    from controlbridge.config import load_config
+
+    explicit_path = Path(config.name) if config is not None else None
+    cfg = load_config(explicit_path)
+    ctx.obj = {"config": cfg}
+    if cfg.source_path is not None:
+        logging.getLogger("controlbridge.config").debug(
+            "Loaded config from %s", cfg.source_path
+        )
 
 
 @app.command()

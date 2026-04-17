@@ -192,13 +192,58 @@ frameworks:
   source_url: NIST (U.S. Government work, public domain) — https://csrc.nist.gov/publications/detail/sp/800-172/final
   refresh: monthly
 - id: nist-800-53-mod
-  name: NIST SP 800-53 Rev 5 Moderate Baseline (sample subset)
+  name: NIST SP 800-53 Moderate Baseline (legacy 16-control sample — prefer nist-800-53-rev5-moderate)
   version: Rev 5
   tier: A
   category: control
   path: us-federal/nist-800-53-mod.json
-  source_url: NIST SP 800-53 Rev 5 (paraphrased subset for bootstrapping). Replace
-    with the full usnistgov/oscal-content moderate baseline JSON in production.
+  source_url: v0.1.x paraphrased 16-control sample. Retained for v0.2.0 yaml-pin backward
+    compatibility; deprecated in v0.2.1, removal planned for v0.3.0. Use framework_id
+    'nist-800-53-rev5-moderate' for the full 287-control FedRAMP-aligned baseline
+    derived from usnistgov/oscal-content@v1.4.0.
+  refresh: monthly
+- id: nist-800-53-rev5-high
+  name: NIST SP 800-53 Rev 5 High Baseline
+  version: 5.2.0
+  tier: A
+  category: control
+  path: us-federal/nist-800-53-rev5-high.json
+  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_HIGH-baseline_profile.json
+    resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
+  refresh: monthly
+- id: nist-800-53-rev5-low
+  name: NIST SP 800-53 Rev 5 Low Baseline
+  version: 5.2.0
+  tier: A
+  category: control
+  path: us-federal/nist-800-53-rev5-low.json
+  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_LOW-baseline_profile.json
+    resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
+  refresh: monthly
+- id: nist-800-53-rev5-moderate
+  name: NIST SP 800-53 Rev 5 Moderate Baseline
+  version: 5.2.0
+  tier: A
+  category: control
+  path: us-federal/nist-800-53-rev5-moderate.json
+  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_MODERATE-baseline_profile.json
+    resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
+  refresh: monthly
+- id: nist-800-53-rev5-privacy
+  name: NIST SP 800-53 Rev 5 Privacy Baseline
+  version: 5.2.0
+  tier: A
+  category: control
+  path: us-federal/nist-800-53-rev5-privacy.json
+  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_PRIVACY-baseline_profile.json
+    resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
+  refresh: monthly
+- id: nist-800-53-rev5
+  name: nist-800-53-rev5
+  version: unknown
+  tier: A
+  category: control
+  path: us-federal/nist-800-53-rev5.json
   refresh: monthly
 - id: nist-ai-rmf-1.0
   name: NIST AI Risk Management Framework 1.0

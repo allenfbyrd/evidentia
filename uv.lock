@@ -427,7 +427,7 @@ wheels = [
 
 [[package]]
 name = "controlbridge"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "packages/controlbridge" }
 dependencies = [
     { name = "controlbridge-ai" },
@@ -456,7 +456,7 @@ requires-dist = [
 
 [[package]]
 name = "controlbridge-ai"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "packages/controlbridge-ai" }
 dependencies = [
     { name = "controlbridge-core" },
@@ -469,13 +469,13 @@ dependencies = [
 requires-dist = [
     { name = "controlbridge-core", editable = "packages/controlbridge-core" },
     { name = "instructor", specifier = ">=1.6" },
-    { name = "litellm", specifier = ">=1.50" },
+    { name = "litellm", specifier = ">=1.50,<2.0" },
     { name = "tenacity", specifier = ">=9.0" },
 ]
 
 [[package]]
 name = "controlbridge-collectors"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "packages/controlbridge-collectors" }
 dependencies = [
     { name = "controlbridge-core" },
@@ -529,7 +529,7 @@ provides-extras = ["aws", "azure", "gcp", "github", "okta", "all"]
 
 [[package]]
 name = "controlbridge-core"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "packages/controlbridge-core" }
 dependencies = [
     { name = "platformdirs" },
@@ -552,7 +552,7 @@ requires-dist = [
 
 [[package]]
 name = "controlbridge-integrations"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "packages/controlbridge-integrations" }
 dependencies = [
     { name = "controlbridge-core" },
@@ -584,7 +584,7 @@ provides-extras = ["jira", "servicenow", "all"]
 
 [[package]]
 name = "controlbridge-workspace"
-version = "0.2.0"
+version = "0.2.1"
 source = { virtual = "." }
 
 [package.dev-dependencies]
