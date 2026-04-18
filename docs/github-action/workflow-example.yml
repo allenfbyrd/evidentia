@@ -1,0 +1,104 @@
+# Drop-in GitHub Actions workflow for ControlBridge compliance checks on PRs.
+#
+# Copy this file to `.github/workflows/controlbridge.yml` in your repo.
+# Requires:
+#   - `inventory.yaml` at the repo root (your control implementation state)
+#   - The `uv` tool (installed by setup-uv, no action required)
+#   - Write access to PR comments (set in permissions: below)
+#
+# See docs/github-action/README.md for a full explanation.
+
+name: ControlBridge compliance check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]   # refreshes the main-branch baseline on merge
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.12"
+
+      - name: Install ControlBridge
+        run: uv tool install controlbridge
+
+      # ---- Analyze head (current PR / main) ----
+      - name: Analyze head
+        run: |
+          controlbridge gap analyze \
+            --inventory inventory.yaml \
+            --frameworks nist-800-53-rev5-moderate,soc2-tsc \
+            --output /tmp/head.json \
+            --format json
+
+      # ---- Restore / create main-branch baseline ----
+      - name: Restore baseline
+        id: baseline
+        uses: actions/cache@v4
+        with:
+          path: /tmp/base.json
+          key: controlbridge-baseline-${{ github.base_ref || github.ref_name }}
+          restore-keys: |
+            controlbridge-baseline-main
+
+      - name: Create baseline if cache miss (main-branch pushes only)
+        if: steps.baseline.outputs.cache-hit != 'true' && github.event_name == 'push'
+        run: cp /tmp/head.json /tmp/base.json
+
+      # ---- Compare (PRs only) ----
+      - name: Gap diff
+        if: github.event_name == 'pull_request'
+        run: |
+          controlbridge gap diff \
+            --base /tmp/base.json \
+            --head /tmp/head.json \
+            --format markdown \
+            --output /tmp/diff.md \
+            --fail-on-regression
+        continue-on-error: true
+
+      - name: Post PR comment
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('/tmp/diff.md')) {
+              core.info('No diff generated; skipping PR comment.');
+              return;
+            }
+            const body = fs.readFileSync('/tmp/diff.md', 'utf8');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+      # ---- Fail the check if regressions were detected ----
+      # Re-running with --fail-on-regression so this step's exit code
+      # surfaces on the Checks page. Earlier step is continue-on-error
+      # so the PR-comment step still runs on regressions.
+      - name: Gate on regressions
+        if: github.event_name == 'pull_request'
+        run: |
+          controlbridge gap diff \
+            --base /tmp/base.json \
+            --head /tmp/head.json \
+            --format github \
+            --fail-on-regression

@@ -141,7 +141,7 @@ def _parse_oscal_control(oscal_control: dict, family: str) -> CatalogControl:
 
 def _extract_prose(part: dict) -> str:
     """Recursively extract prose text from an OSCAL part."""
-    prose = part.get("prose", "")
+    prose: str = str(part.get("prose", ""))
     for sub_part in part.get("parts", []):
         sub_prose = _extract_prose(sub_part)
         if sub_prose:

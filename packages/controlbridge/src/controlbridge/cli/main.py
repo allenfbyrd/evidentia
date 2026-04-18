@@ -14,6 +14,7 @@ from rich.console import Console
 from rich.table import Table
 
 from controlbridge.cli import catalog as catalog_cmd
+from controlbridge.cli import explain as explain_cmd
 from controlbridge.cli import gap as gap_cmd
 from controlbridge.cli import init as init_cmd
 from controlbridge.cli import risk as risk_cmd
@@ -32,6 +33,11 @@ app = typer.Typer(
 app.add_typer(gap_cmd.app, name="gap", help="Gap analysis commands.")
 app.add_typer(catalog_cmd.app, name="catalog", help="Framework catalog commands.")
 app.add_typer(risk_cmd.app, name="risk", help="AI risk statement commands.")
+app.add_typer(
+    explain_cmd.app,
+    name="explain",
+    help="Plain-English LLM-generated control explanations.",
+)
 app.command(name="init", help="Initialize a new ControlBridge project.")(init_cmd.init)
 
 console = Console()

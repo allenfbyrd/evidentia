@@ -48,7 +48,12 @@ class ProfileResolutionError(Exception):
 def _load_oscal_json(path: Path) -> dict[str, Any]:
     """Load and return the top-level JSON object of an OSCAL file."""
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    if not isinstance(data, dict):
+        raise ProfileResolutionError(
+            f"OSCAL file {path} must contain a JSON object at top level"
+        )
+    return data
 
 
 def _resolve_href(

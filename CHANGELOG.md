@@ -7,6 +7,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-17
+
+The **"compliance-as-code" release.** Two user-facing feature areas plus
+deprecation cleanup and a fully-strict mypy CI gate. No breaking API
+changes to existing commands; new commands and a removed deprecated
+enum.
+
+### Added — PR-level compliance checking: `controlbridge gap diff`
+
+Compare two :class:`GapAnalysisReport` snapshots and classify each gap
+into one of five states (opened, closed, severity_increased,
+severity_decreased, unchanged). Drop-in for CI/CD pipelines: every pull
+request can now run `controlbridge gap diff --fail-on-regression` to
+block merges that make the compliance posture worse.
+
+- New module `controlbridge_core.gap_diff` with `compute_gap_diff()`,
+  `render_markdown()` (PR-comment-friendly), and
+  `render_github_annotations()` (`::error::` / `::warning::` / `::notice::`
+  lines that surface inline on the Actions Checks page).
+- New models `GapDiff`, `GapDiffEntry`, `GapDiffSummary` (all Pydantic-
+  validated and JSON-serializable).
+- New CLI: `controlbridge gap diff [--base PATH] [--head PATH]
+  [--fail-on-regression] [--format console|json|markdown|github]
+  [--output PATH]`. When `--base` / `--head` are omitted, auto-picks
+  the two most-recent reports from the v0.2.1 gap store.
+- **Control-ID normalization in diff**: a gap `AC-2(1)` in base and
+  `ac-2.1` in head is correctly recognized as the same gap (uses the
+  v0.2.1 normalizer, no false opened+closed pair).
+- **Status-aware**: REMEDIATED / ACCEPTED / NOT_APPLICABLE gaps are
+  excluded from the diff (they're not "open gaps" to regress on). An
+  ACCEPTED gap in base that re-appears OPEN in head counts as a
+  regression (acceptance was revoked).
+- **GitHub Action scaffolding**: new `docs/github-action/README.md`
+  (full setup guide) + `docs/github-action/workflow-example.yml`
+  (drop-in `.github/workflows/controlbridge.yml` template). The
+  companion reusable action `allenfbyrd/controlbridge-action` is
+  scoped for v0.3.1.
+
+### Added — Plain-English control explanations: `controlbridge explain`
+
+Translate authoritative-but-opaque framework control text into
+actionable engineer-and-executive language. Every explanation is
+cached on disk per (framework, control, model, temperature) tuple —
+you pay the LLM cost once per lookup.
+
+- New module `controlbridge_ai.explain` with:
+  - `PlainEnglishExplanation` Pydantic model (strict schema: plain
+    English summary, why-it-matters paragraph, 3-8 what-to-do bullets,
+    effort estimate, optional common-misconceptions paragraph).
+  - `ExplanationGenerator` — Instructor-backed LLM pipeline on top of
+    LiteLLM. Works with any LiteLLM-supported provider
+    (OpenAI / Anthropic / Google / Ollama / etc).
+  - Disk cache at `<platformdirs-cache>/controlbridge/explanations/`
+    keyed by SHA-256 of (framework, control, model, temperature).
+    Override via `CONTROLBRIDGE_EXPLAIN_CACHE_DIR`.
+- New CLI: `controlbridge explain control <id> [--framework FW]
+  [--model MODEL] [--refresh] [--format panel|markdown|json]
+  [--output PATH]`. Pre-flight check warns if no API-key env var
+  matches the picked model (e.g., using `claude-*` without
+  `ANTHROPIC_API_KEY`).
+- Cache management: `controlbridge explain cache where` (prints the
+  cache directory), `controlbridge explain cache clear` (wipes it).
+- Reads defaults from `controlbridge.yaml` using the v0.2.1 config
+  loader (flag > env > yaml > built-in default).
+
+### Changed
+
+- **`FrameworkId` enum removed** from `controlbridge_core.models.common`.
+  Deprecated in v0.2.0 with a module-level `__getattr__` that emitted
+  `DeprecationWarning`; v0.3.0 drops the enum and the getattr hook
+  entirely. `ControlMapping.framework` has always been `str`; users
+  who were relying on the enum value should use the plain string
+  framework ID (e.g., `"nist-800-53-rev5"`) or
+  `controlbridge_core.catalogs.manifest.load_manifest()` for
+  programmatic discovery.
+- **mypy CI job flipped from advisory to strict.** v0.2.1 added
+  `--strict-optional` as `continue-on-error: true` to avoid blocking
+  releases on pre-existing annotation gaps; v0.3.0 fixed those 7
+  gaps and dropped the `continue-on-error`. Enabled the
+  `pydantic.mypy` plugin in `[tool.mypy]` so every
+  `Model.model_validate*()` return type is correctly inferred.
+  Added `types-PyYAML` and `pydantic` to the dev dependency group so
+  mypy can find them.
+- **`controlbridge gap analyze`**: no behavior change, but the gap
+  store write at the end of each run is now a required dependency
+  of `gap diff`'s auto-picker. Unchanged from v0.2.1 users'
+  perspective.
+
+### Tests: 352 → **384** passing (+32 new)
+
+- `tests/unit/test_gap_analyzer/test_gap_diff.py` — 16 cases covering
+  every diff-status classification, control-ID normalization across
+  notation styles, REMEDIATED/ACCEPTED status handling, sort order,
+  and both Markdown / GitHub-annotation renderers.
+- `tests/unit/test_ai/test_explain.py` — 19 cases covering the
+  explanation cache (key determinism, model/temperature sensitivity,
+  corruption handling), `ExplanationGenerator` behavior (cache hit
+  skips LLM, refresh bypasses cache, echo-field defensive override),
+  and the `PlainEnglishExplanation` schema's strict-validation edges.
+- `tests/unit/test_models/test_framework_id_deprecation.py` — removed
+  (the deprecation path and the enum are both gone).
+
+### Infrastructure / hygiene
+
+- Inter-package dependency pins bumped from `>=0.2.0,<0.3.0` to
+  `>=0.3.0,<0.4.0` across all 5 packages.
+- `scripts/catalogs/` generator scripts unchanged — v0.2.1 NIST
+  bundling is stable.
+
+### Known follow-ups (tracked in `docs/ROADMAP.md`)
+
+- **Reusable `allenfbyrd/controlbridge-action`** — the full GitHub
+  Action wrapper. v0.3.0 ships the CLI; v0.3.1 will add the one-line
+  `uses:` wrapper so users don't need the 80-line workflow in
+  `docs/github-action/workflow-example.yml`.
+- **PyPI Trusted Publisher (OIDC) migration** — still pending PyPI-
+  side UI configuration. v0.3.0 continues using the API token.
+
 ## [0.2.1] - 2026-04-16
 
 Correctness and integrity release. Follow-up to the v0.2.0 Phase 1.5
@@ -484,7 +602,8 @@ where language understanding is the bottleneck.
   has 16 hand-curated controls for demonstration, not the full ~323 from the
   NIST OSCAL content repo — planned for Phase 1.5
 
-[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.1...v0.1.2

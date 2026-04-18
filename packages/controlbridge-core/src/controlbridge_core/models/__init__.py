@@ -60,19 +60,10 @@ from controlbridge_core.models.threat import (
     VulnerabilityCatalog,
 )
 
-# FrameworkId is deprecated in v0.2.0 — access it through the
-# module that owns it; importing it from the package re-export would
-# trigger the DeprecationWarning during package init on every import.
-# Kept in __all__ for discoverability; users get the warning when they
-# actually reference it.
-
-
-def __getattr__(name: str):  # type: ignore[no-untyped-def]
-    if name == "FrameworkId":
-        from controlbridge_core.models.common import FrameworkId as _FI
-
-        return _FI
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+# v0.3.0: ``FrameworkId`` removed (was deprecated in v0.2.0; the module-level
+# ``__getattr__`` that emitted the DeprecationWarning is gone, and no
+# production code references it — only the deprecation-warning test did,
+# which has also been removed).
 
 __all__ = [
     "AttackTechnique",
@@ -91,7 +82,6 @@ __all__ = [
     "EvidenceSufficiency",
     "EvidenceType",
     "FindingStatus",
-    "FrameworkId",
     "FrameworkMapping",
     "GapAnalysisReport",
     "GapSeverity",

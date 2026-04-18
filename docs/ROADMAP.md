@@ -1,75 +1,42 @@
 # ControlBridge roadmap
 
-**Last updated: v0.2.1 release (April 2026).**
+**Last updated: v0.3.0 release (April 2026).**
 
 This roadmap synthesizes community feedback (including the April 2026
 external code-audit report at `Downloads/ControlBridge-Comprehensive-Analysis-and-Recommendations.md`)
 with the existing architecture plan at the project root. It is scope-locked
-for v0.3.0 through v0.6.0. Beyond v0.6.0 is "aspirational" territory —
+for v0.3.1 through v0.6.0. Beyond v0.6.0 is "aspirational" territory —
 the shape will depend on real-world usage patterns.
 
-## v0.3.0 — "Compliance-as-code" (next up)
+## v0.3.0 — Compliance-as-code — ✅ SHIPPED
 
-The novel-differentiator bet: no open-source GRC tool does PR-level
-compliance checking today. Two commands and one GitHub Action land here.
+- `controlbridge gap diff` — compare two gap snapshots, classify every
+  gap as opened / closed / severity-changed / unchanged. Supports
+  console / json / markdown / github output formats. `--fail-on-regression`
+  blocks PRs that make compliance posture worse.
+- `controlbridge explain <control_id>` — LLM-generated plain-English
+  control translation, cached on disk.
+- Documentation: `docs/github-action/README.md` + example workflow YAML
+  so anyone can drop a `.github/workflows/controlbridge.yml` into their
+  repo and get PR-level compliance checking without waiting for the
+  reusable-action wrapper.
 
-### `controlbridge gap diff`
+## v0.3.1 — Reusable GitHub Action (next up)
 
-Compare two gap-analysis snapshots — typically
-before/after a code change — and report which gaps closed vs. opened.
-
-```bash
-controlbridge gap diff \
-  --base .controlbridge/main-snapshot.json \
-  --head .controlbridge/pr-snapshot.json
-```
-
-Wraps the v0.2.1 gap-store infrastructure. Output: JSON + Markdown-formatted
-summary suitable for PR comments. Supports `--fail-on-regression` for
-use in CI.
-
-### `allenfbyrd/controlbridge-action` GitHub Action
-
-A reusable action that:
-
-1. Runs `controlbridge gap analyze` against a designated inventory file
-2. Loads a baseline snapshot from the target branch (if present)
-3. Runs `controlbridge gap diff` and comments on the PR with the result
-4. Fails the check if `--fail-on-regression` is set
+Ship `allenfbyrd/controlbridge-action` as a separate repo with a one-line
+`uses:` wrapper around the v0.3.0 CLI, so the 80-line example workflow
+collapses to:
 
 ```yaml
-- name: ControlBridge compliance check
-  uses: allenfbyrd/controlbridge-action@v0.3
+- uses: allenfbyrd/controlbridge-action@v1
   with:
     inventory: inventory.yaml
     frameworks: nist-800-53-rev5-moderate,soc2-tsc
     fail-on-regression: true
 ```
 
-### `controlbridge explain <control_id>`
-
-LLM-generated plain-English control description for engineers and
-executives. Translates NIST/HIPAA compliance-speak into actionable
-engineer-speak.
-
-```bash
-$ controlbridge explain AC-2 --framework nist-800-53-rev5
-
-Gap: AC-2 — Account Management
-Plain English: You need a formal process for creating, modifying, and
-  deleting user accounts. That means documented procedures for
-  on/offboarding, at least quarterly access reviews, and someone
-  accountable for approving access requests.
-Why it matters: Unmanaged accounts are one of the top attack vectors —
-  attackers frequently exploit former employees' credentials.
-Effort: Medium — requires policy documentation + quarterly review
-  calendar + possibly IAM tooling if you have >50 users.
-```
-
-Leverages the existing LiteLLM + Instructor stack. Caches responses at
-`~/.cache/controlbridge/explanations/<framework>/<control>.json` keyed
-on framework + control + model + temperature. Users who already paid
-for one explanation get it back free next time.
+This is a docs + new-repo task, not a ControlBridge-core change. No
+new CLI commands.
 
 ## v0.4.0 — Phase 2 integrations
 

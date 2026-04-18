@@ -85,11 +85,29 @@ ControlBridge is built on four principles:
 
 ---
 
-## Current status: Phase 1.5 — 82 frameworks bundled, 352 tests passing
+## Current status: 82 frameworks bundled, 384 tests passing
 
 v0.2.0 (Phase 1.5 big-bang, April 2026) added 77 bundled frameworks and
-the manifest-driven registry. **v0.2.1 (April 2026) is a correctness
-patch** that:
+the manifest-driven registry. **v0.3.0 (April 2026)** is the
+**compliance-as-code release** that ships:
+
+- **`controlbridge gap diff`** — compare two gap-analysis snapshots,
+  classify each gap as opened / closed / severity-changed / unchanged.
+  Pair with `--fail-on-regression` in a GitHub Action to block PRs
+  that make compliance posture worse. No commercial GRC tool does this
+  at the PR level. See [`docs/github-action/README.md`](docs/github-action/README.md)
+  for the drop-in workflow.
+- **`controlbridge explain <control_id>`** — LLM-generated plain-English
+  translation of any framework's control text. Answers the questions
+  engineers actually ask ("what does this mean, why should I care,
+  what do I do?") instead of quoting the NIST legal prose verbatim.
+  Cached to disk per (framework, control, model, temperature) so
+  repeat lookups are free.
+
+Also: the `FrameworkId` enum (deprecated in v0.2.0) is removed; mypy
+CI is now strict (no more `continue-on-error`); +32 new tests.
+
+**v0.2.1 (April 2026)** was the correctness patch that:
 
 - Bundles the full **NIST SP 800-53 Rev 5** catalog (1,196 controls,
   verbatim from `usnistgov/oscal-content`) plus the four resolved
@@ -179,7 +197,7 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
   filters; `catalog import` accepts direct JSON or an OSCAL profile (via
   `--profile <profile.json> --catalog <source.json>`).
 
-- **352 passing pytest tests** covering models, catalog loading (with a
+- **384 passing pytest tests** covering models, catalog loading (with a
   parametric smoke test per bundled framework), recursive enhancement
   flattener for NIST Rev 5 3-level IDs, tier invariants, OSCAL profile
   resolution, user-import directory precedence, `FrameworkId` deprecation,

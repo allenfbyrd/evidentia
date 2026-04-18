@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import typer
 from controlbridge_core.gap_analyzer import GapAnalyzer, export_report, load_inventory
+from controlbridge_core.models.gap import GapAnalysisReport
 from rich.console import Console
 from rich.table import Table
 
@@ -186,3 +188,189 @@ def analyze(
         console.print(
             f"[yellow]Note: could not write gap store snapshot: {exc}[/yellow]"
         )
+
+
+# ---------------------------------------------------------------------------
+# v0.3.0: `gap diff` — compare two gap snapshots (compliance-as-code)
+# ---------------------------------------------------------------------------
+
+
+@app.command("diff")
+def diff(
+    base: Path | None = typer.Option(
+        None,
+        "--base",
+        "-b",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help=(
+            "Base gap report JSON (the 'before' state). "
+            "If omitted with --head also omitted, auto-picks the two most "
+            "recent reports from the gap store."
+        ),
+    ),
+    head: Path | None = typer.Option(
+        None,
+        "--head",
+        "-H",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Head gap report JSON (the 'after' state).",
+    ),
+    fail_on_regression: bool = typer.Option(
+        False,
+        "--fail-on-regression",
+        help=(
+            "Exit with code 1 if new gaps were opened or severities increased. "
+            "Use this in CI to fail PR checks on compliance regressions."
+        ),
+    ),
+    format: str = typer.Option(
+        "console",
+        "--format",
+        help=(
+            "Output format: console (Rich tables, default), json (machine-"
+            "readable), markdown (PR-comment friendly), github (Actions "
+            "workflow annotations)."
+        ),
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write diff to this file instead of stdout.",
+    ),
+) -> None:
+    """Compare two gap-analysis snapshots.
+
+    Compares each ``(framework, control_id)`` pair across the two reports
+    and classifies as one of: opened (new gap — regression), closed
+    (gap fixed), severity_increased, severity_decreased, unchanged.
+
+    Primary use: PR-level compliance checks. Pair with ``--fail-on-regression``
+    in a GitHub Action to block PRs that make the compliance posture worse.
+    See ``docs/github-action/`` for a full example workflow.
+    """
+    from controlbridge_core.gap_diff import (
+        compute_gap_diff,
+        render_github_annotations,
+        render_markdown,
+    )
+
+    # Resolve base and head — explicit files > gap store auto-pick.
+    if base is None or head is None:
+        from controlbridge_core.gap_store import list_reports
+
+        reports = list_reports()
+        if len(reports) < 2:
+            console.print(
+                "[red]Error: need two gap reports to diff.[/red]\n"
+                "[dim]Either pass --base and --head explicitly, or run "
+                "`controlbridge gap analyze` twice so the gap store has "
+                "something to compare.[/dim]"
+            )
+            raise typer.Exit(code=1)
+        # Newest two — head is newest, base is second-newest
+        if head is None:
+            head = reports[0]
+        if base is None:
+            base = reports[1 if reports[0] == head else 0]
+        console.print(
+            f"[dim]Auto-picked from gap store — base: {base.name}, "
+            f"head: {head.name}[/dim]"
+        )
+
+    base_report = GapAnalysisReport.model_validate_json(
+        base.read_text(encoding="utf-8")
+    )
+    head_report = GapAnalysisReport.model_validate_json(
+        head.read_text(encoding="utf-8")
+    )
+
+    diff_result = compute_gap_diff(base_report, head_report)
+
+    # Render output. Non-console branches populate `text` (str); console
+    # renders directly via Rich and leaves `text` unset.
+    if format == "console":
+        _render_diff_console(diff_result)
+    elif format == "json":
+        text = diff_result.model_dump_json(indent=2)
+    elif format == "markdown":
+        text = render_markdown(diff_result)
+    elif format == "github":
+        text = render_github_annotations(diff_result)
+    else:
+        console.print(f"[red]Unknown --format: {format!r}[/red]")
+        raise typer.Exit(code=1)
+
+    if format != "console":
+        if output is not None:
+            output.write_text(text, encoding="utf-8")
+            console.print(f"[green]Diff written:[/green] {output}")
+        else:
+            # sys.stdout for json/markdown/github — bypass Rich so output
+            # is byte-for-byte what downstream tooling expects.
+            sys.stdout.write(text)
+            sys.stdout.write("\n")
+
+    # Exit code for CI gating
+    if fail_on_regression and diff_result.summary.is_regression:
+        console.print(
+            f"\n[red]Compliance regression detected:[/red] "
+            f"{diff_result.summary.opened} new gap(s), "
+            f"{diff_result.summary.severity_increased} severity increase(s). "
+            f"Exiting with code 1 (--fail-on-regression)."
+        )
+        raise typer.Exit(code=1)
+
+
+def _render_diff_console(diff) -> None:  # type: ignore[no-untyped-def]
+    """Rich-formatted tables for terminal use."""
+    s = diff.summary
+    title = (
+        "[red]✗ Compliance regression[/red]"
+        if s.is_regression
+        else "[green]✓ No regression[/green]"
+    )
+    header = Table(title=f"Gap Diff — {title}")
+    header.add_column("Status", style="cyan")
+    header.add_column("Count", justify="right", style="bold")
+    header.add_row("Opened (regressions)", f"[red]{s.opened}[/red]")
+    header.add_row("Severity increased", f"[red]{s.severity_increased}[/red]")
+    header.add_row("Severity decreased", f"[green]{s.severity_decreased}[/green]")
+    header.add_row("Closed", f"[green]{s.closed}[/green]")
+    header.add_row("Unchanged", str(s.unchanged))
+    console.print(header)
+
+    if diff.opened_entries:
+        t = Table(title="🆕 Opened gaps")
+        t.add_column("Framework", style="cyan")
+        t.add_column("Control")
+        t.add_column("Severity")
+        for e in diff.opened_entries[:20]:
+            t.add_row(
+                e.framework,
+                f"{e.control_id} — {e.control_title or ''}",
+                str(e.head_severity),
+            )
+        console.print(t)
+
+    if diff.severity_increased_entries:
+        t = Table(title="📈 Severity increased")
+        t.add_column("Framework", style="cyan")
+        t.add_column("Control")
+        t.add_column("Base → Head")
+        for e in diff.severity_increased_entries[:20]:
+            t.add_row(
+                e.framework,
+                f"{e.control_id} — {e.control_title or ''}",
+                f"{e.base_severity} → {e.head_severity}",
+            )
+        console.print(t)
+
+    if diff.closed_entries:
+        console.print(f"[green]✓ {len(diff.closed_entries)} gap(s) closed[/green]")

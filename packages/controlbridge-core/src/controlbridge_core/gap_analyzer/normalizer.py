@@ -77,7 +77,9 @@ def find_best_match(
 
     id_match = process.extractOne(normalized, all_ids, scorer=fuzz.ratio)
     if id_match and id_match[1] >= threshold:
-        return id_match[0]
+        # thefuzz returns Any-typed tuples; the first element is always
+        # the matched string from `all_ids` (list[str]).
+        return str(id_match[0])
 
     # 3. Fuzzy match on titles (for inputs like "Account Management")
     title_map: dict[str, str] = {}

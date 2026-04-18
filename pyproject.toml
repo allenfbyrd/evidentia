@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-workspace"
-version = "0.2.1"
+version = "0.3.0"
 requires-python = ">=3.12"
 description = "Workspace root for the ControlBridge GRC tool monorepo"
 
@@ -20,6 +20,13 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.7",
     "mypy>=1.12",
+    # v0.3.0: flipped mypy CI job from advisory to strict. types-PyYAML is
+    # needed to silence "Library stubs not installed for yaml" across every
+    # module that parses catalog JSON / frameworks.yaml / user-dir manifests.
+    "types-PyYAML>=6.0",
+    # `pydantic.mypy` plugin is enabled in `[tool.mypy]`; pydantic must be
+    # in the mypy-run env so the plugin can be imported at type-check time.
+    "pydantic>=2.9",
 ]
 
 [tool.uv.sources]
@@ -74,6 +81,11 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
+# v0.3.0: enable the Pydantic mypy plugin so `Model.model_validate*()` is
+# typed as returning `Model` (without the plugin, mypy sees every
+# `model_validate()` call as returning `Any` and every enclosing function
+# return then trips `[no-any-return]`).
+plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

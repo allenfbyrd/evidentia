@@ -80,14 +80,15 @@ jobs:
       - name: Sync workspace
         run: uv sync --all-packages
 
-      # v0.2.1: added to CI to catch annotation regressions. Starting with
-      # --strict-optional only (not full --strict) because the existing
-      # codebase has some untyped helper functions from v0.1.x. v0.3.0 will
-      # tighten to --strict once those are annotated.
+      # v0.2.1: added advisory-only. v0.3.0: flipped to strict — mypy is
+      # now a required check. Pydantic plugin enabled via [tool.mypy] in
+      # root pyproject.toml gives us correct typing for every
+      # `Model.model_validate*` return type. types-PyYAML in the dev
+      # group silences the "Library stubs not installed for yaml"
+      # errors that used to plague every config-load path.
       - name: Run mypy
         run: |
           uv run mypy \
             packages/controlbridge-core/src/controlbridge_core \
             packages/controlbridge/src/controlbridge \
             --strict-optional
-        continue-on-error: true  # v0.2.1: advisory-only until annotations catch up
