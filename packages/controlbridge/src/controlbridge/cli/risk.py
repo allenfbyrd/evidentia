@@ -73,7 +73,7 @@ def generate(
 
     # v0.2.1: resolve LLM model/temperature via config precedence:
     # CLI flag > env var > controlbridge.yaml > RiskStatementGenerator default.
-    from controlbridge.config import ControlBridgeConfig, get_default
+    from controlbridge_core.config import ControlBridgeConfig, get_default
 
     cfg_obj = ctx.obj.get("config") if ctx.obj else None
     cfg: ControlBridgeConfig = cfg_obj if cfg_obj is not None else ControlBridgeConfig()

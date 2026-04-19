@@ -1,7 +1,7 @@
 [project]
 name = "controlbridge"
-version = "0.3.1"
-description = "Open-source GRC tool: gap analysis, risk statements, evidence collection, and compliance automation"
+version = "0.4.0"
+description = "Open-source GRC tool: gap analysis, risk statements, evidence collection, web UI, and compliance automation"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
 license = "Apache-2.0"
@@ -17,16 +17,19 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "controlbridge-core>=0.3.0,<0.4.0",
-    "controlbridge-ai>=0.3.0,<0.4.0",
-    "controlbridge-collectors>=0.3.0,<0.4.0",
-    "controlbridge-integrations>=0.3.0,<0.4.0",
+    "controlbridge-core>=0.4.0,<0.5.0",
+    "controlbridge-ai>=0.4.0,<0.5.0",
+    "controlbridge-collectors>=0.4.0,<0.5.0",
+    "controlbridge-integrations>=0.4.0,<0.5.0",
     "typer>=0.14",
     "rich>=13.0",
-    "fastapi>=0.115",
-    "uvicorn[standard]>=0.30",
-    "python-multipart>=0.0.9",
 ]
+
+[project.optional-dependencies]
+# Web UI — installs the FastAPI server + bundled React SPA.
+# Usage: `pip install "controlbridge[gui]"` or `uv tool install "controlbridge[gui]"`,
+# then `controlbridge serve` to open the local web UI.
+gui = ["controlbridge-api>=0.4.0,<0.5.0"]
 
 [project.scripts]
 controlbridge = "controlbridge.cli.main:app"
@@ -50,3 +53,4 @@ controlbridge-core = { workspace = true }
 controlbridge-ai = { workspace = true }
 controlbridge-collectors = { workspace = true }
 controlbridge-integrations = { workspace = true }
+controlbridge-api = { workspace = true }

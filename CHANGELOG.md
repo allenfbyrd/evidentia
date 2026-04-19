@@ -7,6 +7,132 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0-alpha.1] - 2026-04-19
+
+The **"Accessible GRC"** release — ControlBridge grows beyond the CLI.
+Adds a FastAPI REST server, a React + shadcn/ui web UI (localhost-only,
+WCAG 2.1 AA via Radix primitives), an air-gapped mode (`--offline`
+flag + `doctor --check-air-gap` validator), and a new sixth workspace
+package (`controlbridge-api`). The web UI is installable via the new
+`[gui]` extra: `pip install "controlbridge[gui]"` then
+`controlbridge serve`.
+
+This `alpha.1` ships the backend end-to-end + the read-only web UI
+surface (Home / Dashboard / Frameworks / Settings). Interactive pages
+(onboarding wizard, Gap Analyze form, Gap Diff picker, Risk Generate
+streaming) land in `alpha.2`. The full `v0.4.0` release is gated on
+Playwright E2E coverage and a fresh-venv smoke test on
+Windows/macOS/Linux.
+
+### Added
+
+- **New workspace package `controlbridge-api`** (`packages/controlbridge-api/`)
+  shipping a FastAPI app with 18 endpoints under `/api/*`. The `[gui]`
+  optional extra on the meta-package pulls it in:
+  `pip install "controlbridge[gui]"`.
+- **New CLI subcommand `controlbridge serve`** — launches uvicorn serving
+  both the REST API and the bundled React SPA from `127.0.0.1:8000`
+  (localhost-only by default; `--host 0.0.0.0` emits a security warning).
+  Flags: `--port`, `--host`, `--dev` (permissive CORS for Vite HMR),
+  `--no-browser`, `--reload`.
+- **Global `--offline` flag on every command.** Wires through to the new
+  `controlbridge_core.network_guard` module; when set, any attempted LLM
+  or network call to a non-loopback / non-RFC-1918 host raises
+  `OfflineViolationError` before network IO is issued. Works with Ollama
+  (localhost:11434), vLLM, and custom OpenAI-compatible endpoints on
+  private IPs.
+- **`controlbridge doctor --check-air-gap`** — per-subsystem posture
+  report (LLM client, catalog loader, AI telemetry, gap store, web UI).
+  Renders as a Rich table in the CLI and as JSON via
+  `POST /api/doctor/check-air-gap`.
+- **Web UI pages (v0.4.0-alpha.1 scope):**
+  - `/` — Home / quick-nav cards to Frameworks, Dashboard, Settings
+  - `/dashboard` — historical gap reports + top-line metrics
+  - `/frameworks` — 82-framework browser with tier / category / free-text filters
+  - `/frameworks/:id` — framework detail with full control list
+  - `/settings` — config view + LLM-provider presence + air-gap posture
+- **18 REST endpoints under `/api/*`:** health, version, config (GET/PUT),
+  doctor (GET, `/check-air-gap`), llm-status (presence only — never
+  returns key values), frameworks (list, detail, single-control), gaps
+  (analyze, reports list, single-report, diff), risks (`/generate` SSE),
+  explain (`/{framework}/{control_id}` SSE), init-wizard.
+- **Shared `controlbridge_core.init_wizard` module** — starter YAML
+  generators + deterministic framework recommender. The CLI
+  `controlbridge init` and GUI `/api/init/wizard` endpoint now produce
+  identical files from the same code path. Presets:
+  `soc2-starter`, `nist-moderate-starter`, `hipaa-starter`,
+  `cmmc-starter`, `empty`.
+- **`controlbridge_core.config`** moved from the CLI meta-package
+  (`controlbridge.config`) into `controlbridge-core` so both the CLI
+  and the API backend consume it without a circular dependency. A
+  transparent re-export shim at the old location keeps existing
+  `from controlbridge.config import ...` imports working unchanged.
+- **Hatchling build hook** (`packages/controlbridge-api/hatch_build.py`)
+  that drives `npm run build` in `packages/controlbridge-ui/` and copies
+  `dist/*` into the Python package's `static/` directory before wheel
+  assembly. Set `CONTROLBRIDGE_SKIP_FRONTEND_BUILD=1` to bypass for
+  Python-only build matrices.
+- **New workspace directory `packages/controlbridge-ui/`** — Vite + React
+  + TypeScript + shadcn/ui frontend. Not a Python workspace member;
+  builds via `npm run build`. Stack: React 18, Vite 5, Tailwind CSS,
+  shadcn/ui (Radix primitives), TanStack Query / Table / Virtual,
+  React Router 6, Zustand, React Hook Form + Zod, Recharts.
+
+### Changed
+
+- **Roadmap shuffle (`docs/ROADMAP.md`):** GUI pulled forward from v0.6.0
+  to v0.4.0; `--offline` flag pulled forward from v0.5.0 to v0.4.0;
+  Phase 2 integrations (Jira, AWS, GitHub, Okta, ServiceNow, Vanta,
+  Drata) shifted right to v0.5.0; evidence chain of custody (SHA-256 +
+  GPG) shifted right to v0.6.0. See roadmap for the full shape.
+- **`controlbridge_ai.client.get_instructor_client`** now wraps
+  `litellm.completion` / `acompletion` with an offline guard. When
+  offline mode is on, cloud LLM calls raise
+  `OfflineViolationError` before any network IO.
+- **Meta-package `controlbridge` deps:** removed `fastapi>=0.115`,
+  `uvicorn[standard]>=0.30`, `python-multipart>=0.0.9` (moved to
+  `controlbridge-api` where they're actually used).
+- **`controlbridge init` defaults:** `--frameworks` now defaults to
+  `nist-800-53-rev5-moderate,soc2-tsc` (was
+  `nist-800-53-mod,soc2-tsc`); new `--preset` flag accepts the five
+  wizard presets above; new `--organization` flag for headless use.
+- **CI test workflow** (`.github/workflows/test.yml`): new `frontend-test`
+  job runs TypeScript typecheck + Vite build on Node 20; existing mypy
+  target list extended to include `controlbridge-api`.
+- **CI release workflow** (`.github/workflows/release.yml`): adds Node 20
+  setup + SPA-bundled-in-wheel verification step before PyPI publish.
+
+### Fixed
+
+- **Windows cp1252 encoding** on `controlbridge --help`: the
+  pre-existing `--config` help string used `\u2192` (→) which crashed
+  legacy Windows consoles. Replaced with ASCII `->`. Same class of fix
+  as v0.3.1's `gap diff --format console` normalization.
+
+### Tests: 392 → **501 passing** (+109)
+
+- `+43` from `controlbridge_core.network_guard` (host classifier, URL
+  guard, LLM-model guard, offline-mode toggle + context manager).
+- `+30` from `controlbridge_core.init_wizard` (3 YAML generators + the
+  framework recommender's decision tree).
+- `+36` from `controlbridge-api` FastAPI TestClient coverage (basic
+  endpoints, frameworks browser, config read/write, init-wizard,
+  gap analyze/reports/diff, SSE endpoint validation, OpenAPI schema).
+
+### Migration
+
+- **Library users importing `controlbridge.config`**: no change needed
+  (shim re-export). For new code, prefer the canonical
+  `controlbridge_core.config` import.
+- **Users of `controlbridge init`**: default framework list changed
+  from the legacy 16-control NIST sample to the full Rev 5 Moderate
+  baseline; supply `--frameworks nist-800-53-mod,soc2-tsc` to keep the
+  old behavior.
+- **CI consumers building from source**: install Node 20+ in the
+  environment (or set `CONTROLBRIDGE_SKIP_FRONTEND_BUILD=1` when Node
+  is unavailable; the wheel will serve a dev-placeholder page in lieu
+  of the SPA).
+
 ## [0.3.1] - 2026-04-19
 
 Comprehensive examples + dogfooded GitHub Action + one latent-bug fix

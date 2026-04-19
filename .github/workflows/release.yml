@@ -32,16 +32,47 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
+      # v0.4.0: the controlbridge-api package bundles the React SPA built
+      # from packages/controlbridge-ui. The hatchling build hook
+      # (packages/controlbridge-api/hatch_build.py) drives `npm run build`
+      # automatically during `uv build`; this step just provisions Node.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: packages/controlbridge-ui/package-lock.json
+
       - name: Sync workspace
         run: uv sync --all-packages
 
       - name: Build all workspace packages
+        # uv build triggers the hatchling frontend-bundle hook for
+        # controlbridge-api, which runs npm ci + npm run build in the UI
+        # directory and copies dist/* into src/controlbridge_api/static/.
         run: uv build --all-packages
 
       - name: Check distributions
         run: |
           ls -la dist/
           uvx twine check dist/*
+
+      # Verify the controlbridge-api wheel actually contains the SPA bundle
+      # before we publish. Catches build-hook failures that would otherwise
+      # ship an empty web UI to users.
+      - name: Verify SPA is bundled
+        run: |
+          python -c "
+          import zipfile, glob, sys
+          wheels = [p for p in glob.glob('dist/controlbridge_api-*.whl')]
+          if not wheels:
+              sys.exit('No controlbridge-api wheel produced')
+          with zipfile.ZipFile(wheels[0]) as z:
+              names = z.namelist()
+          spa_files = [n for n in names if n.startswith('controlbridge_api/static/') and n.endswith('.html')]
+          assert spa_files, f'No SPA HTML in wheel: {names[:20]}'
+          print(f'SPA bundled OK: {spa_files}')
+          "
 
       - name: Publish to PyPI via API token
         uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-workspace"
-version = "0.3.1"
+version = "0.4.0"
 requires-python = ">=3.12"
 description = "Workspace root for the ControlBridge GRC tool monorepo"
 
@@ -11,7 +11,12 @@ members = [
     "packages/controlbridge-collectors",
     "packages/controlbridge-integrations",
     "packages/controlbridge",
+    "packages/controlbridge-api",
 ]
+# Note: packages/controlbridge-ui is a Vite+React project, NOT a Python
+# workspace member. It builds via `npm run build` in its own directory;
+# the release workflow copies its dist/* into controlbridge-api's
+# src/controlbridge_api/static/ before wheel packaging.
 
 [dependency-groups]
 dev = [
@@ -35,6 +40,7 @@ controlbridge-ai = { workspace = true }
 controlbridge-collectors = { workspace = true }
 controlbridge-integrations = { workspace = true }
 controlbridge = { workspace = true }
+controlbridge-api = { workspace = true }
 
 [tool.ruff]
 target-version = "py312"

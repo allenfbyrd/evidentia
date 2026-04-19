@@ -57,7 +57,16 @@ def _global_options(
         "--config",
         help=(
             "Path to a controlbridge.yaml config file. Defaults to walking "
-            "CWD \u2192 parents for the first `controlbridge.yaml` found."
+            "CWD -> parents for the first `controlbridge.yaml` found."
+        ),
+    ),
+    offline: bool = typer.Option(
+        False,
+        "--offline",
+        help=(
+            "Air-gapped mode: refuse all outbound network calls. LLM "
+            "features require an Ollama/vLLM/local endpoint. Use with "
+            "`controlbridge doctor --check-air-gap` to validate posture."
         ),
     ),
 ) -> None:
@@ -68,17 +77,28 @@ def _global_options(
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
+    # v0.4.0: flip the process-wide air-gap guard. Every LLM call and
+    # every URL-based catalog import consults the module-level flag.
+    if offline:
+        from controlbridge_core.network_guard import set_offline
+
+        set_offline(True)
+        logging.getLogger("controlbridge.cli").info(
+            "Air-gapped mode enabled (--offline) — outbound network calls "
+            "to non-loopback hosts will raise OfflineViolationError."
+        )
+
     # v0.2.1: load controlbridge.yaml once and make it available to every
     # subcommand via ctx.obj. Subcommands consult it through
-    # `controlbridge.config.get_default()` with the precedence rule
+    # `controlbridge_core.config.get_default()` with the precedence rule
     # CLI flag > env var > yaml > built-in default.
     from pathlib import Path
 
-    from controlbridge.config import load_config
+    from controlbridge_core.config import load_config
 
     explicit_path = Path(config.name) if config is not None else None
     cfg = load_config(explicit_path)
-    ctx.obj = {"config": cfg}
+    ctx.obj = {"config": cfg, "offline": offline}
     if cfg.source_path is not None:
         logging.getLogger("controlbridge.config").debug(
             "Loaded config from %s", cfg.source_path
@@ -96,7 +116,17 @@ def version() -> None:
 
 
 @app.command()
-def doctor() -> None:
+def doctor(
+    check_air_gap: bool = typer.Option(
+        False,
+        "--check-air-gap",
+        help=(
+            "Run the air-gap validator: enumerate every subsystem that "
+            "issues network calls and report each one's offline posture "
+            "(Ollama-ready, custom api_base on loopback, or cloud-only)."
+        ),
+    ),
+) -> None:
     """Run a diagnostic check of the ControlBridge installation."""
     from controlbridge_core.catalogs.registry import FrameworkRegistry
 
@@ -120,6 +150,17 @@ def doctor() -> None:
             table.add_row(pkg, "OK", "installed")
         except ImportError as e:
             table.add_row(pkg, "MISSING", str(e))
+
+    # controlbridge-api (optional extra) — show only if installed
+    try:
+        __import__("controlbridge_api")
+        table.add_row("controlbridge_api", "OK", "installed (web UI available)")
+    except ImportError:
+        table.add_row(
+            "controlbridge_api",
+            "OPTIONAL",
+            "not installed — `pip install 'controlbridge[gui]'` for web UI",
+        )
 
     # Catalogs and crosswalks
     try:
@@ -161,6 +202,185 @@ def doctor() -> None:
         )
 
     console.print(table)
+
+    if check_air_gap:
+        console.print()
+        _render_air_gap_report()
+
+
+def _render_air_gap_report() -> None:
+    """Print a per-subsystem air-gap posture table.
+
+    Each check answers: if ``--offline`` were on right now, would this
+    subsystem's configured target be refused? Not a live network probe —
+    pure configuration audit.
+    """
+    import os
+
+    from controlbridge_core.config import load_config
+    from controlbridge_core.network_guard import (
+        LOCAL_LLM_PREFIXES,
+        is_loopback_or_private,
+    )
+
+    cfg = load_config()
+
+    table = Table(title="Air-gap Posture Report")
+    table.add_column("Subsystem", style="cyan")
+    table.add_column("Posture", style="green")
+    table.add_column("Detail")
+
+    # 1. LLM client — inspect configured model + CONTROLBRIDGE_LLM_API_BASE env
+    model = (
+        os.environ.get("CONTROLBRIDGE_LLM_MODEL")
+        or (cfg.llm.model if cfg.llm else None)
+        or "gpt-4o"
+    )
+    api_base = os.environ.get("CONTROLBRIDGE_LLM_API_BASE") or os.environ.get(
+        "OPENAI_API_BASE"
+    )
+    if any(model.lower().startswith(p) for p in LOCAL_LLM_PREFIXES):
+        table.add_row(
+            "LLM client",
+            "AIR-GAP READY",
+            f"model={model} (local prefix)",
+        )
+    elif api_base:
+        from urllib.parse import urlparse
+
+        host = urlparse(api_base).hostname or ""
+        if is_loopback_or_private(host):
+            table.add_row(
+                "LLM client",
+                "AIR-GAP READY",
+                f"api_base={api_base} on loopback/RFC-1918",
+            )
+        else:
+            table.add_row(
+                "LLM client",
+                "WOULD LEAK",
+                f"api_base={api_base} (non-loopback host)",
+            )
+    else:
+        table.add_row(
+            "LLM client",
+            "WOULD LEAK",
+            f"model={model} is a cloud model; no local api_base set. "
+            "Set CONTROLBRIDGE_LLM_MODEL=ollama/llama3 or similar.",
+        )
+
+    # 2. Catalog loader — v0.4.0 only loads from bundled + user data dirs,
+    # no URL-based imports yet. Reserved for v0.5.0 when --from-url lands.
+    table.add_row(
+        "Catalog loader",
+        "AIR-GAP READY",
+        "v0.4.0 loads only from bundled + user-dir catalogs (no URL fetch)",
+    )
+
+    # 3. AI telemetry — LiteLLM's Anthropic/OpenAI clients do not phone
+    # home; Instructor doesn't either. No additional guards needed.
+    table.add_row(
+        "AI telemetry",
+        "AIR-GAP READY",
+        "LiteLLM + Instructor do not emit telemetry",
+    )
+
+    # 4. Gap store — on-disk in platformdirs, no network.
+    table.add_row(
+        "Gap store",
+        "AIR-GAP READY",
+        "platformdirs user-data (local filesystem only)",
+    )
+
+    # 5. FastAPI server (if installed) — localhost bind recommended.
+    try:
+        import controlbridge_api  # noqa: F401
+
+        table.add_row(
+            "Web UI",
+            "AIR-GAP READY",
+            "`controlbridge serve` binds to 127.0.0.1 by default",
+        )
+    except ImportError:
+        pass
+
+    console.print(table)
+    console.print(
+        "\n[dim]Pass [bold cyan]--offline[/bold cyan] on any command to enforce; "
+        "this report audits the configuration, not live traffic.[/dim]"
+    )
+
+
+@app.command()
+def serve(
+    ctx: typer.Context,
+    host: str = typer.Option(
+        "127.0.0.1",
+        "--host",
+        help=(
+            "Host to bind the web UI to. Default 127.0.0.1 (localhost-only). "
+            "Binding to 0.0.0.0 exposes the UI on your network; ControlBridge "
+            "has no auth in v0.4.0, so only do this if you know what you're doing."
+        ),
+    ),
+    port: int = typer.Option(
+        8000,
+        "--port",
+        "-p",
+        help="Port to serve on (default: 8000).",
+    ),
+    dev: bool = typer.Option(
+        False,
+        "--dev",
+        help=(
+            "Dev mode: permissive CORS for the Vite dev server at :5173. "
+            "Use with `npm run dev` in packages/controlbridge-ui/."
+        ),
+    ),
+    no_browser: bool = typer.Option(
+        False,
+        "--no-browser",
+        help="Don't auto-open a browser on startup.",
+    ),
+    reload: bool = typer.Option(
+        False,
+        "--reload",
+        help="Enable uvicorn --reload for backend development.",
+    ),
+) -> None:
+    """Start the ControlBridge web UI (REST API + React SPA).
+
+    Requires the `[gui]` optional extra:
+
+        pip install "controlbridge[gui]"   # or `uv tool install ...`
+
+    The server serves the React SPA at / and the REST API at /api/*.
+    Press Ctrl+C to stop.
+    """
+    try:
+        from controlbridge_api.cli import serve as serve_impl
+    except ImportError:
+        console.print(
+            "[bold red]Error:[/bold red] controlbridge-api is not installed.\n\n"
+            "Install the web UI extra:\n"
+            "  [cyan]pip install 'controlbridge[gui]'[/cyan]\n"
+            "  [cyan]uv tool install 'controlbridge[gui]'[/cyan]\n"
+        )
+        raise typer.Exit(code=1) from None
+
+    # Propagate the global --offline flag into the serve subprocess env.
+    offline = bool(ctx.obj.get("offline", False)) if ctx.obj else False
+
+    exit_code = serve_impl(
+        host=host,
+        port=port,
+        offline=offline,
+        dev=dev,
+        open_browser=not no_browser,
+        reload=reload,
+    )
+    if exit_code != 0:
+        raise typer.Exit(code=exit_code)
 
 
 if __name__ == "__main__":

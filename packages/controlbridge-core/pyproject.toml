@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-core"
-version = "0.3.1"
+version = "0.4.0"
 description = "Core data models, catalog loading, and gap analysis engine for ControlBridge GRC tool"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]

@@ -77,8 +77,7 @@ def explain_control(
     the cached explanation instantly.
     """
     from controlbridge_core.catalogs.registry import FrameworkRegistry
-
-    from controlbridge.config import ControlBridgeConfig, get_default
+    from controlbridge_core.config import ControlBridgeConfig, get_default
 
     cfg_obj = ctx.obj.get("config") if ctx.obj else None
     cfg: ControlBridgeConfig = (

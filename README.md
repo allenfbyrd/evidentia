@@ -85,16 +85,39 @@ ControlBridge is built on four principles:
 
 ---
 
-## Current status: 82 frameworks bundled, 392 tests passing
+## Current status: 82 frameworks bundled, 501 tests passing
 
-**v0.3.1 (April 2026)** adds three realistic end-to-end example
+**v0.4.0-alpha.1 (April 2026)** is the **"Accessible GRC"** release.
+ControlBridge grows beyond the CLI with a FastAPI REST server, a
+React + shadcn/ui web UI (localhost-only, WCAG 2.1 AA via Radix
+primitives), an air-gapped mode (`--offline` flag +
+`doctor --check-air-gap` validator), and a new sixth workspace
+package (`controlbridge-api`).
+
+Install the UI via the new `[gui]` extra:
+
+```bash
+uv tool install "controlbridge[gui]"
+# or
+pip install "controlbridge[gui]"
+
+controlbridge serve   # web UI at http://127.0.0.1:8000
+```
+
+See [`docs/gui/README.md`](docs/gui/README.md) for the full UI guide and
+[`docs/air-gapped.md`](docs/air-gapped.md) for air-gapped deployments.
+The alpha.1 ships the read-only web UI (Home / Dashboard / Frameworks /
+Settings); the interactive onboarding wizard, Gap Analyze form, Gap
+Diff picker, and Risk Generate streaming page land in alpha.2.
+
+**v0.3.1 (April 2026)** added three realistic end-to-end example
 scenarios — Meridian Financial (fintech), Acme Healthtech (HIPAA),
 Northstar Systems (DoD contractor) — with pre-generated gap
 snapshots and a full walkthrough that exercises every feature
-added through v0.3.0. The repo now dog-foods its own GitHub Action
+added through v0.3.0. The repo dog-foods its own GitHub Action
 (`.github/workflows/controlbridge.yml`) on every PR against the
 Meridian v2 inventory. Start at
-[`examples/WALKTHROUGH.md`](examples/WALKTHROUGH.md). Also fixes one
+[`examples/WALKTHROUGH.md`](examples/WALKTHROUGH.md). Also fixed one
 latent bug in `compute_gap_diff` that only affected library-level
 (non-CLI) callers — flagged by the new integration-test regression
 guard.

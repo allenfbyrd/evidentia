@@ -1,0 +1,6 @@
+# This directory is populated at wheel-build time by the frontend build hook.
+# Running `npm run build` in packages/controlbridge-ui/ produces dist/*
+# which is copied here before `uv build`. See .github/workflows/release.yml.
+#
+# In local dev, use `controlbridge serve --dev` to proxy to the Vite dev
+# server at http://127.0.0.1:5173 instead of relying on bundled assets.
