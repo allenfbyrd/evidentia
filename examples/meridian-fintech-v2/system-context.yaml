@@ -1,0 +1,94 @@
+# =============================================================================
+# Meridian Financial v2 — System context for AI risk statement generation
+# =============================================================================
+# Used by `controlbridge risk generate --context system-context.yaml ...`
+# to produce NIST SP 800-30 Rev 1 compliant risk statements grounded in
+# the organization's actual threat model, data classifications, and
+# regulatory scope.
+# =============================================================================
+
+organization: "Meridian Financial"
+system_name: "Meridian Customer Banking Platform"
+system_description: |
+  Consumer fintech SaaS providing FDIC-insured savings accounts, debit card
+  issuance, and bill-pay services to ~1.2M US customers plus ~80K EU
+  customers (GDPR-applicable). Backend is a microservices architecture on
+  AWS EKS (us-east-1 primary, us-west-2 DR). Customer-facing web + mobile
+  clients talk to internal APIs through a Cloudflare + AWS WAF edge.
+  Card processing is outsourced to Marqeta (sub-processor); core banking
+  ledger runs on a proprietary Python service.
+
+data_classification:
+  - "PII (customer name, email, SSN last-4, DOB)"
+  - "Financial (account balance, transaction history, routing/account numbers)"
+  - "PCI-CDE (card PAN via Marqeta tokenization only — no raw PAN in Meridian systems)"
+  - "Biometric (optional fingerprint auth on mobile — stored on-device only)"
+
+hosting: "AWS (us-east-1 primary, us-west-2 DR); Cloudflare edge"
+
+risk_tolerance: "low"
+
+regulatory_requirements:
+  - "NIST SP 800-53 Rev 5 Moderate (FFIEC expectation)"
+  - "SOC 2 Type II (annual, audited by a Big-4 firm)"
+  - "NYDFS 23 NYCRR Part 500"
+  - "CCPA / CPRA (California residents)"
+  - "GDPR (EU customer subset)"
+  - "GLBA Safeguards Rule"
+
+employee_count: 240
+customer_count: 1280000
+
+threat_actors:
+  - "Financially motivated criminals (account takeover, payment fraud, BEC)"
+  - "Ransomware operators (lateral movement from compromised employee endpoint)"
+  - "Insiders — malicious (financial motive) and negligent (mis-configured S3)"
+  - "Nation-state actors (low probability; high-value targets in our customer base)"
+  - "Supply chain attackers (dependency compromise via npm/PyPI; CI/CD hijacking)"
+
+existing_controls:
+  - "AC-2"
+  - "IA-2"
+  - "IA-2(1)"
+  - "SC-7"
+  - "SC-13"
+  - "SC-28"
+
+components:
+  - name: "Web Application"
+    type: web_app
+    technology: "React + TypeScript + Next.js"
+    data_handled: ["PII"]
+    location: "Cloudflare edge → AWS us-east-1"
+
+  - name: "Mobile Application"
+    type: mobile_app
+    technology: "React Native (iOS + Android)"
+    data_handled: ["PII", "Biometric"]
+
+  - name: "Core Banking API"
+    type: api
+    technology: "Python FastAPI on EKS"
+    data_handled: ["PII", "Financial"]
+    location: "AWS us-east-1 (EKS)"
+
+  - name: "Transaction Ledger"
+    type: database
+    technology: "Amazon Aurora PostgreSQL (Multi-AZ)"
+    data_handled: ["Financial"]
+
+  - name: "Customer Database"
+    type: database
+    technology: "Amazon Aurora PostgreSQL (Multi-AZ)"
+    data_handled: ["PII"]
+
+  - name: "Card Issuer Integration"
+    type: api
+    technology: "Marqeta REST API (PCI-compliant sub-processor)"
+    data_handled: ["PCI-CDE (tokenized only)"]
+
+  - name: "Data Warehouse"
+    type: database
+    technology: "Snowflake (analytics)"
+    data_handled: ["PII (hashed)", "Financial (aggregated)"]
+    location: "Snowflake us-east-1"

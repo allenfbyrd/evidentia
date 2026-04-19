@@ -1,0 +1,183 @@
+# =============================================================================
+# Northstar Systems — Control inventory (~30 controls)
+# =============================================================================
+# Fictional DoD sub-contractor delivering mission-planning software to
+# a Navy command. Handles Controlled Unclassified Information (CUI).
+# Runs on AWS GovCloud (us-gov-east-1).
+#
+# Target frameworks: cmmc-2-l2 (required for DoD contract performance)
+# + nist-800-171-r2 (the foundation CMMC L2 is built on; many controls
+# map 1:1, making cross-framework efficiency dramatic in the report).
+#
+# Designed intentional gaps around SIEM + incident response automation
+# which are common DIBCAC assessment findings.
+# =============================================================================
+
+organization: "Northstar Systems"
+system_name: "Northstar Mission Enclave"
+
+controls:
+  # ── CMMC L2 — Access Control (AC) ──────────────────────────────────────────
+  - id: CMMC.L2-3.1.1
+    title: "Authorized Access Control"
+    status: implemented
+    implementation_notes: |
+      Users authorized by role/clearance. Enforced via AWS IAM
+      Identity Center + SAML from customer-owned IdP (CAC/PIV).
+    owner: "ISSM"
+    tags: [cac-piv, iam-identity-center]
+
+  - id: CMMC.L2-3.1.2
+    title: "Transaction & Function Control"
+    status: implemented
+
+  - id: CMMC.L2-3.1.5
+    title: "Least Privilege"
+    status: implemented
+
+  - id: CMMC.L2-3.1.8
+    title: "Unsuccessful Logon Attempts"
+    status: implemented
+
+  - id: CMMC.L2-3.1.12
+    title: "Monitor and Control Remote Access"
+    status: partially_implemented
+    implementation_notes: |
+      AWS GovCloud bastion + session recording. No remote access from
+      outside the continental US (geo-fencing via Cloudflare). Full
+      command-level audit only covers bastion sessions, not EKS exec.
+
+  - id: CMMC.L2-3.1.13
+    title: "Employ Cryptographic Mechanisms to Protect Remote Access Sessions"
+    status: implemented
+
+  - id: CMMC.L2-3.1.20
+    title: "Verify and Control/Limit Connections to External Systems"
+    status: implemented
+
+  # ── CMMC L2 — Audit and Accountability (AU) ────────────────────────────────
+  - id: CMMC.L2-3.3.1
+    title: "Create and Retain System Audit Logs"
+    status: implemented
+
+  - id: CMMC.L2-3.3.5
+    title: "Correlate Audit Review, Analysis, and Reporting"
+    status: not_implemented
+    implementation_notes: |
+      Known DIBCAC-assessment gap. No SIEM; basic CloudTrail + Splunk
+      ingestion but no correlation rules for APT-style lateral movement.
+      Target: stand up a SIEM platform in FY25.
+    tags: [dibcac-finding, fy25-roadmap]
+
+  - id: CMMC.L2-3.3.7
+    title: "Time Stamps"
+    status: implemented
+
+  - id: CMMC.L2-3.3.8
+    title: "Protect Audit Information"
+    status: implemented
+
+  # ── CMMC L2 — Configuration Management (CM) ────────────────────────────────
+  - id: CMMC.L2-3.4.1
+    title: "Establish and Maintain Baseline Configurations and Inventories"
+    status: implemented
+
+  - id: CMMC.L2-3.4.2
+    title: "Establish and Enforce Security Configuration Settings"
+    status: implemented
+
+  - id: CMMC.L2-3.4.7
+    title: "Restrict Nonessential Programs, Functions, Ports, Protocols, and Services"
+    status: implemented
+
+  # ── CMMC L2 — Identification and Authentication (IA) ──────────────────────
+  - id: CMMC.L2-3.5.3
+    title: "Multifactor Authentication"
+    status: implemented
+    implementation_notes: |
+      CAC/PIV hardware tokens required for all CUI access. FIDO2
+      backup for service accounts. No password-based login.
+
+  # ── CMMC L2 — Incident Response (IR) ──────────────────────────────────────
+  - id: CMMC.L2-3.6.1
+    title: "Establish Operational Incident-Handling Capability"
+    status: partially_implemented
+    implementation_notes: |
+      24/7 monitored by a MSP (Arctic Wolf). Escalation runbook
+      published. Internal IR team is part-time (2 engineers
+      rotating); no formal SOC.
+
+  - id: CMMC.L2-3.6.2
+    title: "Track, Document, and Report Incidents"
+    status: implemented
+
+  - id: CMMC.L2-3.6.3
+    title: "Test Incident Response Capability"
+    status: partially_implemented
+    implementation_notes: |
+      Annual tabletop exercise completed last Q3. Quarterly tabletops
+      not yet established despite ISSM recommendation.
+
+  # ── CMMC L2 — Media Protection (MP) ────────────────────────────────────────
+  - id: CMMC.L2-3.8.1
+    title: "Protect Information System Media Containing CUI"
+    status: implemented
+
+  - id: CMMC.L2-3.8.3
+    title: "Sanitize or Destroy CUI Before Disposal"
+    status: implemented
+
+  # ── CMMC L2 — System and Communications Protection (SC) ───────────────────
+  - id: CMMC.L2-3.13.1
+    title: "Monitor, Control, and Protect Communications at External Boundaries"
+    status: implemented
+
+  - id: CMMC.L2-3.13.8
+    title: "Implement Cryptographic Mechanisms to Prevent Unauthorized Disclosure of CUI During Transmission"
+    status: implemented
+
+  - id: CMMC.L2-3.13.11
+    title: "Employ FIPS-validated Cryptography"
+    status: implemented
+    implementation_notes: |
+      AWS GovCloud KMS (FIPS 140-2 Level 3 HSMs). TLS 1.2+ with
+      FIPS-validated cipher suites enforced via ALB.
+
+  # ── CMMC L2 — System and Information Integrity (SI) ───────────────────────
+  - id: CMMC.L2-3.14.1
+    title: "Identify, Report, and Correct System Flaws"
+    status: implemented
+
+  - id: CMMC.L2-3.14.2
+    title: "Provide Protection from Malicious Code"
+    status: implemented
+
+  - id: CMMC.L2-3.14.6
+    title: "Monitor Organizational Systems, Including Inbound and Outbound Communications"
+    status: partially_implemented
+    implementation_notes: |
+      Outbound traffic filtered via AWS Network Firewall. Egress logging
+      captured but not yet correlated with threat-intelligence feeds.
+
+  # ── NIST 800-171 Rev 2 — direct overlay ───────────────────────────────────
+  # Most NIST 800-171 Rev 2 controls map 1:1 to CMMC L2. Listing a few
+  # so the cross-framework efficiency report surfaces the alignment.
+  - id: "3.1.1"
+    title: "Limit System Access to Authorized Users"
+    status: implemented
+
+  - id: "3.1.5"
+    title: "Employ the Principle of Least Privilege"
+    status: implemented
+
+  - id: "3.3.5"
+    title: "Correlate Audit Record Review, Analysis, and Reporting"
+    status: not_implemented
+
+  - id: "3.5.3"
+    title: "Use Multifactor Authentication"
+    status: implemented
+
+  - id: "3.13.11"
+    title: "Employ FIPS-validated Cryptography"
+    status: implemented

@@ -58,8 +58,21 @@ def _is_open(gap: ControlGap) -> bool:
     purposes. An ACCEPTED gap is one where the org formally signed off on
     the residual risk (risk acceptance memo) — showing up "fresh" in the
     head report isn't a regression, it's still accepted.
+
+    v0.3.1: handle both in-memory path (``gap.status`` is a ``GapStatus``
+    enum instance) and JSON-roundtrip path (``gap.status`` is the
+    enum's string value) — Pydantic's ``use_enum_values=True`` only
+    coerces on serialize, not on in-memory construction, so
+    ``str(enum)`` naively returns ``"GapStatus.OPEN"`` rather than
+    ``"open"``. The CLI goes through a JSON save/load between
+    analyze and diff so it accidentally worked; direct library
+    usage did not. Normalizing to the enum ``.value`` here covers
+    both paths.
     """
-    return str(gap.status) in (
+    status_value = (
+        gap.status.value if isinstance(gap.status, GapStatus) else str(gap.status)
+    )
+    return status_value in (
         GapStatus.OPEN.value,
         GapStatus.IN_PROGRESS.value,
     )

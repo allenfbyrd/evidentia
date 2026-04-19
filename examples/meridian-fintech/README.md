@@ -1,4 +1,17 @@
-# Meridian Financial — ControlBridge Example
+# Meridian Financial — ControlBridge Example (legacy v0.1.x)
+
+> ⚠️ **This is the legacy v0.1.x example.** For everything
+> v0.2.0+ added (full NIST 800-53 Rev 5 catalog, `gap diff`,
+> `explain`, v0.2.1 `controlbridge.yaml` schema, user-catalog
+> import, persistent gap store), see
+> [`examples/meridian-fintech-v2/`](../meridian-fintech-v2/) and
+> the [walkthrough](../WALKTHROUGH.md).
+>
+> This directory is kept as-is so old links don't 404. The
+> `controlbridge.yaml` in this directory uses the deprecated
+> v0.1.x schema (`storage:`, `logging:`, nested
+> `frameworks.default:`) — still loads but emits a
+> `DeprecationWarning`.
 
 A realistic fintech sample designed to exercise every feature of ControlBridge.
 

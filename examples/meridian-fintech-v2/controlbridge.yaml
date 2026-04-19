@@ -1,0 +1,30 @@
+# =============================================================================
+# Meridian Financial v2 — ControlBridge project config (v0.2.1+ schema)
+# =============================================================================
+# v2 refresh of the original Meridian fintech scenario, tracking every
+# feature added since v0.2.0:
+#   - Full NIST 800-53 Rev 5 Moderate (287 controls) instead of the 16-control
+#     sample
+#   - SOC 2 TSC stub with a user-imported "licensed copy" demo
+#   - EU GDPR obligation catalog (privacy law applicability for EU customers)
+#   - MITRE ATT&CK Enterprise reference for threat-coverage framing
+#
+# Precedence for every key below: CLI flag > CONTROLBRIDGE_* env var >
+# this file > built-in default.
+
+organization: "Meridian Financial"
+system_name: "Meridian Customer Banking Platform"
+
+# Default framework set for `controlbridge gap analyze` when --frameworks
+# is omitted. CLI --frameworks replaces this list entirely (doesn't union).
+# Warning fires if >5 frameworks are listed.
+frameworks:
+  - nist-800-53-rev5-moderate
+  - soc2-tsc
+  - eu-gdpr
+
+# LLM defaults for `controlbridge risk generate` and `controlbridge explain`.
+# $CONTROLBRIDGE_LLM_MODEL / $CONTROLBRIDGE_LLM_TEMPERATURE override this.
+llm:
+  model: "gpt-4o"
+  temperature: 0.0  # deterministic output for audit-trail use

@@ -1,0 +1,49 @@
+control_id,title,status,owner,notes
+AC-1,Access Control Policy and Procedures,implemented,CISO Office,Annual review
+AC-2,Account Management,implemented,IAM Team,Okta-managed with quarterly reviews
+AC-2(1),Account Management — Automated System Account Management,implemented,IAM Team,Terraform + Okta workflows
+AC-3,Access Enforcement,partially_implemented,Platform Team,Warehouse RLS migration in progress
+AC-4,Information Flow Enforcement,partially_implemented,Network,Egress filter drift across regions
+AC-6,Least Privilege,implemented,Platform Team,Teleport JIT
+AC-6(1),Least Privilege — Authorize Access to Security Functions,implemented,Platform Team,
+AC-6(9),Least Privilege — Log Use of Privileged Functions,partially_implemented,Platform Team,EKS node command audit gap
+AC-17,Remote Access,implemented,Network,Cloudflare Access (no VPN)
+AC-22,Publicly Accessible Content,implemented,Web Team,
+AU-1,Policy and Procedures,implemented,CISO Office,
+AU-2,Event Logging,planned,Platform Team,Q3 centralized logging project
+AU-3,Content of Audit Records,partially_implemented,Platform Team,
+AU-6,Audit Record Review — Analysis and Reporting,not_implemented,SecOps,Awaiting detection engineer hire
+AU-8,Time Stamps,implemented,Platform Team,NTP via AWS
+AU-9,Protection of Audit Information,implemented,Platform Team,S3 object-lock 7-year
+CM-2,Baseline Configuration,implemented,Platform Team,Terraform modules + Packer AMIs
+CM-6,Configuration Settings,partially_implemented,Platform Team,K8s drift detection manual
+CM-7,Least Functionality,implemented,Platform Team,
+CM-8,System Component Inventory,implemented,Platform Team,CMDB auto-sourced from AWS Config
+CP-2,Contingency Plan,implemented,CISO Office,
+CP-9,System Backup,implemented,Platform Team,RDS PITR 35d + cross-region
+CP-10,System Recovery and Reconstitution,partially_implemented,Platform Team,DR runbook ok but RTO unvalidated
+IA-2,Identification and Authentication (Organizational Users),implemented,IAM Team,
+IA-2(1),I&A — MFA to Privileged Accounts,implemented,IAM Team,FIDO2 hardware only
+IA-2(2),I&A — MFA to Non-Privileged Accounts,implemented,IAM Team,
+IA-5,Authenticator Management,implemented,IAM Team,OIDC + IAM Roles Anywhere for services
+IA-8,Identification and Authentication (Non-Organizational Users),implemented,IAM Team,
+IR-1,Incident Response Policy and Procedures,implemented,CISO Office,
+IR-4,Incident Handling,partially_implemented,SecOps,Auto-containment playbooks pending
+IR-6,Incident Reporting,implemented,CISO Office,NYDFS 72h SLA in runbook
+IR-8,Incident Response Plan,implemented,CISO Office,
+RA-3,Risk Assessment,partially_implemented,CISO Office,Internal-tools threat models missing
+RA-5,Vulnerability Monitoring and Scanning,implemented,SecOps,Nessus + Snyk + Dependabot
+SC-7,Boundary Protection,implemented,Network,AWS NFW + WAF
+SC-8,Transmission Confidentiality and Integrity,implemented,Platform Team,TLS 1.3
+SC-8(1),Transmission Confidentiality — Cryptographic Protection,implemented,Platform Team,
+SC-13,Cryptographic Protection,implemented,Platform Team,AWS KMS (FIPS 140-2 L3)
+SC-28,Protection of Information at Rest,implemented,Platform Team,
+SC-28(1),Protection at Rest — Cryptographic Protection,implemented,Platform Team,
+SI-2,Flaw Remediation,partially_implemented,Platform Team,RDS OS-patch SLA slips
+SI-3,Malicious Code Protection,implemented,SecOps,
+SI-4,System Monitoring,not_implemented,SecOps,Part of Q3 SOC buildout
+SI-7,Software — Firmware and Information Integrity,partially_implemented,Platform Team,
+SR-2,Supply Chain Risk Management Plan,implemented,CISO Office,
+SR-3,Supply Chain Controls and Processes,partially_implemented,Procurement,SBOM for third-party containers pending
+AT-2,Literacy Training and Awareness,implemented,People Team,KnowBe4
+AT-3,Role-Based Training,partially_implemented,People Team,No GDPR training for CS reps

@@ -1,0 +1,74 @@
+organization: "Acme Healthtech"
+system_name: "Acme Telehealth Platform"
+system_description: |
+  HIPAA-covered-entity telehealth SaaS. Provides video visits, e-prescribing
+  (via Surescripts), patient messaging, and integrated labs (Quest + LabCorp
+  APIs). ~40K active patients as of the start of the year; ~600 clinician
+  users across ~180 independent practices.
+
+data_classification:
+  - "PHI (patient demographics, diagnosis codes, visit notes, prescription history, lab results)"
+  - "Payment data (ACH + card via Stripe, PCI-DSS Level 4 scope via SAQ-A)"
+  - "Provider PII (NPI, DEA number, licensure)"
+
+hosting: "AWS (us-east-1) — HIPAA-eligible services only, under BAA"
+
+risk_tolerance: "very-low (covered entity posture, high-profile regulatory exposure)"
+
+regulatory_requirements:
+  - "HIPAA Security Rule (45 CFR § 164 Subpart C)"
+  - "HIPAA Privacy Rule (Subpart E)"
+  - "HIPAA Breach Notification Rule (Subpart D)"
+  - "State breach notification laws (all 50 states)"
+  - "FTC Health Breach Notification Rule (for the consumer-direct product line)"
+  - "21st Century Cures Act info-blocking rules"
+
+employee_count: 85
+customer_count: 40000
+
+threat_actors:
+  - "Ransomware operators targeting healthcare (consistently top sector)"
+  - "PHI-specific theft rings (dark-web resale)"
+  - "Credential-stuffing attacks on patient auth"
+  - "Social engineering of clinical staff (phishing for prescription fraud)"
+
+existing_controls:
+  - "164.312(a)(2)(iv)"
+  - "164.312(d)"
+  - "164.312(e)(1)"
+  - "IA-2(1)"
+  - "SC-13"
+
+components:
+  - name: "Patient Web Portal"
+    type: web_app
+    technology: "React + Django"
+    data_handled: ["PHI", "Provider PII"]
+    location: "AWS us-east-1"
+
+  - name: "Clinician Workstation App"
+    type: web_app
+    technology: "React (same monolith — RBAC-separated)"
+    data_handled: ["PHI", "Provider PII"]
+    location: "AWS us-east-1"
+
+  - name: "Video Visit Service"
+    type: api
+    technology: "Twilio Video (SaaS sub-processor under BAA)"
+    data_handled: ["PHI"]
+
+  - name: "EHR Integration Layer"
+    type: api
+    technology: "Python FastAPI, FHIR R4 client"
+    data_handled: ["PHI"]
+    location: "AWS us-east-1"
+
+  - name: "Patient Database"
+    type: database
+    technology: "Amazon Aurora PostgreSQL (Multi-AZ)"
+    data_handled: ["PHI"]
+
+  - name: "Audit Log Store"
+    type: database
+    technology: "Datadog + S3 (object-lock, 6-year retention)"
+    data_handled: ["PHI access metadata"]

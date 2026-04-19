@@ -1,0 +1,19 @@
+{
+  "framework_id": "soc2-tsc",
+  "framework_name": "SOC 2 TSC 2017 (Meridian Financial licensed copy — DEMO)",
+  "version": "2017 (with 2022 Points of Focus)",
+  "source": "Synthetic demo content. NOT the authoritative AICPA text. This file exists to exercise `controlbridge catalog import` shadow-precedence flow — drop your own licensed copy here for real use.",
+  "tier": "C",
+  "category": "control",
+  "placeholder": false,
+  "license_required": false,
+  "license_terms": "Demo placeholder — replace with your licensed AICPA copy in production use.",
+  "families": ["Common Criteria", "Availability", "Confidentiality"],
+  "controls": [
+    {"id": "CC6.1", "title": "Common Criteria 6.1 — Logical and Physical Access Controls (LOCAL LICENSED COPY DEMO)", "description": "[Demo-only plain-English summary; replace with authoritative AICPA text in production.] The entity implements logical and physical access controls that restrict access to the system and the assets that it uses so that only authorized users, processes, and devices can reach in-scope data.", "family": "Common Criteria"},
+    {"id": "CC6.2", "title": "Common Criteria 6.2 — New Access Authorization (LOCAL LICENSED COPY DEMO)", "description": "[Demo-only.] Before an internal or external user is issued credentials to the system, they are registered and authorized through a documented process that binds identity to role.", "family": "Common Criteria"},
+    {"id": "CC6.3", "title": "Common Criteria 6.3 — Access Modification and Removal (LOCAL LICENSED COPY DEMO)", "description": "[Demo-only.] Changes to access rights and removal of access when role changes or employment ends follow a documented and timely process.", "family": "Common Criteria"},
+    {"id": "CC7.1", "title": "Common Criteria 7.1 — Detection of Configuration Changes (LOCAL LICENSED COPY DEMO)", "description": "[Demo-only.] The entity uses detection procedures to identify anomalies and configuration changes that could result in a security event.", "family": "Common Criteria"},
+    {"id": "A1.1", "title": "Availability 1.1 — Capacity Management (LOCAL LICENSED COPY DEMO)", "description": "[Demo-only.] The entity maintains current capacity projections and provisions, and monitors system capacity and performance to meet agreed-upon availability objectives.", "family": "Availability"}
+  ]
+}

@@ -1,0 +1,150 @@
+# =============================================================================
+# Meridian Financial v2 — "PR branch" control inventory
+# =============================================================================
+# Intentionally designed to produce every diff classification when fed
+# through `controlbridge gap diff --base snapshots/baseline.json
+# --head snapshots/pr-branch.json`:
+#
+#   • AU-6 moves from not_implemented → partially_implemented  (closed: severity down)
+#   • SI-4 moves from not_implemented → partially_implemented  (closed: severity down)
+#   • AU-2 moves from planned → implemented                    (closed)
+#   • AC-17 moves from implemented → partially_implemented     (regression: opened / sev up)
+#   • CP-10 moves from partially_implemented → not_implemented (sev up)
+#   • SR-3 moves from partially_implemented → implemented      (closed)
+#   • NEW control added: AU-12 not_implemented                 (opened as a new gap)
+#   • SI-2 moves from partially → implemented                  (closed)
+#
+# Everything else unchanged — demonstrates that unchanged controls
+# correctly stay out of the "change" buckets.
+# =============================================================================
+
+organization: "Meridian Financial"
+system_name: "Meridian Customer Banking Platform"
+
+controls:
+  # ── Access Control (AC) — AC-17 REGRESSED on this branch ──────────────────
+  - {id: AC-1, title: "Access Control Policy and Procedures", status: implemented}
+  - {id: AC-2, title: "Account Management", status: implemented}
+  - {id: AC-2(1), title: "Account Management — Automated System Account Management", status: implemented}
+  - {id: ac-2.3, title: "Account Management — Disable Accounts", status: implemented}
+  - {id: AC-3, title: "Access Enforcement", status: partially_implemented}
+  - {id: AC-4, title: "Information Flow Enforcement", status: partially_implemented}
+  - {id: AC-6, title: "Least Privilege", status: implemented}
+  - {id: AC-6(1), title: "Least Privilege — Authorize Access to Security Functions", status: implemented}
+  - {id: AC-6(9), title: "Least Privilege — Log Use of Privileged Functions", status: partially_implemented}
+
+  - id: AC-17
+    title: "Remote Access"
+    status: partially_implemented  # was: implemented (regression)
+    implementation_notes: |
+      Cloudflare Access config drift detected during this PR — one legacy
+      VPN endpoint re-enabled by accident. Tracked as a P1 rollback ticket.
+
+  - {id: AC-22, title: "Publicly Accessible Content", status: implemented}
+
+  # ── Audit and Accountability (AU) — 3 improvements + 1 new gap ────────────
+  - {id: AU-1, title: "Policy and Procedures", status: implemented}
+
+  - id: AU-2
+    title: "Event Logging"
+    status: implemented  # was: planned (improvement)
+    implementation_notes: |
+      Q3 centralized-logging deployment shipped early. All application
+      logs now flow to Splunk with 13-month retention.
+
+  - {id: AU-3, title: "Content of Audit Records", status: partially_implemented}
+
+  - id: AU-6
+    title: "Audit Record Review, Analysis, and Reporting"
+    status: partially_implemented  # was: not_implemented (improvement)
+    implementation_notes: |
+      SIEM correlation rules for Okta + AWS CloudTrail now in place.
+      Detection engineer hired Q2 — on-call rotation being stood up.
+
+  - {id: AU-8, title: "Time Stamps", status: implemented}
+  - {id: AU-9, title: "Protection of Audit Information", status: implemented}
+
+  # NEW in this branch — exercises the "opened" diff classification
+  - id: AU-12
+    title: "Audit Record Generation"
+    status: not_implemented
+    implementation_notes: |
+      New control added in this PR to acknowledge AU-12 was previously
+      out of scope. Not yet implemented; ticket created with Platform.
+
+  # ── Configuration Management (CM) — no change ─────────────────────────────
+  - {id: CM-2, title: "Baseline Configuration", status: implemented}
+  - {id: CM-6, title: "Configuration Settings", status: partially_implemented}
+  - {id: CM-7, title: "Least Functionality", status: implemented}
+  - {id: CM-8, title: "System Component Inventory", status: implemented}
+
+  # ── Contingency Planning (CP) — CP-10 REGRESSED ───────────────────────────
+  - {id: CP-2, title: "Contingency Plan", status: implemented}
+  - {id: CP-9, title: "System Backup", status: implemented}
+
+  - id: CP-10
+    title: "System Recovery and Reconstitution"
+    status: not_implemented  # was: partially_implemented (regression: severity up)
+    implementation_notes: |
+      Q1 DR test failed — cross-region failover procedure hasn't been
+      re-validated since the RDS engine upgrade. Rated as not_implemented
+      pending re-test.
+
+  # ── Identification and Authentication (IA) — no change ────────────────────
+  - {id: IA-2, title: "Identification and Authentication (Organizational Users)", status: implemented}
+  - {id: IA-2(1), title: "I&A — MFA to Privileged Accounts", status: implemented}
+  - {id: IA-2(2), title: "I&A — MFA to Non-Privileged Accounts", status: implemented}
+  - {id: IA-5, title: "Authenticator Management", status: implemented}
+  - {id: IA-8, title: "Identification and Authentication (Non-Organizational Users)", status: implemented}
+
+  # ── Incident Response (IR) — no change ────────────────────────────────────
+  - {id: IR-1, title: "Incident Response Policy and Procedures", status: implemented}
+  - {id: IR-4, title: "Incident Handling", status: partially_implemented}
+  - {id: IR-6, title: "Incident Reporting", status: implemented}
+  - {id: IR-8, title: "Incident Response Plan", status: implemented}
+
+  # ── Risk Assessment (RA) — no change ──────────────────────────────────────
+  - {id: RA-3, title: "Risk Assessment", status: partially_implemented}
+  - {id: RA-5, title: "Vulnerability Monitoring and Scanning", status: implemented}
+
+  # ── System and Communications Protection (SC) — no change ─────────────────
+  - {id: SC-7, title: "Boundary Protection", status: implemented}
+  - {id: SC-8, title: "Transmission Confidentiality and Integrity", status: implemented}
+  - {id: SC-8(1), title: "Transmission Confidentiality — Cryptographic Protection", status: implemented}
+  - {id: SC-13, title: "Cryptographic Protection", status: implemented}
+  - {id: SC-28, title: "Protection of Information at Rest", status: implemented}
+  - {id: SC-28(1), title: "Protection at Rest — Cryptographic Protection", status: implemented}
+
+  # ── System and Information Integrity (SI) — 2 improvements ────────────────
+  - id: SI-2
+    title: "Flaw Remediation"
+    status: implemented  # was: partially_implemented (improvement)
+    implementation_notes: |
+      New automation: weekly RDS patch-apply via AWS SSM maintenance
+      windows (tested in staging Mondays, rolled to prod Thursdays).
+      SLA compliance now tracked automatically.
+
+  - {id: SI-3, title: "Malicious Code Protection", status: implemented}
+
+  - id: SI-4
+    title: "System Monitoring"
+    status: partially_implemented  # was: not_implemented (improvement)
+    implementation_notes: |
+      CrowdStrike Falcon rolled out to 85% of prod endpoints. EKS DaemonSet
+      deployment in progress — target 100% coverage by end of Q3.
+
+  - {id: SI-7, title: "Software, Firmware, and Information Integrity", status: partially_implemented}
+
+  # ── Supply Chain Risk Management (SR) — SR-3 IMPROVED ─────────────────────
+  - {id: SR-2, title: "Supply Chain Risk Management Plan", status: implemented}
+
+  - id: SR-3
+    title: "Supply Chain Controls and Processes"
+    status: implemented  # was: partially_implemented (improvement)
+    implementation_notes: |
+      SBOM generation now required for all third-party container images
+      via admission controller. Syft + Grype integrated into CI/CD.
+
+  # ── Awareness and Training (AT) — no change ───────────────────────────────
+  - {id: AT-2, title: "Literacy Training and Awareness", status: implemented}
+  - {id: AT-3, title: "Role-Based Training", status: partially_implemented}

@@ -1,0 +1,229 @@
+# =============================================================================
+# Acme Healthtech — Control inventory (~34 controls, HIPAA-focused)
+# =============================================================================
+# Fictional B2B2C telehealth platform. Hosts video visits for independent
+# physician practices; processes PHI at scale. A HIPAA covered entity
+# (not a business associate — they contract DIRECTLY with patients for
+# their consumer-direct product line).
+#
+# Target frameworks: hipaa-security (required), hipaa-privacy (required),
+# hipaa-breach (required), nist-800-53-rev5-moderate (voluntary — used
+# as the implementation overlay HIPAA Security Rule 164.306(d) allows).
+#
+# Designed to produce cross-framework opportunities where one control
+# satisfies requirements across all 4 frameworks (e.g., IA-2 satisfies
+# HIPAA §164.312(d) AND NIST IA-2 AND SOC 2 style criteria — an
+# "efficiency opportunity" in ControlBridge jargon).
+# =============================================================================
+
+organization: "Acme Healthtech"
+system_name: "Acme Telehealth Platform"
+
+controls:
+  # ── HIPAA Security Rule — Administrative Safeguards ───────────────────────
+  - id: 164.308(a)(1)(i)
+    title: "Security Management Process"
+    status: implemented
+    implementation_notes: |
+      Documented policy + annual risk analysis performed by in-house
+      security team. Risk register maintained in GRC platform.
+    owner: "Security Officer"
+
+  - id: 164.308(a)(1)(ii)(A)
+    title: "Risk Analysis"
+    status: implemented
+    owner: "Security Officer"
+
+  - id: 164.308(a)(1)(ii)(B)
+    title: "Risk Management"
+    status: implemented
+    owner: "Security Officer"
+
+  - id: 164.308(a)(1)(ii)(D)
+    title: "Information System Activity Review"
+    status: partially_implemented
+    implementation_notes: |
+      Access logs reviewed weekly for known high-risk roles. No automated
+      anomaly detection for broader user base yet.
+
+  - id: 164.308(a)(2)
+    title: "Assigned Security Responsibility"
+    status: implemented
+    owner: "CISO (also Security Officer)"
+
+  - id: 164.308(a)(3)(i)
+    title: "Workforce Security"
+    status: implemented
+
+  - id: 164.308(a)(3)(ii)(C)
+    title: "Termination Procedures"
+    status: implemented
+    implementation_notes: |
+      HR-triggered deprovisioning within 4 hours of separation. All
+      privileged access revoked automatically via Okta workflow.
+
+  - id: 164.308(a)(4)(i)
+    title: "Information Access Management"
+    status: implemented
+
+  - id: 164.308(a)(5)(i)
+    title: "Security Awareness and Training"
+    status: implemented
+
+  - id: 164.308(a)(5)(ii)(B)
+    title: "Protection from Malicious Software"
+    status: implemented
+
+  - id: 164.308(a)(6)(i)
+    title: "Security Incident Procedures"
+    status: implemented
+
+  - id: 164.308(a)(6)(ii)
+    title: "Response and Reporting"
+    status: partially_implemented
+    implementation_notes: |
+      Internal response runbook in place. Breach-notification decision
+      tree documented but has not been tested via tabletop exercise.
+
+  - id: 164.308(a)(7)(i)
+    title: "Contingency Plan"
+    status: implemented
+
+  - id: 164.308(a)(7)(ii)(A)
+    title: "Data Backup Plan"
+    status: implemented
+
+  - id: 164.308(a)(7)(ii)(B)
+    title: "Disaster Recovery Plan"
+    status: partially_implemented
+
+  - id: 164.308(a)(8)
+    title: "Evaluation"
+    status: implemented
+
+  - id: 164.308(b)(1)
+    title: "Business Associate Contracts"
+    status: implemented
+    implementation_notes: |
+      BAAs executed with AWS, Twilio (SMS), SendGrid, Stripe (payments).
+      Vendor inventory maintained in Vanta.
+
+  # ── HIPAA Security Rule — Physical Safeguards ──────────────────────────────
+  - id: 164.310(a)(1)
+    title: "Facility Access Controls"
+    status: implemented
+    implementation_notes: |
+      All PHI processed exclusively in AWS (HIPAA-eligible services
+      under AWS BAA). No on-premise server rooms.
+
+  - id: 164.310(d)(1)
+    title: "Device and Media Controls"
+    status: implemented
+
+  - id: 164.310(d)(2)(i)
+    title: "Disposal"
+    status: implemented
+
+  # ── HIPAA Security Rule — Technical Safeguards ─────────────────────────────
+  - id: 164.312(a)(1)
+    title: "Access Control"
+    status: implemented
+
+  - id: 164.312(a)(2)(i)
+    title: "Unique User Identification"
+    status: implemented
+
+  - id: 164.312(a)(2)(iv)
+    title: "Encryption and Decryption"
+    status: implemented
+    implementation_notes: |
+      AES-256 encryption at rest (AWS KMS CMKs), TLS 1.3 in transit.
+
+  - id: 164.312(b)
+    title: "Audit Controls"
+    status: partially_implemented
+    implementation_notes: |
+      CloudTrail + RDS audit logs centralized to Datadog. HIPAA-specific
+      audit correlation rules are basic; enhanced detection pending.
+
+  - id: 164.312(c)(1)
+    title: "Integrity"
+    status: implemented
+
+  - id: 164.312(d)
+    title: "Person or Entity Authentication"
+    status: implemented
+    implementation_notes: |
+      MFA required for all provider + admin accounts (Okta FIDO2).
+      Patient-facing auth uses password + email-OTP (TOTP optional).
+
+  - id: 164.312(e)(1)
+    title: "Transmission Security"
+    status: implemented
+
+  # ── HIPAA Privacy Rule ─────────────────────────────────────────────────────
+  - id: 164.520
+    title: "Notice of Privacy Practices"
+    status: implemented
+    implementation_notes: |
+      NPP published on the patient portal and mailed at first encounter.
+      Version-controlled in Git; legal-reviewed annually.
+
+  - id: 164.524
+    title: "Access of Individuals to PHI"
+    status: implemented
+    implementation_notes: |
+      Self-service patient portal download (PDF + CSV). 30-day SLA for
+      any record not available via self-service.
+
+  - id: 164.526
+    title: "Amendment of PHI"
+    status: partially_implemented
+    implementation_notes: |
+      Amendment requests handled via support ticket workflow. No
+      self-service amendment UI yet.
+
+  - id: 164.528
+    title: "Accounting of Disclosures"
+    status: not_implemented
+    implementation_notes: |
+      Disclosures are logged at the system level but no user-facing
+      "accounting of disclosures" report. Known gap — on 2025 roadmap.
+
+  # ── HIPAA Breach Notification Rule ─────────────────────────────────────────
+  - id: 164.404
+    title: "Notification to Individuals"
+    status: implemented
+
+  - id: 164.406
+    title: "Notification to the Media (500+ affected)"
+    status: implemented
+
+  - id: 164.408
+    title: "Notification to the Secretary"
+    status: implemented
+
+  - id: 164.410
+    title: "Notification by a Business Associate"
+    status: implemented
+
+  # ── NIST 800-53 Rev 5 Moderate — voluntary overlay ────────────────────────
+  - id: AC-2
+    title: "Account Management"
+    status: implemented
+
+  - id: AU-6
+    title: "Audit Record Review, Analysis, and Reporting"
+    status: partially_implemented
+
+  - id: IA-2(1)
+    title: "Multi-Factor Authentication to Privileged Accounts"
+    status: implemented
+
+  - id: SC-13
+    title: "Cryptographic Protection"
+    status: implemented
+
+  - id: SI-4
+    title: "System Monitoring"
+    status: partially_implemented

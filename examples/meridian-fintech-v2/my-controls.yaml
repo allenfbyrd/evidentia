@@ -1,0 +1,335 @@
+# =============================================================================
+# Meridian Financial v2 — Baseline control inventory (~48 controls)
+# =============================================================================
+# Fictional B2C consumer fintech SaaS: savings/debit/bill-pay for ~1.2M US
+# customers plus ~80K EU customers (triggering GDPR applicability).
+# Target frameworks: nist-800-53-rev5-moderate, soc2-tsc, eu-gdpr.
+#
+# Intentional design choices for demo coverage:
+#   • Mixed NIST-pub and NIST-OSCAL ID conventions (AC-2(1) vs ac-2.1) to
+#     exercise the v0.2.1 control-ID normalizer
+#   • Mix of implementation states so gap analysis produces varied severities
+#   • Intentional gaps in AU (audit), SI (system integrity), and IR (incident
+#     response) to demonstrate prioritization — these tend to surface as
+#     CRITICAL / HIGH when missing
+#   • Cross-framework payoff: many NIST controls (AC-2, AC-3, IA-2, AU-2,
+#     SC-7, SC-13, SC-28) simultaneously satisfy SOC 2 and GDPR requirements
+# =============================================================================
+
+organization: "Meridian Financial"
+system_name: "Meridian Customer Banking Platform"
+
+controls:
+  # ── Access Control (AC) ────────────────────────────────────────────────────
+  - id: AC-1
+    title: "Access Control Policy and Procedures"
+    status: implemented
+    implementation_notes: |
+      Access control policy published in internal GRC portal, reviewed
+      annually by CISO. Procedures for provisioning, review, and
+      revocation documented in Confluence.
+    owner: "CISO Office"
+    tags: [policy, governance]
+
+  - id: AC-2
+    title: "Account Management"
+    status: implemented
+    implementation_notes: |
+      Okta handles joiner/mover/leaver lifecycle. Terraform manages Okta
+      groups and SCIM to production. Quarterly access reviews via Vanta.
+    owner: "IAM Team"
+    responsible_roles: [CISO, "IAM Team Lead"]
+    tags: [iam, okta]
+
+  - id: AC-2(1)
+    title: "Account Management — Automated System Account Management"
+    status: implemented
+    implementation_notes: |
+      Automated via Okta workflows + Terraform apply on merge. No manual
+      account creation allowed in production AWS / Okta / GitHub.
+    owner: "IAM Team"
+
+  - id: ac-2.3  # OSCAL-style ID — the normalizer should match this to AC-2(3)
+    title: "Account Management — Disable Accounts"
+    status: implemented
+    implementation_notes: |
+      Okta disables accounts within 4 hours of HR deprovisioning. Dormant
+      accounts (>90d inactive) auto-disabled via scheduled workflow.
+    owner: "IAM Team"
+
+  - id: AC-3
+    title: "Access Enforcement"
+    status: partially_implemented
+    implementation_notes: |
+      RBAC enforced in production APIs (OPA gatekeeping). Data warehouse
+      still uses a flat role model; row-level security migration in
+      progress (target Q3).
+    owner: "Platform Team"
+    tags: [rbac, warehouse-gap]
+
+  - id: AC-4
+    title: "Information Flow Enforcement"
+    status: partially_implemented
+    implementation_notes: |
+      Network segmentation between prod/staging/dev. Data classification
+      tags propagated through data pipeline but egress-filter policy is
+      inconsistent across regions.
+
+  - id: AC-6
+    title: "Least Privilege"
+    status: implemented
+    implementation_notes: |
+      Production access is time-bound via Teleport (max 8-hour sessions,
+      just-in-time elevation). All privileged commands logged to immutable
+      S3 + Splunk.
+    owner: "Platform Team"
+
+  - id: AC-6(1)
+    title: "Least Privilege — Authorize Access to Security Functions"
+    status: implemented
+
+  - id: AC-6(9)
+    title: "Least Privilege — Log Use of Privileged Functions"
+    status: partially_implemented
+    implementation_notes: |
+      Teleport logs privileged session entries but command-level auditing
+      on EKS nodes isn't centralized yet.
+
+  - id: AC-17
+    title: "Remote Access"
+    status: implemented
+    implementation_notes: |
+      Zero-trust network access via Cloudflare Access. No VPN.
+
+  - id: AC-22
+    title: "Publicly Accessible Content"
+    status: implemented
+
+  # ── Audit and Accountability (AU) ──────────────────────────────────────────
+  - id: AU-1
+    title: "Policy and Procedures"
+    status: implemented
+
+  - id: AU-2
+    title: "Event Logging"
+    status: planned
+    implementation_notes: |
+      Centralized logging deployment scheduled for Q3. Currently splunk
+      ingests AWS CloudTrail + Okta + GitHub audit logs but application
+      logs aren't consolidated yet.
+    owner: "Platform Team"
+    tags: [roadmap, Q3]
+
+  - id: AU-3
+    title: "Content of Audit Records"
+    status: partially_implemented
+
+  - id: AU-6
+    title: "Audit Record Review, Analysis, and Reporting"
+    status: not_implemented
+    implementation_notes: |
+      No formal SIEM correlation rules yet. Detection engineering role
+      open since Q1 — recruiting in progress.
+    tags: [critical-gap, hiring-blocker]
+
+  - id: AU-8
+    title: "Time Stamps"
+    status: implemented
+
+  - id: AU-9
+    title: "Protection of Audit Information"
+    status: implemented
+    implementation_notes: |
+      S3 object-lock (compliance mode) on all audit log buckets. 7-year
+      retention per NYDFS + SOC 2 requirements.
+
+  # ── Configuration Management (CM) ──────────────────────────────────────────
+  - id: CM-2
+    title: "Baseline Configuration"
+    status: implemented
+    implementation_notes: |
+      Baseline maintained as Terraform modules. AMI baseline built weekly
+      via Packer + Ansible.
+
+  - id: CM-6
+    title: "Configuration Settings"
+    status: partially_implemented
+    implementation_notes: |
+      AWS Config rules in place for S3/IAM/EC2. Kubernetes baseline
+      drift detection still manual.
+
+  - id: CM-7
+    title: "Least Functionality"
+    status: implemented
+
+  - id: CM-8
+    title: "System Component Inventory"
+    status: implemented
+
+  # ── Contingency Planning (CP) ──────────────────────────────────────────────
+  - id: CP-2
+    title: "Contingency Plan"
+    status: implemented
+
+  - id: CP-9
+    title: "System Backup"
+    status: implemented
+    implementation_notes: |
+      RDS point-in-time recovery (35d). Daily cross-region S3 replication.
+      Quarterly restore tests with documented RPO/RTO evidence.
+
+  - id: CP-10
+    title: "System Recovery and Reconstitution"
+    status: partially_implemented
+
+  # ── Identification and Authentication (IA) ─────────────────────────────────
+  - id: IA-2
+    title: "Identification and Authentication (Organizational Users)"
+    status: implemented
+
+  - id: IA-2(1)
+    title: "I&A — Multi-Factor Authentication to Privileged Accounts"
+    status: implemented
+    implementation_notes: |
+      Hardware-backed FIDO2 required for all prod access. Okta enforces.
+
+  - id: IA-2(2)
+    title: "I&A — Multi-Factor Authentication to Non-Privileged Accounts"
+    status: implemented
+
+  - id: IA-5
+    title: "Authenticator Management"
+    status: implemented
+    implementation_notes: |
+      No passwords for privileged access (FIDO2-only). Service accounts
+      use short-lived OIDC tokens via AWS IAM Roles Anywhere.
+
+  - id: IA-8
+    title: "Identification and Authentication (Non-Organizational Users)"
+    status: implemented
+
+  # ── Incident Response (IR) ─────────────────────────────────────────────────
+  - id: IR-1
+    title: "Incident Response Policy and Procedures"
+    status: implemented
+
+  - id: IR-4
+    title: "Incident Handling"
+    status: partially_implemented
+    implementation_notes: |
+      Runbooks exist for AWS compromise, data exfiltration, ransomware.
+      Tabletop exercises 2x/year. Automated containment playbooks (e.g.
+      Okta account disable, AWS STS token revoke) not yet wired up.
+    tags: [runbooks-ok, automation-gap]
+
+  - id: IR-6
+    title: "Incident Reporting"
+    status: implemented
+    implementation_notes: |
+      NYDFS 72-hour reporting SLA baked into incident runbook. PagerDuty
+      auto-routes to CISO + counsel on SEV-1/2.
+
+  - id: IR-8
+    title: "Incident Response Plan"
+    status: implemented
+
+  # ── Risk Assessment (RA) ───────────────────────────────────────────────────
+  - id: RA-3
+    title: "Risk Assessment"
+    status: partially_implemented
+    implementation_notes: |
+      Annual enterprise risk assessment. Product-level threat models
+      exist for core banking APIs but not for internal tools.
+
+  - id: RA-5
+    title: "Vulnerability Monitoring and Scanning"
+    status: implemented
+    implementation_notes: |
+      Tenable Nessus daily scan on infrastructure; Snyk on SCA/SAST in CI;
+      GitHub Dependabot auto-PR for known CVEs.
+
+  # ── System and Communications Protection (SC) ──────────────────────────────
+  - id: SC-7
+    title: "Boundary Protection"
+    status: implemented
+    implementation_notes: |
+      AWS Network Firewall + WAF in front of all public endpoints.
+      Private subnets with NAT-only egress. Cloudflare in front of
+      customer-facing web tier.
+
+  - id: SC-8
+    title: "Transmission Confidentiality and Integrity"
+    status: implemented
+
+  - id: SC-8(1)
+    title: "Transmission Confidentiality — Cryptographic Protection"
+    status: implemented
+
+  - id: SC-13
+    title: "Cryptographic Protection"
+    status: implemented
+    implementation_notes: |
+      AWS KMS (FIPS 140-2 Level 3 HSMs) for all data-at-rest encryption.
+      TLS 1.3 enforced on all endpoints via WAF policy.
+
+  - id: SC-28
+    title: "Protection of Information at Rest"
+    status: implemented
+
+  - id: SC-28(1)
+    title: "Protection at Rest — Cryptographic Protection"
+    status: implemented
+
+  # ── System and Information Integrity (SI) ──────────────────────────────────
+  - id: SI-2
+    title: "Flaw Remediation"
+    status: partially_implemented
+    implementation_notes: |
+      Patch management SLAs by severity (P0 <24h, P1 <7d, P2 <30d).
+      Container patching cadence aligned but OS patches on stateful
+      services (RDS) sometimes slip past SLA.
+
+  - id: SI-3
+    title: "Malicious Code Protection"
+    status: implemented
+
+  - id: SI-4
+    title: "System Monitoring"
+    status: not_implemented
+    implementation_notes: |
+      Basic CloudWatch alarms in place but no behavioral / EDR tooling
+      deployed. Part of Q3 SOC buildout initiative.
+    tags: [critical-gap, Q3]
+
+  - id: SI-7
+    title: "Software, Firmware, and Information Integrity"
+    status: partially_implemented
+
+  # ── Supply Chain Risk Management (SR) ──────────────────────────────────────
+  - id: SR-2
+    title: "Supply Chain Risk Management Plan"
+    status: implemented
+
+  - id: SR-3
+    title: "Supply Chain Controls and Processes"
+    status: partially_implemented
+    implementation_notes: |
+      Vendor security questionnaires required for all SaaS procurement.
+      SBOM generation rolled out for internal services but not yet for
+      all third-party container images.
+
+  # ── Awareness and Training (AT) ────────────────────────────────────────────
+  - id: AT-2
+    title: "Literacy Training and Awareness"
+    status: implemented
+    implementation_notes: |
+      Annual + quarterly phishing sims + onboarding security module.
+      KnowBe4 platform.
+
+  - id: AT-3
+    title: "Role-Based Training"
+    status: partially_implemented
+    implementation_notes: |
+      Engineers get secure coding training annually. Customer service
+      reps don't have role-specific privacy training for GDPR yet.
+    tags: [gdpr-gap]

@@ -7,6 +7,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-04-19
+
+Comprehensive examples + dogfooded GitHub Action + one latent-bug fix
+surfaced by the new integration tests. No new features, no breaking
+API changes; scope is "prove every v0.3.0 feature works end-to-end
+against realistic data."
+
+### Added — three realistic end-to-end scenarios
+
+- **`examples/meridian-fintech-v2/`** — 48-control inventory against
+  `nist-800-53-rev5-moderate` + `soc2-tsc` + `eu-gdpr`. Baseline
+  (`my-controls.yaml`) + PR branch (`my-controls-pr.yaml`) engineered
+  to produce every `gap diff` classification (opened + closed +
+  severity_increased + severity_decreased + unchanged). Ships with
+  pre-generated `snapshots/baseline.json` + `snapshots/pr-branch.json`
+  + `snapshots/pr-diff.md` for zero-setup demo. Uses the v0.2.1
+  `controlbridge.yaml` schema (flat `frameworks:`, `llm.model`,
+  `organization`, `system_name`). Mixes NIST-pub (`AC-2(1)`) and
+  NIST-OSCAL (`ac-2.3`) ID conventions to exercise the normalizer.
+  `user-catalog-demo/soc2-tsc-licensed.json` is a fake "licensed
+  AICPA copy" fixture for the `catalog import` shadow-precedence
+  demo.
+
+- **`examples/acme-healthtech/`** — 34-control HIPAA-covered-entity
+  scenario. Frameworks: `hipaa-security` + `hipaa-privacy` +
+  `hipaa-breach` + `nist-800-53-rev5-moderate`. Showcases HIPAA's
+  `164.308(a)(1)(i)` dotted-section ID style and multi-rule cross-
+  framework efficiency where one control satisfies 3–4 frameworks.
+
+- **`examples/dod-contractor/`** — 30-control CMMC Level 2 +
+  NIST 800-171 Rev 2 scenario for DoD-contract workflows. Uses
+  `CMMC.L2-3.1.1`-style prefixed IDs alongside plain `3.1.1`
+  dotted IDs to exercise both conventions in one report. Includes
+  a realistic DIBCAC-style gap (SIEM correlation missing).
+
+- **`examples/WALKTHROUGH.md`** — tour document with exact command
+  sequences for every v0.3.0 feature, keyed to each scenario.
+
+- **`scripts/demo/generate_snapshot_pair.py`** — regeneration helper
+  that rebuilds Meridian v2's `baseline.json` / `pr-branch.json` /
+  `pr-diff.md` from the committed inventories. Use it after a
+  NIST catalog refresh to keep the README's expected counts in sync.
+
+- **`.github/workflows/controlbridge.yml`** — ControlBridge dog-
+  fooding its own GitHub Action. On every PR touching the Meridian
+  v2 inventory or the bundled catalogs, the workflow runs `gap
+  analyze` + `gap diff` and posts the result as a PR comment;
+  `--fail-on-regression` gates merging. Uses the local `uv sync`
+  build so the action runs against whatever's on the PR branch,
+  not the last-published PyPI wheel.
+
+### Added — integration tests
+
+- `tests/integration/test_examples/test_examples_smoke.py` — 8 cases
+  covering each scenario's `gap analyze` pipeline, the Meridian v2
+  `gap diff` every-classification regression guard, CSV inventory
+  parse, and config-loader deprecation behavior (legacy meridian
+  emits DeprecationWarning on its v0.1.x yaml schema; Meridian v2
+  emits no warnings on the v0.2.1 schema).
+
+### Fixed — `_is_open` gap-status filter on in-memory diff path
+
+`controlbridge_core.gap_diff._is_open()` used `str(gap.status)` to
+compare against `GapStatus.OPEN.value`. On the JSON-roundtrip path
+(CLI: `analyze` → save JSON → load JSON → `diff`), Pydantic
+coerces the enum to its string value and the comparison works.
+On the in-memory path (library users calling `compute_gap_diff()`
+directly against freshly-computed `GapAnalysisReport`s with
+`use_enum_values=True` active), `gap.status` is still a `GapStatus`
+instance and `str(enum)` returns `"GapStatus.OPEN"` rather than
+`"open"` — so `_is_open()` returned `False` for every gap and the
+diff summary reported all zeros. The v0.3.1 fix normalizes via
+`gap.status.value if isinstance(gap.status, GapStatus) else ...`
+so both paths work identically. Flagged by the new Meridian v2
+every-classification integration test — this bug never surfaced
+in v0.3.0 because no test exercised the in-memory path.
+
+### Fixed — Windows console Unicode handling in `gap diff` output
+
+The v0.3.0 Rich console renderer used Unicode glyphs (`✗`, `✓`,
+🆕, 📈) that crashed on Windows legacy consoles (cp1252 encoding):
+`UnicodeEncodeError: 'charmap' codec can't encode character '\u2717'`.
+v0.3.1 uses ASCII-only glyphs in the Rich path (`FAIL` /
+`PASS` / section headers without emoji). The markdown and
+github-annotation renderers keep their emoji — those target
+UTF-8-clean surfaces (PR comments, Actions logs).
+
+### Changed
+
+- **Legacy `examples/meridian-fintech/`** gets a deprecation
+  banner at the top of its README pointing at
+  `examples/meridian-fintech-v2/`. No files deleted — all existing
+  links still work.
+
+### Tests: 384 → **392 passing** (+8)
+
+New integration tests exercise the examples + config-loader
+deprecation path end-to-end.
+
 ## [0.3.0] - 2026-04-17
 
 The **"compliance-as-code" release.** Two user-facing feature areas plus
@@ -602,7 +701,8 @@ where language understanding is the bottleneck.
   has 16 hand-curated controls for demonstration, not the full ~323 from the
   NIST OSCAL content repo — planned for Phase 1.5
 
-[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.2...v0.2.0

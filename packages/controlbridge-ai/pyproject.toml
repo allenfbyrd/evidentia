@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-ai"
-version = "0.3.0"
+version = "0.3.1"
 description = "LLM-powered risk statement generator and evidence validator for ControlBridge"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]

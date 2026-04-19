@@ -329,14 +329,20 @@ def diff(
 
 
 def _render_diff_console(diff) -> None:  # type: ignore[no-untyped-def]
-    """Rich-formatted tables for terminal use."""
+    """Rich-formatted tables for terminal use.
+
+    Uses ASCII-only glyphs in the Rich output path so Windows legacy
+    consoles (cp1252) don't raise UnicodeEncodeError. Emoji are reserved
+    for the markdown renderer (PR comments) and the GitHub-annotation
+    renderer, which target UTF-8-clean surfaces.
+    """
     s = diff.summary
     title = (
-        "[red]✗ Compliance regression[/red]"
+        "[red]FAIL - Compliance regression[/red]"
         if s.is_regression
-        else "[green]✓ No regression[/green]"
+        else "[green]PASS - No regression[/green]"
     )
-    header = Table(title=f"Gap Diff — {title}")
+    header = Table(title=f"Gap Diff -- {title}")
     header.add_column("Status", style="cyan")
     header.add_column("Count", justify="right", style="bold")
     header.add_row("Opened (regressions)", f"[red]{s.opened}[/red]")
@@ -347,30 +353,32 @@ def _render_diff_console(diff) -> None:  # type: ignore[no-untyped-def]
     console.print(header)
 
     if diff.opened_entries:
-        t = Table(title="🆕 Opened gaps")
+        t = Table(title="Opened gaps")
         t.add_column("Framework", style="cyan")
         t.add_column("Control")
         t.add_column("Severity")
         for e in diff.opened_entries[:20]:
             t.add_row(
                 e.framework,
-                f"{e.control_id} — {e.control_title or ''}",
+                f"{e.control_id} - {e.control_title or ''}",
                 str(e.head_severity),
             )
         console.print(t)
 
     if diff.severity_increased_entries:
-        t = Table(title="📈 Severity increased")
+        t = Table(title="Severity increased")
         t.add_column("Framework", style="cyan")
         t.add_column("Control")
-        t.add_column("Base → Head")
+        t.add_column("Base -> Head")
         for e in diff.severity_increased_entries[:20]:
             t.add_row(
                 e.framework,
-                f"{e.control_id} — {e.control_title or ''}",
-                f"{e.base_severity} → {e.head_severity}",
+                f"{e.control_id} - {e.control_title or ''}",
+                f"{e.base_severity} -> {e.head_severity}",
             )
         console.print(t)
 
     if diff.closed_entries:
-        console.print(f"[green]✓ {len(diff.closed_entries)} gap(s) closed[/green]")
+        console.print(
+            f"[green]{len(diff.closed_entries)} gap(s) closed[/green]"
+        )

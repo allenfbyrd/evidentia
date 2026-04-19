@@ -1,0 +1,61 @@
+organization: "Northstar Systems"
+system_name: "Northstar Mission Enclave"
+system_description: |
+  Small-business DoD sub-contractor (~85 employees) building mission-planning
+  software under a Navy command. The system processes Controlled Unclassified
+  Information (CUI) — operational plans, personnel rosters, and logistics
+  data. Deployed entirely on AWS GovCloud (us-gov-east-1). No commercial
+  SaaS that isn't FedRAMP-authorized is in the stack.
+
+data_classification:
+  - "CUI (Controlled Unclassified Information) per NARA registry"
+  - "CUI//SP-PRVCY (privacy-related CUI — personnel records)"
+  - "Export-controlled technical data (ITAR/EAR, tagged at ingestion)"
+  - "Unclassified but sensitive (program-management, contracts)"
+
+hosting: "AWS GovCloud (us-gov-east-1) only. All services FedRAMP High or Moderate eq."
+
+risk_tolerance: "very-low (CUI + NIST 800-171 contract clause 252.204-7012 penalties)"
+
+regulatory_requirements:
+  - "DFARS clause 252.204-7012 (Safeguarding CUI)"
+  - "DFARS clause 252.204-7019/7020 (Supplier Performance Risk System)"
+  - "DFARS clause 252.204-7021 (CMMC)"
+  - "NIST SP 800-171 Rev 2 (required for CUI handling)"
+  - "CMMC 2.0 Level 2 (required for this contract)"
+  - "ITAR (22 CFR § 120-130) and EAR (15 CFR § 730-774) for technical data"
+
+employee_count: 85
+customer_count: 1
+
+threat_actors:
+  - "Nation-state actors — specifically focused on DIB supply chain compromise"
+  - "Insider threats — cleared personnel (counter-intelligence consideration)"
+  - "Ransomware groups (recent DIB targeting has increased per CISA advisories)"
+  - "Non-state foreign intelligence services collecting on DoD programs"
+
+existing_controls:
+  - "CMMC.L2-3.5.3"
+  - "CMMC.L2-3.13.11"
+
+components:
+  - name: "Mission Planning Application"
+    type: web_app
+    technology: "Angular + Java Spring Boot"
+    data_handled: ["CUI", "CUI//SP-PRVCY"]
+    location: "AWS GovCloud us-gov-east-1"
+
+  - name: "Logistics Service"
+    type: api
+    technology: "Python FastAPI on GovCloud EKS"
+    data_handled: ["CUI"]
+
+  - name: "Plan Database"
+    type: database
+    technology: "Amazon RDS for PostgreSQL (GovCloud)"
+    data_handled: ["CUI"]
+
+  - name: "Export-Controlled Document Store"
+    type: object_store
+    technology: "Amazon S3 (GovCloud) with KMS + Object Lock"
+    data_handled: ["ITAR/EAR technical data"]

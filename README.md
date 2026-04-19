@@ -85,11 +85,21 @@ ControlBridge is built on four principles:
 
 ---
 
-## Current status: 82 frameworks bundled, 384 tests passing
+## Current status: 82 frameworks bundled, 392 tests passing
 
-v0.2.0 (Phase 1.5 big-bang, April 2026) added 77 bundled frameworks and
-the manifest-driven registry. **v0.3.0 (April 2026)** is the
-**compliance-as-code release** that ships:
+**v0.3.1 (April 2026)** adds three realistic end-to-end example
+scenarios — Meridian Financial (fintech), Acme Healthtech (HIPAA),
+Northstar Systems (DoD contractor) — with pre-generated gap
+snapshots and a full walkthrough that exercises every feature
+added through v0.3.0. The repo now dog-foods its own GitHub Action
+(`.github/workflows/controlbridge.yml`) on every PR against the
+Meridian v2 inventory. Start at
+[`examples/WALKTHROUGH.md`](examples/WALKTHROUGH.md). Also fixes one
+latent bug in `compute_gap_diff` that only affected library-level
+(non-CLI) callers — flagged by the new integration-test regression
+guard.
+
+**v0.3.0 (April 2026)** is the **compliance-as-code release**:
 
 - **`controlbridge gap diff`** — compare two gap-analysis snapshots,
   classify each gap as opened / closed / severity-changed / unchanged.
@@ -197,7 +207,7 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
   filters; `catalog import` accepts direct JSON or an OSCAL profile (via
   `--profile <profile.json> --catalog <source.json>`).
 
-- **384 passing pytest tests** covering models, catalog loading (with a
+- **392 passing pytest tests** covering models, catalog loading (with a
   parametric smoke test per bundled framework), recursive enhancement
   flattener for NIST Rev 5 3-level IDs, tier invariants, OSCAL profile
   resolution, user-import directory precedence, `FrameworkId` deprecation,
