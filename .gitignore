@@ -24,6 +24,11 @@ parts/
 sdist/
 var/
 wheels/
+# NB: `lib/` and `lib64/` above would otherwise also match
+# packages/controlbridge-ui/src/lib/ (TypeScript utils). Scope to top-level
+# only — there's no real Python-venv lib/ we'd fail to ignore because
+# .venv/ and venv/ below cover that case.
+!packages/controlbridge-ui/src/lib/
 *.egg-info/
 .installed.cfg
 *.egg
