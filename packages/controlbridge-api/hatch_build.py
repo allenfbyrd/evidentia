@@ -95,7 +95,12 @@ class FrontendBundleHook(BuildHookInterface):
 
 
 def _try_npm_build() -> bool:
-    """Attempt ``npm ci && npm run build`` in the UI dir. Return True on success."""
+    """Attempt ``npm install && npm run build`` in the UI dir. Return True on success.
+
+    Uses ``npm ci`` when ``package-lock.json`` already exists (faster + deterministic)
+    and falls back to ``npm install`` when it doesn't — this covers fresh checkouts
+    where the lockfile hasn't been committed yet.
+    """
     npm = shutil.which("npm")
     if npm is None:
         logger.warning(
@@ -105,10 +110,14 @@ def _try_npm_build() -> bool:
         )
         return False
 
-    for cmd in (
-        [npm, "ci", "--no-audit", "--no-fund"],
-        [npm, "run", "build"],
-    ):
+    lockfile = _UI_DIR / "package-lock.json"
+    install_cmd = (
+        [npm, "ci", "--no-audit", "--no-fund"]
+        if lockfile.is_file()
+        else [npm, "install", "--no-audit", "--no-fund"]
+    )
+
+    for cmd in (install_cmd, [npm, "run", "build"]):
         logger.info("Running: %s (cwd=%s)", " ".join(cmd), _UI_DIR)
         try:
             subprocess.run(cmd, cwd=_UI_DIR, check=True)

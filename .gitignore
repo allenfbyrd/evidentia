@@ -1,3 +1,11 @@
+# v0.4.0 — frontend build output lands in the Python package's static
+# directory at wheel-assembly time via the hatchling build hook. The
+# .gitkeep file in static/ is tracked; everything else is regenerated.
+packages/controlbridge-api/src/controlbridge_api/static/assets/
+packages/controlbridge-api/src/controlbridge_api/static/index.html
+packages/controlbridge-api/src/controlbridge_api/static/*.js
+packages/controlbridge-api/src/controlbridge_api/static/*.css
+
 # Python
 __pycache__/
 *.py[cod]
