@@ -73,22 +73,20 @@ async def explain(
             )
         }
         try:
-            # Most explanation generators are synchronous; run in a thread
-            # so we don't block the event loop.
+            # ExplanationGenerator is sync-only + has on-disk cache, so
+            # offloading to a thread is almost always instantaneous for
+            # cache hits. Cold-cache first calls block the thread for
+            # the duration of the LLM call; the SSE "start" event above
+            # keeps the browser responsive meanwhile.
             import asyncio
 
-            if hasattr(gen, "aexplain"):
-                result = await gen.aexplain(
-                    control=control, framework=framework, refresh=refresh
-                )
-            else:
-                result = await asyncio.to_thread(
-                    gen.explain,
-                    control=control,
-                    framework=framework,
-                    refresh=refresh,
-                )
-            payload = result.model_dump(mode="json") if hasattr(result, "model_dump") else result
+            result = await asyncio.to_thread(
+                gen.generate,
+                control=control,
+                framework_id=framework,
+                refresh=refresh,
+            )
+            payload = result.model_dump(mode="json")
             yield {"data": json.dumps({"phase": "done", "explanation": payload})}
         except Exception as e:
             logger.exception("Explanation failed")

@@ -9,8 +9,11 @@ import { cn } from "@/lib/utils";
  *  route is a one-place edit. */
 const NAV_ITEMS: { to: string; label: string; description: string }[] = [
   { to: "/", label: "Home", description: "Welcome + onboarding" },
-  { to: "/dashboard", label: "Dashboard", description: "Latest gap analysis" },
-  { to: "/frameworks", label: "Frameworks", description: "Catalog browser (82 bundled)" },
+  { to: "/dashboard", label: "Dashboard", description: "Saved gap reports" },
+  { to: "/frameworks", label: "Frameworks", description: "82 bundled catalogs" },
+  { to: "/gap/analyze", label: "Gap Analyze", description: "Run a gap analysis" },
+  { to: "/gap/diff", label: "Gap Diff", description: "Compare two reports" },
+  { to: "/risk/generate", label: "Risk Generate", description: "AI risk statements" },
   { to: "/settings", label: "Settings", description: "Config + LLM + air-gap" },
 ];
 
@@ -103,10 +106,11 @@ export function AppLayout() {
           </nav>
           <Separator className="my-6" />
           <div className="space-y-1 px-3 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">Coming in v0.4.0-alpha.2</p>
-            <p>Gap Analyze &mdash; interactive</p>
-            <p>Gap Diff &mdash; two-report compare</p>
-            <p>Risk Generate &mdash; streamed LLM</p>
+            <p className="font-medium text-foreground">v0.4.1</p>
+            <p>Interactive onboarding wizard</p>
+            <p>Gap Analyze + Diff forms</p>
+            <p>Risk Generate (SSE streamed)</p>
+            <p>Settings edit form</p>
           </div>
         </aside>
 

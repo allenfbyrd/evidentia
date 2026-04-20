@@ -28,12 +28,12 @@ usage patterns.
 - Fixed `_is_open` bug on the in-memory gap-diff path.
 - 392 passing tests.
 
-## v0.4.0 — Accessible GRC — IN FLIGHT (alpha.1 shipped)
+## v0.4.0 / v0.4.1 — Accessible GRC — SHIPPED
 
 The audience shift from security engineers (CLI) to compliance officers
 and auditors (web UI). Three coordinated deliverables:
 
-### 1. Web UI — `controlbridge serve`
+### 1. Web UI — `controlbridge serve` — SHIPPED (v0.4.1)
 
 FastAPI backend + React/Vite/shadcn/ui frontend, served together from
 `127.0.0.1:8000`. Non-technical users install via
@@ -41,31 +41,38 @@ FastAPI backend + React/Vite/shadcn/ui frontend, served together from
 `pip install "controlbridge[gui]"`, then run `controlbridge serve` and
 get a polished localhost-only dashboard.
 
-**Shipped in alpha.1:**
+**Shipped:**
 - `controlbridge serve` CLI command
 - New workspace package `controlbridge-api` with 18 REST endpoints
   under `/api/*`
 - New workspace directory `controlbridge-ui` (Vite + React + shadcn/ui)
-- Read-only web UI pages: Home, Dashboard, Frameworks (list + detail),
-  Settings
+- Every user-facing page:
+  - **Home** with three-path onboarding wizard (sample data / upload /
+    wizard)
+  - **Dashboard** — saved-report listing with top-line metrics
+  - **Frameworks** (list + detail) — 82-catalog browser with tier /
+    category / search filters
+  - **Gap Analyze** — interactive form → TanStack Table results
+  - **Gap Diff** — two-report picker → summary + per-entry table
+  - **Risk Generate** — SSE-streamed per-gap progress
+  - **Settings** — editable `controlbridge.yaml` + LLM provider /
+    air-gap posture
 - Hatchling build hook that bundles the SPA into the Python wheel
-- 36 TestClient integration tests for the API surface
+- 36 FastAPI TestClient + 6 Vitest tests
 
-**Planned for alpha.2:**
-- Interactive onboarding wizard (3 paths: sample data / upload / wizard)
-- Gap Analyze page (form → run analysis → sortable/filterable TanStack
-  Table)
-- Gap Diff page (pick two reports → diff summary + per-entry table)
-- Risk Generate page (SSE-streamed per-gap progress)
-- Config edit form (PUT `/api/config` with validated Pydantic payload)
-- Vitest component tests + Playwright E2E smoke test against
-  `controlbridge serve`
+### Planned for v0.4.2 polish:
+
+- Playwright E2E smoke test against `controlbridge serve`
+- "Commit to disk" button on the wizard preview (auto-write the three
+  YAMLs to the CWD after confirmation)
+- Deeper component test coverage (AppLayout, PathChooser, GapTable)
+- Auto-generated TypeScript types from FastAPI's OpenAPI schema
 
 **Stack:** React 18 + TypeScript strict + Vite 5 + shadcn/ui (Radix
 primitives -> WCAG 2.1 AA) + TanStack Query / Table / Virtual +
 React Router 6 + Zustand + React Hook Form + Zod + Recharts.
 
-### 2. Air-gapped mode — `--offline` flag
+### 2. Air-gapped mode — `--offline` flag — SHIPPED (v0.4.0)
 
 Global CLI flag plus `controlbridge doctor --check-air-gap` validator.
 Every LLM / network call consults the `controlbridge_core.network_guard`
@@ -76,23 +83,27 @@ module; non-loopback / non-RFC-1918 targets raise
 your infrastructure. Use with Ollama for fully air-gapped FedRAMP,
 CMMC, and healthcare deployments."*
 
-**Shipped in alpha.1:** flag, guard module, doctor validator, LLM
-client integration, 43 unit tests covering the host classifier and
-guard functions.
+Shipped: flag, guard module, doctor validator, LLM client integration,
+43 unit tests covering the host classifier and guard functions. The UI
+Settings page surfaces the posture live. GUI-triggered offline-toggle
+is planned for v0.4.2.
 
-**Planned for alpha.2:** GUI Settings-page air-gap toggle wired to
-`/api/*` requests; graceful LLM-feature degradation when no
-offline-compatible endpoint is configured.
+### 3. Reusable GitHub Action — SHIPPED (v0.4.1)
 
-### 3. Reusable GitHub Action — `allenfbyrd/controlbridge-action`
+`allenfbyrd/controlbridge-action` is live at v1.0.0 + floating `v1`
+pointer. Consumers replace the 80-line drop-in workflow template with:
 
-Separate repo at `github.com/allenfbyrd/controlbridge-action`. One-line
-`uses:` wrapper that replaces the 80-line drop-in workflow template
-from `docs/github-action/workflow-example.yml`.
+```yaml
+- uses: allenfbyrd/controlbridge-action@v1
+  with:
+    inventory: my-controls.yaml
+    frameworks: nist-800-53-rev5-moderate,soc2-tsc
+    fail-on-regression: true
+```
 
-**Planned for alpha.2 / rc:** repo creation, `action.yml` composite
-action, README with screenshots, v1.0.0 tag, submission to the GitHub
-Actions Marketplace.
+Submission to the GitHub Actions Marketplace is a manual UI step in
+the repo settings; the listing is pending final screenshots before
+publication.
 
 ## v0.5.0 — Phase 2 integrations
 

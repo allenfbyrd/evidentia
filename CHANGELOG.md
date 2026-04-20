@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-04-19
+
+Completes the v0.4.0 "Accessible GRC" release — adds every interactive
+page the v0.4.0-alpha.1 backend exposed over REST. Non-technical users
+can now run gap analysis, diff reports, generate risks, and edit
+configuration entirely in the browser without ever touching the CLI.
+
+Also ships the reusable GitHub Action as a separately-published repo
+(`allenfbyrd/controlbridge-action@v1`) and fixes three mypy regressions
+that slipped into `controlbridge-api` routers on the alpha.1 release.
+
+### Added — interactive web UI
+
+- **Three-path onboarding wizard on Home page** (Zustand state machine):
+  - "Try sample data" — guides through the Meridian v2 walkthrough
+  - "Upload inventory" — drag-drop file picker, auto-detects format
+  - "Start from scratch" — 4-question wizard (industry / hosting /
+    data types / regulatory) -> POST /api/init/wizard -> previews
+    all three generated YAMLs with copy-to-clipboard
+- **Gap Analyze page** — framework multi-select (82 catalogs filterable),
+  file upload OR server-side path, organization / system_name overrides,
+  run button -> TanStack Table with sortable columns + global filter +
+  severity/effort/priority badges.
+- **Gap Diff page** — two-report picker from gap store, summary cards
+  (opened / closed / severity↑ / severity↓ / unchanged), regression
+  alert, filterable per-entry table. Matches the CLI's `gap diff`
+  output exactly.
+- **Risk Generate page** — SSE-streamed per-gap progress. POSTs to
+  `/api/risk/generate` and reads the `text/event-stream` response via
+  `ReadableStream` + `TextDecoder`, parsing each `data: {...}` frame
+  into a progress row. Supports cancel mid-stream; fails cleanly on
+  offline-mode violations.
+- **Settings edit form** — validated PUT to `/api/config`. Writes
+  `controlbridge.yaml` server-side; CLI + GUI both pick up changes.
+  LLM-provider and air-gap sections stay read-only (env-var sourced).
+
+### Added — separate reusable GitHub Action
+
+- New repo: [`allenfbyrd/controlbridge-action`](https://github.com/allenfbyrd/controlbridge-action)
+  at v1.0.0 + floating `v1` pointer. One-line replacement for the
+  80-line drop-in workflow template from v0.3.0:
+  `uses: allenfbyrd/controlbridge-action@v1`.
+- Shipped from `scripts/controlbridge-action-skeleton/` which remains
+  as the authoritative source for the action's files; future changes
+  propagate via `cp -r` + tag.
+
+### Added — shadcn/ui primitives
+
+- `input.tsx`, `label.tsx`, `textarea.tsx`, `switch.tsx`, `tabs.tsx`,
+  `alert.tsx`, `progress.tsx` — Radix-based, matching shadcn New York
+  preset. WCAG 2.1 AA via underlying Radix primitives.
+
+### Added — Vitest coverage
+
+- `src/lib/utils.test.ts` — `cn()` behavior (Tailwind merge, falsy
+  filtering, object syntax)
+- `src/lib/severity.test.ts` — severity-rank ordering + badge mapping
+
+Frontend CI now runs 6 passing tests. Deeper component coverage
+queued for v0.4.2.
+
+### Fixed
+
+- **Three mypy regressions in controlbridge-api routers** (caught by
+  the `typecheck` job on CI, not reproduced locally until now):
+  - `routers/gaps.py`: `valid` helper missing a type annotation
+  - `routers/risks.py`: passed `yaml.safe_load(...)` dict where
+    `RiskStatementGenerator.generate_async` expected a typed
+    `SystemContext` — now loads via `SystemContext.from_yaml(path)`
+    and emits a clear SSE error if no context file is provided.
+  - `routers/explain.py`: called non-existent `gen.explain(...)` —
+    actual method is `generate(control, framework_id, refresh)`.
+
+### Tests: 501 passing (unchanged)
+
+Frontend: +6 Vitest tests. Backend: unchanged at 501 pytest (mypy
+regressions were caught at CI-time, not via tests).
+
+### Migration
+
+None — v0.4.1 is a strict feature add on top of v0.4.0. Inter-package
+pins stay at `>=0.4.0,<0.5.0`.
+
 ## [0.4.0-alpha.1] - 2026-04-19
 
 The **"Accessible GRC"** release — ControlBridge grows beyond the CLI.

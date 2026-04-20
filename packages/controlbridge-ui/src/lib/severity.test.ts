@@ -1,0 +1,26 @@
+import { describe, expect, it } from "vitest";
+
+import { SEVERITY_RANK, severityBadge } from "@/lib/severity";
+
+describe("severity helpers", () => {
+  it("maps each enum value to a badge variant", () => {
+    expect(severityBadge("critical")).toBe("critical");
+    expect(severityBadge("high")).toBe("high");
+    expect(severityBadge("medium")).toBe("medium");
+    expect(severityBadge("low")).toBe("low");
+    expect(severityBadge("informational")).toBe("informational");
+  });
+
+  it("ranks critical highest, informational lowest", () => {
+    const ordered = (
+      ["informational", "low", "medium", "high", "critical"] as const
+    ).sort((a, b) => SEVERITY_RANK[a] - SEVERITY_RANK[b]);
+    expect(ordered).toEqual([
+      "informational",
+      "low",
+      "medium",
+      "high",
+      "critical",
+    ]);
+  });
+});

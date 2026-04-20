@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-api"
-version = "0.4.0"
+version = "0.4.1"
 description = "FastAPI REST server + bundled React web UI for ControlBridge"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]

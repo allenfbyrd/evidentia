@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-workspace"
-version = "0.4.0"
+version = "0.4.1"
 requires-python = ">=3.12"
 description = "Workspace root for the ControlBridge GRC tool monorepo"
 

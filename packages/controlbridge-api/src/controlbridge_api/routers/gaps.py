@@ -167,8 +167,10 @@ async def diff(payload: GapDiffRequest) -> GapDiff:
     per-entry table.
     """
     store = get_gap_store_dir()
-    def valid(k):
+
+    def valid(k: str) -> bool:
         return all(c in "0123456789abcdef" for c in k) and len(k) == 16
+
     for label, key in (("base", payload.base_key), ("head", payload.head_key)):
         if not valid(key):
             raise HTTPException(

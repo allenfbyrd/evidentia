@@ -88,34 +88,47 @@ async def _stream_risk_generation(
 
     generator = RiskStatementGenerator(model=model) if model else RiskStatementGenerator()
 
-    # Load context if present; RiskStatementGenerator accepts optional context.
-    system_context = None
-    if context_path is not None and context_path.is_file():
-        try:
-            import yaml
+    # Load context. RiskStatementGenerator requires a typed SystemContext;
+    # there's no raw-dict overload. If no path given or the file can't be
+    # parsed, the endpoint fails fast rather than generating risks with
+    # empty org context (which produces near-useless statements).
+    from controlbridge_ai.risk_statements.templates import SystemContext
 
-            system_context = yaml.safe_load(context_path.read_text(encoding="utf-8"))
-        except Exception as e:
-            logger.warning("Ignoring malformed context %s: %s", context_path, e)
+    if context_path is None or not context_path.is_file():
+        yield json.dumps(
+            {
+                "phase": "error",
+                "detail": (
+                    "system_context YAML not found. Pass context_path pointing at "
+                    "a valid system-context.yaml; see `controlbridge init` for a template."
+                ),
+            }
+        )
+        return
+    try:
+        system_context = SystemContext.from_yaml(context_path)
+    except Exception as e:
+        logger.warning("Malformed system context %s: %s", context_path, e)
+        yield json.dumps(
+            {"phase": "error", "detail": f"Could not load system_context: {e}"}
+        )
+        return
 
     generated = 0
     failed = 0
 
     # Use asyncio.as_completed for true parallelism. Streaming in arrival
     # order keeps the UI responsive even if one gap is slow.
-    tasks: list[asyncio.Task[tuple[int, ControlGap, object | None, str | None]]] = []
+    tasks: list[
+        asyncio.Task[tuple[int, ControlGap, object | None, str | None]]
+    ] = []
 
-    async def _one(index: int, gap: ControlGap) -> tuple[int, ControlGap, object | None, str | None]:
+    async def _one(
+        index: int, gap: ControlGap
+    ) -> tuple[int, ControlGap, object | None, str | None]:
         try:
-            # agenerate is the async path already shipped by controlbridge-ai.
-            # If it doesn't exist on the installed version, fall back to the
-            # sync path run in a thread.
-            if hasattr(generator, "agenerate"):
-                risk = await generator.agenerate(gap, system_context=system_context)
-            else:
-                risk = await asyncio.to_thread(
-                    generator.generate, gap, system_context=system_context
-                )
+            # `generate_async` is the async path shipped since v0.3.0.
+            risk = await generator.generate_async(gap, system_context)
             return index, gap, risk, None
         except Exception as e:
             logger.exception("Risk generation failed for gap %s", gap.id)

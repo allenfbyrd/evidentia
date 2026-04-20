@@ -1,6 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,29 +11,75 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 
 /**
- * Settings page (v0.4.0-alpha.1 read-only surface).
+ * Settings page — editable for v0.4.1.
  *
- * Read paths shipped: config, LLM status, air-gap posture.
- * Write paths (PUT /api/config with validated Pydantic payload) land
- * in v0.4.0-alpha.2 along with the interactive form.
+ * Reads /api/config into a form; on Save, PUT /api/config with the
+ * validated payload. Immutable sections (LLM providers, air-gap
+ * posture) stay read-only since they're derived from server process
+ * state (env vars) rather than the yaml file.
  */
 export function SettingsPage() {
-  const config = useQuery({
+  const queryClient = useQueryClient();
+  const configQuery = useQuery({
     queryKey: ["config"],
     queryFn: () => api.getConfig(),
   });
-
   const llm = useQuery({
     queryKey: ["llm-status"],
     queryFn: () => api.llmStatus(),
   });
-
   const airGap = useQuery({
     queryKey: ["air-gap"],
     queryFn: () => api.doctorCheckAirGap(),
+  });
+
+  const [organization, setOrganization] = useState("");
+  const [systemName, setSystemName] = useState("");
+  const [frameworks, setFrameworks] = useState("");
+  const [llmModel, setLlmModel] = useState("");
+  const [llmTemperature, setLlmTemperature] = useState<string>("");
+
+  useEffect(() => {
+    if (configQuery.data) {
+      setOrganization(configQuery.data.organization ?? "");
+      setSystemName(configQuery.data.system_name ?? "");
+      setFrameworks(configQuery.data.frameworks.join(", "));
+      setLlmModel(configQuery.data.llm.model ?? "");
+      setLlmTemperature(
+        configQuery.data.llm.temperature != null
+          ? String(configQuery.data.llm.temperature)
+          : "",
+      );
+    }
+  }, [configQuery.data]);
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      const fw = frameworks
+        .split(",")
+        .map((f) => f.trim())
+        .filter(Boolean);
+      return api.putConfig({
+        organization: organization.trim() || null,
+        system_name: systemName.trim() || null,
+        frameworks: fw,
+        llm: {
+          model: llmModel.trim() || null,
+          temperature:
+            llmTemperature.trim() === ""
+              ? null
+              : Number.parseFloat(llmTemperature),
+        },
+      });
+    },
+    onSuccess: (saved) => {
+      queryClient.setQueryData(["config"], saved);
+    },
   });
 
   return (
@@ -38,149 +87,194 @@ export function SettingsPage() {
       <header>
         <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-muted-foreground">
-          Configuration view. Editing lands in v0.4.0-alpha.2 — for now,
-          edit{" "}
-          <code className="rounded bg-muted px-1 py-0.5">controlbridge.yaml</code>{" "}
-          in your project directory to update these values.
+          Edit{" "}
+          <code className="rounded bg-muted px-1 py-0.5">
+            controlbridge.yaml
+          </code>{" "}
+          here. The server writes the file after validation; your CLI
+          + GUI both pick up the new values immediately.
         </p>
       </header>
 
-      <section aria-labelledby="project-config">
-        <h2 id="project-config" className="sr-only">
-          Project configuration
-        </h2>
-        <Card>
-          <CardHeader>
-            <CardTitle>Project configuration</CardTitle>
-            <CardDescription>
-              Loaded from{" "}
-              <code className="rounded bg-muted px-1 py-0.5">
-                {config.data?.source_path ?? "controlbridge.yaml (not found; showing defaults)"}
-              </code>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <ConfigRow
-              label="Organization"
-              value={config.data?.organization ?? "(none)"}
-            />
-            <ConfigRow
-              label="System name"
-              value={config.data?.system_name ?? "(none)"}
-            />
-            <ConfigRow
-              label="Default frameworks"
-              value={
-                config.data && config.data.frameworks.length > 0
-                  ? config.data.frameworks.join(", ")
-                  : "(none)"
-              }
-            />
-            <ConfigRow
-              label="LLM model"
-              value={config.data?.llm?.model ?? "(default: gpt-4o)"}
-            />
-            <ConfigRow
-              label="LLM temperature"
-              value={
-                config.data?.llm?.temperature != null
-                  ? String(config.data.llm.temperature)
-                  : "(default: 0.1)"
-              }
-            />
-          </CardContent>
-        </Card>
-      </section>
-
-      <section aria-labelledby="llm-providers">
-        <h2 id="llm-providers" className="sr-only">
-          LLM providers
-        </h2>
-        <Card>
-          <CardHeader>
-            <CardTitle>LLM providers</CardTitle>
-            <CardDescription>
-              Provider keys are detected from environment variables. The
-              browser never sees key values — only the presence flag below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            {llm.data ? (
-              Object.entries(llm.data.providers).map(([name, state]) => (
-                <div key={name} className="flex items-center justify-between">
-                  <span className="capitalize">{name.replace(/_/g, " ")}</span>
-                  {state.configured ? (
-                    <Badge>configured via {state.source}</Badge>
-                  ) : (
-                    <Badge variant="outline">not configured</Badge>
-                  )}
-                </div>
-              ))
+      <Card>
+        <CardHeader>
+          <CardTitle>Project configuration</CardTitle>
+          <CardDescription>
+            {configQuery.data?.source_path ? (
+              <>
+                File:{" "}
+                <code className="rounded bg-muted px-1 py-0.5">
+                  {configQuery.data.source_path}
+                </code>
+              </>
             ) : (
-              <span className="text-muted-foreground">Loading...</span>
+              "No controlbridge.yaml yet; save will create one in your CWD."
             )}
-            <p className="pt-2 text-xs text-muted-foreground">
-              Active model: <code className="rounded bg-muted px-1 py-0.5">
-                {llm.data?.configured_model ?? "—"}
-              </code>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <Label htmlFor="org">Organization</Label>
+              <Input
+                id="org"
+                value={organization}
+                onChange={(e) => setOrganization(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="system">System name</Label>
+              <Input
+                id="system"
+                value={systemName}
+                onChange={(e) => setSystemName(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="frameworks">Default frameworks (comma-separated)</Label>
+            <Input
+              id="frameworks"
+              value={frameworks}
+              onChange={(e) => setFrameworks(e.target.value)}
+              placeholder="nist-800-53-rev5-moderate, soc2-tsc"
+              className="mt-1"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              CLI <code>--frameworks</code> overrides this list entirely.
+              Warning fires at load time if more than 5 are listed.
             </p>
-          </CardContent>
-        </Card>
-      </section>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <Label htmlFor="model">LLM model</Label>
+              <Input
+                id="model"
+                value={llmModel}
+                onChange={(e) => setLlmModel(e.target.value)}
+                placeholder="gpt-4o (or ollama/llama3 for offline)"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="temp">LLM temperature</Label>
+              <Input
+                id="temp"
+                type="number"
+                step="0.1"
+                min="0"
+                max="2"
+                value={llmTemperature}
+                onChange={(e) => setLlmTemperature(e.target.value)}
+                placeholder="0.1"
+                className="mt-1"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <section aria-labelledby="air-gap-section">
-        <h2 id="air-gap-section" className="sr-only">
-          Air-gap posture
-        </h2>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Air-gap posture
-              {airGap.data?.air_gapped ? (
-                <Badge>air-gap ready</Badge>
-              ) : (
-                <Badge variant="destructive">would leak</Badge>
-              )}
-            </CardTitle>
-            <CardDescription>
-              Audits configured endpoints without issuing network IO. Pass{" "}
-              <code className="rounded bg-muted px-1 py-0.5">--offline</code>{" "}
-              at CLI / server startup to enforce.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {airGap.data?.checks.map((check) => (
-              <div
-                key={check.subsystem}
-                className="flex items-start justify-between gap-4"
-              >
-                <div>
-                  <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
-                    {check.subsystem}
-                  </div>
-                  <div>{check.detail}</div>
-                </div>
-                {check.status === "ok" && <Badge>ok</Badge>}
-                {check.status === "would_leak" && (
-                  <Badge variant="destructive">would leak</Badge>
-                )}
-                {check.status === "skipped" && (
-                  <Badge variant="outline">skipped</Badge>
+      {saveMutation.isError && (
+        <Alert variant="destructive">
+          <AlertTitle>Save failed</AlertTitle>
+          <AlertDescription>
+            {saveMutation.error instanceof Error
+              ? saveMutation.error.message
+              : "Unknown error."}
+          </AlertDescription>
+        </Alert>
+      )}
+      {saveMutation.isSuccess && (
+        <Alert variant="success">
+          <AlertTitle>Saved</AlertTitle>
+          <AlertDescription>
+            {configQuery.data?.source_path
+              ? `Wrote ${configQuery.data.source_path}.`
+              : "Wrote controlbridge.yaml."}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="flex items-center justify-end">
+        <Button
+          onClick={() => saveMutation.mutate()}
+          disabled={saveMutation.isPending}
+        >
+          {saveMutation.isPending ? "Saving..." : "Save"}
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>LLM providers (read-only)</CardTitle>
+          <CardDescription>
+            Keys are sourced from environment variables; the browser
+            never sees key values.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {llm.data ? (
+            Object.entries(llm.data.providers).map(([name, state]) => (
+              <div key={name} className="flex items-center justify-between">
+                <span className="capitalize">{name.replace(/_/g, " ")}</span>
+                {state.configured ? (
+                  <Badge>configured via {state.source}</Badge>
+                ) : (
+                  <Badge variant="outline">not configured</Badge>
                 )}
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </section>
-    </div>
-  );
-}
+            ))
+          ) : (
+            <span className="text-muted-foreground">Loading...</span>
+          )}
+          <p className="pt-2 text-xs text-muted-foreground">
+            Active model:{" "}
+            <code className="rounded bg-muted px-1 py-0.5">
+              {llm.data?.configured_model ?? "—"}
+            </code>
+          </p>
+        </CardContent>
+      </Card>
 
-function ConfigRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="font-medium text-muted-foreground">{label}</span>
-      <span className="text-right font-mono">{value}</span>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            Air-gap posture
+            {airGap.data?.air_gapped ? (
+              <Badge>air-gap ready</Badge>
+            ) : (
+              <Badge variant="destructive">would leak</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            Audits configured endpoints without issuing network IO.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {airGap.data?.checks.map((check) => (
+            <div
+              key={check.subsystem}
+              className="flex items-start justify-between gap-4"
+            >
+              <div>
+                <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+                  {check.subsystem}
+                </div>
+                <div>{check.detail}</div>
+              </div>
+              {check.status === "ok" && <Badge>ok</Badge>}
+              {check.status === "would_leak" && (
+                <Badge variant="destructive">would leak</Badge>
+              )}
+              {check.status === "skipped" && (
+                <Badge variant="outline">skipped</Badge>
+              )}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
