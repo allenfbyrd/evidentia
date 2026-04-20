@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { SEVERITY_RANK, severityBadge } from "@/lib/severity";
+import type { GapSeverity } from "@/types/api";
 
 describe("severity helpers", () => {
   it("maps each enum value to a badge variant", () => {
@@ -12,9 +13,16 @@ describe("severity helpers", () => {
   });
 
   it("ranks critical highest, informational lowest", () => {
-    const ordered = (
-      ["informational", "low", "medium", "high", "critical"] as const
-    ).sort((a, b) => SEVERITY_RANK[a] - SEVERITY_RANK[b]);
+    const unsorted: GapSeverity[] = [
+      "critical",
+      "informational",
+      "medium",
+      "low",
+      "high",
+    ];
+    const ordered = [...unsorted].sort(
+      (a, b) => SEVERITY_RANK[a] - SEVERITY_RANK[b],
+    );
     expect(ordered).toEqual([
       "informational",
       "low",
