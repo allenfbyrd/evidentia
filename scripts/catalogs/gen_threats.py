@@ -303,7 +303,7 @@ emit_vulnerability_catalog(
     source="CISA — https://www.cisa.gov/known-exploited-vulnerabilities-catalog (U.S. Government work)",
     vulnerabilities=KEV_SAMPLE,
     tier="B",
-    license_terms="U.S. Government work, public domain. Sample bundled in ControlBridge; refresh CI pulls the full KEV daily.",
+    license_terms="U.S. Government work, public domain. Sample bundled in Evidentia; refresh CI pulls the full KEV daily.",
 )
 
 

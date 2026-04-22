@@ -1,4 +1,4 @@
-"""Unit tests for ``controlbridge_integrations.jira.sync`` helpers.
+"""Unit tests for ``evidentia_integrations.jira.sync`` helpers.
 
 Covers push_gap_to_jira / sync_gap_from_jira / push_open_gaps / sync_report
 against a fake :class:`JiraClient` with controllable responses. No real
@@ -9,16 +9,16 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from controlbridge_core.models.gap import (
+from evidentia_core.models.gap import (
     ControlGap,
     GapAnalysisReport,
     GapSeverity,
     GapStatus,
     ImplementationEffort,
 )
-from controlbridge_integrations.jira import JiraApiError
-from controlbridge_integrations.jira.client import JiraIssue
-from controlbridge_integrations.jira.sync import (
+from evidentia_integrations.jira import JiraApiError
+from evidentia_integrations.jira.client import JiraIssue
+from evidentia_integrations.jira.sync import (
     JiraSyncAction,
     push_gap_to_jira,
     push_open_gaps,

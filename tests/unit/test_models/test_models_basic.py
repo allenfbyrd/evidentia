@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-from controlbridge_core.models.control import (
+from evidentia_core.models.control import (
     ControlImplementation,
     ControlInventory,
     ControlStatus,
 )
-from controlbridge_core.models.gap import (
+from evidentia_core.models.gap import (
     ControlGap,
     GapAnalysisReport,
     GapSeverity,
     ImplementationEffort,
 )
-from controlbridge_core.models.risk import (
+from evidentia_core.models.risk import (
     ImpactRating,
     LikelihoodRating,
     RiskLevel,

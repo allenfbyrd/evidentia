@@ -5,12 +5,12 @@ from __future__ import annotations
 import json
 
 import pytest
-from controlbridge_core.catalogs.manifest import (
+from evidentia_core.catalogs.manifest import (
     FrameworkManifest,
     FrameworkManifestEntry,
     load_manifest,
 )
-from controlbridge_core.catalogs.user_dir import (
+from evidentia_core.catalogs.user_dir import (
     get_user_catalog_dir,
     load_user_manifest,
     resolve_catalog_path,
@@ -21,20 +21,20 @@ from controlbridge_core.catalogs.user_dir import (
 
 def test_default_user_dir_under_platform_dirs(tmp_path, monkeypatch) -> None:
     """Without override, the user dir falls under platformdirs' app dir."""
-    monkeypatch.delenv("CONTROLBRIDGE_CATALOG_DIR", raising=False)
+    monkeypatch.delenv("EVIDENTIA_CATALOG_DIR", raising=False)
     path = get_user_catalog_dir()
     # We don't hardcode the exact path (varies by OS) — just sanity check
     # it ends with our app folder
-    assert "controlbridge" in str(path).lower() or "ControlBridge" in str(path)
+    assert "evidentia" in str(path).lower() or "Evidentia" in str(path)
 
 
 def test_env_override_wins(tmp_path, monkeypatch) -> None:
-    monkeypatch.setenv("CONTROLBRIDGE_CATALOG_DIR", str(tmp_path))
+    monkeypatch.setenv("EVIDENTIA_CATALOG_DIR", str(tmp_path))
     assert get_user_catalog_dir() == tmp_path.resolve()
 
 
 def test_explicit_override_wins_over_env(tmp_path, monkeypatch) -> None:
-    monkeypatch.setenv("CONTROLBRIDGE_CATALOG_DIR", str(tmp_path / "env"))
+    monkeypatch.setenv("EVIDENTIA_CATALOG_DIR", str(tmp_path / "env"))
     override = tmp_path / "explicit"
     assert get_user_catalog_dir(override) == override.resolve()
 

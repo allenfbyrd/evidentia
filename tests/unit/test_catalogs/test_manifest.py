@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from controlbridge_core.catalogs.manifest import (
+from evidentia_core.catalogs.manifest import (
     MANIFEST_PATH,
     FrameworkManifest,
     FrameworkManifestEntry,

@@ -10,23 +10,23 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from controlbridge_ai.explain.cache import (
+from evidentia_ai.explain.cache import (
     _cache_key,
     clear_cache,
     get_cache_dir,
     load_cached,
     store,
 )
-from controlbridge_ai.explain.generator import ExplanationGenerator
-from controlbridge_ai.explain.models import PlainEnglishExplanation
-from controlbridge_core.models.catalog import CatalogControl
+from evidentia_ai.explain.generator import ExplanationGenerator
+from evidentia_ai.explain.models import PlainEnglishExplanation
+from evidentia_core.models.catalog import CatalogControl
 
 
 @pytest.fixture(autouse=True)
 def _isolated_cache(tmp_path: Path, monkeypatch):
     """Point the explanation cache at an isolated tmp dir per test."""
     cache = tmp_path / "cache"
-    monkeypatch.setenv("CONTROLBRIDGE_EXPLAIN_CACHE_DIR", str(cache))
+    monkeypatch.setenv("EVIDENTIA_EXPLAIN_CACHE_DIR", str(cache))
     yield cache
 
 
@@ -96,12 +96,12 @@ def test_cache_key_varies_by_temperature() -> None:
 
 
 def test_get_cache_dir_env_override(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("CONTROLBRIDGE_EXPLAIN_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("EVIDENTIA_EXPLAIN_CACHE_DIR", str(tmp_path))
     assert get_cache_dir() == tmp_path.resolve()
 
 
 def test_get_cache_dir_explicit_override_wins(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("CONTROLBRIDGE_EXPLAIN_CACHE_DIR", str(tmp_path / "env"))
+    monkeypatch.setenv("EVIDENTIA_EXPLAIN_CACHE_DIR", str(tmp_path / "env"))
     explicit = tmp_path / "explicit"
     assert get_cache_dir(explicit) == explicit.resolve()
 
@@ -165,7 +165,7 @@ def test_generator_cache_hit_skips_llm() -> None:
     store(_fake_explanation(), model="gpt-4o", temperature=0.1)
 
     with patch(
-        "controlbridge_ai.explain.generator.get_instructor_client"
+        "evidentia_ai.explain.generator.get_instructor_client"
     ) as mock_client_factory:
         mock_client = MagicMock()
         mock_client_factory.return_value = mock_client
@@ -178,7 +178,7 @@ def test_generator_cache_hit_skips_llm() -> None:
 
 def test_generator_cache_miss_calls_llm_and_caches() -> None:
     with patch(
-        "controlbridge_ai.explain.generator.get_instructor_client"
+        "evidentia_ai.explain.generator.get_instructor_client"
     ) as mock_client_factory:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = _fake_explanation()
@@ -193,7 +193,7 @@ def test_generator_cache_miss_calls_llm_and_caches() -> None:
 def test_generator_refresh_bypasses_cache() -> None:
     store(_fake_explanation(), model="gpt-4o", temperature=0.1)
     with patch(
-        "controlbridge_ai.explain.generator.get_instructor_client"
+        "evidentia_ai.explain.generator.get_instructor_client"
     ) as mock_client_factory:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = _fake_explanation()
@@ -207,7 +207,7 @@ def test_generator_refresh_bypasses_cache() -> None:
 
 def test_generator_use_cache_false_bypasses_both_read_and_write() -> None:
     with patch(
-        "controlbridge_ai.explain.generator.get_instructor_client"
+        "evidentia_ai.explain.generator.get_instructor_client"
     ) as mock_client_factory:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = _fake_explanation()
@@ -228,7 +228,7 @@ def test_generator_echoes_framework_and_control_ids_even_if_llm_drifts() -> None
         control_title="Wrong title",
     )
     with patch(
-        "controlbridge_ai.explain.generator.get_instructor_client"
+        "evidentia_ai.explain.generator.get_instructor_client"
     ) as mock_client_factory:
         mock_client = MagicMock()
         mock_client.chat.completions.create.return_value = llm_output

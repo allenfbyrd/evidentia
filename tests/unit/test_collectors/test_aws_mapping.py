@@ -1,9 +1,9 @@
-"""Tests for the NIST mapping helpers in controlbridge_collectors.aws.mapping."""
+"""Tests for the NIST mapping helpers in evidentia_collectors.aws.mapping."""
 
 from __future__ import annotations
 
 import pytest
-from controlbridge_collectors.aws.mapping import (
+from evidentia_collectors.aws.mapping import (
     map_config_rule_to_controls,
     map_security_hub_control_to_controls,
 )

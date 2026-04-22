@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from controlbridge_core.gap_diff import (
+from evidentia_core.gap_diff import (
     compute_gap_diff,
     render_github_annotations,
     render_markdown,
 )
-from controlbridge_core.models.gap import (
+from evidentia_core.models.gap import (
     ControlGap,
     GapAnalysisReport,
     GapSeverity,

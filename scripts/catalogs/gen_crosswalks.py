@@ -146,7 +146,7 @@ emit_crosswalk(
     source_framework="fedramp-rev5-moderate",
     target_framework="cmmc-2-l2",
     version="FedRAMP Rev 5 / CMMC 2.0 Level 2 (2024 Final Rule)",
-    source="ControlBridge-authored based on DoD CMMC Assessment Guide correlations to NIST 800-171/800-53",
+    source="Evidentia-authored based on DoD CMMC Assessment Guide correlations to NIST 800-171/800-53",
     mappings=[
         {
             "source_control_id": src,
@@ -231,7 +231,7 @@ emit_crosswalk(
     source_framework="us-va-vcdpa",
     target_framework="us-ca-ccpa-cpra",
     version="VCDPA / CCPA-CPRA 2023",
-    source="ControlBridge-authored based on IAPP multi-state privacy matrix",
+    source="Evidentia-authored based on IAPP multi-state privacy matrix",
     mappings=[
         {
             "source_control_id": src,
@@ -280,7 +280,7 @@ emit_crosswalk(
     source_framework="iso-27001-2022",
     target_framework="nist-800-53-mod",
     version="ISO 27001:2022 / NIST 800-53 Rev 5",
-    source="ControlBridge-authored based on ISO/IEC 27001:2022 Annex A concordance with NIST 800-53 families",
+    source="Evidentia-authored based on ISO/IEC 27001:2022 Annex A concordance with NIST 800-53 families",
     mappings=[
         {
             "source_control_id": src,

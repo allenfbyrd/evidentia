@@ -1,22 +1,33 @@
 [project]
-name = "controlbridge-workspace"
-version = "0.5.0"
+name = "evidentia-workspace"
+version = "0.6.0"
 requires-python = ">=3.12"
-description = "Workspace root for the ControlBridge GRC tool monorepo"
+description = "Workspace root for the Evidentia GRC tool monorepo"
 
 [tool.uv.workspace]
 members = [
-    "packages/controlbridge-core",
-    "packages/controlbridge-ai",
-    "packages/controlbridge-collectors",
-    "packages/controlbridge-integrations",
-    "packages/controlbridge",
-    "packages/controlbridge-api",
+    "packages/evidentia-core",
+    "packages/evidentia-ai",
+    "packages/evidentia-collectors",
+    "packages/evidentia-integrations",
+    "packages/evidentia",
+    "packages/evidentia-api",
+    # v0.6.0 rename shims. Each `shim-controlbridge*` workspace member
+    # publishes the OLD PyPI name at v0.5.1 as a thin re-export forwarder
+    # to its `evidentia-*` replacement. Dev-installed alongside the
+    # primary packages so their DeprecationWarning + submodule-aliasing
+    # behavior is exercised by the test suite. Yanked from PyPI at v0.7.0.
+    "packages/shim-controlbridge",
+    "packages/shim-controlbridge-core",
+    "packages/shim-controlbridge-ai",
+    "packages/shim-controlbridge-api",
+    "packages/shim-controlbridge-collectors",
+    "packages/shim-controlbridge-integrations",
 ]
-# Note: packages/controlbridge-ui is a Vite+React project, NOT a Python
+# Note: packages/evidentia-ui is a Vite+React project, NOT a Python
 # workspace member. It builds via `npm run build` in its own directory;
-# the release workflow copies its dist/* into controlbridge-api's
-# src/controlbridge_api/static/ before wheel packaging.
+# the release workflow copies its dist/* into evidentia-api's
+# src/evidentia_api/static/ before wheel packaging.
 
 [dependency-groups]
 dev = [
@@ -33,7 +44,7 @@ dev = [
     # in the mypy-run env so the plugin can be imported at type-check time.
     "pydantic>=2.9",
     # v0.5.0: AWS collector tests run against moto's AWS API mock.
-    # `boto3` is the runtime dependency (also in controlbridge-collectors
+    # `boto3` is the runtime dependency (also in evidentia-collectors
     # [aws] extra); having it in dev deps means collector tests run
     # without an extra install step.
     "boto3>=1.35",
@@ -41,12 +52,12 @@ dev = [
 ]
 
 [tool.uv.sources]
-controlbridge-core = { workspace = true }
-controlbridge-ai = { workspace = true }
-controlbridge-collectors = { workspace = true }
-controlbridge-integrations = { workspace = true }
-controlbridge = { workspace = true }
-controlbridge-api = { workspace = true }
+evidentia-core = { workspace = true }
+evidentia-ai = { workspace = true }
+evidentia-collectors = { workspace = true }
+evidentia-integrations = { workspace = true }
+evidentia = { workspace = true }
+evidentia-api = { workspace = true }
 
 [tool.ruff]
 target-version = "py312"

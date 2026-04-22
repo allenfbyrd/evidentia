@@ -1,6 +1,6 @@
 """End-to-end smoke tests for the `examples/` scenarios (v0.3.1).
 
-These tests actually load each example's inventory + controlbridge.yaml
+These tests actually load each example's inventory + evidentia.yaml
 + system-context, run the full `gap analyze` pipeline, and (for
 Meridian v2) run `gap diff` across the baseline and pr-branch
 inventories. The assertion shapes are deliberately loose — the point
@@ -17,9 +17,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from controlbridge_core.catalogs.registry import FrameworkRegistry
-from controlbridge_core.gap_analyzer import GapAnalyzer, load_inventory
-from controlbridge_core.gap_diff import compute_gap_diff
+from evidentia_core.catalogs.registry import FrameworkRegistry
+from evidentia_core.gap_analyzer import GapAnalyzer, load_inventory
+from evidentia_core.gap_diff import compute_gap_diff
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 EXAMPLES = REPO_ROOT / "examples"
@@ -184,24 +184,24 @@ def test_dod_contractor_cmmc_plus_800_171_runs() -> None:
 
 
 # -----------------------------------------------------------------------------
-# Config loader — picks up each scenario's controlbridge.yaml
+# Config loader — picks up each scenario's evidentia.yaml
 # -----------------------------------------------------------------------------
 
 
 @pytest.mark.skipif(
-    not (EXAMPLES / "meridian-fintech-v2" / "controlbridge.yaml").exists(),
+    not (EXAMPLES / "meridian-fintech-v2" / "evidentia.yaml").exists(),
     reason="meridian-fintech-v2 example not present",
 )
 def test_meridian_v2_yaml_config_loads() -> None:
     """The v0.2.1 schema yaml in Meridian v2 must parse without warnings."""
     import warnings
 
-    from controlbridge.config import load_config
+    from evidentia.config import load_config
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         cfg = load_config(
-            EXAMPLES / "meridian-fintech-v2" / "controlbridge.yaml"
+            EXAMPLES / "meridian-fintech-v2" / "evidentia.yaml"
         )
     # No DeprecationWarnings — we use the new schema
     deprecations = [w for w in caught if issubclass(w.category, DeprecationWarning)]
@@ -214,7 +214,7 @@ def test_meridian_v2_yaml_config_loads() -> None:
 
 
 @pytest.mark.skipif(
-    not (EXAMPLES / "meridian-fintech" / "controlbridge.yaml").exists(),
+    not (EXAMPLES / "meridian-fintech" / "evidentia.yaml").exists(),
     reason="legacy meridian example not present",
 )
 def test_legacy_meridian_yaml_emits_deprecation() -> None:
@@ -223,11 +223,11 @@ def test_legacy_meridian_yaml_emits_deprecation() -> None:
     borrowed time."""
     import warnings
 
-    from controlbridge.config import load_config
+    from evidentia.config import load_config
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
-        load_config(EXAMPLES / "meridian-fintech" / "controlbridge.yaml")
+        load_config(EXAMPLES / "meridian-fintech" / "evidentia.yaml")
     deprecations = [w for w in caught if issubclass(w.category, DeprecationWarning)]
     assert deprecations, (
         "Legacy meridian-fintech yaml should emit DeprecationWarning "

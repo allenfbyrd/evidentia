@@ -1,6 +1,6 @@
 # Air-gapped deployments
 
-ControlBridge v0.4.0 adds a first-class air-gapped mode: the `--offline` flag refuses any outbound network call to a non-loopback / non-RFC-1918 host, before the network IO is issued. Paired with a local LLM (Ollama, vLLM, a self-hosted OpenAI-compatible endpoint), you can run every ControlBridge feature entirely on your own infrastructure.
+Evidentia v0.4.0 adds a first-class air-gapped mode: the `--offline` flag refuses any outbound network call to a non-loopback / non-RFC-1918 host, before the network IO is issued. Paired with a local LLM (Ollama, vLLM, a self-hosted OpenAI-compatible endpoint), you can run every Evidentia feature entirely on your own infrastructure.
 
 This document covers the design, configuration, and verification of air-gapped deployments.
 
@@ -13,13 +13,13 @@ Several high-LTV audiences cannot send compliance data to third-party SaaS:
 - **Air-gapped environments** — Classified networks, isolated OT / SCADA, some financial back offices.
 - **Enterprise procurement** — CISOs who've been burned by data-residency surprises and want hard technical guarantees.
 
-ControlBridge's architecture makes this natural: the CLI and web UI are local, gap arithmetic runs on-device, and the only optional network calls are LLM API requests. Point `CONTROLBRIDGE_LLM_MODEL` at Ollama and you're done.
+Evidentia's architecture makes this natural: the CLI and web UI are local, gap arithmetic runs on-device, and the only optional network calls are LLM API requests. Point `EVIDENTIA_LLM_MODEL` at Ollama and you're done.
 
 > *"The only open-source GRC tool that runs entirely on your infrastructure."*
 
 ## What `--offline` guards
 
-`controlbridge_core.network_guard` audits every outbound call through the module-level flag. When `--offline` is set (CLI root flag, or `controlbridge serve --offline`), the following are enforced:
+`evidentia_core.network_guard` audits every outbound call through the module-level flag. When `--offline` is set (CLI root flag, or `evidentia serve --offline`), the following are enforced:
 
 | Subsystem | Guard | Allowed targets |
 |---|---|---|
@@ -27,7 +27,7 @@ ControlBridge's architecture makes this natural: the CLI and web UI are local, g
 | Catalog loader | `check_url(url)` on any URL-based fetch | Loopback / RFC-1918 only (v0.4.0 loads only from bundled + user-dir catalogs; URL-based `catalog import` is a future feature that will already be guarded) |
 | AI telemetry | n/a | LiteLLM + Instructor do not emit telemetry; nothing to block |
 | Gap store | n/a | On-disk under `platformdirs.user_data_dir` — local filesystem only |
-| Web UI bind | CLI warning | `controlbridge serve` binds to `127.0.0.1` by default; `--host 0.0.0.0` emits a security warning but is permitted |
+| Web UI bind | CLI warning | `evidentia serve` binds to `127.0.0.1` by default; `--host 0.0.0.0` emits a security warning but is permitted |
 
 Allowed hosts in offline mode:
 
@@ -39,7 +39,7 @@ Allowed hosts in offline mode:
 - IPv6 unique-local (`fc00::/7`)
 - Hostname `localhost` / `localhost.localdomain`
 
-Any other target raises `controlbridge_core.network_guard.OfflineViolationError` with a structured `{subsystem, target, remediation}` payload that the CLI and GUI surface to the user.
+Any other target raises `evidentia_core.network_guard.OfflineViolationError` with a structured `{subsystem, target, remediation}` payload that the CLI and GUI surface to the user.
 
 ## Quick start — Ollama on your laptop
 
@@ -48,21 +48,21 @@ Any other target raises `controlbridge_core.network_guard.OfflineViolationError`
 # 2. Pull a model with a big enough context window for control text
 ollama pull llama3.1:8b
 
-# 3. Configure ControlBridge to use it
-export CONTROLBRIDGE_LLM_MODEL=ollama/llama3.1:8b
+# 3. Configure Evidentia to use it
+export EVIDENTIA_LLM_MODEL=ollama/llama3.1:8b
 
 # 4. Verify air-gap posture
-controlbridge doctor --check-air-gap
+evidentia doctor --check-air-gap
 #  LLM client     AIR-GAP READY   model=ollama/llama3.1:8b (local prefix)
 #  Catalog loader AIR-GAP READY   v0.4.0 loads only from bundled + user-dir catalogs
 #  ...
 
 # 5. Run analysis in offline mode
-controlbridge --offline gap analyze --inventory my-controls.yaml \
+evidentia --offline gap analyze --inventory my-controls.yaml \
   --framework nist-800-53-rev5-moderate
 
 # 6. Generate risk statements offline (LLM calls hit Ollama only)
-controlbridge --offline risk generate --gap-id GAP-0001 \
+evidentia --offline risk generate --gap-id GAP-0001 \
   --context system-context.yaml
 ```
 
@@ -72,22 +72,22 @@ For organizations running an internal inference server on private infrastructure
 
 ```bash
 # vLLM exposes an OpenAI-compatible endpoint on a private IP
-export CONTROLBRIDGE_LLM_MODEL=gpt-4o-compatible
-export CONTROLBRIDGE_LLM_API_BASE=http://10.50.1.20:8000/v1
+export EVIDENTIA_LLM_MODEL=gpt-4o-compatible
+export EVIDENTIA_LLM_API_BASE=http://10.50.1.20:8000/v1
 
 # The guard checks the api_base host, not the model string — any cloud
 # model name paired with an RFC-1918 api_base is fine in offline mode.
-controlbridge --offline doctor --check-air-gap
+evidentia --offline doctor --check-air-gap
 #  LLM client     AIR-GAP READY   api_base=http://10.50.1.20:8000/v1 on loopback/RFC-1918
 ```
 
 ## Web UI in air-gapped deployments
 
-`controlbridge serve` binds to `127.0.0.1` by default and runs the entire UI + API from one uvicorn process on-disk. No external assets, no CDN, no telemetry. The React bundle is served from inside the Python wheel.
+`evidentia serve` binds to `127.0.0.1` by default and runs the entire UI + API from one uvicorn process on-disk. No external assets, no CDN, no telemetry. The React bundle is served from inside the Python wheel.
 
 ```bash
 # Launch in air-gapped mode
-controlbridge --offline serve
+evidentia --offline serve
 
 # The Settings page shows an "air-gapped" badge in the header and grays
 # out LLM-backed features unless you have a local endpoint configured.
@@ -98,7 +98,7 @@ For multi-user network deployments (a shared CMMC assessor's browser station, fo
 ```nginx
 server {
   listen 443 ssl;
-  server_name controlbridge.internal;
+  server_name evidentia.internal;
 
   # SSO / LDAP / whatever
   auth_request /auth;
@@ -110,25 +110,25 @@ server {
 }
 ```
 
-**Important:** ControlBridge has no auth in v0.4.0. Never bind to a non-loopback address without fronting with an authenticated proxy. Multi-user auth / RBAC is queued for v0.7.0+.
+**Important:** Evidentia has no auth in v0.4.0. Never bind to a non-loopback address without fronting with an authenticated proxy. Multi-user auth / RBAC is queued for v0.7.0+.
 
 ## Verification checklist for auditors
 
 Proof-of-offline for an external auditor:
 
 1. **Environment.** Disable outbound network on the host. (On Linux: `iptables -A OUTPUT -j DROP` except loopback.)
-2. **Preflight.** `controlbridge --offline doctor --check-air-gap` — every subsystem should report `AIR-GAP READY`. Red entries = configuration mistakes to fix before starting.
-3. **Run analysis.** `controlbridge --offline gap analyze ...` should complete without network errors.
-4. **Run risk generation.** With Ollama or vLLM configured, `controlbridge --offline risk generate --gap-id GAP-XXXX` should produce a risk statement. If the LLM endpoint is misconfigured, you'll get a clear `OfflineViolationError` — **not** a mystery timeout.
-5. **Web UI.** `controlbridge --offline serve` — the Settings page's air-gap posture widget should match the CLI `doctor` output.
+2. **Preflight.** `evidentia --offline doctor --check-air-gap` — every subsystem should report `AIR-GAP READY`. Red entries = configuration mistakes to fix before starting.
+3. **Run analysis.** `evidentia --offline gap analyze ...` should complete without network errors.
+4. **Run risk generation.** With Ollama or vLLM configured, `evidentia --offline risk generate --gap-id GAP-XXXX` should produce a risk statement. If the LLM endpoint is misconfigured, you'll get a clear `OfflineViolationError` — **not** a mystery timeout.
+5. **Web UI.** `evidentia --offline serve` — the Settings page's air-gap posture widget should match the CLI `doctor` output.
 
-The `OfflineViolationError` catches configuration mistakes before any data leaves the machine. If ControlBridge thinks a call might leak, it won't make the call. Fail closed, not open.
+The `OfflineViolationError` catches configuration mistakes before any data leaves the machine. If Evidentia thinks a call might leak, it won't make the call. Fail closed, not open.
 
 ## Architecture notes
 
-The guard module (`controlbridge_core.network_guard`) is deliberately small — a process-wide flag plus two enforcement functions (`check_url`, `check_llm_model`) plus a host classifier (`is_loopback_or_private`). Call sites (LLM client, future URL-based catalog import) invoke these explicitly; there's no monkey-patching, no import-time magic. Adding a guard to a new subsystem is a one-line addition.
+The guard module (`evidentia_core.network_guard`) is deliberately small — a process-wide flag plus two enforcement functions (`check_url`, `check_llm_model`) plus a host classifier (`is_loopback_or_private`). Call sites (LLM client, future URL-based catalog import) invoke these explicitly; there's no monkey-patching, no import-time magic. Adding a guard to a new subsystem is a one-line addition.
 
-The module is covered by 43 unit tests in `tests/unit/test_network_guard.py`. See the [source](../packages/controlbridge-core/src/controlbridge_core/network_guard.py) for docstrings covering every allowed-range rationale.
+The module is covered by 43 unit tests in `tests/unit/test_network_guard.py`. See the [source](../packages/evidentia-core/src/evidentia_core/network_guard.py) for docstrings covering every allowed-range rationale.
 
 ## Roadmap
 

@@ -10,9 +10,9 @@ import json
 from pathlib import Path
 
 import pytest
-from controlbridge_core.catalogs.registry import FrameworkRegistry
-from controlbridge_core.gap_analyzer import GapAnalyzer, export_report, load_inventory
-from controlbridge_core.models.gap import GapAnalysisReport, GapSeverity
+from evidentia_core.catalogs.registry import FrameworkRegistry
+from evidentia_core.gap_analyzer import GapAnalyzer, export_report, load_inventory
+from evidentia_core.models.gap import GapAnalysisReport, GapSeverity
 
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
 
@@ -29,7 +29,7 @@ def test_load_yaml_inventory():
     inv = load_inventory(FIXTURES / "sample-inventory.yaml")
     assert inv.organization == "Acme Corporation"
     assert len(inv.controls) == 9
-    assert inv.source_format == "controlbridge"
+    assert inv.source_format == "evidentia"
     ids = {c.id for c in inv.controls}
     assert {"AC-2", "AC-3", "IA-2", "CC6.1", "CC7.1"}.issubset(ids)
 

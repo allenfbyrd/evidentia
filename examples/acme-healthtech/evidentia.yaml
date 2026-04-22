@@ -1,0 +1,20 @@
+# =============================================================================
+# Acme Healthtech — Evidentia project config
+# =============================================================================
+# HIPAA-covered-entity scenario. Different cross-framework dynamics than
+# Meridian (fintech): the Privacy Rule + Breach Notification Rule layer on
+# top of the Security Rule, and NIST 800-53 Moderate is voluntary overlay
+# for HIPAA defensibility rather than required baseline.
+
+organization: "Acme Healthtech"
+system_name: "Acme Telehealth Platform"
+
+frameworks:
+  - hipaa-security
+  - hipaa-privacy
+  - hipaa-breach
+  - nist-800-53-rev5-moderate
+
+llm:
+  model: "gpt-4o"
+  temperature: 0.0

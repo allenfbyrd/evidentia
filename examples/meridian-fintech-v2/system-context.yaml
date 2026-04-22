@@ -1,7 +1,7 @@
 # =============================================================================
 # Meridian Financial v2 — System context for AI risk statement generation
 # =============================================================================
-# Used by `controlbridge risk generate --context system-context.yaml ...`
+# Used by `evidentia risk generate --context system-context.yaml ...`
 # to produce NIST SP 800-30 Rev 1 compliant risk statements grounded in
 # the organization's actual threat model, data classifications, and
 # regulatory scope.

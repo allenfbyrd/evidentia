@@ -1,9 +1,9 @@
-# Meridian Financial v2 — ControlBridge comprehensive example
+# Meridian Financial v2 — Evidentia comprehensive example
 
 **Fictional B2C fintech SaaS** — 1.2M US + 80K EU customers, FDIC-insured
 savings/debit/bill-pay on AWS EKS.
 
-This is the canonical end-to-end demo for **every ControlBridge v0.3.0
+This is the canonical end-to-end demo for **every Evidentia v0.3.0
 feature**. The older `examples/meridian-fintech/` (20-control v0.1.x
 sample) is kept for backward reference but is no longer the recommended
 starting point.
@@ -12,11 +12,11 @@ starting point.
 
 | File / dir                           | Purpose |
 |--------------------------------------|---------|
-| `controlbridge.yaml`                 | Project config using the v0.2.1 schema (flat `frameworks:`, `llm.model`/`temperature`, `organization`, `system_name`) |
+| `evidentia.yaml`                 | Project config using the v0.2.1 schema (flat `frameworks:`, `llm.model`/`temperature`, `organization`, `system_name`) |
 | `my-controls.yaml`                   | Baseline control inventory — 48 controls across 15 NIST 800-53 families, mixed implementation states, mixed NIST-pub (`AC-2(1)`) and NIST-OSCAL (`ac-2.3`) ID conventions to exercise the v0.2.1 normalizer |
 | `my-controls.csv`                    | Same 48 controls in CSV form so the CSV parser + `--organization` override flow is demonstrated |
 | `my-controls-pr.yaml`                | "PR branch" inventory — same org but with intentional regressions (AC-17, CP-10) and improvements (AU-2, AU-6, SI-2, SI-4, SR-3) plus one net-new control (AU-12) |
-| `system-context.yaml`                | Realistic system context for `controlbridge risk generate` — covers threat actors, data classifications, sub-processors, regulatory scope |
+| `system-context.yaml`                | Realistic system context for `evidentia risk generate` — covers threat actors, data classifications, sub-processors, regulatory scope |
 | `snapshots/baseline.json`            | Pre-generated gap report from `my-controls.yaml` — ready for `gap diff` |
 | `snapshots/pr-branch.json`           | Pre-generated gap report from `my-controls-pr.yaml` |
 | `snapshots/pr-diff.md`               | Pre-rendered markdown diff ready to paste into a PR |
@@ -38,16 +38,16 @@ starting point.
 
 ```bash
 cd examples/meridian-fintech-v2
-controlbridge doctor                  # 82 frameworks registered
-controlbridge catalog list --tier A | head -20
+evidentia doctor                  # 82 frameworks registered
+evidentia catalog list --tier A | head -20
 ```
 
 ### 2. Gap-analyze the baseline inventory
 
-Notice that `--frameworks` isn't passed — it comes from `controlbridge.yaml`.
+Notice that `--frameworks` isn't passed — it comes from `evidentia.yaml`.
 
 ```bash
-controlbridge gap analyze \
+evidentia gap analyze \
   --inventory my-controls.yaml \
   --output snapshots/baseline.json \
   --format json
@@ -56,15 +56,15 @@ controlbridge gap analyze \
 Also exported in the four other formats for comparison:
 
 ```bash
-controlbridge gap analyze --inventory my-controls.yaml --output report.md      --format markdown
-controlbridge gap analyze --inventory my-controls.yaml --output report.csv     --format csv
-controlbridge gap analyze --inventory my-controls.yaml --output report.oscal.json --format oscal-ar
+evidentia gap analyze --inventory my-controls.yaml --output report.md      --format markdown
+evidentia gap analyze --inventory my-controls.yaml --output report.csv     --format csv
+evidentia gap analyze --inventory my-controls.yaml --output report.oscal.json --format oscal-ar
 ```
 
 ### 3. Gap-analyze the PR-branch inventory
 
 ```bash
-controlbridge gap analyze \
+evidentia gap analyze \
   --inventory my-controls-pr.yaml \
   --output snapshots/pr-branch.json \
   --format json
@@ -76,20 +76,20 @@ Exercises the headline v0.3.0 feature:
 
 ```bash
 # Terminal output (Rich tables)
-controlbridge gap diff --base snapshots/baseline.json --head snapshots/pr-branch.json
+evidentia gap diff --base snapshots/baseline.json --head snapshots/pr-branch.json
 
 # PR-comment-style markdown
-controlbridge gap diff \
+evidentia gap diff \
   --base snapshots/baseline.json --head snapshots/pr-branch.json \
   --format markdown --output snapshots/pr-diff.md
 
 # GitHub Actions inline annotations (::error::/::warning::/::notice::)
-controlbridge gap diff \
+evidentia gap diff \
   --base snapshots/baseline.json --head snapshots/pr-branch.json \
   --format github
 
 # CI gate — exits 1 because the PR opens AU-12 and regresses AC-17 / CP-10
-controlbridge gap diff \
+evidentia gap diff \
   --base snapshots/baseline.json --head snapshots/pr-branch.json \
   --fail-on-regression
 ```
@@ -99,7 +99,7 @@ Expected diff output: **+1 opened / -3 closed / ▲1 severity_increased / ▼2 s
 ### 5. CSV inventory with `--organization` override
 
 ```bash
-controlbridge gap analyze \
+evidentia gap analyze \
   --inventory my-controls.csv \
   --frameworks nist-800-53-rev5-moderate \
   --organization "Meridian Financial" \
@@ -113,16 +113,16 @@ Without `--organization`, the CSV parser would record the inventory as
 ### 6. User-catalog import — shadow a bundled Tier-C stub
 
 ```bash
-controlbridge catalog import ./user-catalog-demo/soc2-tsc-licensed.json --force
-controlbridge catalog where soc2-tsc
-controlbridge catalog show soc2-tsc --control CC6.1
+evidentia catalog import ./user-catalog-demo/soc2-tsc-licensed.json --force
+evidentia catalog where soc2-tsc
+evidentia catalog show soc2-tsc --control CC6.1
 
 # The gap analyzer now sees your licensed copy instead of the stub:
-controlbridge gap analyze --inventory my-controls.yaml \
+evidentia gap analyze --inventory my-controls.yaml \
   --frameworks soc2-tsc --output report-soc2-licensed.json
 
 # Undo:
-controlbridge catalog remove soc2-tsc --yes
+evidentia catalog remove soc2-tsc --yes
 ```
 
 ### 7. Persistent gap store + `risk generate --gap-id`
@@ -133,31 +133,31 @@ re-running analysis or re-specifying `--gaps`:
 
 ```bash
 # After running gap analyze above, pick a gap ID from the console output:
-controlbridge risk generate \
+evidentia risk generate \
   --context system-context.yaml \
   --gap-id GAP-0001
 ```
 
 If `$ANTHROPIC_API_KEY` / `$OPENAI_API_KEY` / etc. isn't set, the
 pre-flight check emits a clear pointer rather than a cryptic LiteLLM
-auth error. Uses the `llm.model` from `controlbridge.yaml` by default.
+auth error. Uses the `llm.model` from `evidentia.yaml` by default.
 
 ### 8. Plain-English control explanations
 
 ```bash
-# Requires an LLM API key matching the model in controlbridge.yaml
-controlbridge explain control AC-2 --framework nist-800-53-rev5-moderate
+# Requires an LLM API key matching the model in evidentia.yaml
+evidentia explain control AC-2 --framework nist-800-53-rev5-moderate
 
 # Format options
-controlbridge explain control AC-2 --framework nist-800-53-rev5-moderate --format markdown
-controlbridge explain control AC-2 --framework nist-800-53-rev5-moderate --format json
+evidentia explain control AC-2 --framework nist-800-53-rev5-moderate --format markdown
+evidentia explain control AC-2 --framework nist-800-53-rev5-moderate --format json
 
 # Cache management
-controlbridge explain cache where          # show cache dir
-controlbridge explain cache clear --yes    # wipe cache
+evidentia explain cache where          # show cache dir
+evidentia explain cache clear --yes    # wipe cache
 
 # Force re-generation even if cached
-controlbridge explain control AC-2 --framework nist-800-53-rev5-moderate --refresh
+evidentia explain control AC-2 --framework nist-800-53-rev5-moderate --refresh
 ```
 
 ### 9. GitHub-Action-style workflow

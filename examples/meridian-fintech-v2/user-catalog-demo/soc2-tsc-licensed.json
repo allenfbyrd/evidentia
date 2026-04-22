@@ -2,7 +2,7 @@
   "framework_id": "soc2-tsc",
   "framework_name": "SOC 2 TSC 2017 (Meridian Financial licensed copy — DEMO)",
   "version": "2017 (with 2022 Points of Focus)",
-  "source": "Synthetic demo content. NOT the authoritative AICPA text. This file exists to exercise `controlbridge catalog import` shadow-precedence flow — drop your own licensed copy here for real use.",
+  "source": "Synthetic demo content. NOT the authoritative AICPA text. This file exists to exercise `evidentia catalog import` shadow-precedence flow — drop your own licensed copy here for real use.",
   "tier": "C",
   "category": "control",
   "placeholder": false,

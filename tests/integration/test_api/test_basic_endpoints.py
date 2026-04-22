@@ -42,7 +42,7 @@ class TestDoctor:
         assert isinstance(subsystems, list)
         names = {s["name"] for s in subsystems}
         # Core packages must all appear.
-        assert {"Python", "controlbridge_core", "controlbridge_api"} <= names
+        assert {"Python", "evidentia_core", "evidentia_api"} <= names
 
     def test_check_air_gap_default(self, api_client: TestClient) -> None:
         r = api_client.post("/api/doctor/check-air-gap")
@@ -57,7 +57,7 @@ class TestDoctor:
     def test_check_air_gap_with_ollama_model_reports_ok(
         self, api_client: TestClient, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setenv("CONTROLBRIDGE_LLM_MODEL", "ollama/llama3")
+        monkeypatch.setenv("EVIDENTIA_LLM_MODEL", "ollama/llama3")
         r = api_client.post("/api/doctor/check-air-gap")
         assert r.status_code == 200
         llm_check = next(
@@ -68,8 +68,8 @@ class TestDoctor:
     def test_check_air_gap_with_cloud_model_reports_would_leak(
         self, api_client: TestClient, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.delenv("CONTROLBRIDGE_LLM_MODEL", raising=False)
-        monkeypatch.delenv("CONTROLBRIDGE_LLM_API_BASE", raising=False)
+        monkeypatch.delenv("EVIDENTIA_LLM_MODEL", raising=False)
+        monkeypatch.delenv("EVIDENTIA_LLM_API_BASE", raising=False)
         monkeypatch.delenv("OPENAI_API_BASE", raising=False)
         r = api_client.post("/api/doctor/check-air-gap")
         payload = r.json()

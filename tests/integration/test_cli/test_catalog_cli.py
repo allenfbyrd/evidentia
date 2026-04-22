@@ -1,4 +1,4 @@
-"""Integration tests for `controlbridge catalog` subcommands (v0.2.1 D7).
+"""Integration tests for `evidentia catalog` subcommands (v0.2.1 D7).
 
 The v0.2.0 release introduced four new subcommands — ``import``, ``where``,
 ``license-info``, ``remove`` — and zero tests for any of them. These
@@ -13,8 +13,8 @@ import json
 from pathlib import Path
 
 import pytest
-from controlbridge.cli.main import app
-from controlbridge_core.catalogs.registry import FrameworkRegistry
+from evidentia.cli.main import app
+from evidentia_core.catalogs.registry import FrameworkRegistry
 from typer.testing import CliRunner
 
 
@@ -25,9 +25,9 @@ def runner() -> CliRunner:
 
 @pytest.fixture(autouse=True)
 def _isolated_user_dir(tmp_path: Path, monkeypatch):
-    """Point CONTROLBRIDGE_CATALOG_DIR at an isolated tmp for each test."""
+    """Point EVIDENTIA_CATALOG_DIR at an isolated tmp for each test."""
     user_dir = tmp_path / "user-catalogs"
-    monkeypatch.setenv("CONTROLBRIDGE_CATALOG_DIR", str(user_dir))
+    monkeypatch.setenv("EVIDENTIA_CATALOG_DIR", str(user_dir))
     # Also reset the registry singleton so it doesn't cache the bundled
     # manifest across tests.
     FrameworkRegistry.reset_instance()
@@ -36,7 +36,7 @@ def _isolated_user_dir(tmp_path: Path, monkeypatch):
 
 
 def _minimal_user_catalog(tmp_path: Path, framework_id: str = "my-custom-fw") -> Path:
-    """Write a tiny ControlBridge-format catalog to disk for import."""
+    """Write a tiny Evidentia-format catalog to disk for import."""
     path = tmp_path / f"{framework_id}.json"
     path.write_text(
         json.dumps(
@@ -207,7 +207,7 @@ def test_user_catalog_shadows_bundled(runner: CliRunner, tmp_path: Path) -> None
 
 
 def test_doctor_runs_cleanly(runner: CliRunner) -> None:
-    """`controlbridge doctor` must report all components at 'OK'."""
+    """`evidentia doctor` must report all components at 'OK'."""
     result = runner.invoke(app, ["doctor"])
     assert result.exit_code == 0, result.output
     # Must report at least the NIST catalog count
@@ -217,4 +217,4 @@ def test_doctor_runs_cleanly(runner: CliRunner) -> None:
 def test_version_command(runner: CliRunner) -> None:
     result = runner.invoke(app, ["version"])
     assert result.exit_code == 0, result.output
-    assert "ControlBridge" in result.output
+    assert "Evidentia" in result.output

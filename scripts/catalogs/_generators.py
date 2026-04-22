@@ -3,8 +3,8 @@
 The per-framework generator scripts in this directory each define a set
 of controls (or obligations, or techniques) as Python data, then invoke
 one of the ``emit_*`` helpers here to write a catalog JSON to the right
-tier-partitioned directory under ``packages/controlbridge-core/src/
-controlbridge_core/catalogs/data/``.
+tier-partitioned directory under ``packages/evidentia-core/src/
+evidentia_core/catalogs/data/``.
 
 This is the v0.2.0 authoring path. The v0.2.x refresh CI will eventually
 replace these hand-authored definitions with live upstream fetches
@@ -21,9 +21,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_ROOT = (
     REPO_ROOT
     / "packages"
-    / "controlbridge-core"
+    / "evidentia-core"
     / "src"
-    / "controlbridge_core"
+    / "evidentia_core"
     / "catalogs"
     / "data"
 )

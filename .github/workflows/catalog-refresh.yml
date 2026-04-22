@@ -53,11 +53,11 @@ jobs:
           set -e
           uv run python scripts/catalogs/regenerate_manifest.py | tee regen.out
           # Detect drift against committed manifest
-          if git diff --quiet packages/controlbridge-core/src/controlbridge_core/catalogs/data/frameworks.yaml; then
+          if git diff --quiet packages/evidentia-core/src/evidentia_core/catalogs/data/frameworks.yaml; then
             echo "drift_detected=false" >> "$GITHUB_OUTPUT"
           else
             echo "drift_detected=true" >> "$GITHUB_OUTPUT"
-            git diff packages/controlbridge-core/src/controlbridge_core/catalogs/data/frameworks.yaml > manifest-diff.txt
+            git diff packages/evidentia-core/src/evidentia_core/catalogs/data/frameworks.yaml > manifest-diff.txt
           fi
 
       - name: Run bundled catalog smoke tests

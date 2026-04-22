@@ -17,7 +17,7 @@ import json
 from pathlib import Path
 
 import pytest
-from controlbridge_core.oscal.profile import (
+from evidentia_core.oscal.profile import (
     ProfileResolutionError,
     _resolve_href,
     resolve_profile,

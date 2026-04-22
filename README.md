@@ -1,15 +1,26 @@
-# ControlBridge
+# Evidentia
+
+> **Renamed from ControlBridge (April 2026).** This project was originally
+> published as `github.com/allenfbyrd/controlbridge` and was renamed to
+> avoid confusion with an unrelated commercial product at controlbridge.ai.
+> All old URLs redirect here automatically. The six previous PyPI packages
+> (`controlbridge`, `controlbridge-core`, `controlbridge-ai`,
+> `controlbridge-api`, `controlbridge-collectors`, `controlbridge-integrations`)
+> remain installable as v0.5.1 deprecation shims that forward every import
+> to the new `evidentia-*` names. Shims will be removed in v0.7.0.
+> See [CHANGELOG.md § 0.6.0](CHANGELOG.md) and [RENAMED.md](RENAMED.md)
+> for the full rationale.
 
 > **Bridge the gap between your controls and your frameworks.**
 
-**ControlBridge** is an open-source, Python-first Governance, Risk, and Compliance
+**Evidentia** is an open-source, Python-first Governance, Risk, and Compliance
 (GRC) platform that turns compliance from a spreadsheet problem into a software
 problem. It provides composable building blocks for control gap analysis,
 AI-generated risk statements, automated evidence collection, and compliance
 reporting — all usable from a Python library, a CLI, or a REST API.
 
-[![tests](https://github.com/allenfbyrd/controlbridge/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/allenfbyrd/controlbridge/actions/workflows/test.yml)
-[![PyPI version](https://img.shields.io/pypi/v/controlbridge.svg)](https://pypi.org/project/controlbridge/)
+[![tests](https://github.com/allenfbyrd/evidentia/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/allenfbyrd/evidentia/actions/workflows/test.yml)
+[![PyPI version](https://img.shields.io/pypi/v/evidentia.svg)](https://pypi.org/project/evidentia/)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)
 ![Status: Phase 1 MVP](https://img.shields.io/badge/status-Phase%201%20MVP-yellow.svg)
@@ -43,22 +54,22 @@ different ways — and audit season becomes a months-long exercise in cross-refe
 get solved: with composable libraries, structured data, version control, and
 automation.
 
-## Why ControlBridge exists
+## Why Evidentia exists
 
-ControlBridge is built on four principles:
+Evidentia is built on four principles:
 
 1. **Open standards, not vendor lock-in.** Inputs and outputs use
    [OSCAL](https://pages.nist.gov/OSCAL/) — NIST's open standard for control
-   catalogs and assessment results. If you outgrow ControlBridge, your data
+   catalogs and assessment results. If you outgrow Evidentia, your data
    travels with you.
 
 2. **Library-first, CLI-second, API-third.** The Python library is the
    canonical interface. The CLI is a thin wrapper. The REST API is a thin
-   wrapper. Everything ControlBridge can do via the CLI, it can do from a
+   wrapper. Everything Evidentia can do via the CLI, it can do from a
    Python script — which means you can embed it in CI pipelines, compliance
    portals, or custom integrations.
 
-3. **AI where it helps, not where it hurts.** ControlBridge uses LLMs for
+3. **AI where it helps, not where it hurts.** Evidentia uses LLMs for
    tasks where language understanding is the bottleneck (writing NIST SP 800-30
    risk statements from a gap, validating whether a policy PDF actually
    covers a control). It uses deterministic code for tasks where correctness
@@ -88,7 +99,7 @@ ControlBridge is built on four principles:
 ## Current status: 82 frameworks bundled, 604 tests passing
 
 **v0.5.0 (April 2026)** is the **"Phase 2 integrations"** release.
-ControlBridge finally ships the long-promised integrations and
+Evidentia finally ships the long-promised integrations and
 collectors: push gaps as Jira issues with bidirectional status sync,
 auto-collect compliance evidence from AWS (Config + Security Hub),
 and audit GitHub repos (branch protection + CODEOWNERS + visibility).
@@ -97,37 +108,37 @@ Every finding is pre-mapped to NIST 800-53 control families.
 Install:
 
 ```bash
-uv tool install --upgrade "controlbridge[gui]"
+uv tool install --upgrade "evidentia[gui]"
 
 # Jira: push open gaps as issues, sync status back on resolve
 export JIRA_BASE_URL=https://acme.atlassian.net
 export JIRA_EMAIL=compliance@acme.com
 export JIRA_API_TOKEN=...
 export JIRA_PROJECT_KEY=SEC
-controlbridge integrations jira push --gaps report.json
+evidentia integrations jira push --gaps report.json
 
 # AWS: collect evidence from the default region
-controlbridge collect aws --output aws-findings.json
+evidentia collect aws --output aws-findings.json
 
 # GitHub: audit a single repo
-controlbridge collect github --repo allenfbyrd/controlbridge
+evidentia collect github --repo allenfbyrd/evidentia
 ```
 
 **v0.4.0-alpha.1 (April 2026)** is the **"Accessible GRC"** release.
-ControlBridge grows beyond the CLI with a FastAPI REST server, a
+Evidentia grows beyond the CLI with a FastAPI REST server, a
 React + shadcn/ui web UI (localhost-only, WCAG 2.1 AA via Radix
 primitives), an air-gapped mode (`--offline` flag +
 `doctor --check-air-gap` validator), and a new sixth workspace
-package (`controlbridge-api`).
+package (`evidentia-api`).
 
 Install the UI via the new `[gui]` extra:
 
 ```bash
-uv tool install "controlbridge[gui]"
+uv tool install "evidentia[gui]"
 # or
-pip install "controlbridge[gui]"
+pip install "evidentia[gui]"
 
-controlbridge serve   # web UI at http://127.0.0.1:8000
+evidentia serve   # web UI at http://127.0.0.1:8000
 ```
 
 See [`docs/gui/README.md`](docs/gui/README.md) for the full UI guide and
@@ -141,7 +152,7 @@ scenarios — Meridian Financial (fintech), Acme Healthtech (HIPAA),
 Northstar Systems (DoD contractor) — with pre-generated gap
 snapshots and a full walkthrough that exercises every feature
 added through v0.3.0. The repo dog-foods its own GitHub Action
-(`.github/workflows/controlbridge.yml`) on every PR against the
+(`.github/workflows/evidentia.yml`) on every PR against the
 Meridian v2 inventory. Start at
 [`examples/WALKTHROUGH.md`](examples/WALKTHROUGH.md). Also fixed one
 latent bug in `compute_gap_diff` that only affected library-level
@@ -150,13 +161,13 @@ guard.
 
 **v0.3.0 (April 2026)** is the **compliance-as-code release**:
 
-- **`controlbridge gap diff`** — compare two gap-analysis snapshots,
+- **`evidentia gap diff`** — compare two gap-analysis snapshots,
   classify each gap as opened / closed / severity-changed / unchanged.
   Pair with `--fail-on-regression` in a GitHub Action to block PRs
   that make compliance posture worse. No commercial GRC tool does this
   at the PR level. See [`docs/github-action/README.md`](docs/github-action/README.md)
   for the drop-in workflow.
-- **`controlbridge explain <control_id>`** — LLM-generated plain-English
+- **`evidentia explain <control_id>`** — LLM-generated plain-English
   translation of any framework's control text. Answers the questions
   engineers actually ask ("what does this mean, why should I care,
   what do I do?") instead of quoting the NIST legal prose verbatim.
@@ -178,12 +189,12 @@ CI is now strict (no more `continue-on-error`); +32 new tests.
 - Replaces the always-LOW gap effort estimator with a keyword-aware
   hybrid heuristic, so the prioritized roadmap actually surfaces
   easy-win controls.
-- Wires the `controlbridge.yaml` project config loader that `init` has
+- Wires the `evidentia.yaml` project config loader that `init` has
   been generating since v0.1.0 but nothing read. Precedence:
   **CLI flag > env var > yaml > built-in default**.
 - Persists gap reports to a user-dir store, making `risk generate
   --gap-id GAP-…` work without re-running `gap analyze`.
-- +221 new tests (131 → 352 passing); all `controlbridge catalog`
+- +221 new tests (131 → 352 passing); all `evidentia catalog`
   subcommands now covered; OSCAL profile resolver tested end-to-end.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
@@ -217,7 +228,7 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
     v8.1 plus 5 CIS Benchmarks (AWS, Azure, GCP, Kubernetes, RHEL 9);
     Secure Controls Framework 2024; IEC 62443; SOC 2 TSC. Copyrighted
     authoritative text isn't bundled — ships with public clause numbering
-    plus a `controlbridge catalog import` hook for your licensed copy.
+    plus a `evidentia catalog import` hook for your licensed copy.
 
   - **Tier B — Threat and vulnerability catalogs (4 frameworks):** MITRE
     ATT&CK Enterprise (41 techniques), MITRE CWE Top 25 (2024), MITRE
@@ -270,7 +281,7 @@ Setting expectations matters. Phase 1 does NOT yet include:
 - Evidence collectors for AWS, Azure, GCP, GitHub, or Okta (Phase 2)
 - LLM-based evidence validation (Phase 3)
 - Jira or ServiceNow push integrations (Phase 2)
-- The FastAPI REST server (`controlbridge serve`)
+- The FastAPI REST server (`evidentia serve`)
 - A web UI
 - Full-depth NIST 800-53 Rev 5 catalog (~323 controls with 3-level
   enhancements) — v0.2.0 ships the 16-control Moderate sample plus
@@ -282,7 +293,7 @@ Setting expectations matters. Phase 1 does NOT yet include:
 - Authoritative control text for copyrighted frameworks (ISO 27001/27002,
   SOC 2 TSC, PCI DSS, HITRUST CSF, etc.). These frameworks will ship as
   **Tier C stubs** in v0.2.0 — public clause numbering only, with a
-  `controlbridge catalog import` command to load your own licensed copy.
+  `evidentia catalog import` command to load your own licensed copy.
 
 ---
 
@@ -296,18 +307,18 @@ Setting expectations matters. Phase 1 does NOT yet include:
 ### Install from PyPI
 
 ```bash
-pip install controlbridge
+pip install evidentia
 ```
 
-This installs the `controlbridge` and `cb` CLI commands, plus the four workspace
-sub-packages as transitive dependencies (`controlbridge-core`, `controlbridge-ai`,
-`controlbridge-collectors`, `controlbridge-integrations`).
+This installs the `evidentia` and `cb` CLI commands, plus the four workspace
+sub-packages as transitive dependencies (`evidentia-core`, `evidentia-ai`,
+`evidentia-collectors`, `evidentia-integrations`).
 
 ### Install from source (for contributors)
 
 ```bash
-git clone https://github.com/allenfbyrd/controlbridge.git
-cd controlbridge
+git clone https://github.com/allenfbyrd/evidentia.git
+cd evidentia
 uv sync --all-packages
 ```
 
@@ -323,26 +334,26 @@ uv run pytest tests/ -q
 
 ### End-to-end walkthrough with sample data
 
-ControlBridge ships with a realistic fictional fintech scenario in
+Evidentia ships with a realistic fictional fintech scenario in
 [`examples/meridian-fintech/`](examples/meridian-fintech/). Walk through it in five steps:
 
 ```bash
 # 1. Verify installation
-uv run controlbridge doctor
+uv run evidentia doctor
 
 # 2. Explore available frameworks
-uv run controlbridge catalog list
+uv run evidentia catalog list
 
 # 3. Inspect a specific control
-uv run controlbridge catalog show nist-800-53-mod --control SI-4
+uv run evidentia catalog show nist-800-53-mod --control SI-4
 
 # 4. See how one framework maps to another
-uv run controlbridge catalog crosswalk \
+uv run evidentia catalog crosswalk \
   --source nist-800-53-mod --target soc2-tsc --control AC-2
 
 # 5. Run gap analysis on the Meridian Financial sample inventory
 cd examples/meridian-fintech
-uv --project ../.. run controlbridge gap analyze \
+uv --project ../.. run evidentia gap analyze \
   --inventory my-controls.yaml \
   --frameworks nist-800-53-mod,soc2-tsc \
   --output report.md --format markdown \
@@ -360,7 +371,7 @@ Requires an LLM API key. Any LiteLLM-supported provider works:
 ```bash
 export OPENAI_API_KEY=sk-...            # or ANTHROPIC_API_KEY, etc.
 
-uv --project ../.. run controlbridge risk generate \
+uv --project ../.. run evidentia risk generate \
   --context system-context.yaml \
   --gaps report.json \
   --model gpt-4o \
@@ -375,30 +386,30 @@ for the five highest-priority gaps.
 
 ```bash
 # From an empty directory
-uv run controlbridge init
+uv run evidentia init
 
 # Creates:
-#   controlbridge.yaml       — config with defaults
+#   evidentia.yaml       — config with defaults
 #   my-controls.yaml         — template control inventory
 #   system-context.yaml      — template system context
-#   .controlbridge/          — local storage
+#   .evidentia/          — local storage
 ```
 
-Edit `my-controls.yaml` with your real inventory and run `controlbridge gap analyze`.
+Edit `my-controls.yaml` with your real inventory and run `evidentia gap analyze`.
 
 ---
 
 ## Architecture
 
-ControlBridge is a **uv workspace monorepo** of five composable Python packages:
+Evidentia is a **uv workspace monorepo** of five composable Python packages:
 
 | Package                      | Role                                                                        |
 | ---------------------------- | --------------------------------------------------------------------------- |
-| `controlbridge-core`         | Pydantic data models, OSCAL catalog loader, crosswalk engine, gap analyzer  |
-| `controlbridge-ai`           | LiteLLM + Instructor client, risk statement generator, evidence validator  |
-| `controlbridge-collectors`   | Evidence collection agents for cloud and SaaS systems *(Phase 2)*          |
-| `controlbridge-integrations` | Jira and ServiceNow push integrations *(Phase 2)*                           |
-| `controlbridge`              | Meta-package: Typer/Rich CLI and FastAPI REST server                        |
+| `evidentia-core`         | Pydantic data models, OSCAL catalog loader, crosswalk engine, gap analyzer  |
+| `evidentia-ai`           | LiteLLM + Instructor client, risk statement generator, evidence validator  |
+| `evidentia-collectors`   | Evidence collection agents for cloud and SaaS systems *(Phase 2)*          |
+| `evidentia-integrations` | Jira and ServiceNow push integrations *(Phase 2)*                           |
+| `evidentia`              | Meta-package: Typer/Rich CLI and FastAPI REST server                        |
 
 ### Data flow (Phase 1)
 
@@ -459,7 +470,7 @@ ControlBridge is a **uv workspace monorepo** of five composable Python packages:
       for ISO 27001/27002/27017/27018/27701/42001/22301/9001, SOC 2 TSC,
       PCI DSS 4.0, HITRUST, COBIT, SWIFT CSCF, CIS Controls + Benchmarks,
       SCF, IEC 62443; MITRE ATT&CK, CWE, CAPEC, CISA KEV;
-      `controlbridge catalog import` for user-licensed Tier-C content;
+      `evidentia catalog import` for user-licensed Tier-C content;
       GitHub Actions refresh CI for upstream change detection.
 
 ### Phase 2 — Evidence Collection (next)
@@ -480,7 +491,7 @@ ControlBridge is a **uv workspace monorepo** of five composable Python packages:
 - [ ] Coverage heatmaps
 
 ### Phase 4 — Platform
-- [ ] FastAPI REST server (`controlbridge serve`)
+- [ ] FastAPI REST server (`evidentia serve`)
 - [ ] Multi-tenant database backend (PostgreSQL)
 - [ ] Web UI for non-technical reviewers
 - [ ] Audit trail with cryptographic evidence hashes
@@ -492,7 +503,7 @@ ControlBridge is a **uv workspace monorepo** of five composable Python packages:
 - [ ] Integration with policy-as-code tools (OPA, Cedar)
 - [ ] Terraform provider for compliance-as-code
 
-See [`ControlBridge-Architecture-and-Implementation-Plan.md`](ControlBridge-Architecture-and-Implementation-Plan.md)
+See [`Evidentia-Architecture-and-Implementation-Plan.md`](Evidentia-Architecture-and-Implementation-Plan.md)
 for the full canonical plan (312 KB, ~8200 lines) including all code sketches, data
 flows, and technology rationales.
 
@@ -503,13 +514,13 @@ flows, and technology rationales.
 ### Project layout
 
 ```
-ControlBridge/
+Evidentia/
 ├── packages/
-│   ├── controlbridge-core/         # Pydantic models, catalogs, gap analyzer
-│   ├── controlbridge-ai/           # LiteLLM client, risk generator
-│   ├── controlbridge-collectors/   # (Phase 2)
-│   ├── controlbridge-integrations/ # (Phase 2)
-│   └── controlbridge/              # CLI + API meta-package
+│   ├── evidentia-core/         # Pydantic models, catalogs, gap analyzer
+│   ├── evidentia-ai/           # LiteLLM client, risk generator
+│   ├── evidentia-collectors/   # (Phase 2)
+│   ├── evidentia-integrations/ # (Phase 2)
+│   └── evidentia/              # CLI + API meta-package
 ├── tests/
 │   ├── fixtures/                   # Sample inventories for tests
 │   └── unit/                       # Unit + end-to-end tests
@@ -531,10 +542,10 @@ uv run pytest tests/unit/test_gap_analyzer/   # One subpackage
 
 ### Add a new framework catalog
 
-1. Drop an OSCAL catalog JSON file in `packages/controlbridge-core/src/controlbridge_core/catalogs/data/<framework-id>.json`.
+1. Drop an OSCAL catalog JSON file in `packages/evidentia-core/src/evidentia_core/catalogs/data/<framework-id>.json`.
 2. Register its metadata in `catalogs/registry.py` under `FRAMEWORK_METADATA`.
 3. Optionally add crosswalks in `catalogs/data/mappings/`.
-4. Run `controlbridge catalog list` — your framework should appear.
+4. Run `evidentia catalog list` — your framework should appear.
 
 ### Code style
 
@@ -564,7 +575,7 @@ areas:
 
 ## Acknowledgments
 
-ControlBridge stands on the shoulders of excellent open-source projects:
+Evidentia stands on the shoulders of excellent open-source projects:
 
 - **[NIST OSCAL](https://pages.nist.gov/OSCAL/)** — the structured data standard that makes framework interop possible
 - **[Pydantic](https://docs.pydantic.dev/)** — type-safe data models without the boilerplate

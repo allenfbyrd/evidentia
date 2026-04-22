@@ -1,6 +1,6 @@
-# Drop-in GitHub Actions workflow for ControlBridge compliance checks on PRs.
+# Drop-in GitHub Actions workflow for Evidentia compliance checks on PRs.
 #
-# Copy this file to `.github/workflows/controlbridge.yml` in your repo.
+# Copy this file to `.github/workflows/evidentia.yml` in your repo.
 # Requires:
 #   - `inventory.yaml` at the repo root (your control implementation state)
 #   - The `uv` tool (installed by setup-uv, no action required)
@@ -8,7 +8,7 @@
 #
 # See docs/github-action/README.md for a full explanation.
 
-name: ControlBridge compliance check
+name: Evidentia compliance check
 
 on:
   pull_request:
@@ -34,13 +34,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install ControlBridge
-        run: uv tool install controlbridge
+      - name: Install Evidentia
+        run: uv tool install evidentia
 
       # ---- Analyze head (current PR / main) ----
       - name: Analyze head
         run: |
-          controlbridge gap analyze \
+          evidentia gap analyze \
             --inventory inventory.yaml \
             --frameworks nist-800-53-rev5-moderate,soc2-tsc \
             --output /tmp/head.json \
@@ -52,9 +52,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/base.json
-          key: controlbridge-baseline-${{ github.base_ref || github.ref_name }}
+          key: evidentia-baseline-${{ github.base_ref || github.ref_name }}
           restore-keys: |
-            controlbridge-baseline-main
+            evidentia-baseline-main
 
       - name: Create baseline if cache miss (main-branch pushes only)
         if: steps.baseline.outputs.cache-hit != 'true' && github.event_name == 'push'
@@ -64,7 +64,7 @@ jobs:
       - name: Gap diff
         if: github.event_name == 'pull_request'
         run: |
-          controlbridge gap diff \
+          evidentia gap diff \
             --base /tmp/base.json \
             --head /tmp/head.json \
             --format markdown \
@@ -97,7 +97,7 @@ jobs:
       - name: Gate on regressions
         if: github.event_name == 'pull_request'
         run: |
-          controlbridge gap diff \
+          evidentia gap diff \
             --base /tmp/base.json \
             --head /tmp/head.json \
             --format github \

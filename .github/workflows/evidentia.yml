@@ -1,0 +1,130 @@
+#
+# Evidentia is now dog-fooding its own GitHub Action.
+#
+# Every PR that touches the Meridian v2 fintech inventory (or the NIST /
+# SOC 2 / GDPR catalogs it depends on) triggers a gap-diff against the
+# main-branch baseline. If the PR makes the Meridian posture worse, the
+# Check is red. If it improves, the Check is green with a comment showing
+# what closed.
+#
+# This isn't a real compliance program — Meridian is a fictional demo
+# scenario — but running the workflow on every PR proves that the v0.3.0
+# `gap diff` command works end-to-end and keeps the documented expected
+# counts in sync with reality as the bundled catalogs evolve.
+#
+
+name: Compliance check (Meridian v2 demo scenario)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "examples/meridian-fintech-v2/my-controls*.yaml"
+      - "packages/evidentia-core/src/evidentia_core/catalogs/data/**"
+      - ".github/workflows/evidentia.yml"
+  push:
+    branches: [main]
+    paths:
+      - "examples/meridian-fintech-v2/my-controls.yaml"
+      - "packages/evidentia-core/src/evidentia_core/catalogs/data/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  compliance:
+    name: Meridian gap diff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          python-version: "3.12"
+
+      - name: Sync workspace (dogfood the local build, not pip)
+        run: uv sync --all-packages
+
+      # ---- Head (current PR state; main after merge) ----
+      - name: Analyze head
+        run: |
+          uv run evidentia gap analyze \
+            --inventory examples/meridian-fintech-v2/my-controls.yaml \
+            --frameworks nist-800-53-rev5-moderate,soc2-tsc \
+            --output /tmp/head.json \
+            --format json
+
+      # ---- Baseline (main-branch state, cached across PR runs) ----
+      - name: Restore baseline
+        id: baseline
+        uses: actions/cache@v4
+        with:
+          path: /tmp/base.json
+          key: meridian-baseline-${{ github.base_ref || github.ref_name }}
+          restore-keys: |
+            meridian-baseline-main
+
+      - name: Seed baseline on main-branch push (first run ever)
+        if: steps.baseline.outputs.cache-hit != 'true' && github.event_name == 'push'
+        run: cp /tmp/head.json /tmp/base.json
+
+      # ---- PR path: compute diff, post comment, gate on regressions ----
+      - name: Gap diff (markdown for PR comment)
+        if: github.event_name == 'pull_request'
+        run: |
+          uv run evidentia gap diff \
+            --base /tmp/base.json \
+            --head /tmp/head.json \
+            --format markdown \
+            --output /tmp/diff.md
+        continue-on-error: true
+
+      - name: Post PR comment
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('/tmp/diff.md')) {
+              core.info('No diff produced; skipping PR comment.');
+              return;
+            }
+            const body = fs.readFileSync('/tmp/diff.md', 'utf8');
+            // Replace any existing Evidentia comment so we don't spam
+            // on subsequent pushes.
+            const comments = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const mine = comments.data.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Evidentia gap diff')
+            );
+            if (mine) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: mine.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }
+
+      - name: Gate on regressions
+        if: github.event_name == 'pull_request'
+        run: |
+          uv run evidentia gap diff \
+            --base /tmp/base.json \
+            --head /tmp/head.json \
+            --format github \
+            --fail-on-regression

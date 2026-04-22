@@ -7,10 +7,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-04-22
+
+### Renamed from ControlBridge to Evidentia
+
+This release is a **project rename** with no functional changes. Every
+feature, CLI command, API route, and test from v0.5.0 works identically
+under the new name. Only naming changes.
+
+#### Why
+
+The ControlBridge name collided with [controlbridge.ai](https://www.controlbridge.ai/),
+a live commercial SOX 302/404 compliance platform for internal audit and
+finance teams. The markets overlap directly (GRC / compliance automation,
+CFO / audit-committee buyers), so continuing to use the identical name
+created trademark, SEO, and buyer-confusion risks. v0.5.0 shipped days
+ago with ~0 external users, so the remediation window is at its minimum.
+See [RENAMED.md](RENAMED.md) for the full background.
+
+#### What changed
+
+- **PyPI package names:**
+  - `controlbridge` → `evidentia`
+  - `controlbridge-core` → `evidentia-core`
+  - `controlbridge-ai` → `evidentia-ai`
+  - `controlbridge-api` → `evidentia-api`
+  - `controlbridge-collectors` → `evidentia-collectors`
+  - `controlbridge-integrations` → `evidentia-integrations`
+- **Python module names:** `controlbridge_*` → `evidentia_*` (same pattern).
+- **CLI entry point:** `controlbridge` → `evidentia`. The `cb` short alias
+  remains unchanged under the new `evidentia` package.
+- **Frontend npm scope:** `@controlbridge/ui` → `@evidentia/ui`.
+- **GitHub repositories:**
+  - `allenfbyrd/controlbridge` → `allenfbyrd/evidentia`
+  - `allenfbyrd/controlbridge-action` → `allenfbyrd/evidentia-action`
+  - Both redirects are permanent (GitHub's built-in rename mechanism).
+  - Old URLs printed on resumes, blog posts, and chat logs continue to work.
+- **Config file name:** user-project `controlbridge.yaml` → `evidentia.yaml`.
+  The bootstrap wizard + `evidentia init` generate the new name; the
+  `.gitignore` keeps `controlbridge.yaml` ignored for migration compatibility.
+
+#### Migration
+
+Install the replacements:
+
+```bash
+pip install evidentia                    # CLI + library
+pip install "evidentia[gui]"             # + web UI server
+```
+
+Rewrite imports:
+
+```python
+# before
+from controlbridge_core.models.gap import Gap
+
+# after
+from evidentia_core.models.gap import Gap
+```
+
+If you can't migrate in one shot, the six old PyPI names stay installable
+as **v0.5.1 transitional shims**. Each emits a `DeprecationWarning` on
+import and forwards every attribute + submodule to the new `evidentia-*`
+equivalents via `sys.modules` aliasing:
+
+```bash
+pip install controlbridge-core==0.5.1   # works; emits deprecation warning
+```
+
+Deep imports like `from controlbridge_core.models.common import EvidentiaModel`
+continue to resolve to the same object as `from evidentia_core.models.common
+import EvidentiaModel`. The CLI entry `controlbridge` remains available via
+the shim and delegates to the new `evidentia` app.
+
+**The shims will be yanked in v0.7.0** (~October 2026). Please migrate
+within six months.
+
+#### Added
+
+- `packages/shim-controlbridge{,-core,-ai,-api,-collectors,-integrations}/`
+  — six transitional re-export packages.
+- `RENAMED.md` at repo root — canonical rename-rationale document indexed
+  by Google for users searching "ControlBridge".
+- `tests/unit/test_rename_shims.py` — 16 parametrised tests guarding the
+  shims' DeprecationWarning + submodule-aliasing + CLI-entry-point
+  behaviour until v0.7.0.
+- `scripts/_rename_content.py`, `scripts/_bump_version.py`,
+  `scripts/_create_shim_packages.py` — one-shot rename tooling, retained
+  as historical reference for anyone auditing the rename diff.
+
+#### Changed
+
+- All 7 `pyproject.toml` files version-bumped `0.5.0` → `0.6.0`; inter-package
+  dependency pins widened from `>=0.5.0,<0.6.0` to `>=0.6.0,<0.7.0`.
+- All 7 workspace package directories renamed via `git mv`
+  (history preserved).
+- All 6 Python module directories (`src/controlbridge_*` → `src/evidentia_*`)
+  renamed via `git mv`.
+- 2,094 mechanical string replacements across 203 tracked files (lowercase,
+  title-case, and uppercase variants of "controlbridge"/"ControlBridge"/
+  "CONTROLBRIDGE").
+- `uv.lock` + `packages/evidentia-ui/package-lock.json` regenerated from
+  scratch.
+- README.md gets a "Renamed from ControlBridge" banner at the very top
+  so visitors arriving via GitHub's redirect understand continuity.
+
+#### Shipped as
+
+- 6 × `evidentia-*` wheels @ v0.6.0 (primary)
+- 6 × `controlbridge-*` shim wheels @ v0.5.1 (transitional, removed v0.7.0)
+
 ## [0.5.0] - 2026-04-20
 
-The **"Phase 2 integrations"** release. ControlBridge finally wires the
-long-advertised `controlbridge-integrations` and `controlbridge-collectors`
+The **"Phase 2 integrations"** release. Evidentia finally wires the
+long-advertised `evidentia-integrations` and `evidentia-collectors`
 packages with real implementations: push gaps as Jira issues,
 bidirectionally sync status, and auto-collect evidence from AWS +
 GitHub. Maps every collected finding to NIST 800-53 control families.
@@ -20,15 +130,15 @@ boto3 + moto to dev deps so collector tests run out of the box.
 
 ### Added — Jira output integration
 
-New: `pip install "controlbridge-integrations"` (no extra needed — the
+New: `pip install "evidentia-integrations"` (no extra needed — the
 bundled implementation uses httpx directly rather than the heavyweight
 `jira` SDK).
 
-- **`controlbridge_integrations.jira.JiraClient`** — httpx-based
+- **`evidentia_integrations.jira.JiraClient`** — httpx-based
   REST v3 client with `test_connection`, `create_issue`, `get_issue`,
   `list_transitions`, `transition_issue`. Secret-safe: API tokens flow
   only through HTTP basic-auth; never logged, never in response bodies.
-- **`controlbridge_integrations.jira.mapper`** — pure functions mapping
+- **`evidentia_integrations.jira.mapper`** — pure functions mapping
   ControlGap <-> Jira issue body + GapStatus <-> Jira workflow name.
   Forward mapping covers all five `GapStatus` enum values; reverse
   mapping covers the default Jira Cloud workflow plus common custom
@@ -40,7 +150,7 @@ bundled implementation uses httpx directly rather than the heavyweight
   results without a second pass.
 - **`push_open_gaps`, `sync_report`** — batch wrappers over a
   `GapAnalysisReport` with severity-filter + max-issues safety rail.
-- **CLI**: `controlbridge integrations jira {test,push,sync,status-map}`
+- **CLI**: `evidentia integrations jira {test,push,sync,status-map}`
 - **REST API**:
   - `GET /api/integrations/jira/status` — connection probe (never returns token)
   - `GET /api/integrations/jira/status-map` — current mapping for UI
@@ -52,9 +162,9 @@ Credentials: `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`,
 
 ### Added — AWS evidence collector
 
-New: `pip install "controlbridge-collectors[aws]"` (adds `boto3`).
+New: `pip install "evidentia-collectors[aws]"` (adds `boto3`).
 
-- **`controlbridge_collectors.aws.AwsCollector`** — orchestrator for
+- **`evidentia_collectors.aws.AwsCollector`** — orchestrator for
   Config + Security Hub with per-subsystem `collect_*` methods +
   `collect_all()`. Sub-collector failures are swallowed + logged so one
   bad service doesn't drop the other's findings.
@@ -74,11 +184,11 @@ New: `pip install "controlbridge-collectors[aws]"` (adds `boto3`).
 
 ### Added — GitHub evidence collector
 
-New: ships in the base `controlbridge-collectors` package — zero extra
+New: ships in the base `evidentia-collectors` package — zero extra
 deps needed (uses httpx directly; `[github]` extra remains for users
 who want pygithub for custom workflows).
 
-- **`controlbridge_collectors.github.GitHubCollector`** — collects from
+- **`evidentia_collectors.github.GitHubCollector`** — collects from
   a single repo: visibility, default-branch protection state, CODEOWNERS
   presence at any of three canonical paths.
 - Emits findings for both compliance (PR review required, status checks
@@ -93,7 +203,7 @@ who want pygithub for custom workflows).
 
 ### Added — collector CLI + REST API
 
-- **CLI**: `controlbridge collect {aws,github}` — writes findings as
+- **CLI**: `evidentia collect {aws,github}` — writes findings as
   JSON to `--output` (default stdout) + prints a Rich summary table
   broken down by severity + source.
 - **REST API**:
@@ -112,7 +222,7 @@ who want pygithub for custom workflows).
 ### Changed
 
 - **CI mypy target** extended from 3 packages to all 5 Python packages.
-  `controlbridge-integrations` and `controlbridge-collectors` now
+  `evidentia-integrations` and `evidentia-collectors` now
   enforce `--strict-optional` on every commit.
 - **Roadmap**: v0.5.0 shipped Jira + AWS + GitHub. Okta / ServiceNow /
   Vanta / Drata shifted to v0.5.1. Evidence chain of custody still
@@ -134,7 +244,7 @@ Frontend test count unchanged (6 Vitest).
 None — v0.5.0 is a strict feature add. Inter-package pins bump from
 `>=0.4.0,<0.5.0` to `>=0.5.0,<0.6.0` across every package; existing
 v0.4.x installs need to upgrade all six packages in lockstep (which
-`pip install --upgrade controlbridge` does automatically).
+`pip install --upgrade evidentia` does automatically).
 
 ## [0.4.1] - 2026-04-19
 
@@ -144,8 +254,8 @@ can now run gap analysis, diff reports, generate risks, and edit
 configuration entirely in the browser without ever touching the CLI.
 
 Also ships the reusable GitHub Action as a separately-published repo
-(`allenfbyrd/controlbridge-action@v1`) and fixes three mypy regressions
-that slipped into `controlbridge-api` routers on the alpha.1 release.
+(`allenfbyrd/evidentia-action@v1`) and fixes three mypy regressions
+that slipped into `evidentia-api` routers on the alpha.1 release.
 
 ### Added — interactive web UI
 
@@ -169,16 +279,16 @@ that slipped into `controlbridge-api` routers on the alpha.1 release.
   into a progress row. Supports cancel mid-stream; fails cleanly on
   offline-mode violations.
 - **Settings edit form** — validated PUT to `/api/config`. Writes
-  `controlbridge.yaml` server-side; CLI + GUI both pick up changes.
+  `evidentia.yaml` server-side; CLI + GUI both pick up changes.
   LLM-provider and air-gap sections stay read-only (env-var sourced).
 
 ### Added — separate reusable GitHub Action
 
-- New repo: [`allenfbyrd/controlbridge-action`](https://github.com/allenfbyrd/controlbridge-action)
+- New repo: [`allenfbyrd/evidentia-action`](https://github.com/allenfbyrd/evidentia-action)
   at v1.0.0 + floating `v1` pointer. One-line replacement for the
   80-line drop-in workflow template from v0.3.0:
-  `uses: allenfbyrd/controlbridge-action@v1`.
-- Shipped from `scripts/controlbridge-action-skeleton/` which remains
+  `uses: allenfbyrd/evidentia-action@v1`.
+- Shipped from `scripts/evidentia-action-skeleton/` which remains
   as the authoritative source for the action's files; future changes
   propagate via `cp -r` + tag.
 
@@ -199,7 +309,7 @@ queued for v0.4.2.
 
 ### Fixed
 
-- **Three mypy regressions in controlbridge-api routers** (caught by
+- **Three mypy regressions in evidentia-api routers** (caught by
   the `typecheck` job on CI, not reproduced locally until now):
   - `routers/gaps.py`: `valid` helper missing a type annotation
   - `routers/risks.py`: passed `yaml.safe_load(...)` dict where
@@ -221,13 +331,13 @@ pins stay at `>=0.4.0,<0.5.0`.
 
 ## [0.4.0-alpha.1] - 2026-04-19
 
-The **"Accessible GRC"** release — ControlBridge grows beyond the CLI.
+The **"Accessible GRC"** release — Evidentia grows beyond the CLI.
 Adds a FastAPI REST server, a React + shadcn/ui web UI (localhost-only,
 WCAG 2.1 AA via Radix primitives), an air-gapped mode (`--offline`
 flag + `doctor --check-air-gap` validator), and a new sixth workspace
-package (`controlbridge-api`). The web UI is installable via the new
-`[gui]` extra: `pip install "controlbridge[gui]"` then
-`controlbridge serve`.
+package (`evidentia-api`). The web UI is installable via the new
+`[gui]` extra: `pip install "evidentia[gui]"` then
+`evidentia serve`.
 
 This `alpha.1` ships the backend end-to-end + the read-only web UI
 surface (Home / Dashboard / Frameworks / Settings). Interactive pages
@@ -238,22 +348,22 @@ Windows/macOS/Linux.
 
 ### Added
 
-- **New workspace package `controlbridge-api`** (`packages/controlbridge-api/`)
+- **New workspace package `evidentia-api`** (`packages/evidentia-api/`)
   shipping a FastAPI app with 18 endpoints under `/api/*`. The `[gui]`
   optional extra on the meta-package pulls it in:
-  `pip install "controlbridge[gui]"`.
-- **New CLI subcommand `controlbridge serve`** — launches uvicorn serving
+  `pip install "evidentia[gui]"`.
+- **New CLI subcommand `evidentia serve`** — launches uvicorn serving
   both the REST API and the bundled React SPA from `127.0.0.1:8000`
   (localhost-only by default; `--host 0.0.0.0` emits a security warning).
   Flags: `--port`, `--host`, `--dev` (permissive CORS for Vite HMR),
   `--no-browser`, `--reload`.
 - **Global `--offline` flag on every command.** Wires through to the new
-  `controlbridge_core.network_guard` module; when set, any attempted LLM
+  `evidentia_core.network_guard` module; when set, any attempted LLM
   or network call to a non-loopback / non-RFC-1918 host raises
   `OfflineViolationError` before network IO is issued. Works with Ollama
   (localhost:11434), vLLM, and custom OpenAI-compatible endpoints on
   private IPs.
-- **`controlbridge doctor --check-air-gap`** — per-subsystem posture
+- **`evidentia doctor --check-air-gap`** — per-subsystem posture
   report (LLM client, catalog loader, AI telemetry, gap store, web UI).
   Renders as a Rich table in the CLI and as JSON via
   `POST /api/doctor/check-air-gap`.
@@ -268,23 +378,23 @@ Windows/macOS/Linux.
   returns key values), frameworks (list, detail, single-control), gaps
   (analyze, reports list, single-report, diff), risks (`/generate` SSE),
   explain (`/{framework}/{control_id}` SSE), init-wizard.
-- **Shared `controlbridge_core.init_wizard` module** — starter YAML
+- **Shared `evidentia_core.init_wizard` module** — starter YAML
   generators + deterministic framework recommender. The CLI
-  `controlbridge init` and GUI `/api/init/wizard` endpoint now produce
+  `evidentia init` and GUI `/api/init/wizard` endpoint now produce
   identical files from the same code path. Presets:
   `soc2-starter`, `nist-moderate-starter`, `hipaa-starter`,
   `cmmc-starter`, `empty`.
-- **`controlbridge_core.config`** moved from the CLI meta-package
-  (`controlbridge.config`) into `controlbridge-core` so both the CLI
+- **`evidentia_core.config`** moved from the CLI meta-package
+  (`evidentia.config`) into `evidentia-core` so both the CLI
   and the API backend consume it without a circular dependency. A
   transparent re-export shim at the old location keeps existing
-  `from controlbridge.config import ...` imports working unchanged.
-- **Hatchling build hook** (`packages/controlbridge-api/hatch_build.py`)
-  that drives `npm run build` in `packages/controlbridge-ui/` and copies
+  `from evidentia.config import ...` imports working unchanged.
+- **Hatchling build hook** (`packages/evidentia-api/hatch_build.py`)
+  that drives `npm run build` in `packages/evidentia-ui/` and copies
   `dist/*` into the Python package's `static/` directory before wheel
-  assembly. Set `CONTROLBRIDGE_SKIP_FRONTEND_BUILD=1` to bypass for
+  assembly. Set `EVIDENTIA_SKIP_FRONTEND_BUILD=1` to bypass for
   Python-only build matrices.
-- **New workspace directory `packages/controlbridge-ui/`** — Vite + React
+- **New workspace directory `packages/evidentia-ui/`** — Vite + React
   + TypeScript + shadcn/ui frontend. Not a Python workspace member;
   builds via `npm run build`. Stack: React 18, Vite 5, Tailwind CSS,
   shadcn/ui (Radix primitives), TanStack Query / Table / Virtual,
@@ -297,51 +407,51 @@ Windows/macOS/Linux.
   Phase 2 integrations (Jira, AWS, GitHub, Okta, ServiceNow, Vanta,
   Drata) shifted right to v0.5.0; evidence chain of custody (SHA-256 +
   GPG) shifted right to v0.6.0. See roadmap for the full shape.
-- **`controlbridge_ai.client.get_instructor_client`** now wraps
+- **`evidentia_ai.client.get_instructor_client`** now wraps
   `litellm.completion` / `acompletion` with an offline guard. When
   offline mode is on, cloud LLM calls raise
   `OfflineViolationError` before any network IO.
-- **Meta-package `controlbridge` deps:** removed `fastapi>=0.115`,
+- **Meta-package `evidentia` deps:** removed `fastapi>=0.115`,
   `uvicorn[standard]>=0.30`, `python-multipart>=0.0.9` (moved to
-  `controlbridge-api` where they're actually used).
-- **`controlbridge init` defaults:** `--frameworks` now defaults to
+  `evidentia-api` where they're actually used).
+- **`evidentia init` defaults:** `--frameworks` now defaults to
   `nist-800-53-rev5-moderate,soc2-tsc` (was
   `nist-800-53-mod,soc2-tsc`); new `--preset` flag accepts the five
   wizard presets above; new `--organization` flag for headless use.
 - **CI test workflow** (`.github/workflows/test.yml`): new `frontend-test`
   job runs TypeScript typecheck + Vite build on Node 20; existing mypy
-  target list extended to include `controlbridge-api`.
+  target list extended to include `evidentia-api`.
 - **CI release workflow** (`.github/workflows/release.yml`): adds Node 20
   setup + SPA-bundled-in-wheel verification step before PyPI publish.
 
 ### Fixed
 
-- **Windows cp1252 encoding** on `controlbridge --help`: the
+- **Windows cp1252 encoding** on `evidentia --help`: the
   pre-existing `--config` help string used `\u2192` (→) which crashed
   legacy Windows consoles. Replaced with ASCII `->`. Same class of fix
   as v0.3.1's `gap diff --format console` normalization.
 
 ### Tests: 392 → **501 passing** (+109)
 
-- `+43` from `controlbridge_core.network_guard` (host classifier, URL
+- `+43` from `evidentia_core.network_guard` (host classifier, URL
   guard, LLM-model guard, offline-mode toggle + context manager).
-- `+30` from `controlbridge_core.init_wizard` (3 YAML generators + the
+- `+30` from `evidentia_core.init_wizard` (3 YAML generators + the
   framework recommender's decision tree).
-- `+36` from `controlbridge-api` FastAPI TestClient coverage (basic
+- `+36` from `evidentia-api` FastAPI TestClient coverage (basic
   endpoints, frameworks browser, config read/write, init-wizard,
   gap analyze/reports/diff, SSE endpoint validation, OpenAPI schema).
 
 ### Migration
 
-- **Library users importing `controlbridge.config`**: no change needed
+- **Library users importing `evidentia.config`**: no change needed
   (shim re-export). For new code, prefer the canonical
-  `controlbridge_core.config` import.
-- **Users of `controlbridge init`**: default framework list changed
+  `evidentia_core.config` import.
+- **Users of `evidentia init`**: default framework list changed
   from the legacy 16-control NIST sample to the full Rev 5 Moderate
   baseline; supply `--frameworks nist-800-53-mod,soc2-tsc` to keep the
   old behavior.
 - **CI consumers building from source**: install Node 20+ in the
-  environment (or set `CONTROLBRIDGE_SKIP_FRONTEND_BUILD=1` when Node
+  environment (or set `EVIDENTIA_SKIP_FRONTEND_BUILD=1` when Node
   is unavailable; the wheel will serve a dev-placeholder page in lieu
   of the SPA).
 
@@ -361,7 +471,7 @@ against realistic data."
   severity_increased + severity_decreased + unchanged). Ships with
   pre-generated `snapshots/baseline.json` + `snapshots/pr-branch.json`
   + `snapshots/pr-diff.md` for zero-setup demo. Uses the v0.2.1
-  `controlbridge.yaml` schema (flat `frameworks:`, `llm.model`,
+  `evidentia.yaml` schema (flat `frameworks:`, `llm.model`,
   `organization`, `system_name`). Mixes NIST-pub (`AC-2(1)`) and
   NIST-OSCAL (`ac-2.3`) ID conventions to exercise the normalizer.
   `user-catalog-demo/soc2-tsc-licensed.json` is a fake "licensed
@@ -388,7 +498,7 @@ against realistic data."
   `pr-diff.md` from the committed inventories. Use it after a
   NIST catalog refresh to keep the README's expected counts in sync.
 
-- **`.github/workflows/controlbridge.yml`** — ControlBridge dog-
+- **`.github/workflows/evidentia.yml`** — Evidentia dog-
   fooding its own GitHub Action. On every PR touching the Meridian
   v2 inventory or the bundled catalogs, the workflow runs `gap
   analyze` + `gap diff` and posts the result as a PR comment;
@@ -407,7 +517,7 @@ against realistic data."
 
 ### Fixed — `_is_open` gap-status filter on in-memory diff path
 
-`controlbridge_core.gap_diff._is_open()` used `str(gap.status)` to
+`evidentia_core.gap_diff._is_open()` used `str(gap.status)` to
 compare against `GapStatus.OPEN.value`. On the JSON-roundtrip path
 (CLI: `analyze` → save JSON → load JSON → `diff`), Pydantic
 coerces the enum to its string value and the comparison works.
@@ -451,21 +561,21 @@ deprecation cleanup and a fully-strict mypy CI gate. No breaking API
 changes to existing commands; new commands and a removed deprecated
 enum.
 
-### Added — PR-level compliance checking: `controlbridge gap diff`
+### Added — PR-level compliance checking: `evidentia gap diff`
 
 Compare two :class:`GapAnalysisReport` snapshots and classify each gap
 into one of five states (opened, closed, severity_increased,
 severity_decreased, unchanged). Drop-in for CI/CD pipelines: every pull
-request can now run `controlbridge gap diff --fail-on-regression` to
+request can now run `evidentia gap diff --fail-on-regression` to
 block merges that make the compliance posture worse.
 
-- New module `controlbridge_core.gap_diff` with `compute_gap_diff()`,
+- New module `evidentia_core.gap_diff` with `compute_gap_diff()`,
   `render_markdown()` (PR-comment-friendly), and
   `render_github_annotations()` (`::error::` / `::warning::` / `::notice::`
   lines that surface inline on the Actions Checks page).
 - New models `GapDiff`, `GapDiffEntry`, `GapDiffSummary` (all Pydantic-
   validated and JSON-serializable).
-- New CLI: `controlbridge gap diff [--base PATH] [--head PATH]
+- New CLI: `evidentia gap diff [--base PATH] [--head PATH]
   [--fail-on-regression] [--format console|json|markdown|github]
   [--output PATH]`. When `--base` / `--head` are omitted, auto-picks
   the two most-recent reports from the v0.2.1 gap store.
@@ -478,46 +588,46 @@ block merges that make the compliance posture worse.
   regression (acceptance was revoked).
 - **GitHub Action scaffolding**: new `docs/github-action/README.md`
   (full setup guide) + `docs/github-action/workflow-example.yml`
-  (drop-in `.github/workflows/controlbridge.yml` template). The
-  companion reusable action `allenfbyrd/controlbridge-action` is
+  (drop-in `.github/workflows/evidentia.yml` template). The
+  companion reusable action `allenfbyrd/evidentia-action` is
   scoped for v0.3.1.
 
-### Added — Plain-English control explanations: `controlbridge explain`
+### Added — Plain-English control explanations: `evidentia explain`
 
 Translate authoritative-but-opaque framework control text into
 actionable engineer-and-executive language. Every explanation is
 cached on disk per (framework, control, model, temperature) tuple —
 you pay the LLM cost once per lookup.
 
-- New module `controlbridge_ai.explain` with:
+- New module `evidentia_ai.explain` with:
   - `PlainEnglishExplanation` Pydantic model (strict schema: plain
     English summary, why-it-matters paragraph, 3-8 what-to-do bullets,
     effort estimate, optional common-misconceptions paragraph).
   - `ExplanationGenerator` — Instructor-backed LLM pipeline on top of
     LiteLLM. Works with any LiteLLM-supported provider
     (OpenAI / Anthropic / Google / Ollama / etc).
-  - Disk cache at `<platformdirs-cache>/controlbridge/explanations/`
+  - Disk cache at `<platformdirs-cache>/evidentia/explanations/`
     keyed by SHA-256 of (framework, control, model, temperature).
-    Override via `CONTROLBRIDGE_EXPLAIN_CACHE_DIR`.
-- New CLI: `controlbridge explain control <id> [--framework FW]
+    Override via `EVIDENTIA_EXPLAIN_CACHE_DIR`.
+- New CLI: `evidentia explain control <id> [--framework FW]
   [--model MODEL] [--refresh] [--format panel|markdown|json]
   [--output PATH]`. Pre-flight check warns if no API-key env var
   matches the picked model (e.g., using `claude-*` without
   `ANTHROPIC_API_KEY`).
-- Cache management: `controlbridge explain cache where` (prints the
-  cache directory), `controlbridge explain cache clear` (wipes it).
-- Reads defaults from `controlbridge.yaml` using the v0.2.1 config
+- Cache management: `evidentia explain cache where` (prints the
+  cache directory), `evidentia explain cache clear` (wipes it).
+- Reads defaults from `evidentia.yaml` using the v0.2.1 config
   loader (flag > env > yaml > built-in default).
 
 ### Changed
 
-- **`FrameworkId` enum removed** from `controlbridge_core.models.common`.
+- **`FrameworkId` enum removed** from `evidentia_core.models.common`.
   Deprecated in v0.2.0 with a module-level `__getattr__` that emitted
   `DeprecationWarning`; v0.3.0 drops the enum and the getattr hook
   entirely. `ControlMapping.framework` has always been `str`; users
   who were relying on the enum value should use the plain string
   framework ID (e.g., `"nist-800-53-rev5"`) or
-  `controlbridge_core.catalogs.manifest.load_manifest()` for
+  `evidentia_core.catalogs.manifest.load_manifest()` for
   programmatic discovery.
 - **mypy CI job flipped from advisory to strict.** v0.2.1 added
   `--strict-optional` as `continue-on-error: true` to avoid blocking
@@ -527,7 +637,7 @@ you pay the LLM cost once per lookup.
   `Model.model_validate*()` return type is correctly inferred.
   Added `types-PyYAML` and `pydantic` to the dev dependency group so
   mypy can find them.
-- **`controlbridge gap analyze`**: no behavior change, but the gap
+- **`evidentia gap analyze`**: no behavior change, but the gap
   store write at the end of each run is now a required dependency
   of `gap diff`'s auto-picker. Unchanged from v0.2.1 users'
   perspective.
@@ -555,7 +665,7 @@ you pay the LLM cost once per lookup.
 
 ### Known follow-ups (tracked in `docs/ROADMAP.md`)
 
-- **Reusable `allenfbyrd/controlbridge-action`** — the full GitHub
+- **Reusable `allenfbyrd/evidentia-action`** — the full GitHub
   Action wrapper. v0.3.0 ships the CLI; v0.3.1 will add the one-line
   `uses:` wrapper so users don't need the 80-line workflow in
   `docs/github-action/workflow-example.yml`.
@@ -567,7 +677,7 @@ you pay the LLM cost once per lookup.
 Correctness and integrity release. Follow-up to the v0.2.0 Phase 1.5
 big-bang: fixes bugs an external code audit surfaced, bundles the full
 NIST SP 800-53 Rev 5 catalog (1,196 controls + 4 resolved baselines),
-adds 221 new tests, and lights up a working `controlbridge.yaml`
+adds 221 new tests, and lights up a working `evidentia.yaml`
 project-config loader. No breaking API changes — all additions are
 either additive (new CLI flags, new config keys) or transparent
 (richer data, better defaults).
@@ -612,10 +722,10 @@ See `docs/ROADMAP.md` for the v0.3.0+ plan.
   `docs/architecture/effort-estimation.md` for keyword lists and
   scoring rationale.
 
-- **`controlbridge.yaml` project-config loader** (`controlbridge/config.py`).
-  `controlbridge init` has generated this file since v0.1.0 but no
+- **`evidentia.yaml` project-config loader** (`evidentia/config.py`).
+  `evidentia init` has generated this file since v0.1.0 but no
   subcommand read it. v0.2.1 walks CWD → parents looking for the first
-  `controlbridge.yaml`, validates a strict schema, and applies values
+  `evidentia.yaml`, validates a strict schema, and applies values
   via precedence: **CLI flag > env var > yaml > built-in default**.
   Honored keys for v0.2.1:
 
@@ -623,19 +733,19 @@ See `docs/ROADMAP.md` for the v0.3.0+ plan.
   - `frameworks:` — default set for `gap analyze`; CLI `--frameworks`
     replaces (does not union)
   - `llm.model` / `llm.temperature` — defaults for `risk generate`;
-    overridden by env `CONTROLBRIDGE_LLM_MODEL` / `CONTROLBRIDGE_LLM_TEMPERATURE`
+    overridden by env `EVIDENTIA_LLM_MODEL` / `EVIDENTIA_LLM_TEMPERATURE`
 
   Legacy v0.2.0 keys (`storage:`, `logging:`, nested `frameworks.default:`)
   are accepted without validation errors; `frameworks.default` triggers
   a deprecation warning pointing at the flattened v0.2.1 shape.
   `${ENV_VAR}` interpolation is supported in any string value.
 
-- **Persistent gap report store** (`controlbridge_core/gap_store.py`).
+- **Persistent gap report store** (`evidentia_core/gap_store.py`).
   Every `gap analyze` run writes a canonical snapshot to
-  `<platformdirs>/controlbridge/gap_store/<hash>.json`. `risk generate
+  `<platformdirs>/evidentia/gap_store/<hash>.json`. `risk generate
   --gap-id GAP-…` (without `--gaps`) now loads the most-recent report
   from the store automatically. Override location via
-  `CONTROLBRIDGE_GAP_STORE_DIR`.
+  `EVIDENTIA_GAP_STORE_DIR`.
 
 - **`--organization` / `--system-name` CLI flags on `gap analyze`**.
   Override inventory metadata for CSV-sourced runs (which previously
@@ -645,12 +755,12 @@ See `docs/ROADMAP.md` for the v0.3.0+ plan.
 - **Placeholder-catalog warning**. Running `gap analyze` against a
   Tier-C stub catalog (e.g., `soc2-tsc`) now emits a prominent
   `UserWarning` telling users the control text isn't authoritative and
-  pointing them at `controlbridge catalog import` to load their
+  pointing them at `evidentia catalog import` to load their
   licensed copy.
 
 - **mypy CI job** (`.github/workflows/test.yml`). Runs `mypy --strict-optional`
-  against `packages/controlbridge-core/src` and
-  `packages/controlbridge/src`. Advisory-only for v0.2.1 (`continue-on-error`)
+  against `packages/evidentia-core/src` and
+  `packages/evidentia/src`. Advisory-only for v0.2.1 (`continue-on-error`)
   because the existing v0.1.x codebase has some untyped helpers; will be
   tightened in v0.3.0.
 
@@ -674,7 +784,7 @@ See `docs/ROADMAP.md` for the v0.3.0+ plan.
   - `tests/unit/test_oscal/test_exporter.py` — 5 cases pinning the
     shape of OSCAL Assessment Results exports.
   - `tests/unit/test_config.py` — 24 cases for the new
-    `controlbridge.yaml` loader (schema validation, precedence chain,
+    `evidentia.yaml` loader (schema validation, precedence chain,
     legacy-shape warnings, env-var interpolation).
   - `tests/unit/test_models/test_control_id_normalization.py` — 20
     cases covering the NIST-publication style (`AC-2(1)(a)`) vs.
@@ -715,24 +825,24 @@ See `docs/ROADMAP.md` for the v0.3.0+ plan.
   `catalog.get_control("AC-2(1)(a)")` and
   `catalog.get_control("ac-2.1.a")` resolve to the same control.
 
-- **`controlbridge.yaml` is now actually read by subcommands** (see
+- **`evidentia.yaml` is now actually read by subcommands** (see
   **Added** above).
 
 - **`risk generate --gap-id` no longer unconditionally errors.** The
   new gap-store lookup resolves `--gap-id` against the last-saved
   report when `--gaps` is omitted. Provides a clear message
-  ("Run `controlbridge gap analyze ...` first") when no report exists.
+  ("Run `evidentia gap analyze ...` first") when no report exists.
 
 - **CSV organization override.** v0.2.0 hardcoded
   `"Unknown Organization (from CSV)"` in the CSV inventory parser with
   no override path. The new `--organization` / `--system-name` CLI
-  flags on `gap analyze` and the corresponding `controlbridge.yaml`
+  flags on `gap analyze` and the corresponding `evidentia.yaml`
   keys resolve this.
 
 ### Changed
 
-- **`controlbridge init` template** updates the generated
-  `controlbridge.yaml` to the v0.2.1 schema with commented-out examples
+- **`evidentia init` template** updates the generated
+  `evidentia.yaml` to the v0.2.1 schema with commented-out examples
   of every honored key.
 
 - **`litellm` version pin tightened** from `>=1.50` to `>=1.50,<2.0`
@@ -743,7 +853,7 @@ See `docs/ROADMAP.md` for the v0.3.0+ plan.
   flag it as deprecated and point at `nist-800-53-rev5-moderate` (the
   real 287-control baseline). Will be removed in v0.3.0.
 
-- **Framework count** in `controlbridge doctor` grows from 77 → 82 (5
+- **Framework count** in `evidentia doctor` grows from 77 → 82 (5
   new NIST catalogs).
 
 ### Deferred / known follow-ups
@@ -768,7 +878,7 @@ See `docs/ROADMAP.md` for the v0.3.0+ plan.
 
 **Phase 1.5 big-bang release — exhaustive framework expansion.** Follow-up
 to the v0.1.1 legal remediation and v0.1.2 version-reporting truth-up.
-ControlBridge now ships ~77 bundled frameworks across four redistribution
+Evidentia now ships ~77 bundled frameworks across four redistribution
 tiers — a comprehensive GRC catalog library so common GRC workflows work
 out of the box without digging.
 
@@ -846,18 +956,18 @@ bundled — structural numbering + license URLs for user import)**
   lookup like `AC-2(1)(a)` that v0.1.x silently lost. `catalog.get_control`
   now walks the full enhancement tree.
 - **`TechniqueCatalog`, `VulnerabilityCatalog`, `ObligationCatalog` models**
-  for non-control catalog types. See `controlbridge_core/models/threat.py`
-  and `controlbridge_core/models/obligation.py`.
-- **OSCAL profile resolver** (`controlbridge_core/oscal/profile.py`):
+  for non-control catalog types. See `evidentia_core/models/threat.py`
+  and `evidentia_core/models/obligation.py`.
+- **OSCAL profile resolver** (`evidentia_core/oscal/profile.py`):
   supports `include-controls`, `exclude-controls`, `set-parameter`,
   `alter.add`, `merge`. Enables user-supplied OSCAL profile JSONs via
-  `controlbridge catalog import --profile profile.json --catalog source.json`.
+  `evidentia catalog import --profile profile.json --catalog source.json`.
 - **User-import facility**: new CLI commands `catalog import`, `catalog
   where`, `catalog license-info`, `catalog remove`, and `catalog list
   --tier <A|B|C|D> --category <control|technique|vulnerability|obligation>`.
   User-imported catalogs shadow bundled ones of the same ID (via
   `platformdirs`-resolved user directory, overridable by
-  `CONTROLBRIDGE_CATALOG_DIR`). A licensed ISO 27001 copy imported by a
+  `EVIDENTIA_CATALOG_DIR`). A licensed ISO 27001 copy imported by a
   customer replaces the Tier-C stub transparently for all `catalog show` /
   `gap analyze` calls.
 - **Tier-partitioned catalog directory layout**: `data/us-federal/`,
@@ -885,15 +995,15 @@ bundled — structural numbering + license URLs for user import)**
 
 ### Changed
 
-- `FrameworkId` enum (in `controlbridge_core.models.common`) is deprecated
+- `FrameworkId` enum (in `evidentia_core.models.common`) is deprecated
   — emits `DeprecationWarning` on import. Use manifest-driven string IDs
   instead. Will be removed in v0.3.0.
-- `controlbridge catalog list` now filters by `--tier` / `--category` /
+- `evidentia catalog list` now filters by `--tier` / `--category` /
   `--bundled-only` / `--user-only` and shows tier + category columns.
-- `controlbridge catalog show <fw> <ctrl>` renders
+- `evidentia catalog show <fw> <ctrl>` renders
   `[Licensed — see <license_url>]` for Tier-C placeholder controls instead
   of the raw placeholder text.
-- `platformdirs>=4.3` added as a `controlbridge-core` runtime dependency
+- `platformdirs>=4.3` added as a `evidentia-core` runtime dependency
   (for user-catalog directory resolution).
 
 ### Infrastructure
@@ -910,27 +1020,27 @@ bundled — structural numbering + license URLs for user import)**
 Version-reporting truth-up patch. Follow-up to v0.1.1. No functional
 changes — the installed packages already reported their real versions
 to package managers (`pip show`, PyPI metadata); this patch fixes the
-version strings that ControlBridge itself prints and embeds in
+version strings that Evidentia itself prints and embeds in
 exported artifacts.
 
 ### Fixed
 
-- `controlbridge version` CLI output reported `"0.1.0"` regardless of
+- `evidentia version` CLI output reported `"0.1.0"` regardless of
   which version was actually installed, because every package's
   `__version__` was a hardcoded string literal. All five `__init__.py`
   modules now resolve `__version__` from `importlib.metadata` at
   import time — the reported version always matches the installed
   wheel and will never drift again.
-- `GapReport.controlbridge_version`, `RiskRegister.controlbridge_version`,
-  and `EvidenceBundle.controlbridge_version` all defaulted to `"0.1.0"`.
+- `GapReport.evidentia_version`, `RiskRegister.evidentia_version`,
+  and `EvidenceBundle.evidentia_version` all defaulted to `"0.1.0"`.
   They now use a `default_factory` that resolves the live
-  `controlbridge-core` version, so exported audit artifacts accurately
+  `evidentia-core` version, so exported audit artifacts accurately
   record the version that produced them.
 
 ### Added
 
-- `controlbridge_core.models.common.current_version()` helper that
-  returns the installed `controlbridge-core` version, used as the
+- `evidentia_core.models.common.current_version()` helper that
+  returns the installed `evidentia-core` version, used as the
   `default_factory` for all report-stamp fields.
 
 ## [0.1.1] - 2026-04-16
@@ -938,7 +1048,7 @@ exported artifacts.
 Legal remediation + registry truth-up patch. No API breakage — all changes
 are additive optional fields on existing models. The **v0.2.0 big-bang
 Phase 1.5 release** (exhaustive framework expansion to ~50 frameworks
-across four redistribution tiers, plus `controlbridge catalog import`
+across four redistribution tiers, plus `evidentia catalog import`
 for user-supplied licensed content, plus GitHub Actions refresh CI)
 follows this patch.
 
@@ -952,10 +1062,10 @@ follows this patch.
   criteria (CC1.1–CC9.2, A1.1–A1.3, C1.1–C1.2, P1.1–P8.1, PI1.1–PI1.5)
   with generic titles ("Common Criteria 6.1" rather than AICPA's full
   phrasing), `placeholder: true` on every entry, and a `license_url`
-  pointing to the AICPA download page. `controlbridge catalog show
+  pointing to the AICPA download page. `evidentia catalog show
   soc2-tsc CC6.1` now renders `[Licensed content — see license_url for
   authoritative text.]` rather than a paraphrase. v0.2.0 will add
-  `controlbridge catalog import` so users can load their own licensed
+  `evidentia catalog import` so users can load their own licensed
   copy without touching the installed package.
 - **Bundled `nist-800-53-rev5_to_soc2-tsc.json` crosswalk** had the same
   AICPA-paraphrase exposure in `target_control_title` fields; those are
@@ -966,7 +1076,7 @@ follows this patch.
   `FRAMEWORK_METADATA` in v0.1.0 listed 9 frameworks (`nist-800-53-rev5`,
   `nist-800-53-mod`, `nist-800-53-high`, `nist-csf-2.0`, `soc2-tsc`,
   `iso27001-2022`, `cis-controls-v8`, `cmmc-2-level2`, `pci-dss-4`) but
-  only 2 had catalog JSON on disk. `controlbridge catalog list` produced
+  only 2 had catalog JSON on disk. `evidentia catalog list` produced
   7 "loaded: no" rows — misleading for a GRC tool whose users need to
   trust stated coverage. `FRAMEWORK_METADATA`, the `framework_files`
   dispatch in `loader.py`, and the `FrameworkId` enum are all trimmed
@@ -989,7 +1099,7 @@ follows this patch.
 
 ### Changed
 
-- `FrameworkId` enum in `controlbridge_core.models.common` trimmed to
+- `FrameworkId` enum in `evidentia_core.models.common` trimmed to
   `NIST_800_53_MOD` and `SOC2_TSC`. Callers using free-form `str`
   framework IDs (via `ControlMapping.framework`) are unaffected. The
   enum itself will be deprecated in v0.2.0 in favor of a
@@ -998,16 +1108,16 @@ follows this patch.
 ## [0.1.0] - 2026-04-16
 
 Initial release: **Phase 1 MVP** — a working, tested, end-to-end gap analyzer
-with AI risk statement generation. ControlBridge is an open-source,
+with AI risk statement generation. Evidentia is an open-source,
 Python-first GRC platform that treats compliance as a software problem:
 composable libraries, structured data, open standards (OSCAL), and AI only
 where language understanding is the bottleneck.
 
 ### Added
 
-- **uv workspace monorepo** with 5 packages: `controlbridge-core`,
-  `controlbridge-ai`, `controlbridge-collectors`, `controlbridge-integrations`,
-  and the `controlbridge` CLI meta-package
+- **uv workspace monorepo** with 5 packages: `evidentia-core`,
+  `evidentia-ai`, `evidentia-collectors`, `evidentia-integrations`,
+  and the `evidentia` CLI meta-package
 - **Pydantic v2 data models** for controls, catalogs, gaps, risks, evidence,
   and findings
 - **OSCAL catalog loader and crosswalk engine** with 9 registered frameworks
@@ -1039,11 +1149,11 @@ where language understanding is the bottleneck.
   has 16 hand-curated controls for demonstration, not the full ~323 from the
   NIST OSCAL content repo — planned for Phase 1.5
 
-[Unreleased]: https://github.com/allenfbyrd/controlbridge/compare/v0.3.1...HEAD
-[0.3.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.1...v0.3.0
-[0.2.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.2.0...v0.2.1
-[0.2.0]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.2...v0.2.0
-[0.1.2]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/allenfbyrd/controlbridge/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/allenfbyrd/controlbridge/releases/tag/v0.1.0
+[Unreleased]: https://github.com/allenfbyrd/evidentia/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/allenfbyrd/evidentia/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/allenfbyrd/evidentia/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/allenfbyrd/evidentia/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/allenfbyrd/evidentia/compare/v0.1.2...v0.2.0
+[0.1.2]: https://github.com/allenfbyrd/evidentia/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/allenfbyrd/evidentia/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/allenfbyrd/evidentia/releases/tag/v0.1.0

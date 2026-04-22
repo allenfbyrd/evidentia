@@ -8,14 +8,14 @@ refactors don't silently drop fields.
 
 from __future__ import annotations
 
-from controlbridge_core.models.gap import (
+from evidentia_core.models.gap import (
     ControlGap,
     GapAnalysisReport,
     GapSeverity,
     GapStatus,
     ImplementationEffort,
 )
-from controlbridge_core.oscal.exporter import gap_report_to_oscal_ar
+from evidentia_core.oscal.exporter import gap_report_to_oscal_ar
 
 
 def _make_gap(

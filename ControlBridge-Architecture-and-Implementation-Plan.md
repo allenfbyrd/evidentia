@@ -1,4 +1,4 @@
-# ControlBridge: Architecture & Implementation Plan
+# Evidentia: Architecture & Implementation Plan
 
 **Version:** 1.0.0-draft  
 **Date:** April 5, 2026  
@@ -10,7 +10,7 @@
 
 > **"Bridge the gap between your controls and your frameworks."**
 
-This document is the exhaustive, authoritative architecture and implementation plan for **ControlBridge** — an open-source Governance, Risk, and Compliance (GRC) tool. It contains every decision, rationale, data model, code structure, API endpoint design, integration contract, and phased implementation plan required to begin building immediately. No external design document is needed.
+This document is the exhaustive, authoritative architecture and implementation plan for **Evidentia** — an open-source Governance, Risk, and Compliance (GRC) tool. It contains every decision, rationale, data model, code structure, API endpoint design, integration contract, and phased implementation plan required to begin building immediately. No external design document is needed.
 
 ---
 
@@ -47,7 +47,7 @@ This document is the exhaustive, authoritative architecture and implementation p
 
 ## 1. Executive Summary
 
-ControlBridge is an open-source, Python-first GRC tool that provides five core capabilities:
+Evidentia is an open-source, Python-first GRC tool that provides five core capabilities:
 
 1. **Control Gap Analysis** — Compare an organization's current control inventory against one or more compliance frameworks (NIST 800-53, SOC 2, ISO 27001, CIS Controls, CMMC, PCI DSS) and produce a prioritized gap report with cross-framework efficiency opportunities.
 2. **AI Risk Statement Generation** — Given a gap report and system context, generate NIST SP 800-30-compliant risk statements with structured threat/vulnerability/impact analysis and remediation recommendations using any LLM provider.
@@ -55,13 +55,13 @@ ControlBridge is an open-source, Python-first GRC tool that provides five core c
 4. **AI Evidence Validation** — Assess collected evidence for sufficiency, relevance, currency, and completeness using LLM-powered analysis (including vision models for screenshots and PDFs).
 5. **Integration Outputs** — Push gaps as tickets to Jira or ServiceNow, export reports as OSCAL Assessment Results, CSV, Markdown, or JSON for auditor tooling.
 
-### Why ControlBridge Exists
+### Why Evidentia Exists
 
-Existing open-source GRC tools fall into two camps: full-platform solutions (CISO Assistant, Eramba) that require deployment infrastructure and database setup, or point tools that solve one narrow problem. ControlBridge occupies the middle ground — a **composable Python library** that a security engineer can `pip install` and start using in five minutes, scaling from single-developer CLI usage to team-wide REST API deployment without architecture changes.
+Existing open-source GRC tools fall into two camps: full-platform solutions (CISO Assistant, Eramba) that require deployment infrastructure and database setup, or point tools that solve one narrow problem. Evidentia occupies the middle ground — a **composable Python library** that a security engineer can `pip install` and start using in five minutes, scaling from single-developer CLI usage to team-wide REST API deployment without architecture changes.
 
 ### Core Value Proposition
 
-- **One control implementation satisfies multiple framework requirements.** ControlBridge's cross-framework mapping engine makes this visible and actionable.
+- **One control implementation satisfies multiple framework requirements.** Evidentia's cross-framework mapping engine makes this visible and actionable.
 - **Evidence collection is automated, mapped, and validated.** Not just collected — assessed for audit readiness.
 - **Every output is auditor-friendly.** Timestamped, source-attributed, versioned, OSCAL-compatible.
 - **Zero-to-productive in under 5 minutes.** No database, no Kubernetes, no config files required for basic use.
@@ -75,15 +75,15 @@ Every architectural and implementation decision in this document traces back to 
 
 ### Principle 1: Composable, Not Monolithic
 
-Each of the five core capabilities is independently installable and usable. A user can `pip install controlbridge-core` and use only the gap analyzer without pulling in AI dependencies, evidence collectors, or integration clients. The package structure enforces this:
+Each of the five core capabilities is independently installable and usable. A user can `pip install evidentia-core` and use only the gap analyzer without pulling in AI dependencies, evidence collectors, or integration clients. The package structure enforces this:
 
 | Package | Depends On | Provides |
 |---|---|---|
-| `controlbridge-core` | pydantic, pyyaml, oscal-pydantic | Data models, catalog loading, gap analysis engine |
-| `controlbridge-ai` | controlbridge-core, litellm, instructor | Risk statement generator, evidence validator, narrative generator |
-| `controlbridge-collectors` | controlbridge-core, boto3, PyGithub, etc. | Evidence collection agents |
-| `controlbridge-integrations` | controlbridge-core, jira, servicenow-api | Jira and ServiceNow output clients |
-| `controlbridge` (meta-package) | All of the above + typer, fastapi | CLI, REST API, and full installation |
+| `evidentia-core` | pydantic, pyyaml, oscal-pydantic | Data models, catalog loading, gap analysis engine |
+| `evidentia-ai` | evidentia-core, litellm, instructor | Risk statement generator, evidence validator, narrative generator |
+| `evidentia-collectors` | evidentia-core, boto3, PyGithub, etc. | Evidence collection agents |
+| `evidentia-integrations` | evidentia-core, jira, servicenow-api | Jira and ServiceNow output clients |
+| `evidentia` (meta-package) | All of the above + typer, fastapi | CLI, REST API, and full installation |
 
 **Rationale:** GRC tools are adopted incrementally. A security engineer evaluating the tool wants to try gap analysis first, not install AWS SDK dependencies they don't need. Composability also reduces the attack surface — teams that don't use AI features never install LLM libraries.
 
@@ -93,7 +93,7 @@ The Python library is the canonical interface. The CLI is a thin wrapper around 
 
 - **Behavior consistency:** All three interfaces produce identical outputs for identical inputs.
 - **Testability:** Unit tests exercise the library directly. Integration tests exercise the CLI. API tests are thin because the API delegates to the library.
-- **Embeddability:** Security teams can import ControlBridge into their existing Python automation, CI/CD pipelines, or Jupyter notebooks without running a server.
+- **Embeddability:** Security teams can import Evidentia into their existing Python automation, CI/CD pipelines, or Jupyter notebooks without running a server.
 
 ```
 ┌─────────────────────────────────────────┐
@@ -112,7 +112,7 @@ The Python library is the canonical interface. The CLI is a thin wrapper around 
 
 All internal data models map cleanly to OSCAL (Open Security Controls Assessment Language) concepts:
 
-| ControlBridge Concept | OSCAL Equivalent |
+| Evidentia Concept | OSCAL Equivalent |
 |---|---|
 | `ControlCatalog` | `catalog` |
 | `ControlInventory` | `component-definition` |
@@ -121,16 +121,16 @@ All internal data models map cleanly to OSCAL (Open Security Controls Assessment
 | `RiskStatement` | `risk` within `assessment-results` |
 | Framework crosswalk | `profile` with `import` and `modify` |
 
-Output is always OSCAL-compatible, even if input is not. When a user provides a CSV inventory, ControlBridge normalizes it to internal Pydantic models that can serialize to OSCAL JSON at any point.
+Output is always OSCAL-compatible, even if input is not. When a user provides a CSV inventory, Evidentia normalizes it to internal Pydantic models that can serialize to OSCAL JSON at any point.
 
-**Rationale:** OSCAL is a NIST-published, machine-readable standard for security control information. Government agencies (FedRAMP), defense contractors (CMMC), and an increasing number of private-sector organizations require OSCAL-formatted artifacts. By using OSCAL as the internal exchange format, ControlBridge outputs are directly consumable by the OSCAL ecosystem (OSCAL CLI, Trestle, Lula, GovReady).
+**Rationale:** OSCAL is a NIST-published, machine-readable standard for security control information. Government agencies (FedRAMP), defense contractors (CMMC), and an increasing number of private-sector organizations require OSCAL-formatted artifacts. By using OSCAL as the internal exchange format, Evidentia outputs are directly consumable by the OSCAL ecosystem (OSCAL CLI, Trestle, Lula, GovReady).
 
 ### Principle 4: No Database Required for Core Use
 
 Default operation uses structured YAML and JSON files. Everything is git-friendly — control inventories, gap reports, evidence bundles, and risk statements are stored as human-readable files that can be version-controlled, diff'd, and reviewed in pull requests.
 
 ```
-.controlbridge/
+.evidentia/
 ├── inventories/
 │   └── 2026-04-05_controls.yaml
 ├── reports/
@@ -149,14 +149,14 @@ Optional persistence backends for team use:
 - **SQLite:** Single-file database for local persistence with query capabilities. No server process.
 - **PostgreSQL:** Full relational database for multi-user team deployments with concurrent access, RBAC, and audit logging.
 
-The storage backend is selected via `controlbridge.yaml` and abstracted behind a `StorageBackend` interface so all business logic is storage-agnostic.
+The storage backend is selected via `evidentia.yaml` and abstracted behind a `StorageBackend` interface so all business logic is storage-agnostic.
 
 ### Principle 5: LLM-Agnostic
 
 All AI features use LiteLLM (unified interface to 100+ LLM providers) and Instructor (structured output extraction using Pydantic models). The model is configurable at three levels:
 
-1. **Environment variable:** `CONTROLBRIDGE_LLM_MODEL=gpt-4o`
-2. **Config file:** `llm.model: "claude-sonnet-4-20250514"` in `controlbridge.yaml`
+1. **Environment variable:** `EVIDENTIA_LLM_MODEL=gpt-4o`
+2. **Config file:** `llm.model: "claude-sonnet-4-20250514"` in `evidentia.yaml`
 3. **Per-call override:** `--model ollama/llama3.3` on CLI commands
 
 Supported providers (via LiteLLM):
@@ -172,7 +172,7 @@ Supported providers (via LiteLLM):
 
 ### Principle 6: Framework-Agnostic Internal Model
 
-ControlBridge does not model each framework as a separate system. Instead, it uses a unified control model where one `ControlImplementation` can map to requirements across multiple frameworks simultaneously. The cross-framework mapping engine (powered by NIST-published crosswalks) answers questions like:
+Evidentia does not model each framework as a separate system. Instead, it uses a unified control model where one `ControlImplementation` can map to requirements across multiple frameworks simultaneously. The cross-framework mapping engine (powered by NIST-published crosswalks) answers questions like:
 
 - "If I implement NIST AC-2 (Account Management), which SOC 2, ISO 27001, and CIS Controls requirements does that also satisfy?"
 - "What is the minimum set of controls I need to implement to achieve compliance with NIST 800-53 Moderate AND SOC 2 AND ISO 27001?"
@@ -181,7 +181,7 @@ This cross-framework efficiency is a first-class concept, surfaced in gap report
 
 ### Principle 7: Reliability Over Breadth
 
-ControlBridge ships with fewer, more reliable integrations rather than 200 fragile connectors. Each collector includes:
+Evidentia ships with fewer, more reliable integrations rather than 200 fragile connectors. Each collector includes:
 
 - **Connection health monitoring:** `check_connection()` verifies connectivity, authentication, and permissions before attempting collection.
 - **Retry logic:** Exponential backoff with jitter for transient failures. Configurable max retries.
@@ -198,9 +198,9 @@ Three supported deployment modes, all from the same codebase:
 
 | Mode | Command | Use Case |
 |---|---|---|
-| **pip install** | `pip install controlbridge` | Developer workstation, CI/CD pipelines, Python scripts |
-| **Docker** | `docker run ghcr.io/controlbridge/controlbridge:latest` | Server deployment, team use |
-| **Homebrew** (future) | `brew install controlbridge` | macOS developer convenience |
+| **pip install** | `pip install evidentia` | Developer workstation, CI/CD pipelines, Python scripts |
+| **Docker** | `docker run ghcr.io/evidentia/evidentia:latest` | Server deployment, team use |
+| **Homebrew** (future) | `brew install evidentia` | macOS developer convenience |
 
 No Kubernetes required. No Helm charts. No Terraform modules. A single Docker container with a mounted config file and environment variables is the production deployment model.
 
@@ -212,8 +212,8 @@ Every output artifact includes:
 |---|---|
 | `id` | Unique identifier (UUID v4) for traceability |
 | `created_at` / `generated_at` | ISO 8601 timestamp |
-| `created_by` / `generated_by` | Source attribution (collector name, user email, or "controlbridge-ai") |
-| `version` | ControlBridge version that generated the output |
+| `created_by` / `generated_by` | Source attribution (collector name, user email, or "evidentia-ai") |
+| `version` | Evidentia version that generated the output |
 | `content_hash` | SHA-256 hash for tamper detection (evidence artifacts) |
 | `source_system` | Origin system (e.g., "aws-config", "github", "manual-upload") |
 
@@ -221,29 +221,29 @@ Export formats: JSON (default), CSV (for spreadsheet users), Markdown (for docum
 
 ### Principle 10: Progressive Enhancement
 
-ControlBridge works with zero configuration for basic operations:
+Evidentia works with zero configuration for basic operations:
 
 ```bash
 # Zero-config usage: analyze a control inventory against default frameworks
-controlbridge gap analyze --inventory my-controls.yaml
+evidentia gap analyze --inventory my-controls.yaml
 
 # Add one config option: specify frameworks
-controlbridge gap analyze --inventory my-controls.yaml --frameworks soc2-tsc,iso27001-2022
+evidentia gap analyze --inventory my-controls.yaml --frameworks soc2-tsc,iso27001-2022
 
 # Add AI: generate risk statements (requires LLM API key)
 export OPENAI_API_KEY=sk-...
-controlbridge risk generate --context system-context.yaml --gaps report.json
+evidentia risk generate --context system-context.yaml --gaps report.json
 
 # Add evidence collection (requires cloud credentials)
 export AWS_ACCESS_KEY_ID=...
-controlbridge collect run --collectors aws --frameworks nist-800-53-mod
+evidentia collect run --collectors aws --frameworks nist-800-53-mod
 
 # Add integrations (requires Jira credentials)
 export JIRA_SERVER=https://my-company.atlassian.net
-controlbridge gap push-jira --report report.json --project SEC
+evidentia gap push-jira --report report.json --project SEC
 ```
 
-Complexity is always opt-in. A `controlbridge.yaml` config file is only needed when the user wants persistent configuration.
+Complexity is always opt-in. A `evidentia.yaml` config file is only needed when the user wants persistent configuration.
 
 ---
 
@@ -285,19 +285,19 @@ All technology choices are confirmed and final. Each choice includes rationale.
 ### Dependency Graph
 
 ```
-controlbridge (meta-package)
-├── controlbridge-core
+evidentia (meta-package)
+├── evidentia-core
 │   ├── pydantic >= 2.9
 │   ├── pyyaml >= 6.0
 │   ├── oscal-pydantic >= 2023.3
 │   ├── python-dateutil >= 2.9
 │   └── thefuzz >= 0.22  (fuzzy string matching for control IDs)
-├── controlbridge-ai
-│   ├── controlbridge-core
+├── evidentia-ai
+│   ├── evidentia-core
 │   ├── litellm >= 1.50
 │   └── instructor >= 1.7
-├── controlbridge-collectors
-│   ├── controlbridge-core
+├── evidentia-collectors
+│   ├── evidentia-core
 │   ├── boto3 >= 1.35
 │   ├── azure-mgmt-resource >= 23.0
 │   ├── azure-mgmt-security >= 6.0
@@ -308,8 +308,8 @@ controlbridge (meta-package)
 │   ├── okta >= 2.0
 │   ├── aiohttp >= 3.10 (async HTTP for collectors)
 │   └── apscheduler >= 3.10 (scheduled collection)
-├── controlbridge-integrations
-│   ├── controlbridge-core
+├── evidentia-integrations
+│   ├── evidentia-core
 │   ├── jira >= 3.8
 │   └── servicenow-api >= 0.1
 ├── typer[all] >= 0.14   (CLI)
@@ -327,7 +327,7 @@ controlbridge (meta-package)
 The repository is a uv workspace monorepo. Each package under `packages/` is an independently installable Python package with its own `pyproject.toml`. The root `pyproject.toml` defines the workspace and shared development dependencies.
 
 ```
-controlbridge/                        # Root monorepo
+evidentia/                        # Root monorepo
 ├── pyproject.toml                   # Root workspace pyproject (uv workspace)
 ├── uv.lock                          # Single lockfile for all packages
 ├── README.md                        # Project README (see §18 for structure)
@@ -345,9 +345,9 @@ controlbridge/                        # Root monorepo
 │       ├── release.yml              # build + publish to PyPI on tag
 │       └── docker.yml               # build + push Docker image on tag
 ├── packages/
-│   ├── controlbridge-core/          # Core library (no AI, no integrations)
+│   ├── evidentia-core/          # Core library (no AI, no integrations)
 │   │   ├── pyproject.toml
-│   │   └── src/controlbridge_core/
+│   │   └── src/evidentia_core/
 │   │       ├── __init__.py
 │   │       ├── py.typed             # PEP 561 marker for type checking
 │   │       ├── models/              # Pydantic data models
@@ -405,9 +405,9 @@ controlbridge/                        # Root monorepo
 │   │           ├── hashing.py       # SHA-256 content hashing
 │   │           ├── timestamps.py    # ISO 8601 utilities
 │   │           └── version.py       # Version info
-│   ├── controlbridge-ai/            # AI features (risk statements, evidence validation)
+│   ├── evidentia-ai/            # AI features (risk statements, evidence validation)
 │   │   ├── pyproject.toml
-│   │   └── src/controlbridge_ai/
+│   │   └── src/evidentia_ai/
 │   │       ├── __init__.py
 │   │       ├── py.typed
 │   │       ├── client.py            # LiteLLM + Instructor client setup
@@ -425,9 +425,9 @@ controlbridge/                        # Root monorepo
 │   │           ├── __init__.py
 │   │           ├── generator.py     # NarrativeGenerator class
 │   │           └── prompts.py       # Narrative generation prompts
-│   ├── controlbridge-collectors/    # Evidence collection agents
+│   ├── evidentia-collectors/    # Evidence collection agents
 │   │   ├── pyproject.toml
-│   │   └── src/controlbridge_collectors/
+│   │   └── src/evidentia_collectors/
 │   │       ├── __init__.py
 │   │       ├── py.typed
 │   │       ├── base.py              # Abstract BaseCollector class
@@ -460,9 +460,9 @@ controlbridge/                        # Root monorepo
 │   │       │   ├── __init__.py
 │   │       │   └── iam.py           # MFA, passwords, user lifecycle, access reviews
 │   │       └── scheduled.py         # APScheduler-based collection scheduler
-│   ├── controlbridge-integrations/  # Output integrations (Jira, ServiceNow)
+│   ├── evidentia-integrations/  # Output integrations (Jira, ServiceNow)
 │   │   ├── pyproject.toml
-│   │   └── src/controlbridge_integrations/
+│   │   └── src/evidentia_integrations/
 │   │       ├── __init__.py
 │   │       ├── py.typed
 │   │       ├── base.py              # Abstract BaseIntegration class
@@ -474,23 +474,23 @@ controlbridge/                        # Root monorepo
 │   │           ├── __init__.py
 │   │           ├── client.py        # ServiceNowIntegration class
 │   │           └── formatters.py    # Gap → ServiceNow record formatting
-│   └── controlbridge/               # Meta-package: installs everything + CLI + API
+│   └── evidentia/               # Meta-package: installs everything + CLI + API
 │       ├── pyproject.toml
-│       └── src/controlbridge/
+│       └── src/evidentia/
 │           ├── __init__.py
 │           ├── py.typed
 │           ├── cli/                  # Typer CLI application
 │           │   ├── __init__.py
 │           │   ├── main.py           # Root Typer app + entry point
-│           │   ├── gap.py            # `controlbridge gap` subcommands
-│           │   ├── risk.py           # `controlbridge risk` subcommands
-│           │   ├── collect.py        # `controlbridge collect` subcommands
-│           │   ├── validate.py       # `controlbridge validate` subcommands
-│           │   ├── push.py           # `controlbridge gap push-jira/push-servicenow`
-│           │   ├── catalog.py        # `controlbridge catalog` subcommands
-│           │   ├── export.py         # `controlbridge export` subcommands
-│           │   ├── serve.py          # `controlbridge serve` (start API server)
-│           │   ├── init.py           # `controlbridge init` (project scaffolding)
+│           │   ├── gap.py            # `evidentia gap` subcommands
+│           │   ├── risk.py           # `evidentia risk` subcommands
+│           │   ├── collect.py        # `evidentia collect` subcommands
+│           │   ├── validate.py       # `evidentia validate` subcommands
+│           │   ├── push.py           # `evidentia gap push-jira/push-servicenow`
+│           │   ├── catalog.py        # `evidentia catalog` subcommands
+│           │   ├── export.py         # `evidentia export` subcommands
+│           │   ├── serve.py          # `evidentia serve` (start API server)
+│           │   ├── init.py           # `evidentia init` (project scaffolding)
 │           │   └── formatters.py     # Rich output formatting helpers
 │           ├── api/                  # FastAPI REST API
 │           │   ├── __init__.py
@@ -549,7 +549,7 @@ controlbridge/                        # Root monorepo
 │   │       ├── test_jira.py
 │   │       └── test_servicenow.py
 │   └── fixtures/
-│       ├── sample-inventory.yaml      # ControlBridge YAML format
+│       ├── sample-inventory.yaml      # Evidentia YAML format
 │       ├── sample-inventory.csv       # CSV format
 │       ├── sample-inventory-oscal.json # OSCAL component definition
 │       ├── sample-system-context.yaml  # System context for risk generation
@@ -574,17 +574,17 @@ controlbridge/                        # Root monorepo
 
 ```toml
 [project]
-name = "controlbridge-workspace"
+name = "evidentia-workspace"
 version = "0.1.0"
 requires-python = ">=3.12"
 
 [tool.uv.workspace]
 members = [
-    "packages/controlbridge-core",
-    "packages/controlbridge-ai",
-    "packages/controlbridge-collectors",
-    "packages/controlbridge-integrations",
-    "packages/controlbridge",
+    "packages/evidentia-core",
+    "packages/evidentia-ai",
+    "packages/evidentia-collectors",
+    "packages/evidentia-integrations",
+    "packages/evidentia",
 ]
 
 [tool.uv]
@@ -636,13 +636,13 @@ markers = [
 ]
 ```
 
-### Package pyproject.toml: controlbridge-core
+### Package pyproject.toml: evidentia-core
 
 ```toml
 [project]
-name = "controlbridge-core"
+name = "evidentia-core"
 version = "0.1.0"
-description = "Core data models, catalog loading, and gap analysis engine for ControlBridge GRC tool"
+description = "Core data models, catalog loading, and gap analysis engine for Evidentia GRC tool"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.12"
@@ -660,14 +660,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/controlbridge_core"]
+packages = ["src/evidentia_core"]
 ```
 
-### Package pyproject.toml: controlbridge (meta-package)
+### Package pyproject.toml: evidentia (meta-package)
 
 ```toml
 [project]
-name = "controlbridge"
+name = "evidentia"
 version = "0.1.0"
 description = "Open-source GRC tool: gap analysis, risk statements, evidence collection, and compliance automation"
 readme = "README.md"
@@ -682,10 +682,10 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "controlbridge-core",
-    "controlbridge-ai",
-    "controlbridge-collectors",
-    "controlbridge-integrations",
+    "evidentia-core",
+    "evidentia-ai",
+    "evidentia-collectors",
+    "evidentia-integrations",
     "typer[all]>=0.14",
     "rich>=13.0",
     "fastapi>=0.115",
@@ -694,27 +694,27 @@ dependencies = [
 ]
 
 [project.scripts]
-controlbridge = "controlbridge.cli.main:app"
-cb = "controlbridge.cli.main:app"
+evidentia = "evidentia.cli.main:app"
+cb = "evidentia.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/allenfbyrd/controlbridge"
-Documentation = "https://controlbridge.dev"
-Repository = "https://github.com/allenfbyrd/controlbridge"
-Changelog = "https://github.com/allenfbyrd/controlbridge/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/allenfbyrd/evidentia"
+Documentation = "https://evidentia.dev"
+Repository = "https://github.com/allenfbyrd/evidentia"
+Changelog = "https://github.com/allenfbyrd/evidentia/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/controlbridge"]
+packages = ["src/evidentia"]
 
 [tool.uv.sources]
-controlbridge-core = { workspace = true }
-controlbridge-ai = { workspace = true }
-controlbridge-collectors = { workspace = true }
-controlbridge-integrations = { workspace = true }
+evidentia-core = { workspace = true }
+evidentia-ai = { workspace = true }
+evidentia-collectors = { workspace = true }
+evidentia-integrations = { workspace = true }
 ```
 
 ---
@@ -724,10 +724,10 @@ controlbridge-integrations = { workspace = true }
 
 All internal data is represented as Pydantic v2 models. These models serve triple duty: runtime validation, JSON/YAML serialization, and OpenAPI schema generation for the REST API.
 
-### 5.1 Common Types (controlbridge_core/models/common.py)
+### 5.1 Common Types (evidentia_core/models/common.py)
 
 ```python
-"""Shared types, enums, and base classes used across all ControlBridge models."""
+"""Shared types, enums, and base classes used across all Evidentia models."""
 
 from __future__ import annotations
 
@@ -749,8 +749,8 @@ def new_id() -> str:
     return str(uuid4())
 
 
-class ControlBridgeModel(BaseModel):
-    """Base model for all ControlBridge objects.
+class EvidentiaModel(BaseModel):
+    """Base model for all Evidentia objects.
     
     Provides consistent serialization settings:
     - Enums serialize to their string values
@@ -775,7 +775,7 @@ class Severity(str, Enum):
 
 
 class FrameworkId(str, Enum):
-    """Canonical framework identifiers used throughout ControlBridge."""
+    """Canonical framework identifiers used throughout Evidentia."""
     NIST_800_53_REV5 = "nist-800-53-rev5"
     NIST_800_53_MOD = "nist-800-53-mod"
     NIST_800_53_HIGH = "nist-800-53-high"
@@ -787,7 +787,7 @@ class FrameworkId(str, Enum):
     PCI_DSS_4 = "pci-dss-4"
 
 
-class ControlMapping(ControlBridgeModel):
+class ControlMapping(EvidentiaModel):
     """Maps an entity (evidence, risk, gap) to a specific framework control."""
     framework: str = Field(
         description="Framework identifier, e.g. 'nist-800-53-rev5', 'soc2-tsc'"
@@ -804,7 +804,7 @@ class ControlMapping(ControlBridgeModel):
         return f"{self.framework}:{self.control_id}"
 ```
 
-### 5.2 Control Model (controlbridge_core/models/control.py)
+### 5.2 Control Model (evidentia_core/models/control.py)
 
 ```python
 """Control implementation and inventory models.
@@ -821,7 +821,7 @@ from typing import Optional
 
 from pydantic import Field
 
-from controlbridge_core.models.common import ControlBridgeModel, utc_now
+from evidentia_core.models.common import EvidentiaModel, utc_now
 
 
 class ControlStatus(str, Enum):
@@ -833,7 +833,7 @@ class ControlStatus(str, Enum):
     NOT_APPLICABLE = "not_applicable"
 
 
-class ControlImplementation(ControlBridgeModel):
+class ControlImplementation(EvidentiaModel):
     """Represents a single control as implemented by the organization.
     
     This is not a catalog control (what the framework requires) but an
@@ -900,11 +900,11 @@ class ControlImplementation(ControlBridgeModel):
     )
 
 
-class ControlInventory(ControlBridgeModel):
+class ControlInventory(EvidentiaModel):
     """An organization's complete control inventory.
     
     This is the primary input to gap analysis. It can be loaded from:
-    - ControlBridge YAML format (preferred)
+    - Evidentia YAML format (preferred)
     - CSV with header mapping
     - OSCAL component definition JSON
     - CISO Assistant JSON export
@@ -924,8 +924,8 @@ class ControlInventory(ControlBridgeModel):
         description="List of all control implementations"
     )
     source_format: str = Field(
-        default="controlbridge",
-        description="Format of the source data: 'controlbridge', 'oscal', 'csv', 'ciso-assistant'"
+        default="evidentia",
+        description="Format of the source data: 'evidentia', 'oscal', 'csv', 'ciso-assistant'"
     )
     source_file: Optional[str] = Field(
         default=None,
@@ -958,7 +958,7 @@ class ControlInventory(ControlBridgeModel):
         return None
 ```
 
-### 5.3 Evidence Model (controlbridge_core/models/evidence.py)
+### 5.3 Evidence Model (evidentia_core/models/evidence.py)
 
 ```python
 """Evidence artifact and bundle models.
@@ -975,8 +975,8 @@ from typing import Any, Optional
 
 from pydantic import Field, field_validator
 
-from controlbridge_core.models.common import (
-    ControlBridgeModel,
+from evidentia_core.models.common import (
+    EvidentiaModel,
     ControlMapping,
     new_id,
     utc_now,
@@ -1006,7 +1006,7 @@ class EvidenceSufficiency(str, Enum):
     UNKNOWN = "unknown"             # Not yet assessed
 
 
-class EvidenceArtifact(ControlBridgeModel):
+class EvidenceArtifact(EvidentiaModel):
     """A single piece of compliance evidence.
     
     An artifact represents one discrete piece of proof that a control is
@@ -1025,7 +1025,7 @@ class EvidenceArtifact(ControlBridgeModel):
             title="AWS Config: S3 Bucket Encryption Check",
             evidence_type=EvidenceType.CONFIGURATION,
             source_system="aws-config",
-            collected_by="controlbridge-collectors/aws",
+            collected_by="evidentia-collectors/aws",
             content={
                 "rule_name": "s3-bucket-server-side-encryption-enabled",
                 "compliance_type": "COMPLIANT",
@@ -1167,7 +1167,7 @@ class EvidenceArtifact(ControlBridgeModel):
         return utc_now() > self.expires_at
 
 
-class EvidenceBundle(ControlBridgeModel):
+class EvidenceBundle(EvidentiaModel):
     """A collection of evidence artifacts for an assessment scope.
     
     Bundles group evidence artifacts by assessment (e.g., "SOC 2 Type II 2026")
@@ -1204,9 +1204,9 @@ class EvidenceBundle(ControlBridgeModel):
         default=None,
         description="Free-text notes about this evidence bundle"
     )
-    controlbridge_version: str = Field(
+    evidentia_version: str = Field(
         default="0.1.0",
-        description="Version of ControlBridge that generated this bundle"
+        description="Version of Evidentia that generated this bundle"
     )
 
     @property
@@ -1232,7 +1232,7 @@ class EvidenceBundle(ControlBridgeModel):
         return coverage
 ```
 
-### 5.4 Risk Statement Model (controlbridge_core/models/risk.py)
+### 5.4 Risk Statement Model (evidentia_core/models/risk.py)
 
 ```python
 """Risk statement models following NIST SP 800-30 structure.
@@ -1251,7 +1251,7 @@ from uuid import uuid4
 
 from pydantic import Field
 
-from controlbridge_core.models.common import ControlBridgeModel, new_id, utc_now
+from evidentia_core.models.common import EvidentiaModel, new_id, utc_now
 
 
 class RiskLevel(str, Enum):
@@ -1290,7 +1290,7 @@ class RiskTreatment(str, Enum):
     PENDING = "pending"         # Awaiting review
 
 
-class RiskStatement(ControlBridgeModel):
+class RiskStatement(EvidentiaModel):
     """A structured risk statement following NIST SP 800-30 Rev 1 format.
     
     Generated by the AI risk statement generator, each risk statement
@@ -1406,8 +1406,8 @@ class RiskStatement(ControlBridgeModel):
     )
     # ── Lifecycle ──────────────────────────────────────────────────────
     generated_by: str = Field(
-        default="controlbridge-ai",
-        description="'controlbridge-ai' for generated, or user email for manual"
+        default="evidentia-ai",
+        description="'evidentia-ai' for generated, or user email for manual"
     )
     generated_at: datetime = Field(
         default_factory=utc_now,
@@ -1445,7 +1445,7 @@ class RiskStatement(ControlBridgeModel):
     )
 
 
-class RiskRegister(ControlBridgeModel):
+class RiskRegister(EvidentiaModel):
     """A collection of risk statements for an organization/system.
     
     Serves as the output of the risk statement generator and the
@@ -1456,7 +1456,7 @@ class RiskRegister(ControlBridgeModel):
     system_name: str
     generated_at: datetime = Field(default_factory=utc_now)
     risks: list[RiskStatement] = Field(default_factory=list)
-    controlbridge_version: str = Field(default="0.1.0")
+    evidentia_version: str = Field(default="0.1.0")
 
     @property
     def critical_count(self) -> int:
@@ -1475,7 +1475,7 @@ class RiskRegister(ControlBridgeModel):
         return sum(1 for r in self.risks if not r.reviewed_by)
 ```
 
-### 5.5 Gap Model (controlbridge_core/models/gap.py)
+### 5.5 Gap Model (evidentia_core/models/gap.py)
 
 ```python
 """Control gap analysis models.
@@ -1493,7 +1493,7 @@ from typing import Optional
 
 from pydantic import Field
 
-from controlbridge_core.models.common import ControlBridgeModel, new_id, utc_now
+from evidentia_core.models.common import EvidentiaModel, new_id, utc_now
 
 
 class GapSeverity(str, Enum):
@@ -1522,7 +1522,7 @@ class GapStatus(str, Enum):
     NOT_APPLICABLE = "not_applicable"
 
 
-class ControlGap(ControlBridgeModel):
+class ControlGap(EvidentiaModel):
     """A single control gap identified by the gap analyzer.
     
     Represents a framework requirement that the organization has not
@@ -1619,7 +1619,7 @@ class ControlGap(ControlBridgeModel):
     )
 
 
-class EfficiencyOpportunity(ControlBridgeModel):
+class EfficiencyOpportunity(EvidentiaModel):
     """A control that satisfies multiple framework requirements simultaneously.
     
     These are high-value implementation targets — implementing one control
@@ -1649,7 +1649,7 @@ class EfficiencyOpportunity(ControlBridgeModel):
     )
 
 
-class GapAnalysisReport(ControlBridgeModel):
+class GapAnalysisReport(EvidentiaModel):
     """Complete gap analysis report.
     
     The primary output of the gap analyzer. Contains all identified gaps,
@@ -1699,11 +1699,11 @@ class GapAnalysisReport(ControlBridgeModel):
         default=None,
         description="Path to the inventory file used"
     )
-    controlbridge_version: str = Field(default="0.1.0")
+    evidentia_version: str = Field(default="0.1.0")
     notes: Optional[str] = Field(default=None)
 ```
 
-### 5.6 Catalog Models (controlbridge_core/models/catalog.py)
+### 5.6 Catalog Models (evidentia_core/models/catalog.py)
 
 ```python
 """Framework catalog models.
@@ -1719,10 +1719,10 @@ from typing import Optional
 
 from pydantic import Field
 
-from controlbridge_core.models.common import ControlBridgeModel
+from evidentia_core.models.common import EvidentiaModel
 
 
-class CatalogControl(ControlBridgeModel):
+class CatalogControl(EvidentiaModel):
     """A single control from a framework catalog."""
     id: str = Field(description="Control ID, e.g. 'AC-2', 'CC6.1'")
     title: str = Field(description="Control title")
@@ -1759,7 +1759,7 @@ class CatalogControl(ControlBridgeModel):
     )
 
 
-class ControlCatalog(ControlBridgeModel):
+class ControlCatalog(EvidentiaModel):
     """A complete framework catalog containing all controls.
     
     Loaded from bundled OSCAL JSON files. Provides indexed access
@@ -1810,7 +1810,7 @@ class ControlCatalog(ControlBridgeModel):
         return len(self._index)
 
 
-class FrameworkMapping(ControlBridgeModel):
+class FrameworkMapping(EvidentiaModel):
     """A single mapping entry between two frameworks' controls."""
     source_control_id: str
     source_control_title: Optional[str] = None
@@ -1825,7 +1825,7 @@ class FrameworkMapping(ControlBridgeModel):
     )
 
 
-class CrosswalkDefinition(ControlBridgeModel):
+class CrosswalkDefinition(EvidentiaModel):
     """A complete crosswalk between two frameworks.
     
     Loaded from bundled JSON files in catalogs/data/mappings/.
@@ -1855,7 +1855,7 @@ class CrosswalkDefinition(ControlBridgeModel):
         ]
 ```
 
-### 5.7 Finding Model (controlbridge_core/models/finding.py)
+### 5.7 Finding Model (evidentia_core/models/finding.py)
 
 ```python
 """Security finding model for collector outputs.
@@ -1872,7 +1872,7 @@ from typing import Any, Optional
 
 from pydantic import Field
 
-from controlbridge_core.models.common import ControlBridgeModel, Severity, new_id, utc_now
+from evidentia_core.models.common import EvidentiaModel, Severity, new_id, utc_now
 
 
 class FindingStatus(str, Enum):
@@ -1882,7 +1882,7 @@ class FindingStatus(str, Enum):
     SUPPRESSED = "suppressed"
 
 
-class SecurityFinding(ControlBridgeModel):
+class SecurityFinding(EvidentiaModel):
     """A security finding from an evidence collector.
     
     Findings are the raw output of collectors — they represent a single
@@ -1927,7 +1927,7 @@ class SecurityFinding(ControlBridgeModel):
     resolved_at: Optional[datetime] = Field(default=None)
 ```
 
-### 5.8 System Context Model (controlbridge_ai/risk_statements/templates.py)
+### 5.8 System Context Model (evidentia_ai/risk_statements/templates.py)
 
 ```python
 """System context model — the user-provided description of their environment.
@@ -1942,10 +1942,10 @@ from typing import Optional
 
 from pydantic import Field
 
-from controlbridge_core.models.common import ControlBridgeModel
+from evidentia_core.models.common import EvidentiaModel
 
 
-class SystemComponent(ControlBridgeModel):
+class SystemComponent(EvidentiaModel):
     """A component of the system being assessed."""
     name: str = Field(description="Component name, e.g. 'Web Application'")
     type: str = Field(description="Component type: 'web_app', 'api', 'database', 'network', 'identity_provider', 'ci_cd'")
@@ -1961,7 +1961,7 @@ class SystemComponent(ControlBridgeModel):
     notes: Optional[str] = Field(default=None)
 
 
-class SystemContext(ControlBridgeModel):
+class SystemContext(EvidentiaModel):
     """Complete system context for risk statement generation.
     
     Provided by the user in a system-context.yaml file. Describes the
@@ -2032,7 +2032,7 @@ class SystemContext(ControlBridgeModel):
 
 ## 6. OSCAL Catalog Loading & Cross-Framework Mapping Engine
 
-The catalog system is the foundation of ControlBridge. It provides indexed access to framework controls and bidirectional cross-framework mappings.
+The catalog system is the foundation of Evidentia. It provides indexed access to framework controls and bidirectional cross-framework mappings.
 
 ### 6.1 Architecture Overview
 
@@ -2054,7 +2054,7 @@ The catalog system is the foundation of ControlBridge. It provides indexed acces
 └──────────────┴───────────────────────────────────────────────┘
 ```
 
-### 6.2 Catalog Loader (controlbridge_core/catalogs/loader.py)
+### 6.2 Catalog Loader (evidentia_core/catalogs/loader.py)
 
 ```python
 """OSCAL catalog loader.
@@ -2064,7 +2064,7 @@ and parses them into indexed ControlCatalog objects.
 
 Supported catalog formats:
 - OSCAL Catalog JSON (NIST 800-53, CSF 2.0)
-- ControlBridge framework JSON (SOC 2, ISO 27001, CIS, CMMC, PCI DSS)
+- Evidentia framework JSON (SOC 2, ISO 27001, CIS, CMMC, PCI DSS)
 """
 
 from __future__ import annotations
@@ -2075,7 +2075,7 @@ from importlib import resources
 from pathlib import Path
 from typing import Optional
 
-from controlbridge_core.models.catalog import (
+from evidentia_core.models.catalog import (
     CatalogControl,
     ControlCatalog,
 )
@@ -2244,12 +2244,12 @@ def _detect_framework_id(path: Path, metadata: dict) -> str:
     return stem
 
 
-def load_controlbridge_catalog(catalog_path: Path) -> ControlCatalog:
-    """Load a ControlBridge-format framework catalog.
+def load_evidentia_catalog(catalog_path: Path) -> ControlCatalog:
+    """Load a Evidentia-format framework catalog.
     
     Used for frameworks that don't have OSCAL catalogs published by NIST
     (SOC 2, ISO 27001, CIS, CMMC, PCI DSS). These are stored as
-    ControlBridge JSON format with a simplified structure.
+    Evidentia JSON format with a simplified structure.
     """
     with open(catalog_path, "r") as f:
         data = json.load(f)
@@ -2260,7 +2260,7 @@ def load_controlbridge_catalog(catalog_path: Path) -> ControlCatalog:
         framework_id=data["framework_id"],
         framework_name=data["framework_name"],
         version=data.get("version", "1.0"),
-        source=data.get("source", f"ControlBridge: {catalog_path.name}"),
+        source=data.get("source", f"Evidentia: {catalog_path.name}"),
         controls=controls,
         families=data.get("families", []),
     )
@@ -2270,7 +2270,7 @@ def load_catalog(framework_id: str, custom_path: Optional[Path] = None) -> Contr
     """Load a catalog by framework ID.
     
     First checks for a custom path, then looks in the bundled data directory.
-    Auto-detects format (OSCAL vs ControlBridge) based on file contents.
+    Auto-detects format (OSCAL vs Evidentia) based on file contents.
     """
     if custom_path:
         path = custom_path
@@ -2305,10 +2305,10 @@ def load_catalog(framework_id: str, custom_path: Optional[Path] = None) -> Contr
     if "catalog" in data:
         return load_oscal_catalog(path)
     else:
-        return load_controlbridge_catalog(path)
+        return load_evidentia_catalog(path)
 ```
 
-### 6.3 Crosswalk Engine (controlbridge_core/catalogs/crosswalk.py)
+### 6.3 Crosswalk Engine (evidentia_core/catalogs/crosswalk.py)
 
 ```python
 """Cross-framework mapping engine.
@@ -2325,7 +2325,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from controlbridge_core.models.catalog import (
+from evidentia_core.models.catalog import (
     CrosswalkDefinition,
     FrameworkMapping,
 )
@@ -2557,7 +2557,7 @@ All crosswalk files follow this structure:
 | `partial` | Source control partially addresses target requirement (or vice versa) |
 | `superset` | Source control fully encompasses the target requirement plus additional requirements |
 
-### 6.5 Framework Registry (controlbridge_core/catalogs/registry.py)
+### 6.5 Framework Registry (evidentia_core/catalogs/registry.py)
 
 ```python
 """Framework registry — discovers and caches available catalogs and crosswalks.
@@ -2572,9 +2572,9 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from controlbridge_core.catalogs.crosswalk import CrosswalkEngine
-from controlbridge_core.catalogs.loader import load_catalog
-from controlbridge_core.models.catalog import ControlCatalog
+from evidentia_core.catalogs.crosswalk import CrosswalkEngine
+from evidentia_core.catalogs.loader import load_catalog
+from evidentia_core.models.catalog import ControlCatalog
 
 logger = logging.getLogger(__name__)
 
@@ -2666,13 +2666,13 @@ class FrameworkRegistry:
 
 ### 7.1 Gap Analyzer
 
-#### 7.1.1 Multi-Format Inventory Parser (controlbridge_core/gap_analyzer/inventory.py)
+#### 7.1.1 Multi-Format Inventory Parser (evidentia_core/gap_analyzer/inventory.py)
 
 ```python
 """Multi-format control inventory parser.
 
 Supports four input formats with auto-detection:
-1. ControlBridge YAML (preferred)
+1. Evidentia YAML (preferred)
 2. CSV with fuzzy header matching
 3. OSCAL component definition JSON
 4. CISO Assistant JSON export
@@ -2681,7 +2681,7 @@ Detection logic:
 1. Check file extension (.yaml/.yml → YAML, .csv → CSV, .json → JSON)
 2. If JSON: check for "component-definition" key → OSCAL
 3. If JSON: check for "ciso_assistant" or "framework" key → CISO Assistant
-4. If YAML: check for "controls:" key → ControlBridge
+4. If YAML: check for "controls:" key → Evidentia
 5. If CSV: map columns with fuzzy matching on standard header names
 """
 
@@ -2697,7 +2697,7 @@ from typing import Optional
 import yaml
 from thefuzz import fuzz
 
-from controlbridge_core.models.control import (
+from evidentia_core.models.control import (
     ControlImplementation,
     ControlInventory,
     ControlStatus,
@@ -2747,7 +2747,7 @@ def load_inventory(path: str | Path) -> ControlInventory:
     content = path.read_text(encoding="utf-8")
 
     if suffix in (".yaml", ".yml"):
-        return _parse_controlbridge_yaml(content, str(path))
+        return _parse_evidentia_yaml(content, str(path))
     elif suffix == ".csv":
         return _parse_csv(content, str(path))
     elif suffix == ".json":
@@ -2760,7 +2760,7 @@ def load_inventory(path: str | Path) -> ControlInventory:
 
 
 def _parse_json(content: str, source_path: str) -> ControlInventory:
-    """Parse a JSON inventory — auto-detect OSCAL vs CISO Assistant vs ControlBridge."""
+    """Parse a JSON inventory — auto-detect OSCAL vs CISO Assistant vs Evidentia."""
     data = json.loads(content)
 
     if "component-definition" in data:
@@ -2770,30 +2770,30 @@ def _parse_json(content: str, source_path: str) -> ControlInventory:
     ):
         return _parse_ciso_assistant(data, source_path)
     elif "controls" in data:
-        # ControlBridge JSON format (same structure as YAML)
-        return _parse_controlbridge_dict(data, source_path, "controlbridge-json")
+        # Evidentia JSON format (same structure as YAML)
+        return _parse_evidentia_dict(data, source_path, "evidentia-json")
     else:
         raise ValueError(
             "Unrecognized JSON format. Expected one of: "
             "OSCAL component-definition, CISO Assistant export, "
-            "or ControlBridge format with 'controls' key."
+            "or Evidentia format with 'controls' key."
         )
 
 
-def _parse_controlbridge_yaml(content: str, source_path: str) -> ControlInventory:
-    """Parse ControlBridge YAML format."""
+def _parse_evidentia_yaml(content: str, source_path: str) -> ControlInventory:
+    """Parse Evidentia YAML format."""
     data = yaml.safe_load(content)
     if not isinstance(data, dict) or "controls" not in data:
         raise ValueError(
-            "Invalid ControlBridge YAML: expected a mapping with 'controls' key"
+            "Invalid Evidentia YAML: expected a mapping with 'controls' key"
         )
-    return _parse_controlbridge_dict(data, source_path, "controlbridge")
+    return _parse_evidentia_dict(data, source_path, "evidentia")
 
 
-def _parse_controlbridge_dict(
+def _parse_evidentia_dict(
     data: dict, source_path: str, format_name: str
 ) -> ControlInventory:
-    """Parse a ControlBridge-format dict (from YAML or JSON)."""
+    """Parse a Evidentia-format dict (from YAML or JSON)."""
     controls: list[ControlImplementation] = []
     for item in data.get("controls", []):
         status_str = item.get("status", "not_implemented").lower().strip()
@@ -2952,7 +2952,7 @@ def _parse_ciso_assistant(data: dict, source_path: str) -> ControlInventory:
     )
 ```
 
-#### 7.1.2 Control ID Normalizer (controlbridge_core/gap_analyzer/normalizer.py)
+#### 7.1.2 Control ID Normalizer (evidentia_core/gap_analyzer/normalizer.py)
 
 ```python
 """Control ID normalization and fuzzy matching.
@@ -2970,7 +2970,7 @@ from typing import Optional
 
 from thefuzz import fuzz, process
 
-from controlbridge_core.models.catalog import ControlCatalog
+from evidentia_core.models.catalog import ControlCatalog
 
 
 def normalize_control_id(raw_id: str) -> str:
@@ -3056,7 +3056,7 @@ def find_best_match(
     return None
 ```
 
-#### 7.1.3 Gap Analysis Engine (controlbridge_core/gap_analyzer/analyzer.py)
+#### 7.1.3 Gap Analysis Engine (evidentia_core/gap_analyzer/analyzer.py)
 
 ```python
 """Core gap analysis engine.
@@ -3083,15 +3083,15 @@ import logging
 from collections import defaultdict
 from typing import Optional
 
-from controlbridge_core.catalogs.registry import FrameworkRegistry
-from controlbridge_core.gap_analyzer.normalizer import find_best_match, normalize_control_id
-from controlbridge_core.models.catalog import CatalogControl
-from controlbridge_core.models.control import (
+from evidentia_core.catalogs.registry import FrameworkRegistry
+from evidentia_core.gap_analyzer.normalizer import find_best_match, normalize_control_id
+from evidentia_core.models.catalog import CatalogControl
+from evidentia_core.models.control import (
     ControlImplementation,
     ControlInventory,
     ControlStatus,
 )
-from controlbridge_core.models.gap import (
+from evidentia_core.models.gap import (
     ControlGap,
     EfficiencyOpportunity,
     GapAnalysisReport,
@@ -3224,7 +3224,7 @@ class GapAnalyzer:
         Returns: {canonical_control_id: [(framework_id, CatalogControl), ...]}
         This allows tracking which frameworks require each control.
         """
-        from controlbridge_core.models.catalog import ControlCatalog
+        from evidentia_core.models.catalog import ControlCatalog
         
         required: dict[str, list[tuple[str, CatalogControl]]] = defaultdict(list)
         
@@ -3463,7 +3463,7 @@ class GapAnalyzer:
         return counts
 ```
 
-#### 7.1.4 Output Formatters (controlbridge_core/gap_analyzer/reporter.py)
+#### 7.1.4 Output Formatters (evidentia_core/gap_analyzer/reporter.py)
 
 ```python
 """Gap analysis report output formatters.
@@ -3479,7 +3479,7 @@ from io import StringIO
 from pathlib import Path
 from typing import Literal
 
-from controlbridge_core.models.gap import GapAnalysisReport
+from evidentia_core.models.gap import GapAnalysisReport
 
 
 OutputFormat = Literal["json", "csv", "markdown", "oscal-ar"]
@@ -3550,7 +3550,7 @@ def _export_markdown(report: GapAnalysisReport, path: Path) -> Path:
     lines.append(f"")
     lines.append(f"**Date:** {report.analyzed_at.isoformat()}")
     lines.append(f"**Frameworks:** {', '.join(report.frameworks_analyzed)}")
-    lines.append(f"**ControlBridge Version:** {report.controlbridge_version}")
+    lines.append(f"**Evidentia Version:** {report.evidentia_version}")
     lines.append(f"")
     lines.append(f"## Summary")
     lines.append(f"")
@@ -3602,12 +3602,12 @@ def _export_markdown(report: GapAnalysisReport, path: Path) -> Path:
 def _export_oscal_ar(report: GapAnalysisReport, path: Path) -> Path:
     """Export as OSCAL Assessment Results JSON.
     
-    Maps ControlBridge gap report to OSCAL assessment-results structure:
+    Maps Evidentia gap report to OSCAL assessment-results structure:
     - Each gap → observation + finding
     - Risk statements → risk entries
     - Evidence → observations with evidence references
     """
-    from controlbridge_core.oscal.exporter import gap_report_to_oscal_ar
+    from evidentia_core.oscal.exporter import gap_report_to_oscal_ar
     
     oscal_ar = gap_report_to_oscal_ar(report)
     path.write_text(
@@ -3619,7 +3619,7 @@ def _export_oscal_ar(report: GapAnalysisReport, path: Path) -> Path:
 
 ### 7.2 AI Risk Statement Generator
 
-#### 7.2.1 LLM Client Setup (controlbridge_ai/client.py)
+#### 7.2.1 LLM Client Setup (evidentia_ai/client.py)
 
 ```python
 """LiteLLM + Instructor client setup.
@@ -3627,8 +3627,8 @@ def _export_oscal_ar(report: GapAnalysisReport, path: Path) -> Path:
 Provides a configured Instructor client that works with any LLM provider
 supported by LiteLLM. Model selection is determined by (in priority order):
 1. Explicit model parameter
-2. CONTROLBRIDGE_LLM_MODEL environment variable
-3. llm.model in controlbridge.yaml
+2. EVIDENTIA_LLM_MODEL environment variable
+3. llm.model in evidentia.yaml
 4. Default: "gpt-4o"
 """
 
@@ -3648,12 +3648,12 @@ litellm.suppress_debug_info = True
 
 def get_default_model() -> str:
     """Get the default model from environment or config."""
-    return os.environ.get("CONTROLBRIDGE_LLM_MODEL", "gpt-4o")
+    return os.environ.get("EVIDENTIA_LLM_MODEL", "gpt-4o")
 
 
 def get_temperature() -> float:
     """Get the default temperature from environment or config."""
-    return float(os.environ.get("CONTROLBRIDGE_LLM_TEMPERATURE", "0.1"))
+    return float(os.environ.get("EVIDENTIA_LLM_TEMPERATURE", "0.1"))
 
 
 @lru_cache(maxsize=1)
@@ -3676,7 +3676,7 @@ def get_async_instructor_client(
     return instructor.from_litellm(litellm.acompletion)
 ```
 
-#### 7.2.2 Risk Statement Prompts (controlbridge_ai/risk_statements/prompts.py)
+#### 7.2.2 Risk Statement Prompts (evidentia_ai/risk_statements/prompts.py)
 
 ```python
 """System prompts for risk statement generation.
@@ -3764,7 +3764,7 @@ and threat actors described above.
 """
 ```
 
-#### 7.2.3 Risk Statement Generator (controlbridge_ai/risk_statements/generator.py)
+#### 7.2.3 Risk Statement Generator (evidentia_ai/risk_statements/generator.py)
 
 ```python
 """Risk statement generator using LiteLLM + Instructor.
@@ -3782,19 +3782,19 @@ from typing import Optional
 import instructor
 import litellm
 
-from controlbridge_ai.client import get_default_model, get_instructor_client, get_temperature
-from controlbridge_ai.risk_statements.prompts import (
+from evidentia_ai.client import get_default_model, get_instructor_client, get_temperature
+from evidentia_ai.risk_statements.prompts import (
     RISK_CONTEXT_TEMPLATE,
     RISK_STATEMENT_SYSTEM_PROMPT,
 )
-from controlbridge_core.models.gap import ControlGap
-from controlbridge_core.models.risk import RiskStatement
+from evidentia_core.models.gap import ControlGap
+from evidentia_core.models.risk import RiskStatement
 
 logger = logging.getLogger(__name__)
 
 
 # Import SystemContext here to avoid circular imports at module level
-from controlbridge_ai.risk_statements.templates import SystemContext
+from evidentia_ai.risk_statements.templates import SystemContext
 
 
 def _build_risk_context(gap: ControlGap, context: SystemContext) -> str:
@@ -3951,7 +3951,7 @@ class RiskStatementGenerator:
         system_context: SystemContext,
     ) -> RiskStatement:
         """Async version of generate() for concurrent batch processing."""
-        from controlbridge_ai.client import get_async_instructor_client
+        from evidentia_ai.client import get_async_instructor_client
 
         client = get_async_instructor_client()
         user_prompt = _build_risk_context(gap, system_context)
@@ -4011,7 +4011,7 @@ class RiskStatementGenerator:
 ### 8.1 Base Collector Architecture
 
 ```python
-# controlbridge_collectors/base.py
+# evidentia_collectors/base.py
 """Abstract base class for all evidence collectors.
 
 Every collector must implement:
@@ -4029,11 +4029,11 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Optional
 
-from controlbridge_core.models.common import ControlBridgeModel, utc_now
-from controlbridge_core.models.evidence import EvidenceArtifact
+from evidentia_core.models.common import EvidentiaModel, utc_now
+from evidentia_core.models.evidence import EvidenceArtifact
 
 
-class ConnectionStatus(ControlBridgeModel):
+class ConnectionStatus(EvidentiaModel):
     """Result of a collector connection health check."""
     collector: str = ""
     display_name: str = ""
@@ -4047,7 +4047,7 @@ class ConnectionStatus(ControlBridgeModel):
     latency_ms: Optional[float] = None
 
 
-class CollectionResult(ControlBridgeModel):
+class CollectionResult(EvidentiaModel):
     """Result of a single collection run."""
     collector: str
     started_at: datetime
@@ -4171,7 +4171,7 @@ class BaseCollector(ABC):
 ### 8.2 Retry and Rate Limiting
 
 ```python
-# controlbridge_collectors/retry.py
+# evidentia_collectors/retry.py
 """Exponential backoff with jitter for collector API calls."""
 
 from __future__ import annotations
@@ -4234,7 +4234,7 @@ def async_retry(
 ```
 
 ```python
-# controlbridge_collectors/rate_limit.py
+# evidentia_collectors/rate_limit.py
 """Rate limiter for collector API calls."""
 
 from __future__ import annotations
@@ -4279,7 +4279,7 @@ class RateLimiter:
         pass
 ```
 
-### 8.3 AWS Collector (controlbridge_collectors/aws/config.py)
+### 8.3 AWS Collector (evidentia_collectors/aws/config.py)
 
 ```python
 """AWS Config compliance evidence collector.
@@ -4301,11 +4301,11 @@ from typing import Optional
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
-from controlbridge_collectors.base import BaseCollector, ConnectionStatus
-from controlbridge_collectors.retry import async_retry
-from controlbridge_collectors.aws.mappings import AWS_CONFIG_TO_NIST
-from controlbridge_core.models.common import ControlMapping, utc_now
-from controlbridge_core.models.evidence import EvidenceArtifact, EvidenceType
+from evidentia_collectors.base import BaseCollector, ConnectionStatus
+from evidentia_collectors.retry import async_retry
+from evidentia_collectors.aws.mappings import AWS_CONFIG_TO_NIST
+from evidentia_core.models.common import ControlMapping, utc_now
+from evidentia_core.models.evidence import EvidenceArtifact, EvidenceType
 
 logger = logging.getLogger(__name__)
 
@@ -4474,7 +4474,7 @@ class AWSConfigCollector(BaseCollector):
                     ),
                     evidence_type=EvidenceType.CONFIGURATION,
                     source_system="aws-config",
-                    collected_by=f"controlbridge-collectors/{self.name}",
+                    collected_by=f"evidentia-collectors/{self.name}",
                     content={
                         "rule_name": rule_name,
                         "compliance_type": compliance_type,
@@ -4512,7 +4512,7 @@ class AWSConfigCollector(BaseCollector):
 ### 8.4 AWS Config Rule to NIST 800-53 Mapping Table
 
 ```python
-# controlbridge_collectors/aws/mappings.py
+# evidentia_collectors/aws/mappings.py
 """AWS Config rule name → NIST 800-53 control ID mapping.
 
 Based on AWS's published Config Conformance Pack mappings for
@@ -4587,7 +4587,7 @@ AWS_CONFIG_TO_NIST: dict[str, list[str]] = {
 }
 ```
 
-### 8.5 GitHub Collector (controlbridge_collectors/github/repos.py)
+### 8.5 GitHub Collector (evidentia_collectors/github/repos.py)
 
 ```python
 """GitHub repository compliance evidence collector.
@@ -4607,9 +4607,9 @@ from typing import Optional
 
 from github import Github, GithubException
 
-from controlbridge_collectors.base import BaseCollector, ConnectionStatus
-from controlbridge_core.models.common import ControlMapping, utc_now
-from controlbridge_core.models.evidence import EvidenceArtifact, EvidenceType
+from evidentia_collectors.base import BaseCollector, ConnectionStatus
+from evidentia_core.models.common import ControlMapping, utc_now
+from evidentia_core.models.evidence import EvidenceArtifact, EvidenceType
 
 logger = logging.getLogger(__name__)
 
@@ -4741,7 +4741,7 @@ class GitHubCollector(BaseCollector):
                 title=f"Branch Protection: {repo.full_name}/{repo.default_branch}",
                 evidence_type=EvidenceType.CONFIGURATION,
                 source_system="github",
-                collected_by=f"controlbridge-collectors/{self.name}",
+                collected_by=f"evidentia-collectors/{self.name}",
                 content=bp_data,
                 control_mappings=[
                     ControlMapping(framework="nist-800-53-rev5", control_id="CM-2"),
@@ -4756,7 +4756,7 @@ class GitHubCollector(BaseCollector):
                 title=f"Branch Protection Missing: {repo.full_name}",
                 evidence_type=EvidenceType.CONFIGURATION,
                 source_system="github",
-                collected_by=f"controlbridge-collectors/{self.name}",
+                collected_by=f"evidentia-collectors/{self.name}",
                 content={
                     "repo": repo.full_name,
                     "branch": repo.default_branch,
@@ -4794,7 +4794,7 @@ class GitHubCollector(BaseCollector):
             title=f"Repository Security Settings: {repo.full_name}",
             evidence_type=EvidenceType.REPOSITORY_METADATA,
             source_system="github",
-            collected_by=f"controlbridge-collectors/{self.name}",
+            collected_by=f"evidentia-collectors/{self.name}",
             content=repo_security,
             control_mappings=[
                 ControlMapping(framework="nist-800-53-rev5", control_id="CM-7"),
@@ -4810,7 +4810,7 @@ class GitHubCollector(BaseCollector):
         return self.SUPPORTED_CONTROLS
 ```
 
-### 8.6 Okta Collector (controlbridge_collectors/okta/iam.py)
+### 8.6 Okta Collector (evidentia_collectors/okta/iam.py)
 
 ```python
 """Okta identity and access management evidence collector.
@@ -4831,9 +4831,9 @@ import logging
 import os
 from typing import Optional
 
-from controlbridge_collectors.base import BaseCollector, ConnectionStatus
-from controlbridge_core.models.common import ControlMapping, utc_now
-from controlbridge_core.models.evidence import EvidenceArtifact, EvidenceType
+from evidentia_collectors.base import BaseCollector, ConnectionStatus
+from evidentia_core.models.common import ControlMapping, utc_now
+from evidentia_core.models.evidence import EvidenceArtifact, EvidenceType
 
 logger = logging.getLogger(__name__)
 
@@ -4933,7 +4933,7 @@ class OktaCollector(BaseCollector):
                     title=f"Okta Password Policy: {policy.name}",
                     evidence_type=EvidenceType.CONFIGURATION,
                     source_system="okta",
-                    collected_by=f"controlbridge-collectors/{self.name}",
+                    collected_by=f"evidentia-collectors/{self.name}",
                     content=policy_data,
                     control_mappings=[
                         ControlMapping(framework="nist-800-53-rev5", control_id="IA-5"),
@@ -4952,7 +4952,7 @@ class OktaCollector(BaseCollector):
                     title=f"Okta MFA Policy: {policy.name}",
                     evidence_type=EvidenceType.CONFIGURATION,
                     source_system="okta",
-                    collected_by=f"controlbridge-collectors/{self.name}",
+                    collected_by=f"evidentia-collectors/{self.name}",
                     content={
                         "policy_name": policy.name,
                         "status": policy.status,
@@ -4981,7 +4981,7 @@ class OktaCollector(BaseCollector):
                 title="Okta Inactive Users (90+ days)",
                 evidence_type=EvidenceType.IDENTITY_DATA,
                 source_system="okta",
-                collected_by=f"controlbridge-collectors/{self.name}",
+                collected_by=f"evidentia-collectors/{self.name}",
                 content={
                     "inactive_user_count": inactive_count,
                     "threshold_days": 90,
@@ -5002,13 +5002,13 @@ class OktaCollector(BaseCollector):
         return self.SUPPORTED_CONTROLS
 ```
 
-### 8.7 Scheduled Collection (controlbridge_collectors/scheduled.py)
+### 8.7 Scheduled Collection (evidentia_collectors/scheduled.py)
 
 ```python
 """Evidence collection scheduler using APScheduler.
 
 Manages periodic evidence collection based on cron expressions
-defined in controlbridge.yaml.
+defined in evidentia.yaml.
 """
 
 from __future__ import annotations
@@ -5021,9 +5021,9 @@ from typing import Optional
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from controlbridge_collectors.base import BaseCollector, CollectionResult
-from controlbridge_collectors.registry import get_enabled_collectors
-from controlbridge_core.models.common import utc_now
+from evidentia_collectors.base import BaseCollector, CollectionResult
+from evidentia_collectors.registry import get_enabled_collectors
+from evidentia_core.models.common import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -5064,7 +5064,7 @@ class CollectionScheduler:
             self._run_collection,
             trigger=trigger,
             id="evidence_collection",
-            name="ControlBridge Evidence Collection",
+            name="Evidentia Evidence Collection",
             replace_existing=True,
         )
         self._scheduler.start()
@@ -5108,13 +5108,13 @@ class CollectionScheduler:
             all_artifacts.extend(r.artifacts)
 
         if all_artifacts:
-            from controlbridge_core.models.evidence import EvidenceBundle
+            from evidentia_core.models.evidence import EvidenceBundle
             bundle = EvidenceBundle(
                 title=f"Scheduled Collection — {utc_now().strftime('%Y-%m-%d')}",
                 assessment_scope="Continuous Monitoring",
                 frameworks=self.frameworks or [],
                 artifacts=all_artifacts,
-                created_by="controlbridge-scheduler",
+                created_by="evidentia-scheduler",
             )
             # Save to output directory
             import json
@@ -5154,7 +5154,7 @@ class CollectionScheduler:
 
 ## 9. Phase 3: Evidence Validator + Integration Outputs
 
-### 9.1 Evidence Validator (controlbridge_ai/evidence_validator/validator.py)
+### 9.1 Evidence Validator (evidentia_ai/evidence_validator/validator.py)
 
 ```python
 """AI-powered evidence sufficiency validator.
@@ -5181,9 +5181,9 @@ from typing import Optional
 import instructor
 import litellm
 
-from controlbridge_ai.client import get_default_model, get_instructor_client, get_temperature
-from controlbridge_core.models.common import ControlMapping, utc_now
-from controlbridge_core.models.evidence import EvidenceArtifact, EvidenceSufficiency
+from evidentia_ai.client import get_default_model, get_instructor_client, get_temperature
+from evidentia_core.models.common import ControlMapping, utc_now
+from evidentia_core.models.evidence import EvidenceArtifact, EvidenceSufficiency
 
 logger = logging.getLogger(__name__)
 
@@ -5245,7 +5245,7 @@ Control Title: {control_title}
 """
 
 
-class ValidationResult(ControlBridgeModel):
+class ValidationResult(EvidentiaModel):
     """Structured output from the evidence validator."""
     sufficiency: EvidenceSufficiency
     sufficiency_rationale: str
@@ -5256,7 +5256,7 @@ class ValidationResult(ControlBridgeModel):
     confidence: float = Field(ge=0.0, le=1.0)
 
 
-from controlbridge_core.models.common import ControlBridgeModel
+from evidentia_core.models.common import EvidentiaModel
 from pydantic import Field
 
 
@@ -5318,7 +5318,7 @@ class EvidenceValidator:
                 f"freshness requirement for {framework}."
             )
             artifact.validated_at = utc_now()
-            artifact.validated_by = "controlbridge-ai/staleness-check"
+            artifact.validated_by = "evidentia-ai/staleness-check"
             return artifact
 
         # Step 2: AI quality assessment
@@ -5362,7 +5362,7 @@ class EvidenceValidator:
             artifact.missing_elements = result.missing_elements
             artifact.validator_confidence = result.confidence
             artifact.validated_at = utc_now()
-            artifact.validated_by = f"controlbridge-ai/{self.model}"
+            artifact.validated_by = f"evidentia-ai/{self.model}"
 
         except Exception as e:
             logger.error(f"Validation failed for {artifact.id}: {e}")
@@ -5415,7 +5415,7 @@ class EvidenceValidator:
         model: str,
     ) -> EvidenceArtifact:
         """Validate an image file using LLM vision."""
-        from controlbridge_core.models.evidence import EvidenceType
+        from evidentia_core.models.evidence import EvidenceType
         
         # Read and encode image
         image_data = base64.b64encode(path.read_bytes()).decode("utf-8")
@@ -5472,7 +5472,7 @@ class EvidenceValidator:
             missing_elements=result.missing_elements,
             validator_confidence=result.confidence,
             validated_at=utc_now(),
-            validated_by=f"controlbridge-ai/{model}",
+            validated_by=f"evidentia-ai/{model}",
         )
         artifact.compute_hash()
         return artifact
@@ -5486,7 +5486,7 @@ class EvidenceValidator:
         """Validate a PDF file — extract text and validate."""
         # For PDF validation, extract text first, then validate as text
         # In a production implementation, use pymupdf or pdfplumber
-        from controlbridge_core.models.evidence import EvidenceType
+        from evidentia_core.models.evidence import EvidenceType
         
         try:
             import fitz  # PyMuPDF
@@ -5511,7 +5511,7 @@ class EvidenceValidator:
         return self.validate(artifact, control)
 ```
 
-### 9.2 Jira Integration (controlbridge_integrations/jira/client.py)
+### 9.2 Jira Integration (evidentia_integrations/jira/client.py)
 
 ```python
 """Jira integration for pushing gap reports as issues.
@@ -5531,7 +5531,7 @@ from typing import Optional
 
 from jira import JIRA, JIRAError
 
-from controlbridge_core.models.gap import ControlGap, GapAnalysisReport, GapSeverity
+from evidentia_core.models.gap import ControlGap, GapAnalysisReport, GapSeverity
 
 logger = logging.getLogger(__name__)
 
@@ -5582,7 +5582,7 @@ h3. Metadata
 
 *Gap ID:* {{monospace:{gap.id}}}
 *Priority Score:* {gap.priority_score}
-*Generated by:* ControlBridge v0.1.0 on {gap.created_at.strftime('%Y-%m-%d')}
+*Generated by:* Evidentia v0.1.0 on {gap.created_at.strftime('%Y-%m-%d')}
 """
 
 
@@ -5611,7 +5611,7 @@ class JiraIntegration:
         token: Optional[str] = None,
         project_key: str = "",
         issue_type: str = "Task",
-        label_prefix: str = "controlbridge",
+        label_prefix: str = "evidentia",
     ):
         auth_kwargs = {}
         if email and token:
@@ -5671,7 +5671,7 @@ class JiraIntegration:
 
             # Build issue data
             summary = (
-                f"[ControlBridge] {gap.framework} Gap: "
+                f"[Evidentia] {gap.framework} Gap: "
                 f"{gap.control_id} — {gap.control_title}"
             )
             if len(summary) > 255:
@@ -5766,7 +5766,7 @@ class JiraIntegration:
             return None
 ```
 
-### 9.3 ServiceNow Integration (controlbridge_integrations/servicenow/client.py)
+### 9.3 ServiceNow Integration (evidentia_integrations/servicenow/client.py)
 
 ```python
 """ServiceNow integration for pushing gap reports as records.
@@ -5780,7 +5780,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from controlbridge_core.models.gap import ControlGap, GapAnalysisReport, GapSeverity
+from evidentia_core.models.gap import ControlGap, GapAnalysisReport, GapSeverity
 
 logger = logging.getLogger(__name__)
 
@@ -5846,7 +5846,7 @@ class ServiceNowIntegration:
 
             record_data = {
                 "short_description": (
-                    f"[ControlBridge] {gap.framework} Gap: "
+                    f"[Evidentia] {gap.framework} Gap: "
                     f"{gap.control_id} — {gap.control_title}"
                 )[:160],
                 "description": self._format_description(gap),
@@ -5916,7 +5916,7 @@ REMEDIATION GUIDANCE
 
 ESTIMATED EFFORT: {gap.implementation_effort}
 
-Generated by ControlBridge v0.1.0 | Gap ID: {gap.id}
+Generated by Evidentia v0.1.0 | Gap ID: {gap.id}
 """
 ```
 
@@ -5929,10 +5929,10 @@ Base URL: `http://localhost:8743/api/v1`
 
 The REST API is a thin wrapper around the Python library. Every endpoint delegates to library functions and returns Pydantic models serialized as JSON.
 
-### 10.1 API Application Factory (controlbridge/api/main.py)
+### 10.1 API Application Factory (evidentia/api/main.py)
 
 ```python
-"""FastAPI application factory for ControlBridge REST API."""
+"""FastAPI application factory for Evidentia REST API."""
 
 from __future__ import annotations
 
@@ -5941,15 +5941,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from controlbridge.api.routers import catalogs, collectors, evidence, gaps, health, risks
-from controlbridge.api.middleware import RequestIdMiddleware, TimingMiddleware
+from evidentia.api.routers import catalogs, collectors, evidence, gaps, health, risks
+from evidentia.api.middleware import RequestIdMiddleware, TimingMiddleware
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
     # Startup: pre-load catalog registry
-    from controlbridge_core.catalogs.registry import FrameworkRegistry
+    from evidentia_core.catalogs.registry import FrameworkRegistry
     registry = FrameworkRegistry.get_instance()
     _ = registry.crosswalk  # Trigger lazy loading
     yield
@@ -5958,7 +5958,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="ControlBridge API",
+        title="Evidentia API",
         description="Open-source GRC tool: gap analysis, risk statements, evidence collection",
         version="0.1.0",
         lifespan=lifespan,
@@ -6251,7 +6251,7 @@ Response `200 OK`:
       "recommended_controls": ["AC-1", "AC-1(1)", "PL-1"],
       "remediation_priority": 1,
       "remediation_steps": ["Draft access control policy...", "..."],
-      "generated_by": "controlbridge-ai",
+      "generated_by": "evidentia-ai",
       "model_used": "gpt-4o"
     }
   ],
@@ -6397,7 +6397,7 @@ Response `200 OK`:
     ],
     "validator_confidence": 0.85,
     "validated_at": "2026-04-05T19:22:00Z",
-    "validated_by": "controlbridge-ai/gpt-4o"
+    "validated_by": "evidentia-ai/gpt-4o"
   }
 }
 ```
@@ -6492,7 +6492,7 @@ When `api.require_auth: true` in config:
 
 ```
 GET /api/v1/gaps/reports
-Authorization: Bearer <CONTROLBRIDGE_API_KEY>
+Authorization: Bearer <EVIDENTIA_API_KEY>
 ```
 
 Missing or invalid key returns `401`:
@@ -6500,7 +6500,7 @@ Missing or invalid key returns `401`:
 {
   "error": {
     "code": "AUTH_REQUIRED",
-    "message": "Valid API key required. Set CONTROLBRIDGE_API_KEY and pass via Authorization header."
+    "message": "Valid API key required. Set EVIDENTIA_API_KEY and pass via Authorization header."
   }
 }
 ```
@@ -6514,23 +6514,23 @@ All CLI commands use Typer with Rich for styled terminal output. The CLI is a th
 
 ```bash
 # ── Installation ────────────────────────────────────────────────────
-pip install controlbridge            # Full install (all packages)
-pip install controlbridge-core       # Core only (gap analysis, no AI)
-docker run -it ghcr.io/controlbridge/controlbridge:latest
+pip install evidentia            # Full install (all packages)
+pip install evidentia-core       # Core only (gap analysis, no AI)
+docker run -it ghcr.io/evidentia/evidentia:latest
 
 # ── Project Initialization ──────────────────────────────────────────
-controlbridge init
+evidentia init
 # Creates:
-#   controlbridge.yaml       — config file with defaults
+#   evidentia.yaml       — config file with defaults
 #   my-controls.yaml         — template control inventory
 #   system-context.yaml      — template system context (for risk generation)
-#   .controlbridge/          — local storage directory
+#   .evidentia/          — local storage directory
 
-controlbridge init --frameworks nist-800-53-mod,soc2-tsc
+evidentia init --frameworks nist-800-53-mod,soc2-tsc
 # Pre-populates config with specified frameworks
 
 # ── Catalog Exploration ─────────────────────────────────────────────
-controlbridge catalog list
+evidentia catalog list
 # ┌──────────────────┬──────────────────────────────────────┬────────┐
 # │ Framework ID     │ Name                                 │ Ctrls  │
 # ├──────────────────┼──────────────────────────────────────┼────────┤
@@ -6540,13 +6540,13 @@ controlbridge catalog list
 # │ ...              │ ...                                  │ ...    │
 # └──────────────────┴──────────────────────────────────────┴────────┘
 
-controlbridge catalog show nist-800-53-mod
+evidentia catalog show nist-800-53-mod
 # Lists all controls in the framework with ID, title, and family
 
-controlbridge catalog show nist-800-53-mod --control AC-2
+evidentia catalog show nist-800-53-mod --control AC-2
 # Shows full control detail: description, enhancements, assessment objectives
 
-controlbridge catalog crosswalk \
+evidentia catalog crosswalk \
   --source nist-800-53-mod \
   --target soc2-tsc \
   --control AC-2
@@ -6557,13 +6557,13 @@ controlbridge catalog crosswalk \
 #   → CC6.3 (Access Removal) [related]
 
 # ── Gap Analysis ────────────────────────────────────────────────────
-controlbridge gap analyze \
+evidentia gap analyze \
   --inventory my-controls.yaml \
   --frameworks nist-800-53-mod,soc2-tsc \
   --output report.json \
   --format json
 
-controlbridge gap analyze \
+evidentia gap analyze \
   --inventory controls.csv \
   --frameworks nist-800-53-mod \
   --format markdown \
@@ -6574,39 +6574,39 @@ controlbridge gap analyze \
 # --show-efficiency-opportunities: include cross-framework efficiency analysis
 
 # ── Push Gaps to Jira ───────────────────────────────────────────────
-controlbridge gap push-jira \
+evidentia gap push-jira \
   --report report.json \
   --project SEC \
   --severity critical,high \
   --dry-run
 # Outputs preview of issues that would be created
 
-controlbridge gap push-jira \
+evidentia gap push-jira \
   --report report.json \
   --project SEC \
   --severity critical,high
 # Creates Jira issues for critical and high severity gaps
 
 # ── Push Gaps to ServiceNow ─────────────────────────────────────────
-controlbridge gap push-servicenow \
+evidentia gap push-servicenow \
   --report report.json \
   --table sn_compliance_task \
   --group "GRC Team" \
   --severity critical,high
 
 # ── Risk Statement Generation ───────────────────────────────────────
-controlbridge risk generate \
+evidentia risk generate \
   --context system-context.yaml \
   --gaps report.json \
   --model gpt-4o \
   --output risks.json
 
-controlbridge risk generate \
+evidentia risk generate \
   --context system-context.yaml \
   --gap-id a1b2c3d4-... \
   --model claude-sonnet-4-20250514
 
-controlbridge risk generate \
+evidentia risk generate \
   --context system-context.yaml \
   --gaps report.json \
   --model ollama/llama3.3 \
@@ -6614,7 +6614,7 @@ controlbridge risk generate \
 # Works with local Ollama models — no API key required
 
 # ── Evidence Collection ─────────────────────────────────────────────
-controlbridge collect check-connections
+evidentia collect check-connections
 # ┌──────────────┬──────────────────┬────────┬────────────────┬──────┐
 # │ Collector    │ Display Name     │ Status │ Authenticated  │ Perm │
 # ├──────────────┼──────────────────┼────────┼────────────────┼──────┤
@@ -6623,63 +6623,63 @@ controlbridge collect check-connections
 # │ okta         │ Okta             │ ✗      │ ✗              │ —    │
 # └──────────────┴──────────────────┴────────┴────────────────┴──────┘
 
-controlbridge collect run \
+evidentia collect run \
   --collectors aws,github \
   --frameworks soc2-tsc \
   --output ./evidence/
 
-controlbridge collect run --all  # Run all enabled collectors
+evidentia collect run --all  # Run all enabled collectors
 
-controlbridge collect schedule start    # Start background scheduler
-controlbridge collect schedule status   # Check scheduler status  
-controlbridge collect schedule stop     # Stop scheduler
+evidentia collect schedule start    # Start background scheduler
+evidentia collect schedule status   # Check scheduler status  
+evidentia collect schedule stop     # Stop scheduler
 
 # ── Evidence Validation ─────────────────────────────────────────────
-controlbridge validate \
+evidentia validate \
   --evidence ./evidence/bundle-20260405.json \
   --model gpt-4o \
   --output validated-bundle.json
 
-controlbridge validate \
+evidentia validate \
   --file screenshot.png \
   --control CC6.1 \
   --framework soc2-tsc \
   --model gpt-4o
 
-controlbridge validate \
+evidentia validate \
   --file policy-document.pdf \
   --control AC-1 \
   --framework nist-800-53-mod
 
 # ── REST API Server ─────────────────────────────────────────────────
-controlbridge serve
+evidentia serve
 # Starts API server at http://localhost:8743
 
-controlbridge serve \
+evidentia serve \
   --host 0.0.0.0 \
   --port 8743 \
   --reload            # Dev mode: auto-reload on code changes
 
 # ── Export ──────────────────────────────────────────────────────────
-controlbridge export \
+evidentia export \
   --report report.json \
   --format oscal-ar \
   --output assessment-results.json
 
-controlbridge export \
+evidentia export \
   --report report.json \
   --format csv \
   --output gaps.csv
 
 # ── Version and Diagnostics ─────────────────────────────────────────
-controlbridge version
-# ControlBridge v0.1.0 (Python 3.12.4, uv 0.4.x)
+evidentia version
+# Evidentia v0.1.0 (Python 3.12.4, uv 0.4.x)
 
-controlbridge doctor
+evidentia doctor
 # Checks:
 #   ✓ Python 3.12+ detected
-#   ✓ controlbridge-core installed
-#   ✓ controlbridge-ai installed
+#   ✓ evidentia-core installed
+#   ✓ evidentia-ai installed
 #   ✓ OSCAL catalogs loaded (9 frameworks)
 #   ✓ Crosswalk mappings loaded (6 crosswalks, 2,847 mappings)
 #   ⚠ No LLM API key detected (set OPENAI_API_KEY for AI features)
@@ -6692,7 +6692,7 @@ controlbridge doctor
 ## 12. Configuration File Reference
 
 ```yaml
-# controlbridge.yaml — complete configuration reference
+# evidentia.yaml — complete configuration reference
 # All values shown are defaults unless noted otherwise.
 # Environment variables take precedence over config file values.
 
@@ -6706,7 +6706,7 @@ version: "1"
 #   GOOGLE_API_KEY, etc.
 # For Ollama (local, no API key): set model to "ollama/llama3.3"
 llm:
-  model: "gpt-4o"                    # Override: CONTROLBRIDGE_LLM_MODEL env var
+  model: "gpt-4o"                    # Override: EVIDENTIA_LLM_MODEL env var
   # base_url: "http://localhost:11434"  # For Ollama or custom endpoints
   temperature: 0.1                    # Low for deterministic outputs
   max_retries: 3                      # Instructor retry count on validation failure
@@ -6715,13 +6715,13 @@ llm:
 # ── Storage Configuration ───────────────────────────────────────────
 storage:
   type: "file"                        # "file" | "sqlite" | "postgresql"
-  path: "./.controlbridge"            # For file-based storage
+  path: "./.evidentia"            # For file-based storage
   # For SQLite:
   # type: "sqlite"
-  # path: "sqlite:///controlbridge.db"
+  # path: "sqlite:///evidentia.db"
   # For PostgreSQL:
   # type: "postgresql"
-  # path: "postgresql://user:pass@localhost:5432/controlbridge"
+  # path: "postgresql://user:pass@localhost:5432/evidentia"
 
 # ── Default Frameworks ──────────────────────────────────────────────
 frameworks:
@@ -6775,7 +6775,7 @@ integrations:
     # Auth: JIRA_EMAIL + JIRA_API_TOKEN environment variables
     default_project: ""               # Jira project key, e.g. "SEC"
     issue_type: "Task"
-    label_prefix: "controlbridge"
+    label_prefix: "evidentia"
 
   servicenow:
     enabled: false
@@ -6808,7 +6808,7 @@ api:
   host: "0.0.0.0"
   port: 8743
   require_auth: false                 # Set true for production
-  api_key: ""                         # Override: CONTROLBRIDGE_API_KEY env var
+  api_key: ""                         # Override: EVIDENTIA_API_KEY env var
   cors_origins: ["*"]                 # Restrict in production
   workers: 1                          # Uvicorn workers (increase for production)
 
@@ -6827,7 +6827,7 @@ logging:
 
 ```dockerfile
 # ============================================================
-# ControlBridge Dockerfile — Multi-stage production build
+# Evidentia Dockerfile — Multi-stage production build
 # ============================================================
 
 # Stage 1: Build
@@ -6847,11 +6847,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 COPY pyproject.toml uv.lock ./
 
 # Copy all package pyproject.toml files (for dependency resolution)
-COPY packages/controlbridge-core/pyproject.toml packages/controlbridge-core/
-COPY packages/controlbridge-ai/pyproject.toml packages/controlbridge-ai/
-COPY packages/controlbridge-collectors/pyproject.toml packages/controlbridge-collectors/
-COPY packages/controlbridge-integrations/pyproject.toml packages/controlbridge-integrations/
-COPY packages/controlbridge/pyproject.toml packages/controlbridge/
+COPY packages/evidentia-core/pyproject.toml packages/evidentia-core/
+COPY packages/evidentia-ai/pyproject.toml packages/evidentia-ai/
+COPY packages/evidentia-collectors/pyproject.toml packages/evidentia-collectors/
+COPY packages/evidentia-integrations/pyproject.toml packages/evidentia-integrations/
+COPY packages/evidentia/pyproject.toml packages/evidentia/
 
 # Install dependencies (cached if pyproject.toml files haven't changed)
 RUN uv sync --frozen --no-install-workspace --no-dev
@@ -6877,41 +6877,41 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Copy bundled catalog data (included in controlbridge-core package)
+# Copy bundled catalog data (included in evidentia-core package)
 # This is already in .venv/lib but keeping explicit for clarity
 
 # Create non-root user
-RUN useradd --create-home --shell /bin/bash controlbridge \
-    && mkdir -p /app/.controlbridge /app/evidence \
-    && chown -R controlbridge:controlbridge /app
+RUN useradd --create-home --shell /bin/bash evidentia \
+    && mkdir -p /app/.evidentia /app/evidence \
+    && chown -R evidentia:evidentia /app
 
-USER controlbridge
+USER evidentia
 
 # Default: start API server
 EXPOSE 8743
 
-CMD ["controlbridge", "serve", "--host", "0.0.0.0", "--port", "8743"]
+CMD ["evidentia", "serve", "--host", "0.0.0.0", "--port", "8743"]
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8743/health || exit 1
 
 # Labels
-LABEL org.opencontainers.image.title="ControlBridge"
+LABEL org.opencontainers.image.title="Evidentia"
 LABEL org.opencontainers.image.description="Open-source GRC tool"
-LABEL org.opencontainers.image.source="https://github.com/allenfbyrd/controlbridge"
+LABEL org.opencontainers.image.source="https://github.com/allenfbyrd/evidentia"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 ```
 
 ### 13.2 Docker Compose (docker/docker-compose.yml)
 
 ```yaml
-# docker-compose.yml — ControlBridge self-hosting
+# docker-compose.yml — Evidentia self-hosting
 version: "3.8"
 
 services:
-  controlbridge:
-    image: ghcr.io/controlbridge/controlbridge:latest
+  evidentia:
+    image: ghcr.io/evidentia/evidentia:latest
     # Or build locally:
     # build:
     #   context: ..
@@ -6920,9 +6920,9 @@ services:
     ports:
       - "8743:8743"
     volumes:
-      - ./controlbridge.yaml:/app/controlbridge.yaml:ro
+      - ./evidentia.yaml:/app/evidentia.yaml:ro
       - evidence-data:/app/evidence
-      - cb-data:/app/.controlbridge
+      - cb-data:/app/.evidentia
     environment:
       # ── LLM (at least one required for AI features) ──
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
@@ -6947,8 +6947,8 @@ services:
       - SERVICENOW_INSTANCE=${SERVICENOW_INSTANCE:-}
       - SERVICENOW_USERNAME=${SERVICENOW_USERNAME:-}
       - SERVICENOW_PASSWORD=${SERVICENOW_PASSWORD:-}
-      # ── ControlBridge API auth (optional) ──
-      - CONTROLBRIDGE_API_KEY=${CONTROLBRIDGE_API_KEY:-}
+      # ── Evidentia API auth (optional) ──
+      - EVIDENTIA_API_KEY=${EVIDENTIA_API_KEY:-}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8743/health"]
       interval: 30s
@@ -7015,10 +7015,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
-        run: docker build -f docker/Dockerfile -t controlbridge:test .
+        run: docker build -f docker/Dockerfile -t evidentia:test .
       - name: Test Docker image
         run: |
-          docker run -d --name cb-test -p 8743:8743 controlbridge:test
+          docker run -d --name cb-test -p 8743:8743 evidentia:test
           sleep 5
           curl -f http://localhost:8743/health
           docker stop cb-test
@@ -7043,7 +7043,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
       - name: Build packages
         run: |
-          for pkg in controlbridge-core controlbridge-ai controlbridge-collectors controlbridge-integrations controlbridge; do
+          for pkg in evidentia-core evidentia-ai evidentia-collectors evidentia-integrations evidentia; do
             uv build --package $pkg
           done
       - name: Publish to PyPI
@@ -7068,8 +7068,8 @@ jobs:
           file: docker/Dockerfile
           push: true
           tags: |
-            ghcr.io/controlbridge/controlbridge:${{ github.ref_name }}
-            ghcr.io/controlbridge/controlbridge:latest
+            ghcr.io/evidentia/evidentia:${{ github.ref_name }}
+            ghcr.io/evidentia/evidentia:latest
 ```
 
 ---
@@ -7084,7 +7084,7 @@ jobs:
 | Task | Detail | Acceptance Criteria |
 |---|---|---|
 | Initialize uv workspace | Create root `pyproject.toml` with workspace members; set up `uv.lock` | `uv sync` succeeds from root |
-| Create all 5 package skeletons | `controlbridge-core`, `-ai`, `-collectors`, `-integrations`, `controlbridge` | Each package has `pyproject.toml`, `src/` dir, `__init__.py`, `py.typed` |
+| Create all 5 package skeletons | `evidentia-core`, `-ai`, `-collectors`, `-integrations`, `evidentia` | Each package has `pyproject.toml`, `src/` dir, `__init__.py`, `py.typed` |
 | GitHub Actions CI | Lint (ruff), typecheck (mypy), test (pytest) on push/PR | CI runs green on empty test suite |
 | Pre-commit hooks | ruff check, ruff format, mypy | `pre-commit run --all-files` passes |
 | Docker build pipeline | Multi-stage Dockerfile builds successfully | `docker build` succeeds; container starts and responds on `/health` |
@@ -7095,23 +7095,23 @@ jobs:
 
 | Task | Detail | Acceptance Criteria |
 |---|---|---|
-| Download NIST 800-53 Rev5 OSCAL JSON | From `usnistgov/oscal-content` repo | File bundled in `controlbridge-core/src/controlbridge_core/catalogs/data/` |
+| Download NIST 800-53 Rev5 OSCAL JSON | From `usnistgov/oscal-content` repo | File bundled in `evidentia-core/src/evidentia_core/catalogs/data/` |
 | Build `CatalogLoader` class | Parse OSCAL catalog JSON into `ControlCatalog` Pydantic model | All 1,007+ controls parsed; indexed by ID |
 | Build NIST 800-53 Moderate profile loader | Parse OSCAL profile to extract Moderate baseline control IDs | ~323 controls in Moderate baseline |
 | Build `CrosswalkLoader` | Load crosswalk JSON files into `CrosswalkDefinition` models | Bidirectional lookup works |
 | Create crosswalk JSON files | NIST 800-53 ↔ SOC 2 TSC, ISO 27001, CIS v8, CMMC 2.0, PCI DSS 4.0, CSF 2.0 | 6 crosswalk files with source citations |
 | Build `FrameworkRegistry` | Singleton that lazy-loads catalogs and crosswalks | `registry.get_catalog("nist-800-53-mod")` returns valid catalog |
 | Unit tests | Test catalog loading, crosswalk lookups, bidirectional mapping | >90% coverage on `catalogs/` module |
-| `controlbridge catalog list` | CLI command listing available frameworks | Table output with Rich |
-| `controlbridge catalog show` | CLI command showing controls in a framework | Shows control detail for specified framework/control |
-| `controlbridge catalog crosswalk` | CLI command showing cross-framework mappings | Shows mappings for specified source→target→control |
+| `evidentia catalog list` | CLI command listing available frameworks | Table output with Rich |
+| `evidentia catalog show` | CLI command showing controls in a framework | Shows control detail for specified framework/control |
+| `evidentia catalog crosswalk` | CLI command showing cross-framework mappings | Shows mappings for specified source→target→control |
 
 #### Week 5–6: Control Inventory Parser
 
 | Task | Detail | Acceptance Criteria |
 |---|---|---|
 | `ControlInventory` Pydantic model | With all fields from §5.2 | Model validates sample data; serializes to JSON/YAML |
-| ControlBridge YAML parser | Parse preferred YAML format | Sample `my-controls.yaml` loads correctly |
+| Evidentia YAML parser | Parse preferred YAML format | Sample `my-controls.yaml` loads correctly |
 | CSV parser with fuzzy headers | Map common column name variations | `control_id`, `ctrl`, `id`, `requirement` all recognized |
 | OSCAL component-definition parser | Parse OSCAL component definition JSON | Official OSCAL examples parse correctly |
 | CISO Assistant export parser | Parse CISO Assistant JSON export format | Test with sample CISO Assistant export |
@@ -7135,7 +7135,7 @@ jobs:
 | CSV output formatter | One row per gap | Headers match specification |
 | Markdown output formatter | Rich table with summary statistics | Readable in GitHub/GitLab |
 | OSCAL Assessment Results exporter | Map gap report to OSCAL AR structure | Valid OSCAL JSON |
-| `controlbridge gap analyze` CLI | End-to-end CLI command | Accepts all flags from §11 |
+| `evidentia gap analyze` CLI | End-to-end CLI command | Accepts all flags from §11 |
 | Integration test | Real OSCAL catalog + sample inventory → gap report | Report structure matches schema |
 | Performance benchmark | 500-control inventory vs NIST 800-53 Moderate | < 2 seconds |
 
@@ -7143,7 +7143,7 @@ jobs:
 
 | Task | Detail | Acceptance Criteria |
 |---|---|---|
-| LiteLLM + Instructor client setup | `controlbridge_ai/client.py` | `get_instructor_client()` returns configured client |
+| LiteLLM + Instructor client setup | `evidentia_ai/client.py` | `get_instructor_client()` returns configured client |
 | `RISK_STATEMENT_SYSTEM_PROMPT` | NIST SP 800-30 compliant prompt | Reviewed by domain expert |
 | `SystemContext` model + YAML parser | Load `system-context.yaml` | All fields from §5.8 validated |
 | Context builder | Format gap + system context into prompt | Template populated correctly |
@@ -7152,7 +7152,7 @@ jobs:
 | `generate_batch_async()` | Concurrent batch with semaphore | Respects `max_concurrent` |
 | Model agnosticism test | Test with GPT-4o, Claude Sonnet, Ollama/Llama3 | All three produce valid `RiskStatement` |
 | Retry handling | Invalid JSON from LLM triggers Instructor retry | Up to 3 retries; eventual success logged |
-| `controlbridge risk generate` CLI | End-to-end CLI command | Accepts `--context`, `--gaps`, `--model`, `--output` |
+| `evidentia risk generate` CLI | End-to-end CLI command | Accepts `--context`, `--gaps`, `--model`, `--output` |
 | VCR.py test recordings | Record LLM responses for CI replay | Tests run without real API calls in CI |
 | Performance benchmark | Single risk statement generation time | < 15 seconds with GPT-4o |
 
@@ -7166,8 +7166,8 @@ jobs:
 | Dry-run mode | Preview issues without creating | Returns `"would_create"` results |
 | `ServiceNowIntegration` class | Create records in configurable table | Records created in specified table |
 | Severity → priority mapping | Gap severity maps to Jira/ServiceNow priority | Correct mapping per specification |
-| `controlbridge gap push-jira` CLI | End-to-end CLI command | Accepts `--report`, `--project`, `--severity`, `--dry-run` |
-| `controlbridge gap push-servicenow` CLI | End-to-end CLI command | Accepts `--report`, `--table`, `--group`, `--severity` |
+| `evidentia gap push-jira` CLI | End-to-end CLI command | Accepts `--report`, `--project`, `--severity`, `--dry-run` |
+| `evidentia gap push-servicenow` CLI | End-to-end CLI command | Accepts `--report`, `--table`, `--group`, `--severity` |
 | Integration tests (mocked) | Mock Jira/ServiceNow APIs | Verify correct API calls |
 
 #### Week 15–16: REST API + Docker + v0.1.0 Release
@@ -7181,9 +7181,9 @@ jobs:
 | Health endpoint | GET `/health` | Returns status, version, collector info |
 | Error handling middleware | Consistent error response format | All errors match §10.3 |
 | Optional API key auth | `Authorization: Bearer <key>` when enabled | 401 on missing/invalid key |
-| `controlbridge serve` CLI | Start API server | Server starts on configured port |
+| `evidentia serve` CLI | Start API server | Server starts on configured port |
 | Docker image | Multi-stage build | Image < 500MB; starts in < 5s |
-| PyPI packages | All 5 packages published | `pip install controlbridge` works |
+| PyPI packages | All 5 packages published | `pip install evidentia` works |
 | Documentation | getting-started.md, configuration.md, CLI reference | Covers all Phase 1 features |
 | v0.1.0 tag | GitHub release with changelog | All CI checks pass |
 
@@ -7196,7 +7196,7 @@ jobs:
 - Build `RateLimiter` token bucket implementation
 - Build collector registry for discovery and instantiation
 - Build evidence storage layer (file-based locker pattern)
-- `controlbridge collect check-connections` CLI command
+- `evidentia collect check-connections` CLI command
 - Unit tests for base framework
 
 #### Week 19–21: AWS Collector
@@ -7208,7 +7208,7 @@ jobs:
 - `AWSAuditManagerCollector` — Bridge to existing Audit Manager assessments
 - Bundle AWS Config rule → NIST 800-53 mapping table (60+ rules)
 - Integration tests using `moto` (AWS mock library)
-- `controlbridge collect run --collectors aws`
+- `evidentia collect run --collectors aws`
 
 #### Week 22–23: GitHub Collector
 
@@ -7216,14 +7216,14 @@ jobs:
 - `GitHubActionsCollector` — CI/CD pipeline compliance checks
 - Control mapping table (CM-*, SA-*, SI-* controls)
 - Integration tests using `responses` library
-- `controlbridge collect run --collectors github`
+- `evidentia collect run --collectors github`
 
 #### Week 24–25: Okta Collector
 
 - `OktaCollector` — MFA enrollment, password policies, inactive users, lifecycle events
 - Control mapping table (IA-*, AC-*, PS-* controls)
 - Integration tests
-- `controlbridge collect run --collectors okta`
+- `evidentia collect run --collectors okta`
 
 #### Week 26–27: Azure + GCP Collectors
 
@@ -7237,8 +7237,8 @@ jobs:
 - `CollectionScheduler` using APScheduler
 - OSCAL Assessment Results export from `EvidenceBundle`
 - Auto-commit evidence to git (optional)
-- `controlbridge collect schedule start/status/stop`
-- `controlbridge export --format oscal-ar`
+- `evidentia collect schedule start/status/stop`
+- `evidentia export --format oscal-ar`
 - Publish v0.2.0
 
 ### Phase 3: Evidence Validator + Polish (Weeks 29–36)
@@ -7249,7 +7249,7 @@ jobs:
 - Framework-specific validation prompts (SOC 2, NIST, ISO 27001)
 - Staleness rules (configurable per framework)
 - Image validation using LLM vision (screenshots, PDFs)
-- `controlbridge validate` CLI command
+- `evidentia validate` CLI command
 - `POST /evidence/validate` API endpoint
 
 #### Week 32–34: Dashboard + Management Reporting
@@ -7277,7 +7277,7 @@ jobs:
 
 ### What to Build On (Do Not Rebuild)
 
-| Existing Tool/Library | How ControlBridge Uses It | Relationship |
+| Existing Tool/Library | How Evidentia Uses It | Relationship |
 |---|---|---|
 | **NIST OSCAL catalogs** (`usnistgov/oscal-content`) | Bundled as data files — the authoritative control catalog source for NIST frameworks | Data dependency (public domain) |
 | **oscal-pydantic** (PyPI) | Pydantic models for OSCAL data types — used for OSCAL I/O, avoids rebuilding OSCAL schema | Library dependency |
@@ -7285,8 +7285,8 @@ jobs:
 | **Instructor** | Structured output extraction — enforces Pydantic schema on LLM responses with auto-retry | Library dependency |
 | **Steampipe** (optional) | Can invoke via subprocess for cloud infrastructure SQL queries as an alternative to direct SDK clients | Optional integration |
 | **Cloud Custodian** (optional) | Can read Cloud Custodian policy check outputs as evidence artifacts | Optional evidence source |
-| **Auditree** (IBM) | Architectural inspiration for the fetcher/check/locker evidence pattern; ControlBridge's evidence locker is spiritually similar | Design inspiration |
-| **CISO Assistant** | ControlBridge accepts CISO Assistant JSON exports as inventory input; future: push gap data back via CISO Assistant API | Input/output integration |
+| **Auditree** (IBM) | Architectural inspiration for the fetcher/check/locker evidence pattern; Evidentia's evidence locker is spiritually similar | Design inspiration |
+| **CISO Assistant** | Evidentia accepts CISO Assistant JSON exports as inventory input; future: push gap data back via CISO Assistant API | Input/output integration |
 | **`jira`** Python library | Direct dependency for Jira Cloud/Server integration | Library dependency |
 | **`servicenow-api`** Python library | Direct dependency for ServiceNow integration | Library dependency |
 | **boto3, azure-mgmt-\*, google-cloud-\*** | Direct dependencies for respective cloud evidence collectors | Library dependencies |
@@ -7297,19 +7297,19 @@ jobs:
 
 | Capability | Existing Tool | Why Not |
 |---|---|---|
-| Full GRC platform UI | CISO Assistant | Already well-built; ControlBridge focuses on library/CLI/API, not UI |
+| Full GRC platform UI | CISO Assistant | Already well-built; Evidentia focuses on library/CLI/API, not UI |
 | Framework content authoring | OSCAL CLI | NIST maintains this; no reason to duplicate |
 | SIEM/SOAR workflows | Admyral, Tines | Different problem domain |
-| Full risk management platform | SimpleRisk, Eramba | ControlBridge generates risk statements, not manages the full risk lifecycle |
-| Policy-as-code engine | OPA, Cloud Custodian | ControlBridge consumes their outputs as evidence, doesn't replace them |
-| Vulnerability scanning | Trivy, Grype, Nuclei | ControlBridge maps scan results to controls, doesn't perform scanning |
+| Full risk management platform | SimpleRisk, Eramba | Evidentia generates risk statements, not manages the full risk lifecycle |
+| Policy-as-code engine | OPA, Cloud Custodian | Evidentia consumes their outputs as evidence, doesn't replace them |
+| Vulnerability scanning | Trivy, Grype, Nuclei | Evidentia maps scan results to controls, doesn't perform scanning |
 
-### ControlBridge's Unique Position
+### Evidentia's Unique Position
 
-ControlBridge is the **translation layer** between:
+Evidentia is the **translation layer** between:
 
 ```
-Raw Infrastructure Data          →  ControlBridge  →  Audit-Ready Evidence
+Raw Infrastructure Data          →  Evidentia  →  Audit-Ready Evidence
 (AWS Config, GitHub, Okta)          (maps, validates,    (OSCAL, Jira tickets,
                                      generates risks)     gap reports, PDFs)
 ```
@@ -7322,7 +7322,7 @@ No existing open-source tool occupies this specific niche with a library-first, 
 
 ### Credential Flow
 
-All credentials are loaded from environment variables exclusively. The `controlbridge.yaml` config file documents which environment variables are needed but never stores actual credential values.
+All credentials are loaded from environment variables exclusively. The `evidentia.yaml` config file documents which environment variables are needed but never stores actual credential values.
 
 ```
 ┌─────────────────────┐    ┌──────────────────────┐    ┌──────────────────┐
@@ -7340,7 +7340,7 @@ GITHUB_TOKEN=ghp_... ──→ config.github.token ──→ PyGithub
 | Feature | Required Variables | Optional Variables |
 |---|---|---|
 | **Gap Analysis** (core) | None | None |
-| **Risk Generation** (AI) | One of: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY` | `CONTROLBRIDGE_LLM_MODEL` |
+| **Risk Generation** (AI) | One of: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY` | `EVIDENTIA_LLM_MODEL` |
 | **AWS Collector** | `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` (or IAM role) | `AWS_DEFAULT_REGION` |
 | **Azure Collector** | `AZURE_CLIENT_ID` + `AZURE_CLIENT_SECRET` + `AZURE_TENANT_ID` | `AZURE_SUBSCRIPTION_ID` |
 | **GCP Collector** | `GOOGLE_APPLICATION_CREDENTIALS` | — |
@@ -7348,8 +7348,8 @@ GITHUB_TOKEN=ghp_... ──→ config.github.token ──→ PyGithub
 | **Okta Collector** | `OKTA_API_TOKEN` + `OKTA_DOMAIN` | — |
 | **Jira Integration** | `JIRA_SERVER` + `JIRA_EMAIL` + `JIRA_API_TOKEN` | — |
 | **ServiceNow Integration** | `SERVICENOW_INSTANCE` + `SERVICENOW_USERNAME` + `SERVICENOW_PASSWORD` | — |
-| **REST API Auth** | — | `CONTROLBRIDGE_API_KEY` |
-| **Ollama (Local LLM)** | None (set model to `ollama/llama3.3`) | `CONTROLBRIDGE_LLM_MODEL` |
+| **REST API Auth** | — | `EVIDENTIA_API_KEY` |
+| **Ollama (Local LLM)** | None (set model to `ollama/llama3.3`) | `EVIDENTIA_LLM_MODEL` |
 
 ### IAM Permissions Required per Collector
 
@@ -7395,11 +7395,11 @@ GITHUB_TOKEN=ghp_... ──→ config.github.token ──→ PyGithub
 
 ### Security Best Practices Enforced
 
-1. **No credentials in config files:** `controlbridge.yaml` contains zero secrets. All secrets flow through environment variables.
+1. **No credentials in config files:** `evidentia.yaml` contains zero secrets. All secrets flow through environment variables.
 2. **No credential logging:** All logging sanitizes credential values. API keys are never printed, even at DEBUG level.
 3. **Least privilege documentation:** README documents the minimum permissions needed for each collector.
 4. **Content hashing:** All evidence artifacts include SHA-256 content hashes for tamper detection.
-5. **Non-root Docker user:** Container runs as `controlbridge` user, not root.
+5. **Non-root Docker user:** Container runs as `evidentia` user, not root.
 6. **Input validation:** All API inputs validated by Pydantic before processing. Extra fields rejected (`extra="forbid"`).
 7. **Rate limiting awareness:** Collectors respect upstream API rate limits to avoid account lockout.
 8. **HTTPS enforcement:** When API auth is enabled, documentation recommends running behind a TLS-terminating reverse proxy.
@@ -7451,8 +7451,8 @@ GITHUB_TOKEN=ghp_... ──→ config.github.token ──→ PyGithub
 | Okta collector | `responses` | MFA policy parsing; password policy extraction; inactive user detection |
 | Jira integration | `responses` | Issue creation payload; idempotency; dry-run mode |
 | ServiceNow integration | `responses` | Record creation payload; table selection; severity mapping |
-| CLI gap analysis | `typer.testing.CliRunner` | End-to-end `controlbridge gap analyze` with fixture data |
-| CLI risk generation | `typer.testing.CliRunner` + VCR.py | End-to-end `controlbridge risk generate` with recorded LLM response |
+| CLI gap analysis | `typer.testing.CliRunner` | End-to-end `evidentia gap analyze` with fixture data |
+| CLI risk generation | `typer.testing.CliRunner` + VCR.py | End-to-end `evidentia risk generate` with recorded LLM response |
 | API endpoints | `httpx` + `pytest-httpx` | All endpoints return correct status codes and response shapes |
 
 ### AI Tests (Special Considerations)
@@ -7469,9 +7469,9 @@ Strategy:
 """
 
 import pytest
-from controlbridge_ai.risk_statements.generator import RiskStatementGenerator
-from controlbridge_core.models.gap import ControlGap, GapSeverity, ImplementationEffort
-from controlbridge_core.models.risk import RiskLevel, RiskStatement
+from evidentia_ai.risk_statements.generator import RiskStatementGenerator
+from evidentia_core.models.gap import ControlGap, GapSeverity, ImplementationEffort
+from evidentia_core.models.risk import RiskLevel, RiskStatement
 
 
 @pytest.fixture
@@ -7492,7 +7492,7 @@ def sample_gap() -> ControlGap:
 
 @pytest.fixture
 def sample_context():
-    from controlbridge_ai.risk_statements.templates import SystemContext, SystemComponent
+    from evidentia_ai.risk_statements.templates import SystemContext, SystemComponent
     return SystemContext(
         organization="Acme Corp",
         system_name="Customer Data Platform",
@@ -7559,11 +7559,11 @@ def test_generate_batch(sample_gap, sample_context):
 
 | Package | Target | Rationale |
 |---|---|---|
-| `controlbridge-core` | 90% | Core business logic — must be thoroughly tested |
-| `controlbridge-ai` | 70% | LLM calls are recorded/replayed; prompt logic tested via output validation |
-| `controlbridge-collectors` | 75% | Mocked external services; focus on parsing and mapping |
-| `controlbridge-integrations` | 80% | Mocked Jira/ServiceNow; verify payload construction |
-| `controlbridge` (CLI/API) | 70% | Integration-level tests cover most paths |
+| `evidentia-core` | 90% | Core business logic — must be thoroughly tested |
+| `evidentia-ai` | 70% | LLM calls are recorded/replayed; prompt logic tested via output validation |
+| `evidentia-collectors` | 75% | Mocked external services; focus on parsing and mapping |
+| `evidentia-integrations` | 80% | Mocked Jira/ServiceNow; verify payload construction |
+| `evidentia` (CLI/API) | 70% | Integration-level tests cover most paths |
 
 ---
 
@@ -7574,21 +7574,21 @@ def test_generate_batch(sample_gap, sample_context):
 
 | Attribute | Value |
 |---|---|
-| **Project name** | ControlBridge |
-| **PyPI package** | `controlbridge` (meta), `controlbridge-core`, `controlbridge-ai`, `controlbridge-collectors`, `controlbridge-integrations` |
-| **Docker image** | `ghcr.io/controlbridge/controlbridge` |
-| **GitHub org/repo** | `allenfbyrd/controlbridge` |
-| **CLI command** | `controlbridge` (primary), `cb` (alias) |
-| **Config file** | `controlbridge.yaml` |
+| **Project name** | Evidentia |
+| **PyPI package** | `evidentia` (meta), `evidentia-core`, `evidentia-ai`, `evidentia-collectors`, `evidentia-integrations` |
+| **Docker image** | `ghcr.io/evidentia/evidentia` |
+| **GitHub org/repo** | `allenfbyrd/evidentia` |
+| **CLI command** | `evidentia` (primary), `cb` (alias) |
+| **Config file** | `evidentia.yaml` |
 | **License** | Apache 2.0 (OSI approved, enterprise-friendly, no copyleft) |
 | **Tagline** | "Bridge the gap between your controls and your frameworks." |
-| **Website** | `controlbridge.dev` (future) |
+| **Website** | `evidentia.dev` (future) |
 
 ### README Structure
 
 1. **One-line description** + tagline
 2. **Three bullet points** — what it does
-3. **Quick install** — `pip install controlbridge`
+3. **Quick install** — `pip install evidentia`
 4. **60-second demo GIF** — gap analysis on a sample inventory with Rich-formatted terminal output
 5. **Features table** — 5 core capabilities with status badges (GA / Beta / Planned)
 6. **Installation** — pip, Docker, Homebrew (future)
@@ -7605,8 +7605,8 @@ def test_generate_batch(sample_gap, sample_context):
 | Week | Action | Target |
 |---|---|---|
 | Week 16 | v0.1.0 release | Post on r/netsec, r/grc, r/cybersecurity; LinkedIn post |
-| Week 20 | Blog: "Automating SOC 2 Gap Analysis with ControlBridge" | Medium, dev.to, company blog |
-| Week 24 | Blog: "OSCAL for Normal People" using ControlBridge | Target OSCAL community; present at OSCAL monthly workshop |
+| Week 20 | Blog: "Automating SOC 2 Gap Analysis with Evidentia" | Medium, dev.to, company blog |
+| Week 24 | Blog: "OSCAL for Normal People" using Evidentia | Target OSCAL community; present at OSCAL monthly workshop |
 | Week 28 | v0.2.0 release (evidence collectors) | Post on r/aws, r/devops; Steampipe community |
 | Week 32 | Blog: "AI-Powered Evidence Validation" | Target GRC analyst audience |
 | Week 36 | v1.0.0 launch | ProductHunt, Hacker News "Show HN", CISO Assistant community, tweet thread |
@@ -7645,11 +7645,11 @@ def test_generate_batch(sample_gap, sample_context):
 ### Legal and Licensing Notes
 
 - **NIST publications** (800-53, CSF, IR 8286): Public domain. No licensing restrictions. Freely distributable.
-- **SOC 2 TSC**: The Trust Services Criteria are published by AICPA. ControlBridge represents SOC 2 as an OSCAL profile mapping to NIST 800-53 controls rather than reproducing copyrighted TSC text verbatim. Control IDs (CC6.1, etc.) and titles are factual and not copyrightable.
-- **ISO 27001:2022**: ISO standards are copyrighted. ControlBridge represents ISO 27001 Annex A as an OSCAL profile pointing to NIST 800-53 controls. Control IDs (A.5.1, etc.) and short titles are factual references. Full control text is not reproduced.
-- **CIS Controls v8**: Published under Creative Commons Attribution-NonCommercial-NoDerivatives (CC BY-NC-ND). ControlBridge references CIS control IDs and titles (factual) and maps them to NIST. Full safeguard text is not reproduced in the bundled data.
+- **SOC 2 TSC**: The Trust Services Criteria are published by AICPA. Evidentia represents SOC 2 as an OSCAL profile mapping to NIST 800-53 controls rather than reproducing copyrighted TSC text verbatim. Control IDs (CC6.1, etc.) and titles are factual and not copyrightable.
+- **ISO 27001:2022**: ISO standards are copyrighted. Evidentia represents ISO 27001 Annex A as an OSCAL profile pointing to NIST 800-53 controls. Control IDs (A.5.1, etc.) and short titles are factual references. Full control text is not reproduced.
+- **CIS Controls v8**: Published under Creative Commons Attribution-NonCommercial-NoDerivatives (CC BY-NC-ND). Evidentia references CIS control IDs and titles (factual) and maps them to NIST. Full safeguard text is not reproduced in the bundled data.
 - **CMMC 2.0**: Based on NIST SP 800-171 (public domain). CMMC practice identifiers are public.
-- **PCI DSS 4.0**: Published by PCI SSC. ControlBridge references requirement IDs and short descriptions. Full requirement text is not reproduced.
+- **PCI DSS 4.0**: Published by PCI SSC. Evidentia references requirement IDs and short descriptions. Full requirement text is not reproduced.
 
 ### Crosswalk Authoritative Sources
 
@@ -7687,19 +7687,19 @@ def test_generate_batch(sample_gap, sample_context):
 
 ```yaml
 # docker-compose.prod.yml
-# Self-hosting ControlBridge with HTTPS via Caddy reverse proxy
+# Self-hosting Evidentia with HTTPS via Caddy reverse proxy
 version: "3.8"
 
 services:
-  controlbridge:
-    image: ghcr.io/controlbridge/controlbridge:latest
+  evidentia:
+    image: ghcr.io/evidentia/evidentia:latest
     restart: unless-stopped
     expose:
       - "8743"
     volumes:
-      - ./controlbridge.yaml:/app/controlbridge.yaml:ro
+      - ./evidentia.yaml:/app/evidentia.yaml:ro
       - evidence-data:/app/evidence
-      - cb-data:/app/.controlbridge
+      - cb-data:/app/.evidentia
     env_file:
       - .env  # All credentials in .env file (git-ignored)
     healthcheck:
@@ -7730,8 +7730,8 @@ volumes:
 
 ```
 # Caddyfile — automatic HTTPS with Caddy
-controlbridge.example.com {
-    reverse_proxy controlbridge:8743
+evidentia.example.com {
+    reverse_proxy evidentia:8743
     
     # Optional: basic auth at the reverse proxy level
     # basicauth /api/* {
@@ -7768,8 +7768,8 @@ OPENAI_API_KEY=sk-...
 # SERVICENOW_USERNAME=admin
 # SERVICENOW_PASSWORD=
 
-# ControlBridge API auth
-CONTROLBRIDGE_API_KEY=your-secure-api-key-here
+# Evidentia API auth
+EVIDENTIA_API_KEY=your-secure-api-key-here
 ```
 
 ### PostgreSQL (Optional — Team Use)
@@ -7780,13 +7780,13 @@ CONTROLBRIDGE_API_KEY=your-secure-api-key-here
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: controlbridge
-      POSTGRES_USER: controlbridge
+      POSTGRES_DB: evidentia
+      POSTGRES_USER: evidentia
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U controlbridge"]
+      test: ["CMD-SHELL", "pg_isready -U evidentia"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -7795,18 +7795,18 @@ volumes:
   postgres-data:
 ```
 
-Update `controlbridge.yaml`:
+Update `evidentia.yaml`:
 ```yaml
 storage:
   type: "postgresql"
-  path: "postgresql://controlbridge:changeme@postgres:5432/controlbridge"
+  path: "postgresql://evidentia:changeme@postgres:5432/evidentia"
 ```
 
 ---
 
 ## Appendix D: Storage Backend Abstraction Layer
 
-### Interface Definition (controlbridge_core/storage/base.py)
+### Interface Definition (evidentia_core/storage/base.py)
 
 ```python
 """Abstract storage backend interface.
@@ -7823,13 +7823,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from controlbridge_core.models.evidence import EvidenceBundle
-from controlbridge_core.models.gap import GapAnalysisReport
-from controlbridge_core.models.risk import RiskRegister
+from evidentia_core.models.evidence import EvidenceBundle
+from evidentia_core.models.gap import GapAnalysisReport
+from evidentia_core.models.risk import RiskRegister
 
 
 class StorageBackend(ABC):
-    """Abstract interface for ControlBridge storage backends."""
+    """Abstract interface for Evidentia storage backends."""
 
     # ── Gap Reports ────────────────────────────────────────────────
     @abstractmethod
@@ -7879,13 +7879,13 @@ class StorageBackend(ABC):
         ...
 ```
 
-### File Backend Implementation (controlbridge_core/storage/file_backend.py)
+### File Backend Implementation (evidentia_core/storage/file_backend.py)
 
 ```python
 """File-based storage backend.
 
 Stores all data as JSON files in a directory structure:
-.controlbridge/
+.evidentia/
 ├── reports/
 │   └── {report_id}.json
 ├── risks/
@@ -7902,16 +7902,16 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from controlbridge_core.models.evidence import EvidenceBundle
-from controlbridge_core.models.gap import GapAnalysisReport
-from controlbridge_core.models.risk import RiskRegister
-from controlbridge_core.storage.base import StorageBackend
+from evidentia_core.models.evidence import EvidenceBundle
+from evidentia_core.models.gap import GapAnalysisReport
+from evidentia_core.models.risk import RiskRegister
+from evidentia_core.storage.base import StorageBackend
 
 
 class FileBackend(StorageBackend):
     """File-based storage using JSON files."""
 
-    def __init__(self, base_dir: str = ".controlbridge"):
+    def __init__(self, base_dir: str = ".evidentia"):
         self.base = Path(base_dir)
         self.reports_dir = self.base / "reports"
         self.risks_dir = self.base / "risks"
@@ -7985,9 +7985,9 @@ class FileBackend(StorageBackend):
 
 ### Gap Report → OSCAL Assessment Results
 
-ControlBridge's gap reports map to OSCAL `assessment-results` as follows:
+Evidentia's gap reports map to OSCAL `assessment-results` as follows:
 
-| ControlBridge Concept | OSCAL Assessment Results Element |
+| Evidentia Concept | OSCAL Assessment Results Element |
 |---|---|
 | `GapAnalysisReport` | Root `assessment-results` object |
 | `GapAnalysisReport.organization` | `metadata.title` |
@@ -8004,17 +8004,17 @@ ControlBridge's gap reports map to OSCAL `assessment-results` as follows:
 | Each `EvidenceArtifact` | `result.observation` within `results` |
 | `EvidenceArtifact.content` | `observation.relevant-evidence` |
 
-### Exporter Implementation (controlbridge_core/oscal/exporter.py)
+### Exporter Implementation (evidentia_core/oscal/exporter.py)
 
 ```python
-"""Export ControlBridge data to OSCAL Assessment Results format."""
+"""Export Evidentia data to OSCAL Assessment Results format."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from controlbridge_core.models.gap import GapAnalysisReport
+from evidentia_core.models.gap import GapAnalysisReport
 
 
 def gap_report_to_oscal_ar(report: GapAnalysisReport) -> dict:
@@ -8034,9 +8034,9 @@ def gap_report_to_oscal_ar(report: GapAnalysisReport) -> dict:
                 },
             },
             "props": [
-                {"name": "gap-severity", "value": gap.gap_severity, "ns": "https://controlbridge.dev"},
-                {"name": "priority-score", "value": str(gap.priority_score), "ns": "https://controlbridge.dev"},
-                {"name": "implementation-effort", "value": gap.implementation_effort, "ns": "https://controlbridge.dev"},
+                {"name": "gap-severity", "value": gap.gap_severity, "ns": "https://evidentia.dev"},
+                {"name": "priority-score", "value": str(gap.priority_score), "ns": "https://evidentia.dev"},
+                {"name": "implementation-effort", "value": gap.implementation_effort, "ns": "https://evidentia.dev"},
             ],
             "related-observations": [],
         }
@@ -8056,11 +8056,11 @@ def gap_report_to_oscal_ar(report: GapAnalysisReport) -> dict:
             "metadata": {
                 "title": f"Gap Analysis: {report.organization}",
                 "last-modified": report.analyzed_at.isoformat(),
-                "version": report.controlbridge_version,
+                "version": report.evidentia_version,
                 "oscal-version": "1.1.2",
                 "props": [
-                    {"name": "tool", "value": "ControlBridge"},
-                    {"name": "tool-version", "value": report.controlbridge_version},
+                    {"name": "tool", "value": "Evidentia"},
+                    {"name": "tool-version", "value": report.evidentia_version},
                 ],
             },
             "results": [
@@ -8091,7 +8091,7 @@ def gap_report_to_oscal_ar(report: GapAnalysisReport) -> dict:
 
 
 def _map_gap_status(status: str) -> str:
-    """Map ControlBridge implementation status to OSCAL finding status."""
+    """Map Evidentia implementation status to OSCAL finding status."""
     mapping = {
         "missing": "not-satisfied",
         "partial": "not-satisfied",
@@ -8107,13 +8107,13 @@ def _map_gap_status(status: str) -> str:
 
 ### Structured Logging
 
-All ControlBridge components use Python's standard `logging` module with structured output. In JSON log mode (for production), every log entry includes:
+All Evidentia components use Python's standard `logging` module with structured output. In JSON log mode (for production), every log entry includes:
 
 ```json
 {
   "timestamp": "2026-04-05T19:22:00.123Z",
   "level": "INFO",
-  "logger": "controlbridge_core.gap_analyzer.analyzer",
+  "logger": "evidentia_core.gap_analyzer.analyzer",
   "message": "Gap analysis complete",
   "extra": {
     "organization": "Acme Corp",
@@ -8131,11 +8131,11 @@ Errors are classified into three categories:
 
 1. **User errors** (4xx in API, helpful messages in CLI): Invalid input, missing config, unsupported format. Always include actionable fix instructions.
 2. **Integration errors** (5xx/warnings): Upstream service unreachable, authentication failure, rate limit. Include retry information and fallback options.
-3. **Internal errors** (5xx): Bugs in ControlBridge. Include stack trace in logs (not in user-facing output). Create GitHub issue template with reproduction steps.
+3. **Internal errors** (5xx): Bugs in Evidentia. Include stack trace in logs (not in user-facing output). Create GitHub issue template with reproduction steps.
 
 ### Health Monitoring
 
-The `/health` endpoint (and `controlbridge doctor` CLI) performs:
+The `/health` endpoint (and `evidentia doctor` CLI) performs:
 
 1. **Self-check:** Package versions, catalog loading, crosswalk integrity
 2. **Collector health:** For each enabled collector, call `check_connection()` with a 10-second timeout
@@ -8159,7 +8159,7 @@ Response includes degraded state reporting:
 
 ### How to Add a New Collector
 
-1. Create a new directory under `packages/controlbridge-collectors/src/controlbridge_collectors/`:
+1. Create a new directory under `packages/evidentia-collectors/src/evidentia_collectors/`:
    ```
    my_service/
    ├── __init__.py
@@ -8168,7 +8168,7 @@ Response includes degraded state reporting:
 
 2. Implement the `BaseCollector` interface:
    ```python
-   from controlbridge_collectors.base import BaseCollector, ConnectionStatus
+   from evidentia_collectors.base import BaseCollector, ConnectionStatus
    
    class MyServiceCollector(BaseCollector):
        name = "my-service"
@@ -8179,9 +8179,9 @@ Response includes degraded state reporting:
        def get_supported_controls(self) -> list[str]: ...
    ```
 
-3. Register the collector in `controlbridge_collectors/registry.py`
+3. Register the collector in `evidentia_collectors/registry.py`
 
-4. Add the collector to `controlbridge.yaml` schema in `controlbridge/config.py`
+4. Add the collector to `evidentia.yaml` schema in `evidentia/config.py`
 
 5. Write tests using `responses` or `moto` for mocking
 
@@ -8189,11 +8189,11 @@ Response includes degraded state reporting:
 
 ### How to Add a New Framework
 
-1. Create the catalog JSON file in `controlbridge_core/catalogs/data/`:
+1. Create the catalog JSON file in `evidentia_core/catalogs/data/`:
    - Use OSCAL format if available from NIST
-   - Use ControlBridge JSON format if no OSCAL source exists
+   - Use Evidentia JSON format if no OSCAL source exists
 
-2. Create the crosswalk JSON file in `controlbridge_core/catalogs/data/mappings/`:
+2. Create the crosswalk JSON file in `evidentia_core/catalogs/data/mappings/`:
    - Document the authoritative source for the mapping
    - Use NIST 800-53 as the source framework (all crosswalks go through NIST)
 
@@ -8207,7 +8207,7 @@ Response includes degraded state reporting:
 
 ### How to Add a New Output Integration
 
-1. Create a new directory under `packages/controlbridge-integrations/src/controlbridge_integrations/`:
+1. Create a new directory under `packages/evidentia-integrations/src/evidentia_integrations/`:
    ```
    my_output/
    ├── __init__.py
@@ -8221,9 +8221,9 @@ Response includes degraded state reporting:
    - Dry-run mode support
    - Idempotency (don't create duplicates)
 
-3. Add CLI command in `controlbridge/cli/push.py`
+3. Add CLI command in `evidentia/cli/push.py`
 
-4. Add API endpoint in `controlbridge/api/routers/gaps.py`
+4. Add API endpoint in `evidentia/api/routers/gaps.py`
 
 5. Document required credentials in the integration's docstring
 
@@ -8231,6 +8231,6 @@ Response includes degraded state reporting:
 
 *End of Document*
 
-**ControlBridge Architecture & Implementation Plan v1.0.0-draft**  
+**Evidentia Architecture & Implementation Plan v1.0.0-draft**  
 **April 5, 2026**  
 **Apache 2.0 License**

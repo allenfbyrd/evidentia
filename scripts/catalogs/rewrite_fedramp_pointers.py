@@ -26,9 +26,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = (
     REPO_ROOT
     / "packages"
-    / "controlbridge-core"
+    / "evidentia-core"
     / "src"
-    / "controlbridge_core"
+    / "evidentia_core"
     / "catalogs"
     / "data"
     / "us-federal"
@@ -49,15 +49,15 @@ def _load_nist_lookup() -> dict:
     so NIST-pub style (``AC-2(1)``) and OSCAL style (``ac-2.1``) both resolve
     to the same key.
     """
-    sys.path.insert(0, str(REPO_ROOT / "packages" / "controlbridge-core" / "src"))
-    from controlbridge_core.catalogs.loader import load_oscal_catalog
+    sys.path.insert(0, str(REPO_ROOT / "packages" / "evidentia-core" / "src"))
+    from evidentia_core.catalogs.loader import load_oscal_catalog
 
     nist_path = DATA_DIR / "nist-800-53-rev5.json"
     catalog = load_oscal_catalog(nist_path)
     # catalog._index is a dict[normalized_id -> CatalogControl] but it's
     # private. Walk .controls recursively to build our lookup directly.
 
-    from controlbridge_core.models.catalog import _normalize_control_id
+    from evidentia_core.models.catalog import _normalize_control_id
 
     lookup: dict[str, tuple[str, str]] = {}
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from controlbridge_core.models.catalog import (
+from evidentia_core.models.catalog import (
     CatalogControl,
     ControlCatalog,
     _normalize_control_id,

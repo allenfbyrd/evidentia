@@ -30,7 +30,7 @@ def _patch_client_transport(
     Simpler than overriding the dep-injection surface in the API; we
     swap out the client's httpx.Client during construction.
     """
-    from controlbridge_integrations.jira import client as client_mod
+    from evidentia_integrations.jira import client as client_mod
 
     orig_init = client_mod.JiraClient.__init__
 

@@ -4,18 +4,18 @@ v0.2.1: this script is the authoritative way to regenerate the bundled
 NIST catalog + 4 resolved baselines (Low, Moderate, High, Privacy). Run
 it at release time against a pinned upstream tag for reproducibility.
 
-Outputs (under ``packages/controlbridge-core/src/controlbridge_core/catalogs/data/us-federal/``):
+Outputs (under ``packages/evidentia-core/src/evidentia_core/catalogs/data/us-federal/``):
 
 - ``nist-800-53-rev5.json``           — full OSCAL catalog (dropped in as-is,
                                          loaded via ``load_oscal_catalog``)
-- ``nist-800-53-rev5-low.json``       — resolved Low baseline (ControlBridge format)
+- ``nist-800-53-rev5-low.json``       — resolved Low baseline (Evidentia format)
 - ``nist-800-53-rev5-moderate.json``  — resolved Moderate baseline
 - ``nist-800-53-rev5-high.json``      — resolved High baseline
 - ``nist-800-53-rev5-privacy.json``   — resolved Privacy baseline
 
 The four resolved baselines are produced by running the OSCAL profile
-resolver (``controlbridge_core.oscal.profile.resolve_profile``) against
-each baseline profile JSON, then serializing via ``ControlBridgeModel``.
+resolver (``evidentia_core.oscal.profile.resolve_profile``) against
+each baseline profile JSON, then serializing via ``EvidentiaModel``.
 Pre-resolving offline keeps the runtime install network-free.
 
 Upstream: https://github.com/usnistgov/oscal-content (CC0 license)
@@ -52,9 +52,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = (
     REPO_ROOT
     / "packages"
-    / "controlbridge-core"
+    / "evidentia-core"
     / "src"
-    / "controlbridge_core"
+    / "evidentia_core"
     / "catalogs"
     / "data"
     / "us-federal"
@@ -68,7 +68,7 @@ def _download(relpath: str) -> bytes:
     logger.info("Downloading %s", url)
     req = urllib.request.Request(
         url,
-        headers={"User-Agent": "ControlBridge/0.2.1 (release tooling)"},
+        headers={"User-Agent": "Evidentia/0.2.1 (release tooling)"},
     )
     with urllib.request.urlopen(req, timeout=60) as resp:  # nosec B310 — hardcoded https
         if resp.status != 200:
@@ -121,7 +121,7 @@ def fetch_and_resolve_baseline(
 ) -> Path:
     """Download a baseline profile JSON, resolve it, and write the catalog JSON.
 
-    The resolved output uses our ControlBridge JSON format (category=control,
+    The resolved output uses our Evidentia JSON format (category=control,
     tier=A, placeholder=false) rather than the upstream OSCAL profile shape,
     because resolution flattens includes/excludes/set-parameters into a plain
     control list.
@@ -163,7 +163,7 @@ def fetch_and_resolve_baseline(
         profile_path = Path(tmp.name)
 
     try:
-        from controlbridge_core.oscal.profile import resolve_profile
+        from evidentia_core.oscal.profile import resolve_profile
 
         resolved = resolve_profile(
             profile_path,
@@ -171,7 +171,7 @@ def fetch_and_resolve_baseline(
             override_framework_name=human_name,
         )
 
-        # Serialize resolved catalog via the ControlBridge model so the
+        # Serialize resolved catalog via the Evidentia model so the
         # on-disk file round-trips through our existing loaders.
         payload = {
             "framework_id": resolved.framework_id,
@@ -221,5 +221,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sys.path.insert(0, str(REPO_ROOT / "packages" / "controlbridge-core" / "src"))
+    sys.path.insert(0, str(REPO_ROOT / "packages" / "evidentia-core" / "src"))
     main()

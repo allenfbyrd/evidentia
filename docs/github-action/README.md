@@ -1,6 +1,6 @@
-# ControlBridge GitHub Action — compliance-as-code for PRs
+# Evidentia GitHub Action — compliance-as-code for PRs
 
-v0.3.0 introduced `controlbridge gap diff`, which turns every pull
+v0.3.0 introduced `evidentia gap diff`, which turns every pull
 request into a compliance check. This guide shows how to wire it into
 GitHub Actions so your PRs block on compliance regressions the same way
 they block on failing tests.
@@ -9,7 +9,7 @@ they block on failing tests.
 
 On every PR:
 
-1. Runs `controlbridge gap analyze` against the committed inventory.
+1. Runs `evidentia gap analyze` against the committed inventory.
 2. Compares the result against the `main`-branch baseline.
 3. Posts the diff as a PR comment.
 4. Fails the check (red ✗) if any new gaps were opened or severities
@@ -22,7 +22,7 @@ No commercial GRC tool does this at the PR level. Hyperproof has
 ## Minimal setup
 
 Copy [`workflow-example.yml`](workflow-example.yml) into
-`.github/workflows/controlbridge.yml` in your repo, commit, and open a
+`.github/workflows/evidentia.yml` in your repo, commit, and open a
 PR.
 
 ```yaml
@@ -49,13 +49,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install ControlBridge
-        run: uv tool install controlbridge
+      - name: Install Evidentia
+        run: uv tool install evidentia
 
       # --- Head (current PR state) ---
       - name: Analyze head (PR branch)
         run: |
-          controlbridge gap analyze \
+          evidentia gap analyze \
             --inventory inventory.yaml \
             --frameworks nist-800-53-rev5-moderate,soc2-tsc \
             --output /tmp/head.json \
@@ -67,14 +67,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/base.json
-          key: controlbridge-baseline-${{ github.base_ref }}
+          key: evidentia-baseline-${{ github.base_ref }}
           restore-keys: |
-            controlbridge-baseline-main
+            evidentia-baseline-main
 
       - name: Regenerate baseline if missing
         if: steps.baseline.outputs.cache-hit != 'true' && github.event_name == 'push'
         run: |
-          controlbridge gap analyze \
+          evidentia gap analyze \
             --inventory inventory.yaml \
             --frameworks nist-800-53-rev5-moderate,soc2-tsc \
             --output /tmp/base.json \
@@ -84,7 +84,7 @@ jobs:
         if: github.event_name == 'pull_request'
         id: diff
         run: |
-          controlbridge gap diff \
+          evidentia gap diff \
             --base /tmp/base.json \
             --head /tmp/head.json \
             --format markdown \
@@ -108,7 +108,7 @@ jobs:
 
 ## How the exit code works
 
-`controlbridge gap diff --fail-on-regression` exits with code 1 if any
+`evidentia gap diff --fail-on-regression` exits with code 1 if any
 of the following is true:
 
 - **Opened** count > 0 (a new gap appeared in head that wasn't in base)
@@ -134,7 +134,7 @@ on the Checks page) instead of a PR comment:
 ```yaml
       - name: Gap diff (GitHub annotations)
         run: |
-          controlbridge gap diff \
+          evidentia gap diff \
             --base /tmp/base.json \
             --head /tmp/head.json \
             --format github \
@@ -148,11 +148,11 @@ surfaces all three inline on the workflow summary page.
 ## Reusable action (future)
 
 v0.3.0 ships just the CLI; the reusable action wrapper
-`allenfbyrd/controlbridge-action` is on the v0.3.1 roadmap. Once it
+`allenfbyrd/evidentia-action` is on the v0.3.1 roadmap. Once it
 lands, the workflow above collapses to:
 
 ```yaml
-      - uses: allenfbyrd/controlbridge-action@v1
+      - uses: allenfbyrd/evidentia-action@v1
         with:
           inventory: inventory.yaml
           frameworks: nist-800-53-rev5-moderate,soc2-tsc

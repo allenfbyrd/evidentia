@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from controlbridge_core.catalogs.registry import FRAMEWORK_METADATA, FrameworkRegistry
+from evidentia_core.catalogs.registry import FRAMEWORK_METADATA, FrameworkRegistry
 
 
 @pytest.fixture(autouse=True)

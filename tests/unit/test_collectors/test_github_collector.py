@@ -15,13 +15,13 @@ from typing import Any
 
 import httpx
 import pytest
-from controlbridge_collectors.github import (
+from evidentia_collectors.github import (
     GitHubApiError,
     GitHubClient,
     GitHubCollector,
 )
-from controlbridge_core.models.common import Severity
-from controlbridge_core.models.finding import FindingStatus
+from evidentia_core.models.common import Severity
+from evidentia_core.models.finding import FindingStatus
 
 # ── Fixtures ─────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-"""Unit tests for ``controlbridge_core.init_wizard``.
+"""Unit tests for ``evidentia_core.init_wizard``.
 
 Covers YAML generators (structural correctness via yaml.safe_load) and
 the framework-recommender decision tree.
@@ -8,19 +8,19 @@ from __future__ import annotations
 
 import pytest
 import yaml
-from controlbridge_core.init_wizard import (
-    generate_controlbridge_yaml,
+from evidentia_core.init_wizard import (
+    generate_evidentia_yaml,
     generate_my_controls_yaml,
     generate_system_context_yaml,
     recommend_frameworks,
 )
 
-# ── controlbridge.yaml ────────────────────────────────────────────────────
+# ── evidentia.yaml ────────────────────────────────────────────────────
 
 
-class TestGenerateControlBridgeYaml:
+class TestGenerateEvidentiaYaml:
     def test_minimal(self) -> None:
-        text = generate_controlbridge_yaml(
+        text = generate_evidentia_yaml(
             organization="Test Org", frameworks=["soc2-tsc"]
         )
         data = yaml.safe_load(text)
@@ -30,7 +30,7 @@ class TestGenerateControlBridgeYaml:
         assert data["llm"]["temperature"] == 0.1
 
     def test_with_system_name(self) -> None:
-        text = generate_controlbridge_yaml(
+        text = generate_evidentia_yaml(
             organization="Acme",
             frameworks=["nist-800-53-rev5-moderate"],
             system_name="Acme SaaS",
@@ -39,7 +39,7 @@ class TestGenerateControlBridgeYaml:
         assert data["system_name"] == "Acme SaaS"
 
     def test_without_system_name_leaves_commented_hint(self) -> None:
-        text = generate_controlbridge_yaml(
+        text = generate_evidentia_yaml(
             organization="Acme", frameworks=["soc2-tsc"]
         )
         # The commented-out hint should be present; un-commented key should not.
@@ -48,7 +48,7 @@ class TestGenerateControlBridgeYaml:
         assert "system_name" not in data
 
     def test_empty_frameworks_produces_commented_placeholder(self) -> None:
-        text = generate_controlbridge_yaml(
+        text = generate_evidentia_yaml(
             organization="Acme", frameworks=[]
         )
         assert "# Add at least one framework ID here." in text
@@ -57,7 +57,7 @@ class TestGenerateControlBridgeYaml:
         assert not data.get("frameworks")
 
     def test_multiple_frameworks_ordered(self) -> None:
-        text = generate_controlbridge_yaml(
+        text = generate_evidentia_yaml(
             organization="Acme",
             frameworks=["nist-800-53-rev5-moderate", "soc2-tsc", "hipaa-security"],
         )
@@ -69,7 +69,7 @@ class TestGenerateControlBridgeYaml:
         ]
 
     def test_llm_overrides_applied(self) -> None:
-        text = generate_controlbridge_yaml(
+        text = generate_evidentia_yaml(
             organization="Acme",
             frameworks=["soc2-tsc"],
             llm_model="claude-sonnet-4-6",
@@ -79,13 +79,13 @@ class TestGenerateControlBridgeYaml:
         assert data["llm"]["model"] == "claude-sonnet-4-6"
         assert data["llm"]["temperature"] == 0.3
 
-    def test_roundtrip_through_controlbridge_config_loader(self, tmp_path) -> None:
+    def test_roundtrip_through_evidentia_config_loader(self, tmp_path) -> None:
         """The generated YAML must load cleanly via the v0.2.1 config loader."""
-        from controlbridge_core.config import load_config
+        from evidentia_core.config import load_config
 
-        target = tmp_path / "controlbridge.yaml"
+        target = tmp_path / "evidentia.yaml"
         target.write_text(
-            generate_controlbridge_yaml(
+            generate_evidentia_yaml(
                 organization="Smoke Test Org",
                 frameworks=["nist-800-53-rev5-moderate"],
                 system_name="Smoke Test System",

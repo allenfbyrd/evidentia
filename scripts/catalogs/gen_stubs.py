@@ -8,7 +8,7 @@ bundled (AICPA, ISO/IEC, PCI SSC, HITRUST, ISACA, SWIFT, CIS). We ship:
 - Full license_terms + license_url for user import
 
 Users can import their licensed copies via:
-    controlbridge catalog import ./my-iso27001.json --force
+    evidentia catalog import ./my-iso27001.json --force
 """
 
 from __future__ import annotations
@@ -132,7 +132,7 @@ emit_control_catalog(
     tier="C",
     placeholder=True,
     license_required=True,
-    license_terms="© ISO/IEC. Control text is copyrighted. Ships as a stub with public Annex A numbering and neutral control titles. Purchase the standard from ISO and import your licensed copy via `controlbridge catalog import`.",
+    license_terms="© ISO/IEC. Control text is copyrighted. Ships as a stub with public Annex A numbering and neutral control titles. Purchase the standard from ISO and import your licensed copy via `evidentia catalog import`.",
     license_url=ISO_27001_URL,
 )
 

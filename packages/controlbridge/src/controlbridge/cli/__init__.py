@@ -1,1 +1,0 @@
-"""ControlBridge command-line interface."""

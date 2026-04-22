@@ -1,4 +1,4 @@
-"""Unit tests for ``controlbridge_core.network_guard``.
+"""Unit tests for ``evidentia_core.network_guard``.
 
 Covers the host-classifier, URL guard, and LLM-config guard. No network
 IO is performed; the guard is pure logic over strings and IPs.
@@ -7,7 +7,7 @@ IO is performed; the guard is pure logic over strings and IPs.
 from __future__ import annotations
 
 import pytest
-from controlbridge_core.network_guard import (
+from evidentia_core.network_guard import (
     LOCAL_LLM_PREFIXES,
     OfflineViolationError,
     check_llm_model,

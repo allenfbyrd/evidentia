@@ -1,4 +1,4 @@
-"""Unit tests for ``controlbridge_integrations.jira.mapper``.
+"""Unit tests for ``evidentia_integrations.jira.mapper``.
 
 Pure-functional logic only — no HTTP, no real Jira server. These tests
 are the first line of defense against GapStatus <-> Jira workflow drift.
@@ -7,13 +7,13 @@ are the first line of defense against GapStatus <-> Jira workflow drift.
 from __future__ import annotations
 
 import pytest
-from controlbridge_core.models.gap import (
+from evidentia_core.models.gap import (
     ControlGap,
     GapSeverity,
     GapStatus,
     ImplementationEffort,
 )
-from controlbridge_integrations.jira.mapper import (
+from evidentia_integrations.jira.mapper import (
     GAP_STATUS_TO_JIRA_STATUS,
     JIRA_STATUS_TO_GAP_STATUS,
     JiraMappingError,
@@ -138,7 +138,7 @@ class TestGapToCreateRequest:
         assert "Severity:" in desc
         assert "Effort:" in desc
         assert "Priority score:" in desc
-        assert "Tracked by ControlBridge gap id" in desc
+        assert "Tracked by Evidentia gap id" in desc
 
     def test_description_lists_cross_framework_impact(self) -> None:
         req = gap_to_create_request(
@@ -156,11 +156,11 @@ class TestGapToCreateRequest:
         assert isinstance(desc, str)
         assert "Cross-framework impact" not in desc
 
-    def test_labels_include_controlbridge_and_framework(self) -> None:
+    def test_labels_include_evidentia_and_framework(self) -> None:
         req = gap_to_create_request(_gap())
         labels = req["labels"]
         assert isinstance(labels, list)
-        assert "controlbridge" in labels
+        assert "evidentia" in labels
         assert "nist-800-53-rev5-moderate" in labels
         assert "severity-high" in labels
         assert "effort-medium" in labels

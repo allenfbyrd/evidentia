@@ -1,4 +1,4 @@
-"""Unit tests for ``controlbridge_integrations.jira.client``.
+"""Unit tests for ``evidentia_integrations.jira.client``.
 
 Uses ``httpx.MockTransport`` to intercept every outbound request so the
 tests never touch a real Jira server. Each test asserts both the
@@ -11,7 +11,7 @@ from typing import Any
 
 import httpx
 import pytest
-from controlbridge_integrations.jira import JiraApiError, JiraClient, JiraConfig
+from evidentia_integrations.jira import JiraApiError, JiraClient, JiraConfig
 
 # ── Fixtures ─────────────────────────────────────────────────────────────
 
@@ -206,7 +206,7 @@ class TestCreateIssue:
             issue = client.create_issue(
                 summary="Test gap",
                 description="Demo description",
-                labels=["controlbridge", "nist-800-53-rev5-moderate"],
+                labels=["evidentia", "nist-800-53-rev5-moderate"],
             )
 
         assert issue.key == "SEC-42"
@@ -219,7 +219,7 @@ class TestCreateIssue:
         assert fields["project"]["key"] == "SEC"
         assert fields["issuetype"]["name"] == "Task"
         assert fields["summary"] == "Test gap"
-        assert fields["labels"] == ["controlbridge", "nist-800-53-rev5-moderate"]
+        assert fields["labels"] == ["evidentia", "nist-800-53-rev5-moderate"]
         # ADF wrapper present
         assert fields["description"]["type"] == "doc"
         assert (

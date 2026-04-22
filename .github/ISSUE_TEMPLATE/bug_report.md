@@ -36,7 +36,7 @@ Paste the full error message or traceback:
 
 ## Environment
 
-- ControlBridge version: (output of `controlbridge version`)
+- Evidentia version: (output of `evidentia version`)
 - Python version: (output of `python --version`)
 - Operating system: (e.g. Windows 11, macOS 14, Ubuntu 22.04)
 - uv version: (output of `uv --version`)

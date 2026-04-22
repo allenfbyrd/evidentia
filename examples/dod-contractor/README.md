@@ -11,7 +11,7 @@ commercial GRC tools. This example showcases:
 
 - **CMMC Level 2 coverage** — all 110 practices align with NIST
   800-171 Rev 2, so a single inventory entry can satisfy both.
-  `controlbridge gap analyze` surfaces this as cross-framework
+  `evidentia gap analyze` surfaces this as cross-framework
   efficiency.
 - **CMMC-specific control IDs** — `CMMC.L2-3.1.1` style, distinct
   from NIST publication style (`3.1.1`) and NIST-OSCAL style. The
@@ -25,7 +25,7 @@ commercial GRC tools. This example showcases:
 
 | File                   | Purpose                                    |
 | ---------------------- | ------------------------------------------ |
-| `controlbridge.yaml`   | 2-framework scope (CMMC L2 + 800-171 r2)   |
+| `evidentia.yaml`   | 2-framework scope (CMMC L2 + 800-171 r2)   |
 | `my-controls.yaml`     | ~30-control inventory                      |
 | `system-context.yaml`  | GovCloud + CUI + DFARS threat model        |
 
@@ -34,10 +34,10 @@ commercial GRC tools. This example showcases:
 ```bash
 cd examples/dod-contractor
 
-controlbridge gap analyze --inventory my-controls.yaml --output report.json
+evidentia gap analyze --inventory my-controls.yaml --output report.json
 
 # Explain a CMMC control in plain English
-controlbridge explain control CMMC.L2-3.3.5 --framework cmmc-2-l2
+evidentia explain control CMMC.L2-3.3.5 --framework cmmc-2-l2
 ```
 
 ## Cross-framework efficiency

@@ -1,4 +1,4 @@
-# ControlBridge roadmap
+# Evidentia roadmap
 
 **Last updated: v0.4.0-alpha.1 (April 2026).**
 
@@ -9,14 +9,14 @@ usage patterns.
 
 ## v0.3.0 — Compliance-as-code — SHIPPED
 
-- `controlbridge gap diff` — compare two gap snapshots, classify every
+- `evidentia gap diff` — compare two gap snapshots, classify every
   gap as opened / closed / severity-changed / unchanged. Supports
   console / json / markdown / github output formats.
   `--fail-on-regression` blocks PRs that make compliance posture worse.
-- `controlbridge explain <control_id>` — LLM-generated plain-English
+- `evidentia explain <control_id>` — LLM-generated plain-English
   control translation, cached on disk.
 - Documentation: `docs/github-action/README.md` + example workflow YAML
-  so anyone can drop a `.github/workflows/controlbridge.yml` into their
+  so anyone can drop a `.github/workflows/evidentia.yml` into their
   repo and get PR-level compliance checking without waiting for the
   reusable-action wrapper.
 
@@ -24,7 +24,7 @@ usage patterns.
 
 - Three realistic end-to-end scenarios in `examples/` (Meridian fintech
   v2, Acme Healthtech, Northstar DoD contractor).
-- Dogfooded GitHub Action workflow (`.github/workflows/controlbridge.yml`).
+- Dogfooded GitHub Action workflow (`.github/workflows/evidentia.yml`).
 - Fixed `_is_open` bug on the in-memory gap-diff path.
 - 392 passing tests.
 
@@ -33,19 +33,19 @@ usage patterns.
 The audience shift from security engineers (CLI) to compliance officers
 and auditors (web UI). Three coordinated deliverables:
 
-### 1. Web UI — `controlbridge serve` — SHIPPED (v0.4.1)
+### 1. Web UI — `evidentia serve` — SHIPPED (v0.4.1)
 
 FastAPI backend + React/Vite/shadcn/ui frontend, served together from
 `127.0.0.1:8000`. Non-technical users install via
-`uv tool install "controlbridge[gui]"` or
-`pip install "controlbridge[gui]"`, then run `controlbridge serve` and
+`uv tool install "evidentia[gui]"` or
+`pip install "evidentia[gui]"`, then run `evidentia serve` and
 get a polished localhost-only dashboard.
 
 **Shipped:**
-- `controlbridge serve` CLI command
-- New workspace package `controlbridge-api` with 18 REST endpoints
+- `evidentia serve` CLI command
+- New workspace package `evidentia-api` with 18 REST endpoints
   under `/api/*`
-- New workspace directory `controlbridge-ui` (Vite + React + shadcn/ui)
+- New workspace directory `evidentia-ui` (Vite + React + shadcn/ui)
 - Every user-facing page:
   - **Home** with three-path onboarding wizard (sample data / upload /
     wizard)
@@ -55,14 +55,14 @@ get a polished localhost-only dashboard.
   - **Gap Analyze** — interactive form → TanStack Table results
   - **Gap Diff** — two-report picker → summary + per-entry table
   - **Risk Generate** — SSE-streamed per-gap progress
-  - **Settings** — editable `controlbridge.yaml` + LLM provider /
+  - **Settings** — editable `evidentia.yaml` + LLM provider /
     air-gap posture
 - Hatchling build hook that bundles the SPA into the Python wheel
 - 36 FastAPI TestClient + 6 Vitest tests
 
 ### Planned for v0.4.2 polish:
 
-- Playwright E2E smoke test against `controlbridge serve`
+- Playwright E2E smoke test against `evidentia serve`
 - "Commit to disk" button on the wizard preview (auto-write the three
   YAMLs to the CWD after confirmation)
 - Deeper component test coverage (AppLayout, PathChooser, GapTable)
@@ -74,8 +74,8 @@ React Router 6 + Zustand + React Hook Form + Zod + Recharts.
 
 ### 2. Air-gapped mode — `--offline` flag — SHIPPED (v0.4.0)
 
-Global CLI flag plus `controlbridge doctor --check-air-gap` validator.
-Every LLM / network call consults the `controlbridge_core.network_guard`
+Global CLI flag plus `evidentia doctor --check-air-gap` validator.
+Every LLM / network call consults the `evidentia_core.network_guard`
 module; non-loopback / non-RFC-1918 targets raise
 `OfflineViolationError` before any network IO fires.
 
@@ -90,11 +90,11 @@ is planned for v0.4.2.
 
 ### 3. Reusable GitHub Action — SHIPPED (v0.4.1)
 
-`allenfbyrd/controlbridge-action` is live at v1.0.0 + floating `v1`
+`allenfbyrd/evidentia-action` is live at v1.0.0 + floating `v1`
 pointer. Consumers replace the 80-line drop-in workflow template with:
 
 ```yaml
-- uses: allenfbyrd/controlbridge-action@v1
+- uses: allenfbyrd/evidentia-action@v1
   with:
     inventory: my-controls.yaml
     frameworks: nist-800-53-rev5-moderate,soc2-tsc
@@ -110,18 +110,18 @@ publication.
 First three real integrations. These shipped as empty shells all the
 way back to v0.1.0; v0.5.0 wires them up. What landed:
 
-### `controlbridge-integrations` (Jira) — SHIPPED
+### `evidentia-integrations` (Jira) — SHIPPED
 
 Push gaps as Jira issues + bidirectional status sync. When a Jira
 issue transitions to Done, the linked gap's status becomes REMEDIATED
 on the next `sync`. Full workflow-name mapping (To Do, In Progress,
 Done, Won't Do, + common customizations). Credentials via env vars
-only; no secrets ever flow through ControlBridge REST responses.
+only; no secrets ever flow through Evidentia REST responses.
 
-CLI: `controlbridge integrations jira {test,push,sync,status-map}`.
+CLI: `evidentia integrations jira {test,push,sync,status-map}`.
 REST: `/api/integrations/jira/{status,push/{key},sync/{key},status-map}`.
 
-### `controlbridge-collectors[aws]` — SHIPPED
+### `evidentia-collectors[aws]` — SHIPPED
 
 Auto-evidence from AWS Config + Security Hub. Covers NIST 800-53
 AC / IA / SC / AU / CM / CP / SI families for cloud-native
@@ -133,42 +133,42 @@ Credentials via standard boto3 chain. Unit tests use MagicMock
 paginators (Config) + controlled responses (Security Hub);
 integration-test-level moto coverage lands in v0.5.1.
 
-CLI: `controlbridge collect aws [--region] [--profile]`.
+CLI: `evidentia collect aws [--region] [--profile]`.
 REST: `POST /api/collectors/aws/collect`.
 
-### `controlbridge-collectors` (GitHub) — SHIPPED
+### `evidentia-collectors` (GitHub) — SHIPPED
 
 Branch protection + CODEOWNERS + repo visibility findings mapped to
 SA-11 (developer security testing), CM-2/CM-3 (baseline + change
 control), AC-3/AC-6 (access enforcement), SI-2 (flaw remediation).
 Zero extra deps — uses httpx directly rather than pulling in PyGithub.
 
-CLI: `controlbridge collect github --repo owner/repo`.
+CLI: `evidentia collect github --repo owner/repo`.
 REST: `POST /api/collectors/github/collect`.
 
 ## v0.5.1 — more Phase 2 collectors + integrations
 
 Queued for the next minor. Same infrastructure, more sources:
 
-### `controlbridge-collectors[aws]` — IAM Access Analyzer
+### `evidentia-collectors[aws]` — IAM Access Analyzer
 
 Active findings from IAM Access Analyzer. Covers AC-3, AC-6, IA-2.
 
-### `controlbridge-collectors[github]` — Dependabot alerts
+### `evidentia-collectors[github]` — Dependabot alerts
 
 Repository-level CVE findings mapped to SI-2. Requires the
 security-events scope on the token.
 
-### `controlbridge-collectors[okta]`
+### `evidentia-collectors[okta]`
 
 MFA enforcement, inactive users, privileged account counts -> AC-2,
 IA-2, IA-5.
 
-### `controlbridge-integrations[servicenow]`
+### `evidentia-integrations[servicenow]`
 
 Push to `sn_compliance_task` via REST with OAuth 2.0.
 
-### `controlbridge-integrations[vanta]` and `[drata]`
+### `evidentia-integrations[vanta]` and `[drata]`
 
 Custom test results push into Vanta and Drata via their public APIs.
 
@@ -201,7 +201,7 @@ ROI framing in ways they don't respond to "coverage %".
 - Auto-generated TypeScript types from FastAPI's OpenAPI schema
   (hand-authored in v0.4.0; auto-gen removes the drift class entirely)
 - Tauri desktop packaging option for offline-first users who prefer
-  an installable app over `controlbridge serve`
+  an installable app over `evidentia serve`
 - Optional multi-user auth / RBAC for network deployments
   (localhost-only in v0.4.0 — v0.7.0+ adds token auth)
 
@@ -225,7 +225,7 @@ v0.4.0 continues using `PYPI_API_TOKEN` for release authentication.
 Before v0.5.0, the project should:
 
 1. Configure a Trusted Publisher on PyPI's admin panel pointing at
-   `allenfbyrd/controlbridge` / `.github/workflows/release.yml` for
+   `allenfbyrd/evidentia` / `.github/workflows/release.yml` for
    each of the 6 packages.
 2. Update `release.yml` to add `permissions: id-token: write` and
    drop the `password: ${{ secrets.PYPI_API_TOKEN }}` input.

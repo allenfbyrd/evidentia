@@ -6,7 +6,7 @@ NIST 800-53 Rev 5 IDs like ``AC-2(1)(a)`` resolve via ``get_control``.
 
 from __future__ import annotations
 
-from controlbridge_core.models.catalog import CatalogControl, ControlCatalog
+from evidentia_core.models.catalog import CatalogControl, ControlCatalog
 
 
 def _make_control(id_: str, enhancements: list[CatalogControl] | None = None) -> CatalogControl:

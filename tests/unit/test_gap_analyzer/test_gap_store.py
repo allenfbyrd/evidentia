@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from controlbridge_core.gap_store import (
+from evidentia_core.gap_store import (
     _compute_key,
     get_gap_store_dir,
     list_reports,
     load_latest_report,
     save_report,
 )
-from controlbridge_core.models.gap import GapAnalysisReport
+from evidentia_core.models.gap import GapAnalysisReport
 
 
 def _empty_report(
@@ -44,19 +44,19 @@ def _empty_report(
 
 
 def test_default_store_under_platformdirs(monkeypatch) -> None:
-    monkeypatch.delenv("CONTROLBRIDGE_GAP_STORE_DIR", raising=False)
+    monkeypatch.delenv("EVIDENTIA_GAP_STORE_DIR", raising=False)
     path = get_gap_store_dir()
-    # Platformdirs path includes ControlBridge app identifier
-    assert "controlbridge" in str(path).lower() or "ControlBridge" in str(path)
+    # Platformdirs path includes Evidentia app identifier
+    assert "evidentia" in str(path).lower() or "Evidentia" in str(path)
 
 
 def test_env_var_overrides_default(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("CONTROLBRIDGE_GAP_STORE_DIR", str(tmp_path))
+    monkeypatch.setenv("EVIDENTIA_GAP_STORE_DIR", str(tmp_path))
     assert get_gap_store_dir() == tmp_path.resolve()
 
 
 def test_explicit_override_wins_over_env(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("CONTROLBRIDGE_GAP_STORE_DIR", str(tmp_path / "env"))
+    monkeypatch.setenv("EVIDENTIA_GAP_STORE_DIR", str(tmp_path / "env"))
     explicit = tmp_path / "explicit"
     assert get_gap_store_dir(explicit) == explicit.resolve()
 

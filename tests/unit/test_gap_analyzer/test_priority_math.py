@@ -8,12 +8,12 @@ in CI rather than silently shifting every report's ranking.
 from __future__ import annotations
 
 import pytest
-from controlbridge_core.gap_analyzer.analyzer import (
+from evidentia_core.gap_analyzer.analyzer import (
     EFFORT_WEIGHT,
     SEVERITY_WEIGHT,
     GapAnalyzer,
 )
-from controlbridge_core.models.gap import ControlGap, GapSeverity, ImplementationEffort
+from evidentia_core.models.gap import ControlGap, GapSeverity, ImplementationEffort
 
 
 def _gap(

@@ -35,7 +35,7 @@ dimension that effort weighting was supposed to contribute.
 
 ## Replacement — three-layer cascade
 
-Implementation: `packages/controlbridge-core/src/controlbridge_core/gap_analyzer/analyzer.py::_estimate_effort`.
+Implementation: `packages/evidentia-core/src/evidentia_core/gap_analyzer/analyzer.py::_estimate_effort`.
 
 ### Layer 1 — structural score (preserved from v0.1.x)
 
@@ -110,4 +110,4 @@ the new list.
 - Per-framework tuning: CMMC descriptions read differently from HIPAA;
   family-specific thresholds could improve accuracy
 - User override mechanism — let users tag specific control IDs with
-  explicit effort values in `controlbridge.yaml`
+  explicit effort values in `evidentia.yaml`

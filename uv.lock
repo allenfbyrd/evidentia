@@ -15,7 +15,13 @@ members = [
     "controlbridge-collectors",
     "controlbridge-core",
     "controlbridge-integrations",
-    "controlbridge-workspace",
+    "evidentia",
+    "evidentia-ai",
+    "evidentia-api",
+    "evidentia-collectors",
+    "evidentia-core",
+    "evidentia-integrations",
+    "evidentia-workspace",
 ]
 
 [[package]]
@@ -483,217 +489,69 @@ wheels = [
 
 [[package]]
 name = "controlbridge"
-version = "0.5.0"
-source = { editable = "packages/controlbridge" }
+version = "0.5.1"
+source = { editable = "packages/shim-controlbridge" }
 dependencies = [
-    { name = "controlbridge-ai" },
-    { name = "controlbridge-collectors" },
-    { name = "controlbridge-core" },
-    { name = "controlbridge-integrations" },
-    { name = "rich" },
-    { name = "typer" },
-]
-
-[package.optional-dependencies]
-gui = [
-    { name = "controlbridge-api" },
+    { name = "evidentia" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "controlbridge-ai", editable = "packages/controlbridge-ai" },
-    { name = "controlbridge-api", marker = "extra == 'gui'", editable = "packages/controlbridge-api" },
-    { name = "controlbridge-collectors", editable = "packages/controlbridge-collectors" },
-    { name = "controlbridge-core", editable = "packages/controlbridge-core" },
-    { name = "controlbridge-integrations", editable = "packages/controlbridge-integrations" },
-    { name = "rich", specifier = ">=13.0" },
-    { name = "typer", specifier = ">=0.14" },
-]
-provides-extras = ["gui"]
+requires-dist = [{ name = "evidentia", editable = "packages/evidentia" }]
 
 [[package]]
 name = "controlbridge-ai"
-version = "0.5.0"
-source = { editable = "packages/controlbridge-ai" }
+version = "0.5.1"
+source = { editable = "packages/shim-controlbridge-ai" }
 dependencies = [
-    { name = "controlbridge-core" },
-    { name = "instructor" },
-    { name = "litellm" },
-    { name = "tenacity" },
+    { name = "evidentia-ai" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "controlbridge-core", editable = "packages/controlbridge-core" },
-    { name = "instructor", specifier = ">=1.6" },
-    { name = "litellm", specifier = ">=1.50,<2.0" },
-    { name = "tenacity", specifier = ">=9.0" },
-]
+requires-dist = [{ name = "evidentia-ai", editable = "packages/evidentia-ai" }]
 
 [[package]]
 name = "controlbridge-api"
-version = "0.5.0"
-source = { editable = "packages/controlbridge-api" }
+version = "0.5.1"
+source = { editable = "packages/shim-controlbridge-api" }
 dependencies = [
-    { name = "controlbridge-ai" },
-    { name = "controlbridge-core" },
-    { name = "fastapi" },
-    { name = "python-multipart" },
-    { name = "sse-starlette" },
-    { name = "uvicorn", extra = ["standard"] },
+    { name = "evidentia-api" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "controlbridge-ai", editable = "packages/controlbridge-ai" },
-    { name = "controlbridge-core", editable = "packages/controlbridge-core" },
-    { name = "fastapi", specifier = ">=0.115" },
-    { name = "python-multipart", specifier = ">=0.0.9" },
-    { name = "sse-starlette", specifier = ">=2.1" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
-]
+requires-dist = [{ name = "evidentia-api", editable = "packages/evidentia-api" }]
 
 [[package]]
 name = "controlbridge-collectors"
-version = "0.5.0"
-source = { editable = "packages/controlbridge-collectors" }
+version = "0.5.1"
+source = { editable = "packages/shim-controlbridge-collectors" }
 dependencies = [
-    { name = "controlbridge-core" },
-    { name = "httpx" },
-]
-
-[package.optional-dependencies]
-all = [
-    { name = "azure-identity" },
-    { name = "azure-mgmt-resource" },
-    { name = "boto3" },
-    { name = "google-cloud-asset" },
-    { name = "okta" },
-    { name = "pygithub" },
-]
-aws = [
-    { name = "boto3" },
-]
-azure = [
-    { name = "azure-identity" },
-    { name = "azure-mgmt-resource" },
-]
-gcp = [
-    { name = "google-cloud-asset" },
-]
-github = [
-    { name = "pygithub" },
-]
-okta = [
-    { name = "okta" },
+    { name = "evidentia-collectors" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "azure-identity", marker = "extra == 'all'", specifier = ">=1.19" },
-    { name = "azure-identity", marker = "extra == 'azure'", specifier = ">=1.19" },
-    { name = "azure-mgmt-resource", marker = "extra == 'all'", specifier = ">=23.0" },
-    { name = "azure-mgmt-resource", marker = "extra == 'azure'", specifier = ">=23.0" },
-    { name = "boto3", marker = "extra == 'all'", specifier = ">=1.35" },
-    { name = "boto3", marker = "extra == 'aws'", specifier = ">=1.35" },
-    { name = "controlbridge-core", editable = "packages/controlbridge-core" },
-    { name = "google-cloud-asset", marker = "extra == 'all'", specifier = ">=3.27" },
-    { name = "google-cloud-asset", marker = "extra == 'gcp'", specifier = ">=3.27" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "okta", marker = "extra == 'all'", specifier = ">=2.9" },
-    { name = "okta", marker = "extra == 'okta'", specifier = ">=2.9" },
-    { name = "pygithub", marker = "extra == 'all'", specifier = ">=2.4" },
-    { name = "pygithub", marker = "extra == 'github'", specifier = ">=2.4" },
-]
-provides-extras = ["aws", "azure", "gcp", "github", "okta", "all"]
+requires-dist = [{ name = "evidentia-collectors", editable = "packages/evidentia-collectors" }]
 
 [[package]]
 name = "controlbridge-core"
-version = "0.5.0"
-source = { editable = "packages/controlbridge-core" }
+version = "0.5.1"
+source = { editable = "packages/shim-controlbridge-core" }
 dependencies = [
-    { name = "platformdirs" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "python-dateutil" },
-    { name = "pyyaml" },
-    { name = "thefuzz" },
+    { name = "evidentia-core" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "platformdirs", specifier = ">=4.3" },
-    { name = "pydantic", specifier = ">=2.9" },
-    { name = "pydantic-settings", specifier = ">=2.6" },
-    { name = "python-dateutil", specifier = ">=2.9" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "thefuzz", extras = ["speedup"], specifier = ">=0.22" },
-]
+requires-dist = [{ name = "evidentia-core", editable = "packages/evidentia-core" }]
 
 [[package]]
 name = "controlbridge-integrations"
-version = "0.5.0"
-source = { editable = "packages/controlbridge-integrations" }
+version = "0.5.1"
+source = { editable = "packages/shim-controlbridge-integrations" }
 dependencies = [
-    { name = "controlbridge-core" },
-    { name = "httpx" },
-]
-
-[package.optional-dependencies]
-all = [
-    { name = "jira" },
-    { name = "pysnc" },
-]
-jira = [
-    { name = "jira" },
-]
-servicenow = [
-    { name = "pysnc" },
+    { name = "evidentia-integrations" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "controlbridge-core", editable = "packages/controlbridge-core" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "jira", marker = "extra == 'all'", specifier = ">=3.8" },
-    { name = "jira", marker = "extra == 'jira'", specifier = ">=3.8" },
-    { name = "pysnc", marker = "extra == 'all'", specifier = ">=1.1" },
-    { name = "pysnc", marker = "extra == 'servicenow'", specifier = ">=1.1" },
-]
-provides-extras = ["jira", "servicenow", "all"]
-
-[[package]]
-name = "controlbridge-workspace"
-version = "0.5.0"
-source = { virtual = "." }
-
-[package.dev-dependencies]
-dev = [
-    { name = "boto3" },
-    { name = "moto", extra = ["all"] },
-    { name = "mypy" },
-    { name = "pydantic" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "types-pyyaml" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "boto3", specifier = ">=1.35" },
-    { name = "moto", extras = ["all"], specifier = ">=5.0" },
-    { name = "mypy", specifier = ">=1.12" },
-    { name = "pydantic", specifier = ">=2.9" },
-    { name = "pytest", specifier = ">=8.3" },
-    { name = "pytest-asyncio", specifier = ">=0.24" },
-    { name = "pytest-cov", specifier = ">=5.0" },
-    { name = "ruff", specifier = ">=0.7" },
-    { name = "types-pyyaml", specifier = ">=6.0" },
-]
+requires-dist = [{ name = "evidentia-integrations", editable = "packages/evidentia-integrations" }]
 
 [[package]]
 name = "coverage"
@@ -871,6 +729,220 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b2/9d/c3b43da9515bd270df0f80548d9944e389870713cc1fe2b8fb35fe2bcefd/docstring_parser-0.17.0.tar.gz", hash = "sha256:583de4a309722b3315439bb31d64ba3eebada841f2e2cee23b99df001434c912", size = 27442, upload-time = "2025-07-21T07:35:01.868Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/55/e2/2537ebcff11c1ee1ff17d8d0b6f4db75873e3b0fb32c2d4a2ee31ecb310a/docstring_parser-0.17.0-py3-none-any.whl", hash = "sha256:cf2569abd23dce8099b300f9b4fa8191e9582dda731fd533daf54c4551658708", size = 36896, upload-time = "2025-07-21T07:35:00.684Z" },
+]
+
+[[package]]
+name = "evidentia"
+version = "0.6.0"
+source = { editable = "packages/evidentia" }
+dependencies = [
+    { name = "evidentia-ai" },
+    { name = "evidentia-collectors" },
+    { name = "evidentia-core" },
+    { name = "evidentia-integrations" },
+    { name = "rich" },
+    { name = "typer" },
+]
+
+[package.optional-dependencies]
+gui = [
+    { name = "evidentia-api" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "evidentia-ai", editable = "packages/evidentia-ai" },
+    { name = "evidentia-api", marker = "extra == 'gui'", editable = "packages/evidentia-api" },
+    { name = "evidentia-collectors", editable = "packages/evidentia-collectors" },
+    { name = "evidentia-core", editable = "packages/evidentia-core" },
+    { name = "evidentia-integrations", editable = "packages/evidentia-integrations" },
+    { name = "rich", specifier = ">=13.0" },
+    { name = "typer", specifier = ">=0.14" },
+]
+provides-extras = ["gui"]
+
+[[package]]
+name = "evidentia-ai"
+version = "0.6.0"
+source = { editable = "packages/evidentia-ai" }
+dependencies = [
+    { name = "evidentia-core" },
+    { name = "instructor" },
+    { name = "litellm" },
+    { name = "tenacity" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "evidentia-core", editable = "packages/evidentia-core" },
+    { name = "instructor", specifier = ">=1.6" },
+    { name = "litellm", specifier = ">=1.50,<2.0" },
+    { name = "tenacity", specifier = ">=9.0" },
+]
+
+[[package]]
+name = "evidentia-api"
+version = "0.6.0"
+source = { editable = "packages/evidentia-api" }
+dependencies = [
+    { name = "evidentia-ai" },
+    { name = "evidentia-core" },
+    { name = "fastapi" },
+    { name = "python-multipart" },
+    { name = "sse-starlette" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "evidentia-ai", editable = "packages/evidentia-ai" },
+    { name = "evidentia-core", editable = "packages/evidentia-core" },
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "python-multipart", specifier = ">=0.0.9" },
+    { name = "sse-starlette", specifier = ">=2.1" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
+]
+
+[[package]]
+name = "evidentia-collectors"
+version = "0.6.0"
+source = { editable = "packages/evidentia-collectors" }
+dependencies = [
+    { name = "evidentia-core" },
+    { name = "httpx" },
+]
+
+[package.optional-dependencies]
+all = [
+    { name = "azure-identity" },
+    { name = "azure-mgmt-resource" },
+    { name = "boto3" },
+    { name = "google-cloud-asset" },
+    { name = "okta" },
+    { name = "pygithub" },
+]
+aws = [
+    { name = "boto3" },
+]
+azure = [
+    { name = "azure-identity" },
+    { name = "azure-mgmt-resource" },
+]
+gcp = [
+    { name = "google-cloud-asset" },
+]
+github = [
+    { name = "pygithub" },
+]
+okta = [
+    { name = "okta" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "azure-identity", marker = "extra == 'all'", specifier = ">=1.19" },
+    { name = "azure-identity", marker = "extra == 'azure'", specifier = ">=1.19" },
+    { name = "azure-mgmt-resource", marker = "extra == 'all'", specifier = ">=23.0" },
+    { name = "azure-mgmt-resource", marker = "extra == 'azure'", specifier = ">=23.0" },
+    { name = "boto3", marker = "extra == 'all'", specifier = ">=1.35" },
+    { name = "boto3", marker = "extra == 'aws'", specifier = ">=1.35" },
+    { name = "evidentia-core", editable = "packages/evidentia-core" },
+    { name = "google-cloud-asset", marker = "extra == 'all'", specifier = ">=3.27" },
+    { name = "google-cloud-asset", marker = "extra == 'gcp'", specifier = ">=3.27" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "okta", marker = "extra == 'all'", specifier = ">=2.9" },
+    { name = "okta", marker = "extra == 'okta'", specifier = ">=2.9" },
+    { name = "pygithub", marker = "extra == 'all'", specifier = ">=2.4" },
+    { name = "pygithub", marker = "extra == 'github'", specifier = ">=2.4" },
+]
+provides-extras = ["aws", "azure", "gcp", "github", "okta", "all"]
+
+[[package]]
+name = "evidentia-core"
+version = "0.6.0"
+source = { editable = "packages/evidentia-core" }
+dependencies = [
+    { name = "platformdirs" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "python-dateutil" },
+    { name = "pyyaml" },
+    { name = "thefuzz" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "platformdirs", specifier = ">=4.3" },
+    { name = "pydantic", specifier = ">=2.9" },
+    { name = "pydantic-settings", specifier = ">=2.6" },
+    { name = "python-dateutil", specifier = ">=2.9" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "thefuzz", extras = ["speedup"], specifier = ">=0.22" },
+]
+
+[[package]]
+name = "evidentia-integrations"
+version = "0.6.0"
+source = { editable = "packages/evidentia-integrations" }
+dependencies = [
+    { name = "evidentia-core" },
+    { name = "httpx" },
+]
+
+[package.optional-dependencies]
+all = [
+    { name = "jira" },
+    { name = "pysnc" },
+]
+jira = [
+    { name = "jira" },
+]
+servicenow = [
+    { name = "pysnc" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "evidentia-core", editable = "packages/evidentia-core" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "jira", marker = "extra == 'all'", specifier = ">=3.8" },
+    { name = "jira", marker = "extra == 'jira'", specifier = ">=3.8" },
+    { name = "pysnc", marker = "extra == 'all'", specifier = ">=1.1" },
+    { name = "pysnc", marker = "extra == 'servicenow'", specifier = ">=1.1" },
+]
+provides-extras = ["jira", "servicenow", "all"]
+
+[[package]]
+name = "evidentia-workspace"
+version = "0.6.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "boto3" },
+    { name = "moto", extra = ["all"] },
+    { name = "mypy" },
+    { name = "pydantic" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "types-pyyaml" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "boto3", specifier = ">=1.35" },
+    { name = "moto", extras = ["all"], specifier = ">=5.0" },
+    { name = "mypy", specifier = ">=1.12" },
+    { name = "pydantic", specifier = ">=2.9" },
+    { name = "pytest", specifier = ">=8.3" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+    { name = "ruff", specifier = ">=0.7" },
+    { name = "types-pyyaml", specifier = ">=6.0" },
 ]
 
 [[package]]

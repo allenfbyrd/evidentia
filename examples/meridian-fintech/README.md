@@ -1,19 +1,19 @@
-# Meridian Financial — ControlBridge Example (legacy v0.1.x)
+# Meridian Financial — Evidentia Example (legacy v0.1.x)
 
 > ⚠️ **This is the legacy v0.1.x example.** For everything
 > v0.2.0+ added (full NIST 800-53 Rev 5 catalog, `gap diff`,
-> `explain`, v0.2.1 `controlbridge.yaml` schema, user-catalog
+> `explain`, v0.2.1 `evidentia.yaml` schema, user-catalog
 > import, persistent gap store), see
 > [`examples/meridian-fintech-v2/`](../meridian-fintech-v2/) and
 > the [walkthrough](../WALKTHROUGH.md).
 >
 > This directory is kept as-is so old links don't 404. The
-> `controlbridge.yaml` in this directory uses the deprecated
+> `evidentia.yaml` in this directory uses the deprecated
 > v0.1.x schema (`storage:`, `logging:`, nested
 > `frameworks.default:`) — still loads but emits a
 > `DeprecationWarning`.
 
-A realistic fintech sample designed to exercise every feature of ControlBridge.
+A realistic fintech sample designed to exercise every feature of Evidentia.
 
 ## What's here
 
@@ -22,7 +22,7 @@ A realistic fintech sample designed to exercise every feature of ControlBridge.
 | `my-controls.yaml`     | Control inventory (20 controls, mixed states)             |
 | `my-controls.csv`      | Same inventory in CSV form (for CSV parser testing)       |
 | `system-context.yaml`  | System context for AI risk statement generation           |
-| `controlbridge.yaml`   | Project configuration                                     |
+| `evidentia.yaml`   | Project configuration                                     |
 
 ## The scenario
 
@@ -45,7 +45,7 @@ a single NIST control closes gaps in multiple SOC 2 criteria.
 ```bash
 cd examples/meridian-fintech
 
-controlbridge gap analyze \
+evidentia gap analyze \
   --inventory my-controls.yaml \
   --frameworks nist-800-53-mod,soc2-tsc \
   --output report.json \

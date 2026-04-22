@@ -37,7 +37,7 @@ jobs:
         # Python-only tests — skip the frontend build hook to keep this
         # job Node-free and fast.
         env:
-          CONTROLBRIDGE_SKIP_FRONTEND_BUILD: "1"
+          EVIDENTIA_SKIP_FRONTEND_BUILD: "1"
         run: uv sync --all-packages
 
       - name: Run tests
@@ -61,7 +61,7 @@ jobs:
 
       - name: Sync workspace
         env:
-          CONTROLBRIDGE_SKIP_FRONTEND_BUILD: "1"
+          EVIDENTIA_SKIP_FRONTEND_BUILD: "1"
         run: uv sync --all-packages
 
       - name: Run ruff
@@ -85,7 +85,7 @@ jobs:
 
       - name: Sync workspace
         env:
-          CONTROLBRIDGE_SKIP_FRONTEND_BUILD: "1"
+          EVIDENTIA_SKIP_FRONTEND_BUILD: "1"
         run: uv sync --all-packages
 
       # v0.2.1: added advisory-only. v0.3.0: flipped to strict — mypy is
@@ -94,18 +94,18 @@ jobs:
       # `Model.model_validate*` return type. types-PyYAML in the dev
       # group silences the "Library stubs not installed for yaml"
       # errors that used to plague every config-load path.
-      # v0.4.0: extend to controlbridge-api for the FastAPI layer. The
-      # controlbridge-ui directory is a Node/Vite project, not a Python
+      # v0.4.0: extend to evidentia-api for the FastAPI layer. The
+      # evidentia-ui directory is a Node/Vite project, not a Python
       # workspace member, and is covered by its own TypeScript strict
       # gate in the `frontend-test` job below.
       - name: Run mypy
         run: |
           uv run mypy \
-            packages/controlbridge-core/src/controlbridge_core \
-            packages/controlbridge/src/controlbridge \
-            packages/controlbridge-api/src/controlbridge_api \
-            packages/controlbridge-integrations/src/controlbridge_integrations \
-            packages/controlbridge-collectors/src/controlbridge_collectors \
+            packages/evidentia-core/src/evidentia_core \
+            packages/evidentia/src/evidentia \
+            packages/evidentia-api/src/evidentia_api \
+            packages/evidentia-integrations/src/evidentia_integrations \
+            packages/evidentia-collectors/src/evidentia_collectors \
             --strict-optional
 
   frontend-test:
@@ -120,10 +120,10 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: packages/controlbridge-ui/package-lock.json
+          cache-dependency-path: packages/evidentia-ui/package-lock.json
 
       - name: Install frontend deps
-        working-directory: packages/controlbridge-ui
+        working-directory: packages/evidentia-ui
         # Use `npm install` on first CI run before a package-lock.json is
         # generated; falls back to `npm ci` when the lockfile exists.
         run: |
@@ -134,22 +134,22 @@ jobs:
           fi
 
       - name: TypeScript typecheck
-        working-directory: packages/controlbridge-ui
+        working-directory: packages/evidentia-ui
         run: npm run typecheck
 
       - name: Vitest unit tests
-        working-directory: packages/controlbridge-ui
+        working-directory: packages/evidentia-ui
         # Tests are advisory until v0.4.0-alpha.2 lands the component test
         # suite; `|| true` keeps the build green if there are no tests yet.
         run: npm run test -- --run || true
 
       - name: Vite production build
-        working-directory: packages/controlbridge-ui
+        working-directory: packages/evidentia-ui
         run: npm run build
 
       - name: Upload dist as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: controlbridge-ui-dist
-          path: packages/controlbridge-ui/dist/
+          name: evidentia-ui-dist
+          path: packages/evidentia-ui/dist/
           retention-days: 7

@@ -2876,7 +2876,7 @@
       "framework": "soc2-tsc",
       "control_id": "CC1.1",
       "control_title": "Common Criteria 1.1",
-      "control_description": "[Licensed content — see license_url for authoritative text. Use `controlbridge catalog import` to load your own copy.]",
+      "control_description": "[Licensed content — see license_url for authoritative text. Use `evidentia catalog import` to load your own copy.]",
       "control_family": "Common Criteria",
       "gap_severity": "critical",
       "implementation_status": "missing",
@@ -2884,7 +2884,7 @@
       "status": "open",
       "equivalent_controls_in_inventory": [],
       "cross_framework_value": [],
-      "remediation_guidance": "Implement CC1.1 (Common Criteria 1.1) to meet the following requirement:\n[Licensed content — see license_url for authoritative text. Use `controlbridge catalog import` to load your own copy.]\n\nConsider: existing tools, processes, or compensating controls that may partially address this requirement.",
+      "remediation_guidance": "Implement CC1.1 (Common Criteria 1.1) to meet the following requirement:\n[Licensed content — see license_url for authoritative text. Use `evidentia catalog import` to load your own copy.]\n\nConsider: existing tools, processes, or compensating controls that may partially address this requirement.",
       "implementation_effort": "low",
       "priority_score": 4.0,
       "jira_issue_key": null,
@@ -7543,6 +7543,6 @@
     "b7bbed8c-6f5e-4951-903e-7f1bce23cbe6"
   ],
   "inventory_source": "my-controls.yaml",
-  "controlbridge_version": "0.2.1",
+  "evidentia_version": "0.2.1",
   "notes": null
 }

@@ -36,7 +36,7 @@ FRAMEWORKS = "nist-800-53-rev5-moderate,soc2-tsc"
 
 
 def _run(args: list[str], cwd: Path) -> None:
-    """Run a ControlBridge CLI command, surfacing output on failure."""
+    """Run a Evidentia CLI command, surfacing output on failure."""
     logger.info("exec: %s", " ".join(args))
     result = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -56,7 +56,7 @@ def main() -> None:
     logger.info("Generating baseline.json from my-controls.yaml")
     _run(
         [
-            "controlbridge",
+            "evidentia",
             "gap",
             "analyze",
             "--inventory",
@@ -74,7 +74,7 @@ def main() -> None:
     logger.info("Generating pr-branch.json from my-controls-pr.yaml")
     _run(
         [
-            "controlbridge",
+            "evidentia",
             "gap",
             "analyze",
             "--inventory",
@@ -92,7 +92,7 @@ def main() -> None:
     logger.info("Rendering pr-diff.md from the two snapshots")
     _run(
         [
-            "controlbridge",
+            "evidentia",
             "gap",
             "diff",
             "--base",

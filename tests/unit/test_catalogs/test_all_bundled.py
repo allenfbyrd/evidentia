@@ -14,8 +14,8 @@ catalogs must not be placeholders.
 from __future__ import annotations
 
 import pytest
-from controlbridge_core.catalogs.loader import load_any_catalog
-from controlbridge_core.catalogs.manifest import load_manifest
+from evidentia_core.catalogs.loader import load_any_catalog
+from evidentia_core.catalogs.manifest import load_manifest
 
 
 def _all_framework_ids() -> list[str]:

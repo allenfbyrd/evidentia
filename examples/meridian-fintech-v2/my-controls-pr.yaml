@@ -2,7 +2,7 @@
 # Meridian Financial v2 — "PR branch" control inventory
 # =============================================================================
 # Intentionally designed to produce every diff classification when fed
-# through `controlbridge gap diff --base snapshots/baseline.json
+# through `evidentia gap diff --base snapshots/baseline.json
 # --head snapshots/pr-branch.json`:
 #
 #   • AU-6 moves from not_implemented → partially_implemented  (closed: severity down)

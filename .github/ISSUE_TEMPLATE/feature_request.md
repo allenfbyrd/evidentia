@@ -8,7 +8,7 @@ assignees: ''
 
 ## Problem statement
 
-What are you trying to accomplish that ControlBridge doesn't currently
+What are you trying to accomplish that Evidentia doesn't currently
 support? What's the compliance, risk, or engineering workflow that this
 would unlock?
 
@@ -19,14 +19,14 @@ API or CLI shape in mind, sketch it here.
 
 ```bash
 # example CLI usage
-controlbridge ...
+evidentia ...
 ```
 
 or
 
 ```python
 # example library usage
-from controlbridge_core import ...
+from evidentia_core import ...
 ```
 
 ## Alternatives considered

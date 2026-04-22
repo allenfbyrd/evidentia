@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from controlbridge_core.models.obligation import (
+from evidentia_core.models.obligation import (
     ObligationCatalog,
     PrivacyObligation,
     PrivacyRegime,
 )
-from controlbridge_core.models.threat import (
+from evidentia_core.models.threat import (
     AttackTechnique,
     TechniqueCatalog,
     Vulnerability,

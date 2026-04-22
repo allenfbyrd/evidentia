@@ -1,9 +1,9 @@
-# ControlBridge end-to-end walkthrough
+# Evidentia end-to-end walkthrough
 
 **Every v0.3.0 feature, exercised against three realistic scenarios.**
 
 This document is the "take the tour" doc — run the commands in order
-and every piece of ControlBridge (gap analysis, cross-framework
+and every piece of Evidentia (gap analysis, cross-framework
 efficiency, `gap diff`, LLM-powered `explain`, user-catalog import,
 persistent gap store, config-driven defaults) is touched at least
 once.
@@ -15,14 +15,14 @@ Budget: ~10 minutes (most of which is reading output).
 ## Prerequisites
 
 ```bash
-pip install controlbridge==0.3.0        # or later
-controlbridge doctor                    # should report 82 frameworks
+pip install evidentia==0.3.0        # or later
+evidentia doctor                    # should report 82 frameworks
 ```
 
 For the `explain` and `risk generate` steps you'll also need an LLM
 API key in env (one of `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
 `GOOGLE_API_KEY`) — match the `llm.model` set in each scenario's
-`controlbridge.yaml` or override with `--model`.
+`evidentia.yaml` or override with `--model`.
 
 ---
 
@@ -37,18 +37,18 @@ fintech inventory covering 3 frameworks (`nist-800-53-rev5-moderate`,
 cd examples/meridian-fintech-v2
 
 # 1. Baseline analysis — note that --frameworks is NOT passed;
-#    it's read from controlbridge.yaml via the v0.2.1 config loader
-controlbridge gap analyze \
+#    it's read from evidentia.yaml via the v0.2.1 config loader
+evidentia gap analyze \
   --inventory my-controls.yaml \
   --output snapshots/baseline.json
 
 # 2. Re-run on the "PR branch" inventory
-controlbridge gap analyze \
+evidentia gap analyze \
   --inventory my-controls-pr.yaml \
   --output snapshots/pr-branch.json
 
 # 3. Diff the two — exercises the v0.3.0 headline feature
-controlbridge gap diff \
+evidentia gap diff \
   --base snapshots/baseline.json \
   --head snapshots/pr-branch.json
 
@@ -57,23 +57,23 @@ controlbridge gap diff \
 # (Cloudflare Access config drift) + CP-10 (DR test failed).
 
 # 4. PR-comment-ready Markdown
-controlbridge gap diff \
+evidentia gap diff \
   --base snapshots/baseline.json --head snapshots/pr-branch.json \
   --format markdown --output snapshots/pr-diff.md
 cat snapshots/pr-diff.md
 
 # 5. GitHub-Actions inline annotations
-controlbridge gap diff \
+evidentia gap diff \
   --base snapshots/baseline.json --head snapshots/pr-branch.json \
   --format github
 
 # 6. CI gate — this exits 1 (regression detected)
-controlbridge gap diff \
+evidentia gap diff \
   --base snapshots/baseline.json --head snapshots/pr-branch.json \
   --fail-on-regression || echo "[demo] Exit code $? confirms regression gating works"
 
 # 7. CSV inventory + --organization override
-controlbridge gap analyze \
+evidentia gap analyze \
   --inventory my-controls.csv \
   --frameworks nist-800-53-rev5-moderate \
   --organization "Meridian Financial" \
@@ -81,21 +81,21 @@ controlbridge gap analyze \
   --output report-csv.json
 
 # 8. User-catalog shadowing — override the SOC2-TSC stub
-controlbridge catalog import \
+evidentia catalog import \
   ./user-catalog-demo/soc2-tsc-licensed.json --force
-controlbridge catalog where soc2-tsc            # reports "user" source
-controlbridge catalog show soc2-tsc --control CC6.1
-controlbridge catalog remove soc2-tsc --yes     # undo
+evidentia catalog where soc2-tsc            # reports "user" source
+evidentia catalog show soc2-tsc --control CC6.1
+evidentia catalog remove soc2-tsc --yes     # undo
 
 # 9. LLM-powered explain (requires API key)
-controlbridge explain control AC-2 --framework nist-800-53-rev5-moderate
-controlbridge explain cache where               # shows cache dir
-# controlbridge explain cache clear --yes       # if you want to wipe
+evidentia explain control AC-2 --framework nist-800-53-rev5-moderate
+evidentia explain cache where               # shows cache dir
+# evidentia explain cache clear --yes       # if you want to wipe
 
 # 10. Risk statement on a single gap (from persistent gap store)
 # Look at the "priority_score" field in snapshots/baseline.json — pick
 # a gap ID, then:
-# controlbridge risk generate \
+# evidentia risk generate \
 #   --context system-context.yaml \
 #   --gap-id <GAP-UUID>
 ```
@@ -112,8 +112,8 @@ analysis.
 cd examples/acme-healthtech
 
 # Analyze against all 4 frameworks (HIPAA Security + Privacy + Breach
-# + NIST 800-53 Moderate overlay) — reads from controlbridge.yaml
-controlbridge gap analyze --inventory my-controls.yaml --output report.json
+# + NIST 800-53 Moderate overlay) — reads from evidentia.yaml
+evidentia gap analyze --inventory my-controls.yaml --output report.json
 
 # Watch for efficiency_opportunities where IA-2(1) (MFA) satisfies
 # 164.312(d) (HIPAA Security), AC-2 (NIST), AND implicitly supports
@@ -126,7 +126,7 @@ for e in r['efficiency_opportunities'][:5]:
 "
 
 # Plain-English explanation of a HIPAA-specific control
-controlbridge explain control 164.312(d) --framework hipaa-security
+evidentia explain control 164.312(d) --framework hipaa-security
 ```
 
 ---
@@ -140,13 +140,13 @@ control IDs.
 ```bash
 cd examples/dod-contractor
 
-controlbridge gap analyze --inventory my-controls.yaml --output report.json
+evidentia gap analyze --inventory my-controls.yaml --output report.json
 
 # Expect very high cross-framework efficiency — CMMC L2 and NIST
 # 800-171 Rev 2 are essentially the same control set.
 
 # Explain the flagship known-gap
-controlbridge explain control CMMC.L2-3.3.5 --framework cmmc-2-l2
+evidentia explain control CMMC.L2-3.3.5 --framework cmmc-2-l2
 ```
 
 ---
@@ -163,7 +163,7 @@ controlbridge explain control CMMC.L2-3.3.5 --framework cmmc-2-l2
 | NIST-pub vs NIST-OSCAL ID conventions |   ✓   |                 |               |
 | HIPAA dotted-section IDs         |             |        ✓        |               |
 | CMMC prefixed IDs                |             |                 |       ✓       |
-| v0.2.1 `controlbridge.yaml`      |      ✓      |        ✓        |       ✓       |
+| v0.2.1 `evidentia.yaml`      |      ✓      |        ✓        |       ✓       |
 | `--organization` / `--system-name` overrides |  ✓  |             |               |
 | CSV inventory + override         |      ✓      |                 |               |
 | `gap diff` (all 5 classifications) |    ✓      |                 |               |
@@ -194,10 +194,10 @@ for the one-liner that produces both.
 
 ## If something goes wrong
 
-- **`controlbridge: command not found`** — `pip install controlbridge`
-  (or `uv tool install controlbridge`).
+- **`evidentia: command not found`** — `pip install evidentia`
+  (or `uv tool install evidentia`).
 - **`LLM call failed: APIError`** — you need an API key env var for
-  the model in `controlbridge.yaml`. The pre-flight warning points
+  the model in `evidentia.yaml`. The pre-flight warning points
   at which one.
 - **`Framework 'soc2-tsc' is a Tier-C placeholder catalog — ...`** —
   this is an informational warning, not an error. The analyzer runs;
@@ -205,6 +205,6 @@ for the one-liner that produces both.
   `catalog import` flow in Scenario 1 step 8 to load your licensed
   copy.
 - **`Error: no frameworks specified`** — either pass `--frameworks`
-  on the command line OR ensure `controlbridge.yaml` has a
+  on the command line OR ensure `evidentia.yaml` has a
   top-level `frameworks:` list (this scenario's yaml does; check the
   walkthrough's CWD).

@@ -17,9 +17,9 @@ from datetime import UTC, datetime
 from typing import Any
 
 import pytest
-from controlbridge_collectors.aws import AwsCollector
-from controlbridge_core.models.common import Severity
-from controlbridge_core.models.finding import FindingStatus
+from evidentia_collectors.aws import AwsCollector
+from evidentia_core.models.common import Severity
+from evidentia_core.models.finding import FindingStatus
 
 # ── test_connection ──────────────────────────────────────────────────────
 

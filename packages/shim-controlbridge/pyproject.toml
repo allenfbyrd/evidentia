@@ -1,0 +1,39 @@
+[project]
+name = "controlbridge"
+version = "0.5.1"
+description = "DEPRECATED: renamed to 'evidentia'. Transitional re-export shim; removed in v0.7.0."
+readme = "README.md"
+authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
+license = "Apache-2.0"
+requires-python = ">=3.12"
+keywords = ["grc", "compliance", "deprecated", "renamed", "evidentia"]
+classifiers = [
+    "Development Status :: 7 - Inactive",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+dependencies = [
+    "evidentia>=0.6.0,<0.7.0",
+]
+
+[project.scripts]
+controlbridge = "controlbridge.cli.main:app"
+
+[project.urls]
+Homepage = "https://github.com/allenfbyrd/evidentia"
+Repository = "https://github.com/allenfbyrd/evidentia"
+Issues = "https://github.com/allenfbyrd/evidentia/issues"
+Changelog = "https://github.com/allenfbyrd/evidentia/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/controlbridge"]
+
+[tool.uv.sources]
+evidentia = { workspace = true }

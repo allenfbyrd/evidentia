@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 class TestConfig:
     def test_get_default_when_no_yaml(self, api_client: TestClient) -> None:
-        """No controlbridge.yaml in tmp_path CWD -> returns defaults."""
+        """No evidentia.yaml in tmp_path CWD -> returns defaults."""
         r = api_client.get("/api/config")
         assert r.status_code == 200
         payload = r.json()
@@ -37,7 +37,7 @@ class TestConfig:
         ]
 
         # File landed in the tmp_path cwd.
-        target = tmp_path / "controlbridge.yaml"
+        target = tmp_path / "evidentia.yaml"
         assert target.is_file()
         text = target.read_text(encoding="utf-8")
         assert "API Test Org" in text
@@ -77,14 +77,14 @@ class TestInitWizard:
         )
         assert r.status_code == 200, r.text
         payload = r.json()
-        assert "controlbridge_yaml" in payload
+        assert "evidentia_yaml" in payload
         assert "my_controls_yaml" in payload
         assert "system_context_yaml" in payload
         # healthtech + PHI must get HIPAA recommendations.
         assert "hipaa-security" in payload["recommended_frameworks"]
         assert "hipaa-privacy" in payload["recommended_frameworks"]
         # Generated YAMLs mention the organization.
-        assert "Wizard Test Co" in payload["controlbridge_yaml"]
+        assert "Wizard Test Co" in payload["evidentia_yaml"]
         assert "Wizard Test Co" in payload["my_controls_yaml"]
 
     def test_rejects_unknown_preset(self, api_client: TestClient) -> None:

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import pytest
-from controlbridge_core.gap_analyzer.analyzer import (
+from evidentia_core.gap_analyzer.analyzer import (
     _HIGH_EFFORT_KEYWORDS,
     _MEDIUM_EFFORT_KEYWORDS,
     GapAnalyzer,
 )
-from controlbridge_core.models.catalog import CatalogControl
-from controlbridge_core.models.gap import ImplementationEffort
+from evidentia_core.models.catalog import CatalogControl
+from evidentia_core.models.gap import ImplementationEffort
 
 # -----------------------------------------------------------------------------
 # Layer 1: structural complexity score still dominates when present

@@ -1,10 +1,10 @@
 # v0.4.0 — frontend build output lands in the Python package's static
 # directory at wheel-assembly time via the hatchling build hook. The
 # .gitkeep file in static/ is tracked; everything else is regenerated.
-packages/controlbridge-api/src/controlbridge_api/static/assets/
-packages/controlbridge-api/src/controlbridge_api/static/index.html
-packages/controlbridge-api/src/controlbridge_api/static/*.js
-packages/controlbridge-api/src/controlbridge_api/static/*.css
+packages/evidentia-api/src/evidentia_api/static/assets/
+packages/evidentia-api/src/evidentia_api/static/index.html
+packages/evidentia-api/src/evidentia_api/static/*.js
+packages/evidentia-api/src/evidentia_api/static/*.css
 
 # Python
 __pycache__/
@@ -25,10 +25,10 @@ sdist/
 var/
 wheels/
 # NB: `lib/` and `lib64/` above would otherwise also match
-# packages/controlbridge-ui/src/lib/ (TypeScript utils). Scope to top-level
+# packages/evidentia-ui/src/lib/ (TypeScript utils). Scope to top-level
 # only — there's no real Python-venv lib/ we'd fail to ignore because
 # .venv/ and venv/ below cover that case.
-!packages/controlbridge-ui/src/lib/
+!packages/evidentia-ui/src/lib/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -74,8 +74,13 @@ dmypy.json
 # Claude Code local state
 .claude/
 
-# ControlBridge runtime — user project state (NOT bundled examples)
+# Evidentia runtime — user project state (NOT bundled examples).
+# `.controlbridge/` and `/controlbridge.yaml` are kept ignored for the
+# lifetime of the shim (through v0.7.0) so legacy project workspaces
+# authored against v0.1.0 – v0.5.0 don't start leaking into git.
+.evidentia/
 .controlbridge/
+/evidentia.yaml
 /controlbridge.yaml
 *.local.yaml
 evidence/

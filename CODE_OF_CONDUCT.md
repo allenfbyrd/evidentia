@@ -1,6 +1,6 @@
 # Code of Conduct
 
-The ControlBridge project adopts the
+The Evidentia project adopts the
 [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)
 as its code of conduct.
 
@@ -13,7 +13,7 @@ welcoming, respectful, and harassment-free environment.
 
 This Code of Conduct applies to all project spaces, including the GitHub
 repository (issues, pull requests, discussions, code review), any official
-ControlBridge communication channels, and any public or private setting
+Evidentia communication channels, and any public or private setting
 when an individual is representing the project or its community.
 
 ## Reporting

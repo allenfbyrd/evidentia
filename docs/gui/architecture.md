@@ -1,11 +1,11 @@
-# ControlBridge Web UI — architecture reference
+# Evidentia Web UI — architecture reference
 
 v0.4.0 ships two new pieces alongside the existing CLI + core packages:
 
-- **`controlbridge-api`** (Python) — FastAPI REST server that exposes every CLI capability over HTTP. Bundles the React SPA as static assets.
-- **`controlbridge-ui`** (Node/Vite) — React + TypeScript + shadcn/ui frontend. Not a Python workspace member; built separately and copied into the API package's `static/` directory.
+- **`evidentia-api`** (Python) — FastAPI REST server that exposes every CLI capability over HTTP. Bundles the React SPA as static assets.
+- **`evidentia-ui`** (Node/Vite) — React + TypeScript + shadcn/ui frontend. Not a Python workspace member; built separately and copied into the API package's `static/` directory.
 
-Together they form the localhost web UI served by `controlbridge serve`.
+Together they form the localhost web UI served by `evidentia serve`.
 
 ## Request flow
 
@@ -17,15 +17,15 @@ Browser ─► /api/frameworks                  (REST API)
         FastAPI router dispatch
                 │
                 ▼
-    controlbridge_core.catalogs.FrameworkRegistry
-    controlbridge_core.gap_analyzer.GapAnalyzer
-    controlbridge_core.gap_store.{save,load,list}_report
-    controlbridge_core.gap_diff.compute_gap_diff
-    controlbridge_ai.{RiskStatementGenerator,ExplanationGenerator}
-    controlbridge_core.init_wizard.{generate_*,recommend_frameworks}
+    evidentia_core.catalogs.FrameworkRegistry
+    evidentia_core.gap_analyzer.GapAnalyzer
+    evidentia_core.gap_store.{save,load,list}_report
+    evidentia_core.gap_diff.compute_gap_diff
+    evidentia_ai.{RiskStatementGenerator,ExplanationGenerator}
+    evidentia_core.init_wizard.{generate_*,recommend_frameworks}
 ```
 
-Every API endpoint calls into existing public APIs in `controlbridge-core` / `controlbridge-ai`. The API layer is a thin rendering layer — no duplicated business logic.
+Every API endpoint calls into existing public APIs in `evidentia-core` / `evidentia-ai`. The API layer is a thin rendering layer — no duplicated business logic.
 
 ## REST endpoint reference
 
@@ -42,14 +42,14 @@ All endpoints live under `/api/*`. Interactive docs at `/api/docs`.
 
 | Method | Path | Response | Purpose |
 |---|---|---|---|
-| GET | `/api/config` | `ControlBridgeConfig` | Current `controlbridge.yaml` contents (walks CWD → parents) |
-| PUT | `/api/config` | `ControlBridgeConfig` | Write validated config to the discovered path (or `./controlbridge.yaml`) |
+| GET | `/api/config` | `EvidentiaConfig` | Current `evidentia.yaml` contents (walks CWD → parents) |
+| PUT | `/api/config` | `EvidentiaConfig` | Write validated config to the discovered path (or `./evidentia.yaml`) |
 
 ### Diagnostics + air-gap
 
 | Method | Path | Response | Purpose |
 |---|---|---|---|
-| GET | `/api/doctor` | `{subsystems: [...]}` | Per-subsystem health summary (mirrors `controlbridge doctor`) |
+| GET | `/api/doctor` | `{subsystems: [...]}` | Per-subsystem health summary (mirrors `evidentia doctor`) |
 | POST | `/api/doctor/check-air-gap` | `AirGapCheckResponse` | Audit offline posture without network IO |
 
 ### LLM configuration
@@ -88,11 +88,11 @@ Long-running LLM calls stream progress via Server-Sent Events so the browser can
 
 | Method | Path | Response | Purpose |
 |---|---|---|---|
-| POST | `/api/init/wizard` | `InitWizardResponse` | Generate three starter YAMLs (`controlbridge.yaml`, `my-controls.yaml`, `system-context.yaml`) + framework recommendations from lightweight industry / hosting / data-type input |
+| POST | `/api/init/wizard` | `InitWizardResponse` | Generate three starter YAMLs (`evidentia.yaml`, `my-controls.yaml`, `system-context.yaml`) + framework recommendations from lightweight industry / hosting / data-type input |
 
 ## React frontend
 
-Routes are declared in `packages/controlbridge-ui/src/App.tsx`:
+Routes are declared in `packages/evidentia-ui/src/App.tsx`:
 
 ```
 /                   HomePage              Welcome + quick-nav cards
@@ -140,20 +140,20 @@ export function FrameworksPage() {
 
 - Tailwind CSS 3 with shadcn/ui's New York preset
 - Theme CSS vars in `src/index.css` (dark mode toggled via `.dark` class — not exposed in UI yet, planned for alpha.2)
-- ControlBridge severity palette: `--severity-critical/high/medium/low/informational` — pairs with `<Badge variant="critical">` / `"high"` / etc.
+- Evidentia severity palette: `--severity-critical/high/medium/low/informational` — pairs with `<Badge variant="critical">` / `"high"` / etc.
 
 ## Bundling + release
 
 1. `uv build --all-packages` in the release workflow.
-2. Hatchling build hook (`packages/controlbridge-api/hatch_build.py`) fires:
-   - If `CONTROLBRIDGE_SKIP_FRONTEND_BUILD` is set, no-op.
-   - Else, check `packages/controlbridge-ui/dist/`. If empty, run `npm ci && npm run build`.
-   - Copy `packages/controlbridge-ui/dist/*` → `packages/controlbridge-api/src/controlbridge_api/static/`.
+2. Hatchling build hook (`packages/evidentia-api/hatch_build.py`) fires:
+   - If `EVIDENTIA_SKIP_FRONTEND_BUILD` is set, no-op.
+   - Else, check `packages/evidentia-ui/dist/`. If empty, run `npm ci && npm run build`.
+   - Copy `packages/evidentia-ui/dist/*` → `packages/evidentia-api/src/evidentia_api/static/`.
 3. Hatchling packages the wheel with the populated `static/` directory.
 4. `twine check dist/*`.
-5. The release workflow verifies `controlbridge_api/static/index.html` is present in the wheel before PyPI publish.
+5. The release workflow verifies `evidentia_api/static/index.html` is present in the wheel before PyPI publish.
 
-End users `pip install "controlbridge[gui]"` — the wheel ships self-contained. No Node required at install time.
+End users `pip install "evidentia[gui]"` — the wheel ships self-contained. No Node required at install time.
 
 ## Accessibility
 
@@ -172,14 +172,14 @@ Two-terminal setup:
 
 ```bash
 # Terminal 1 — FastAPI backend with permissive CORS
-controlbridge serve --dev
+evidentia serve --dev
 
 # Terminal 2 — Vite dev server with HMR
-cd packages/controlbridge-ui
+cd packages/evidentia-ui
 npm install       # first time only
 npm run dev       # http://127.0.0.1:5173
 ```
 
 The Vite dev server proxies `/api/*` to `http://127.0.0.1:8000` so `fetch("/api/health")` just works. Edit TS / TSX, see it reload in the browser.
 
-For production-ish local testing: `npm run build` then `controlbridge serve` (without `--dev`) serves the built SPA directly from the FastAPI process.
+For production-ish local testing: `npm run build` then `evidentia serve` (without `--dev`) serves the built SPA directly from the FastAPI process.

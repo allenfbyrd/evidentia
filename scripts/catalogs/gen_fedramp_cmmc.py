@@ -30,7 +30,7 @@ CMMC_URL = "https://dodcio.defense.gov/CMMC/"
 # baselines are authored as pointer lists: each control entry is just the
 # ID + family, with description = "See nist-800-53-rev5 catalog". Full
 # content resolution is an OSCAL profile job — use:
-#     controlbridge catalog import --profile fedramp-mod-profile.json \
+#     evidentia catalog import --profile fedramp-mod-profile.json \
 #         --catalog nist-800-53-rev5.json
 
 

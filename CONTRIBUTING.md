@@ -1,6 +1,6 @@
-# Contributing to ControlBridge
+# Contributing to Evidentia
 
-Thanks for considering a contribution. ControlBridge is early-stage and
+Thanks for considering a contribution. Evidentia is early-stage and
 a small number of focused contributions will make a disproportionate
 difference.
 
@@ -16,7 +16,7 @@ places to contribute right now:
    with the full ~323-control NIST OSCAL content repo (or adding the High
    and Rev 5 Full baselines, NIST CSF 2.0, ISO 27001:2022, CIS v8, CMMC 2.0,
    or PCI DSS 4.0) is a drop-in JSON addition to
-   `packages/controlbridge-core/src/controlbridge_core/catalogs/data/`.
+   `packages/evidentia-core/src/evidentia_core/catalogs/data/`.
 
 2. **Additional crosswalks.** The highest-leverage missing ones are:
    - ISO 27001:2022 ↔ NIST 800-53 Rev 5
@@ -25,13 +25,13 @@ places to contribute right now:
    - CIS Controls v8 ↔ NIST 800-53 Rev 5
 
    Crosswalks live in
-   `packages/controlbridge-core/src/controlbridge_core/catalogs/data/mappings/`
+   `packages/evidentia-core/src/evidentia_core/catalogs/data/mappings/`
    as JSON files matching the `CrosswalkDefinition` Pydantic model.
 
 3. **Phase 2 collectors.** AWS, GitHub, and Okta are the highest priority.
    The collector base class and contract are specified in the canonical
    architecture plan; see
-   [`ControlBridge-Architecture-and-Implementation-Plan.md`](ControlBridge-Architecture-and-Implementation-Plan.md).
+   [`Evidentia-Architecture-and-Implementation-Plan.md`](Evidentia-Architecture-and-Implementation-Plan.md).
 
 4. **Test coverage.** Particularly edge cases in CSV header matching,
    OSCAL parsing with unusual catalog structures, and status normalization
@@ -40,8 +40,8 @@ places to contribute right now:
 ## Development setup
 
 ```bash
-git clone https://github.com/allenfbyrd/controlbridge.git
-cd controlbridge
+git clone https://github.com/allenfbyrd/evidentia.git
+cd evidentia
 uv sync --all-packages
 uv run pytest tests/ -q          # expected: 22 passed
 uv run ruff check .              # expected: All checks passed!
@@ -89,5 +89,5 @@ For questions, use GitHub Discussions rather than issues.
 
 ## License
 
-By contributing to ControlBridge, you agree that your contributions will be
+By contributing to Evidentia, you agree that your contributions will be
 licensed under the [Apache License 2.0](LICENSE).
