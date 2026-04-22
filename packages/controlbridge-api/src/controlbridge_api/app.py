@@ -104,6 +104,9 @@ def create_app(
     # Imports are deferred so module-load errors in one router don't take
     # down the whole server.
     from controlbridge_api.routers import (
+        collectors as collectors_router,
+    )
+    from controlbridge_api.routers import (
         config as config_router,
     )
     from controlbridge_api.routers import (
@@ -125,6 +128,9 @@ def create_app(
         init_wizard as init_wizard_router,
     )
     from controlbridge_api.routers import (
+        integrations as integrations_router,
+    )
+    from controlbridge_api.routers import (
         llm_status as llm_status_router,
     )
     from controlbridge_api.routers import (
@@ -143,6 +149,12 @@ def create_app(
     app.include_router(explain_router.router, prefix="/api", tags=["explain"])
     app.include_router(
         init_wizard_router.router, prefix="/api", tags=["init"]
+    )
+    app.include_router(
+        integrations_router.router, prefix="/api", tags=["integrations"]
+    )
+    app.include_router(
+        collectors_router.router, prefix="/api", tags=["collectors"]
     )
 
     # Static SPA mount — everything that isn't /api/* falls through to index.html.

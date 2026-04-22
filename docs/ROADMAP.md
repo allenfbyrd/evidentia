@@ -105,30 +105,59 @@ Submission to the GitHub Actions Marketplace is a manual UI step in
 the repo settings; the listing is pending final screenshots before
 publication.
 
-## v0.5.0 — Phase 2 integrations
+## v0.5.0 — Phase 2 integrations — SHIPPED
 
-First real collectors and integrations. These have been advertised
-in the workspace layout since v0.1.0 but shipped as empty shells.
-v0.5.0 wires them up. Priority order by community demand (highest
-first):
+First three real integrations. These shipped as empty shells all the
+way back to v0.1.0; v0.5.0 wires them up. What landed:
 
-### `controlbridge-integrations[jira]`
+### `controlbridge-integrations` (Jira) — SHIPPED
 
-Push gaps as Jira issues. Bidirectional status sync: when a Jira
-issue is closed, update the corresponding control to IMPLEMENTED in
-the inventory.
+Push gaps as Jira issues + bidirectional status sync. When a Jira
+issue transitions to Done, the linked gap's status becomes REMEDIATED
+on the next `sync`. Full workflow-name mapping (To Do, In Progress,
+Done, Won't Do, + common customizations). Credentials via env vars
+only; no secrets ever flow through ControlBridge REST responses.
 
-### `controlbridge-collectors[aws]`
+CLI: `controlbridge integrations jira {test,push,sync,status-map}`.
+REST: `/api/integrations/jira/{status,push/{key},sync/{key},status-map}`.
 
-Auto-evidence from AWS Config + Security Hub + IAM Access Analyzer.
-Covers NIST 800-53 AC/IA/SC/AU/CM families for cloud-native
-deployments. Highest-ROI collector — a single command auto-collects
-most of a cloud org's NIST evidence.
+### `controlbridge-collectors[aws]` — SHIPPED
 
-### `controlbridge-collectors[github]`
+Auto-evidence from AWS Config + Security Hub. Covers NIST 800-53
+AC / IA / SC / AU / CM / CP / SI families for cloud-native
+deployments. Curated mapping of 25+ Config rules + FSBP / CIS
+standards controls; unknown sources fall back to empty `control_ids`
+rather than speculative attribution.
 
-Branch protection rules, Dependabot alerts, CODEOWNERS presence ->
-maps to SA-11, CM-2, SI-2.
+Credentials via standard boto3 chain. Unit tests use MagicMock
+paginators (Config) + controlled responses (Security Hub);
+integration-test-level moto coverage lands in v0.5.1.
+
+CLI: `controlbridge collect aws [--region] [--profile]`.
+REST: `POST /api/collectors/aws/collect`.
+
+### `controlbridge-collectors` (GitHub) — SHIPPED
+
+Branch protection + CODEOWNERS + repo visibility findings mapped to
+SA-11 (developer security testing), CM-2/CM-3 (baseline + change
+control), AC-3/AC-6 (access enforcement), SI-2 (flaw remediation).
+Zero extra deps — uses httpx directly rather than pulling in PyGithub.
+
+CLI: `controlbridge collect github --repo owner/repo`.
+REST: `POST /api/collectors/github/collect`.
+
+## v0.5.1 — more Phase 2 collectors + integrations
+
+Queued for the next minor. Same infrastructure, more sources:
+
+### `controlbridge-collectors[aws]` — IAM Access Analyzer
+
+Active findings from IAM Access Analyzer. Covers AC-3, AC-6, IA-2.
+
+### `controlbridge-collectors[github]` — Dependabot alerts
+
+Repository-level CVE findings mapped to SI-2. Requires the
+security-events scope on the token.
 
 ### `controlbridge-collectors[okta]`
 

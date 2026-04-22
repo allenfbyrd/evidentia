@@ -104,6 +104,8 @@ jobs:
             packages/controlbridge-core/src/controlbridge_core \
             packages/controlbridge/src/controlbridge \
             packages/controlbridge-api/src/controlbridge_api \
+            packages/controlbridge-integrations/src/controlbridge_integrations \
+            packages/controlbridge-collectors/src/controlbridge_collectors \
             --strict-optional
 
   frontend-test:

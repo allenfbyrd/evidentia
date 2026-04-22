@@ -14,9 +14,11 @@ from rich.console import Console
 from rich.table import Table
 
 from controlbridge.cli import catalog as catalog_cmd
+from controlbridge.cli import collect as collect_cmd
 from controlbridge.cli import explain as explain_cmd
 from controlbridge.cli import gap as gap_cmd
 from controlbridge.cli import init as init_cmd
+from controlbridge.cli import integrations as integrations_cmd
 from controlbridge.cli import risk as risk_cmd
 
 app = typer.Typer(
@@ -37,6 +39,16 @@ app.add_typer(
     explain_cmd.app,
     name="explain",
     help="Plain-English LLM-generated control explanations.",
+)
+app.add_typer(
+    integrations_cmd.app,
+    name="integrations",
+    help="Output integrations — Jira, ServiceNow, etc.",
+)
+app.add_typer(
+    collect_cmd.app,
+    name="collect",
+    help="Evidence collectors — AWS, GitHub, etc.",
 )
 app.command(name="init", help="Initialize a new ControlBridge project.")(init_cmd.init)
 

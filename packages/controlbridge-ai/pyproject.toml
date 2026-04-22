@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-ai"
-version = "0.4.1"
+version = "0.5.0"
 description = "LLM-powered risk statement generator and evidence validator for ControlBridge"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
@@ -17,7 +17,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "controlbridge-core>=0.4.0,<0.5.0",
+    "controlbridge-core>=0.5.0,<0.6.0",
     "litellm>=1.50,<2.0",
     "instructor>=1.6",
     "tenacity>=9.0",

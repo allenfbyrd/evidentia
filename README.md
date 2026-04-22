@@ -85,7 +85,33 @@ ControlBridge is built on four principles:
 
 ---
 
-## Current status: 82 frameworks bundled, 501 tests passing
+## Current status: 82 frameworks bundled, 604 tests passing
+
+**v0.5.0 (April 2026)** is the **"Phase 2 integrations"** release.
+ControlBridge finally ships the long-promised integrations and
+collectors: push gaps as Jira issues with bidirectional status sync,
+auto-collect compliance evidence from AWS (Config + Security Hub),
+and audit GitHub repos (branch protection + CODEOWNERS + visibility).
+Every finding is pre-mapped to NIST 800-53 control families.
+
+Install:
+
+```bash
+uv tool install --upgrade "controlbridge[gui]"
+
+# Jira: push open gaps as issues, sync status back on resolve
+export JIRA_BASE_URL=https://acme.atlassian.net
+export JIRA_EMAIL=compliance@acme.com
+export JIRA_API_TOKEN=...
+export JIRA_PROJECT_KEY=SEC
+controlbridge integrations jira push --gaps report.json
+
+# AWS: collect evidence from the default region
+controlbridge collect aws --output aws-findings.json
+
+# GitHub: audit a single repo
+controlbridge collect github --repo allenfbyrd/controlbridge
+```
 
 **v0.4.0-alpha.1 (April 2026)** is the **"Accessible GRC"** release.
 ControlBridge grows beyond the CLI with a FastAPI REST server, a

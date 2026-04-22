@@ -1,6 +1,6 @@
 [project]
 name = "controlbridge-api"
-version = "0.4.1"
+version = "0.5.0"
 description = "FastAPI REST server + bundled React web UI for ControlBridge"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
@@ -19,8 +19,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "controlbridge-core>=0.4.0,<0.5.0",
-    "controlbridge-ai>=0.4.0,<0.5.0",
+    "controlbridge-core>=0.5.0,<0.6.0",
+    "controlbridge-ai>=0.5.0,<0.6.0",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "python-multipart>=0.0.9",

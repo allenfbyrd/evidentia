@@ -7,6 +7,135 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-20
+
+The **"Phase 2 integrations"** release. ControlBridge finally wires the
+long-advertised `controlbridge-integrations` and `controlbridge-collectors`
+packages with real implementations: push gaps as Jira issues,
+bidirectionally sync status, and auto-collect evidence from AWS +
+GitHub. Maps every collected finding to NIST 800-53 control families.
+
+Also extends strict mypy to the two formerly-empty shells and adds
+boto3 + moto to dev deps so collector tests run out of the box.
+
+### Added — Jira output integration
+
+New: `pip install "controlbridge-integrations"` (no extra needed — the
+bundled implementation uses httpx directly rather than the heavyweight
+`jira` SDK).
+
+- **`controlbridge_integrations.jira.JiraClient`** — httpx-based
+  REST v3 client with `test_connection`, `create_issue`, `get_issue`,
+  `list_transitions`, `transition_issue`. Secret-safe: API tokens flow
+  only through HTTP basic-auth; never logged, never in response bodies.
+- **`controlbridge_integrations.jira.mapper`** — pure functions mapping
+  ControlGap <-> Jira issue body + GapStatus <-> Jira workflow name.
+  Forward mapping covers all five `GapStatus` enum values; reverse
+  mapping covers the default Jira Cloud workflow plus common custom
+  statuses (Blocked, In Review, Reopened, Won't Fix, WontFix, etc.).
+- **`push_gap_to_jira`, `sync_gap_from_jira`** — gap-level helpers that
+  combine client + mapper. Mutate `gap.jira_issue_key` on create;
+  update `gap.status` + `gap.remediated_at` on sync. Return typed
+  `JiraSyncOutcome` entries so CLI / API callers can render per-gap
+  results without a second pass.
+- **`push_open_gaps`, `sync_report`** — batch wrappers over a
+  `GapAnalysisReport` with severity-filter + max-issues safety rail.
+- **CLI**: `controlbridge integrations jira {test,push,sync,status-map}`
+- **REST API**:
+  - `GET /api/integrations/jira/status` — connection probe (never returns token)
+  - `GET /api/integrations/jira/status-map` — current mapping for UI
+  - `POST /api/integrations/jira/push/{report_key}` — batch push
+  - `POST /api/integrations/jira/sync/{report_key}` — batch sync
+
+Credentials: `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`,
+`JIRA_PROJECT_KEY`, `JIRA_ISSUE_TYPE` env vars.
+
+### Added — AWS evidence collector
+
+New: `pip install "controlbridge-collectors[aws]"` (adds `boto3`).
+
+- **`controlbridge_collectors.aws.AwsCollector`** — orchestrator for
+  Config + Security Hub with per-subsystem `collect_*` methods +
+  `collect_all()`. Sub-collector failures are swallowed + logged so one
+  bad service doesn't drop the other's findings.
+- **AWS Config collector** — iterates `describe_compliance_by_config_rule`,
+  then expands each non-compliant rule via
+  `get_compliance_details_by_config_rule`. One SecurityFinding per
+  non-compliant resource.
+- **Security Hub collector** — batches `get_findings` with workflow/state
+  filters. Prefers `Compliance.RelatedRequirements` for NIST 800-53 IDs
+  when present (direct AWS attribution); falls back to the curated
+  mapping table otherwise.
+- **Control mapping** — `map_config_rule_to_controls` + `map_security_hub_control_to_controls`
+  with 25+ rule/control entries covering AC/IA/SC/AU/CM/CP/SI families.
+  Rule-name normalizer handles hyphenated + camelCase + underscored
+  forms consistently.
+- Credentials via standard boto3 chain (env / ~/.aws / instance profile).
+
+### Added — GitHub evidence collector
+
+New: ships in the base `controlbridge-collectors` package — zero extra
+deps needed (uses httpx directly; `[github]` extra remains for users
+who want pygithub for custom workflows).
+
+- **`controlbridge_collectors.github.GitHubCollector`** — collects from
+  a single repo: visibility, default-branch protection state, CODEOWNERS
+  presence at any of three canonical paths.
+- Emits findings for both compliance (PR review required, status checks
+  configured, admins enforced, CODEOWNERS present — all INFORMATIONAL /
+  RESOLVED) and non-compliance (unprotected default branch, missing
+  CODEOWNERS, public repo — HIGH / MEDIUM / ACTIVE).
+- Control mapping: SA-11 (developer security testing), CM-2/CM-3
+  (baseline/change), AC-3/AC-6 (access enforcement), SI-2 (flaw
+  remediation).
+- Credential: `GITHUB_TOKEN` env var (personal access token or Actions
+  workflow token). Public repos work unauthenticated.
+
+### Added — collector CLI + REST API
+
+- **CLI**: `controlbridge collect {aws,github}` — writes findings as
+  JSON to `--output` (default stdout) + prints a Rich summary table
+  broken down by severity + source.
+- **REST API**:
+  - `GET /api/collectors/status` — which collectors are installed +
+    whether `GITHUB_TOKEN` is set (never returns token value).
+  - `POST /api/collectors/aws/collect` — run AWS collector with
+    optional region/profile/subsystem flags.
+  - `POST /api/collectors/github/collect` — run GitHub collector;
+    request body: `{repo: "owner/repo"}`.
+
+### Added — dev deps
+
+- `boto3>=1.35` + `moto[all]>=5.0` in the workspace dev group so
+  collector tests run without any extra install step.
+
+### Changed
+
+- **CI mypy target** extended from 3 packages to all 5 Python packages.
+  `controlbridge-integrations` and `controlbridge-collectors` now
+  enforce `--strict-optional` on every commit.
+- **Roadmap**: v0.5.0 shipped Jira + AWS + GitHub. Okta / ServiceNow /
+  Vanta / Drata shifted to v0.5.1. Evidence chain of custody still
+  targets v0.6.0.
+
+### Tests: 501 → **604 passing** (+103)
+
+- +43 Jira mapper / client unit tests (httpx.MockTransport-backed)
+- +14 Jira sync helper tests (fake JiraClient via MagicMock)
+- +8 Jira REST-endpoint integration tests (TestClient)
+- +22 AWS collector tests (MagicMock paginators + curated mapping)
+- +12 GitHub collector tests (httpx.MockTransport)
+- +4 collector REST-endpoint tests
+
+Frontend test count unchanged (6 Vitest).
+
+### Migration
+
+None — v0.5.0 is a strict feature add. Inter-package pins bump from
+`>=0.4.0,<0.5.0` to `>=0.5.0,<0.6.0` across every package; existing
+v0.4.x installs need to upgrade all six packages in lockstep (which
+`pip install --upgrade controlbridge` does automatically).
+
 ## [0.4.1] - 2026-04-19
 
 Completes the v0.4.0 "Accessible GRC" release — adds every interactive

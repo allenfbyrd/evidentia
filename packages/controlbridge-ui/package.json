@@ -1,6 +1,6 @@
 {
   "name": "@controlbridge/ui",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "ControlBridge web UI — React + Vite + shadcn/ui frontend served by controlbridge-api.",
   "private": true,
   "type": "module",
