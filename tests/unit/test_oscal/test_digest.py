@@ -90,10 +90,22 @@ def test_digest_file_missing_path_raises(tmp_path):
 
 
 def test_digest_model_is_deterministic() -> None:
-    """The whole feature hinges on this: two runs, same hash."""
+    """The whole feature hinges on this: same input → same hash.
+
+    Uses ``model_copy()`` to clone instead of ``_make_finding()`` twice
+    because ``SecurityFinding.first_observed`` and ``last_observed``
+    carry ``default_factory=utc_now`` — two separate instantiations
+    capture different microsecond timestamps on any kernel with a
+    high-resolution clock (i.e. every Linux / macOS CI runner). The
+    test is verifying determinism of ``digest_model`` for identical
+    inputs, not that two ``_make_finding()`` calls happen to produce
+    bit-identical objects.
+    """
     finding_a = _make_finding()
-    finding_b = _make_finding()
+    finding_b = finding_a.model_copy(deep=True)
     assert digest_model(finding_a) == digest_model(finding_b)
+    # Call twice on the same object too — hashing must not mutate input.
+    assert digest_model(finding_a) == digest_model(finding_a)
 
 
 def test_digest_model_changes_when_any_field_changes() -> None:
