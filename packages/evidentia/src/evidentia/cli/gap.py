@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -74,6 +75,31 @@ def analyze(
         help=(
             "Override the system / product name in the loaded inventory. "
             "Surfaces in report headers alongside the organization name."
+        ),
+    ),
+    findings: Path | None = typer.Option(
+        None,
+        "--findings",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help=(
+            "Optional collector findings JSON (v0.7.0). When supplied with "
+            "--format oscal-ar, each finding is embedded in the AR's "
+            "back-matter with a SHA-256 digest and cross-referenced from "
+            "observations sharing a control ID. Produce with `evidentia "
+            "collect aws --output ...` or `evidentia collect github ...`."
+        ),
+    ),
+    sign_with_gpg: str | None = typer.Option(
+        None,
+        "--sign-with-gpg",
+        help=(
+            "Optional GPG key ID (v0.7.0). When supplied with "
+            "--format oscal-ar, the exported JSON is signed with a detached "
+            "ASCII-armored signature written to <output>.asc. Verify with "
+            "`evidentia oscal verify <output> --require-signature`."
         ),
     ),
 ) -> None:
@@ -166,11 +192,57 @@ def analyze(
             )
         console.print(top_table)
 
+    # v0.7.0: load optional collector findings for OSCAL AR evidence embedding.
+    findings_list: list | None = None
+    if findings is not None:
+        if format != "oscal-ar":
+            console.print(
+                "[yellow]Note:[/yellow] --findings is only used by "
+                "--format oscal-ar. Ignoring for format=[bold]"
+                f"{format}[/bold]."
+            )
+        else:
+            from evidentia_core.models.finding import SecurityFinding
+
+            raw = json.loads(findings.read_text(encoding="utf-8"))
+            if not isinstance(raw, list):
+                console.print(
+                    "[red]Error:[/red] --findings file must be a JSON array "
+                    "of SecurityFinding objects (as produced by "
+                    "`evidentia collect`)."
+                )
+                raise typer.Exit(code=1)
+            findings_list = [SecurityFinding.model_validate(item) for item in raw]
+            console.print(
+                f"[dim]Loaded {len(findings_list)} finding(s) from "
+                f"{findings} for AR evidence embedding.[/dim]"
+            )
+
+    if sign_with_gpg and format != "oscal-ar":
+        console.print(
+            "[yellow]Note:[/yellow] --sign-with-gpg only applies to "
+            "--format oscal-ar. Ignoring for format=[bold]"
+            f"{format}[/bold]."
+        )
+        sign_with_gpg = None
+
     # Export
-    out_path = export_report(report, output, format=format)  # type: ignore[arg-type]
+    out_path = export_report(
+        report,
+        output,
+        format=format,  # type: ignore[arg-type]
+        findings=findings_list,
+        gpg_key_id=sign_with_gpg,
+    )
     console.print(
         f"[green]Report exported:[/green] [bold]{out_path}[/bold] ({format})"
     )
+    if sign_with_gpg:
+        sig_path = out_path.with_suffix(out_path.suffix + ".asc")
+        console.print(
+            f"[green]Detached signature written:[/green] [bold]{sig_path}[/bold] "
+            f"(key={sign_with_gpg})"
+        )
 
     # v0.2.1: save a canonical copy to the user-dir gap store so
     # `evidentia risk generate --gap-id GAP-…` can find the latest

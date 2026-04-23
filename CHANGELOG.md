@@ -7,6 +7,121 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Evidence chain of custody (v0.7.0 scope)
+
+Originally planned for v0.6.0, displaced by the rename release. Every
+OSCAL Assessment Results export can now carry cryptographic proof of its
+evidence payload and an optional GPG signature of the document itself.
+
+#### Exporter (`evidentia_core.oscal.exporter`)
+
+`gap_report_to_oscal_ar(report, *, findings=None)` now accepts an optional
+list of `SecurityFinding` objects. When supplied:
+
+- Each finding is serialised to canonical JSON (sorted keys, no whitespace),
+  SHA-256 digested, and embedded in `back-matter.resources[]` with
+  base64-encoded content — making the AR self-contained for later
+  verification with no external files required.
+- The digest is stored in two places: the OSCAL-standard
+  `rlinks[].hashes[]` field (`{algorithm: "SHA-256", value: "<hex>"}`)
+  and an Evidentia-namespaced prop `evidence-digest` under
+  `https://evidentia.dev/oscal` (value formatted as `sha256:<hex>`).
+- Observations whose `control-id` prop matches a finding's `control_ids`
+  get a `relevant-evidence[]` cross-reference to the resource UUID, and
+  their `methods` flips from `["EXAMINE"]` to `["TEST"]` (automated
+  finding, not manual examination).
+
+Back-compat: omitting `findings=` produces the exact same AR shape as
+pre-v0.7.0 — the `back-matter` block is only emitted when there are
+resources to include.
+
+#### Digest primitives (`evidentia_core.oscal.digest`)
+
+- `digest_bytes` / `digest_file` / `digest_model` / `digest_json` — pure,
+  deterministic SHA-256 helpers. `digest_model` uses Pydantic's
+  `model_dump(mode="json")` plus `sort_keys=True` so two callers with
+  the same input produce bit-for-bit identical hashes.
+- `format_digest` / `parse_digest` — wrap and unwrap the
+  `"sha256:<hex>"` OSCAL prop convention.
+- `verify_bytes` / `verify_file` — compare a payload against an
+  expected prop value.
+
+#### GPG signing (`evidentia_core.oscal.signing`)
+
+Subprocess-based wrapper around `gpg` (no new Python dependency):
+
+- `sign_file(path, *, key_id, signature_path=None, gnupghome=None)` —
+  produces an ASCII-armored detached signature at `<path>.asc` by default.
+- `verify_file(path, *, signature_path=None, gnupghome=None)` — returns
+  a `VerifyResult` with `valid`, `signer_key_id`, and
+  `signer_fingerprint`. Signature *mismatches* return
+  `valid=False` rather than raising — infrastructure errors (missing
+  files, GnuPG not installed) raise `GPGError` subclasses so the two
+  failure modes are distinguishable.
+- `gpg_available()` — returns True iff the `gpg` binary is on PATH.
+  Callers should probe this before adding sign/verify buttons in UI.
+
+Uses `--batch`, `--pinentry-mode loopback`, `--local-user`, and
+`--status-fd 1` so all invocations are non-interactive and emit
+machine-readable status output. `GNUPGHOME` overrides let callers
+point at a CI-scoped keyring without touching the operator's default
+`~/.gnupg`.
+
+#### Verification orchestrator (`evidentia_core.oscal.verify`)
+
+`verify_ar_file(path, *, require_signature=False, ...)` ties the two
+checks together:
+
+1. Re-hash every embedded evidence resource and compare to stored digests.
+2. If `<path>.asc` exists (or `require_signature=True` and it's missing),
+   run the signature check.
+
+Returns a `VerifyReport` with per-resource `digest_checks` and an
+`overall_valid` boolean. Missing signature counts as `None` (not
+checked) unless `require_signature=True`.
+
+#### CLI
+
+- `evidentia gap analyze` grows two flags:
+  - `--findings <path>` — embed collector output in the AR with digests
+  - `--sign-with-gpg <key-id>` — write a detached signature alongside
+    the AR JSON
+- New subcommand tree `evidentia oscal`:
+  - `evidentia oscal verify <path>` — check digests + optional
+    signature. Exits 0 on pass, 1 on fail. `--require-signature`,
+    `--signature`, `--gnupghome`, and `--json` options.
+
+#### Testing
+
+- New test modules: `test_oscal/test_digest.py` (22 tests), `test_verify.py`
+  (10 tests), `test_signing.py` (7 GPG round-trip tests). Signing tests
+  skip gracefully via `@pytest.mark.skipif(not gpg_available())` so CI
+  matrices without GnuPG still pass.
+- `test_exporter.py` extended with 7 new tests pinning the v0.7.0
+  evidence-embedding shape (back-matter resources, digest prop values,
+  observation cross-references, method-flip behaviour).
+
+### Changed
+
+- Project-folder rename (development-only, not a user-visible change):
+  the repository moved from `.../Claude Code/ControlBridge/` to
+  `.../Claude Code/Evidentia/`. All imports, editable-install pointers,
+  and bytecode caches refreshed accordingly. Bundled Vite SPA
+  (`packages/evidentia-api/src/evidentia_api/static/`) rebuilt from the
+  already-renamed source so the browser tab title matches the CLI.
+- README status badge dropped "Phase 1 MVP" (stale since v0.2). README
+  Roadmap section re-grouped into Shipped / Next / Later buckets.
+  `docs/ROADMAP.md` bumped to v0.6.0 stamp; v0.5.1 reclassified as the
+  deprecation-shim release; v0.6.0 reclassified as the rename release;
+  Evidence chain of custody content moved to v0.7.0.
+
+### Fixed
+
+- Two pre-existing `mypy --strict` errors in
+  `packages/evidentia-ai/src/evidentia_ai/client.py` — added `cast()`
+  around `instructor.from_litellm()` so the declared `Instructor` /
+  `AsyncInstructor` return types propagate under strict type-checking.
+
 ## [0.6.0] - 2026-04-22
 
 ### Renamed from ControlBridge to Evidentia

@@ -23,7 +23,6 @@ reporting — all usable from a Python library, a CLI, or a REST API.
 [![PyPI version](https://img.shields.io/pypi/v/evidentia.svg)](https://pypi.org/project/evidentia/)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)
-![Status: Phase 1 MVP](https://img.shields.io/badge/status-Phase%201%20MVP-yellow.svg)
 [![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 ---
@@ -96,7 +95,14 @@ Evidentia is built on four principles:
 
 ---
 
-## Current status: 82 frameworks bundled, 604 tests passing
+## Current status: 82 frameworks bundled, full suite passing
+
+**v0.6.0 (April 2026)** is the **rename release**: `ControlBridge` became
+`Evidentia` to resolve a name collision with an unrelated commercial GRC
+product. No functional changes — every feature from v0.5.0 works identically
+under the new name. The six old PyPI packages remain installable as v0.5.1
+deprecation shims (scheduled for yank in v0.7.0). See
+[RENAMED.md](RENAMED.md) for the full rationale and migration steps.
 
 **v0.5.0 (April 2026)** is the **"Phase 2 integrations"** release.
 Evidentia finally ships the long-promised integrations and
@@ -267,33 +273,34 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
   filters; `catalog import` accepts direct JSON or an OSCAL profile (via
   `--profile <profile.json> --catalog <source.json>`).
 
-- **392 passing pytest tests** covering models, catalog loading (with a
+- **Full pytest suite passing** covering models, catalog loading (with a
   parametric smoke test per bundled framework), recursive enhancement
   flattener for NIST Rev 5 3-level IDs, tier invariants, OSCAL profile
-  resolution, user-import directory precedence, `FrameworkId` deprecation,
-  crosswalk bidirectionality, multi-format inventory parsing, severity
-  calculation, and all four report exporters.
+  resolution, user-import directory precedence, crosswalk bidirectionality,
+  multi-format inventory parsing, severity calculation, all four report
+  exporters, Jira integration push/sync, AWS/GitHub evidence collection,
+  FastAPI `/api/*` endpoints, air-gap mode, and the v0.6.0 rename shims.
 
-### What Phase 1 explicitly does NOT include
+### What's not yet included (as of v0.6.0)
 
-Setting expectations matters. Phase 1 does NOT yet include:
+Setting expectations matters. The following are on the roadmap but not yet
+shipped:
 
-- Evidence collectors for AWS, Azure, GCP, GitHub, or Okta (Phase 2)
-- LLM-based evidence validation (Phase 3)
-- Jira or ServiceNow push integrations (Phase 2)
-- The FastAPI REST server (`evidentia serve`)
-- A web UI
-- Full-depth NIST 800-53 Rev 5 catalog (~323 controls with 3-level
-  enhancements) — v0.2.0 ships the 16-control Moderate sample plus
-  pointer-style FedRAMP baselines that the OSCAL profile resolver can
-  turn into resolved 149/287/369-control baselines once you supply the
-  full upstream NIST OSCAL catalog via `catalog import --profile`.
-  Direct bundling of the full NIST Rev 5 catalog is planned for v0.2.1
-  via the upstream refresh CI workflow.
-- Authoritative control text for copyrighted frameworks (ISO 27001/27002,
-  SOC 2 TSC, PCI DSS, HITRUST CSF, etc.). These frameworks will ship as
-  **Tier C stubs** in v0.2.0 — public clause numbering only, with a
-  `evidentia catalog import` command to load your own licensed copy.
+- **LLM-based evidence validation** (Phase 3) — "is this screenshot
+  actually proof of MFA?" scoring, freshness detection, multi-modal
+  validation.
+- **Additional collectors / integrations** — IAM Access Analyzer,
+  Dependabot, Okta, ServiceNow, Vanta, Drata (all planned; same
+  infrastructure as the shipped AWS / GitHub / Jira implementations).
+- **Evidence chain of custody** — SHA-256 digests per evidence item in
+  OSCAL AR exports plus optional GPG signing of the AR document. Planned
+  for v0.7.0.
+- **Multi-user auth / RBAC** — the web UI is localhost-only today;
+  network-deployment token auth is queued for v0.7.0+.
+- **Authoritative control text for copyrighted frameworks** (ISO
+  27001/27002, SOC 2 TSC, PCI DSS, HITRUST CSF, etc.) — ship as
+  **Tier C stubs** with public clause numbering only. Use
+  `evidentia catalog import` to load your own licensed copy.
 
 ---
 
@@ -329,7 +336,7 @@ five workspace packages in editable mode.
 
 ```bash
 uv run pytest tests/ -q
-# Expected: 22 passed in ~0.3s
+# Expected: full suite passes in ~10s on a warm checkout
 ```
 
 ### End-to-end walkthrough with sample data
@@ -401,17 +408,24 @@ Edit `my-controls.yaml` with your real inventory and run `evidentia gap analyze`
 
 ## Architecture
 
-Evidentia is a **uv workspace monorepo** of five composable Python packages:
+Evidentia is a **uv workspace monorepo** of six composable Python packages
+plus a React/Vite frontend workspace:
 
 | Package                      | Role                                                                        |
 | ---------------------------- | --------------------------------------------------------------------------- |
 | `evidentia-core`         | Pydantic data models, OSCAL catalog loader, crosswalk engine, gap analyzer  |
-| `evidentia-ai`           | LiteLLM + Instructor client, risk statement generator, evidence validator  |
-| `evidentia-collectors`   | Evidence collection agents for cloud and SaaS systems *(Phase 2)*          |
-| `evidentia-integrations` | Jira and ServiceNow push integrations *(Phase 2)*                           |
-| `evidentia`              | Meta-package: Typer/Rich CLI and FastAPI REST server                        |
+| `evidentia-ai`           | LiteLLM + Instructor client, risk statement generator, control explainer  |
+| `evidentia-collectors`   | Evidence collection agents — AWS (Config + Security Hub), GitHub (branch protection + CODEOWNERS) |
+| `evidentia-integrations` | Jira push + bidirectional status sync; ServiceNow / Vanta / Drata queued    |
+| `evidentia-api`          | FastAPI server (18 REST endpoints) that bundles the React SPA for `evidentia serve` |
+| `evidentia`              | CLI meta-package: Typer/Rich entry points (`evidentia` + `cb` alias)        |
+| `evidentia-ui` *(non-Python)* | Vite + React 18 + shadcn/ui frontend; built bundle is copied into `evidentia-api` at wheel time |
 
-### Data flow (Phase 1)
+Plus six `shim-controlbridge*` workspace members that publish the pre-rename
+PyPI names at v0.5.1 as deprecation shims (forward all imports to their
+`evidentia-*` replacements). Scheduled for PyPI yank in v0.7.0.
+
+### Data flow
 
 ```
 ┌─────────────────┐   ┌─────────────────┐   ┌────────────────────┐
@@ -451,7 +465,10 @@ Evidentia is a **uv workspace monorepo** of five composable Python packages:
 
 ## Roadmap
 
-### Phase 1 — MVP (this release)
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the detailed version-level plan.
+Summary below.
+
+### Phase 1 — MVP (v0.1.0 – v0.2.1) — SHIPPED
 - [x] Core data models
 - [x] OSCAL catalog loader + crosswalk engine
 - [x] Multi-format inventory parser
@@ -473,28 +490,50 @@ Evidentia is a **uv workspace monorepo** of five composable Python packages:
       `evidentia catalog import` for user-licensed Tier-C content;
       GitHub Actions refresh CI for upstream change detection.
 
-### Phase 2 — Evidence Collection (next)
-- [ ] Base collector architecture with `check_connection()`, `collect()`, `get_supported_controls()`
-- [ ] **AWS collector** — Config rules, Security Hub findings, IAM policies, CloudTrail, Audit Manager
-- [ ] **GitHub collector** — branch protection, required reviews, Actions runners, secret scanning status
-- [ ] **Okta collector** — MFA enforcement, session policies, user lifecycle evidence
-- [ ] **Azure collector** — Policy, Defender for Cloud, Entra ID
-- [ ] **GCP collector** — Security Command Center, Cloud Asset Inventory
-- [ ] **Evidence bundle storage** — local file, SQLite, git-backed
-- [ ] **Scheduled collection** with cron or CI triggers
-- [ ] **Jira / ServiceNow integration** — push gaps as tickets with severity and remediation guidance
+### Compliance-as-code (v0.3.x) — SHIPPED
+- [x] `evidentia gap diff` — classify gaps opened / closed / severity-changed / unchanged
+- [x] `--fail-on-regression` for CI integration
+- [x] `evidentia explain <control_id>` — LLM-generated plain-English control translations
+- [x] Three realistic example scenarios (Meridian fintech, Acme Healthtech, Northstar DoD)
 
-### Phase 3 — AI Evidence Validation
+### Accessible GRC (v0.4.x) — SHIPPED
+- [x] FastAPI REST server (`evidentia serve`) — 18 `/api/*` endpoints
+- [x] React + Vite + shadcn/ui web UI (WCAG 2.1 AA via Radix primitives)
+- [x] Air-gapped mode (`--offline` flag + `doctor --check-air-gap` validator)
+- [x] Reusable GitHub Action (`allenfbyrd/evidentia-action@v1`)
+
+### Phase 2 — Evidence Collection (v0.5.0) — SHIPPED
+- [x] Base collector architecture with `check_connection()`, `collect()`, `get_supported_controls()`
+- [x] **AWS collector** — Config rules + Security Hub (FSBP / CIS)
+- [x] **GitHub collector** — branch protection, CODEOWNERS, visibility
+- [x] **Jira integration** — push gaps as issues + bidirectional status sync
+
+### Rename release (v0.6.0) — SHIPPED
+- [x] ControlBridge → Evidentia across code, PyPI, GitHub, docs
+- [x] v0.5.1 deprecation shims for the six old PyPI names
+
+### Next — Evidence chain of custody (v0.7.0)
+- [ ] SHA-256 digest per evidence item in OSCAL AR exports
+- [ ] Optional GPG signing of the AR document
+- [ ] Tamper-evident audit trail for external-auditor review
+
+### Later — quality signals + more integrations (v0.7.0+)
+- [ ] Risk-statement quality validator (NIST SP 800-30 / IR 8286 scoring + auto-regeneration)
+- [ ] Additional collectors — IAM Access Analyzer, Dependabot, Okta, Azure, GCP
+- [ ] Additional integrations — ServiceNow, Vanta, Drata
+- [ ] Compliance ROI scoring ("close N gaps across M frameworks with one remediation")
+- [ ] Auto-generated TypeScript types from FastAPI OpenAPI schema
+- [ ] Tauri desktop packaging for offline-first users
+
+### Phase 3 — AI Evidence Validation (later)
 - [ ] Evidence-to-control relevance scoring (is this screenshot actually proof of MFA?)
 - [ ] Freshness / staleness detection per framework (SOC 2 = 90 days, NIST = 365)
 - [ ] Multi-modal validation (PDFs, screenshots, log exports, JSON)
 - [ ] Coverage heatmaps
 
-### Phase 4 — Platform
-- [ ] FastAPI REST server (`evidentia serve`)
+### Platform — network deployment (later)
+- [ ] Multi-user auth / RBAC for network deployments (localhost-only today)
 - [ ] Multi-tenant database backend (PostgreSQL)
-- [ ] Web UI for non-technical reviewers
-- [ ] Audit trail with cryptographic evidence hashes
 - [ ] Cost analytics (LLM spend per control / per framework)
 
 ### Phase 5 — Ecosystem
@@ -504,7 +543,7 @@ Evidentia is a **uv workspace monorepo** of five composable Python packages:
 - [ ] Terraform provider for compliance-as-code
 
 See [`Evidentia-Architecture-and-Implementation-Plan.md`](Evidentia-Architecture-and-Implementation-Plan.md)
-for the full canonical plan (312 KB, ~8200 lines) including all code sketches, data
+for the full canonical plan (~318 KB) including all code sketches, data
 flows, and technology rationales.
 
 ---
@@ -517,17 +556,30 @@ flows, and technology rationales.
 Evidentia/
 ├── packages/
 │   ├── evidentia-core/         # Pydantic models, catalogs, gap analyzer
-│   ├── evidentia-ai/           # LiteLLM client, risk generator
-│   ├── evidentia-collectors/   # (Phase 2)
-│   ├── evidentia-integrations/ # (Phase 2)
-│   └── evidentia/              # CLI + API meta-package
+│   ├── evidentia-ai/           # LiteLLM client, risk generator, explain
+│   ├── evidentia-collectors/   # AWS (Config + Security Hub), GitHub
+│   ├── evidentia-integrations/ # Jira (push + sync)
+│   ├── evidentia-api/          # FastAPI REST server + bundled SPA
+│   ├── evidentia/              # CLI meta-package (Typer entry points)
+│   ├── evidentia-ui/           # Vite + React + shadcn/ui frontend
+│   └── shim-controlbridge*/    # v0.5.1 deprecation shims (6 packages)
 ├── tests/
-│   ├── fixtures/                   # Sample inventories for tests
-│   └── unit/                       # Unit + end-to-end tests
+│   ├── fixtures/                   # Sample inventories + recorded fixtures
+│   ├── unit/                       # Unit tests (per-package subtrees)
+│   └── integration/                # CLI + examples smoke tests
 ├── examples/
-│   └── meridian-fintech/           # Realistic walkthrough sample
+│   ├── meridian-fintech/           # Realistic fintech walkthrough
+│   ├── acme-healthtech/            # HIPAA-focused scenario
+│   └── northstar-systems/          # DoD / CMMC scenario
+├── docs/
+│   ├── ROADMAP.md                  # Version-level plan
+│   ├── air-gapped.md               # `--offline` mode guide
+│   ├── architecture/               # Deep-dive docs
+│   ├── github-action/              # Reusable action docs
+│   └── gui/                        # Web UI guide
 ├── .github/
-│   ├── workflows/test.yml          # CI: pytest matrix + ruff
+│   ├── workflows/test.yml          # CI: pytest matrix + ruff + mypy
+│   ├── workflows/release.yml       # Auto-release on main-branch deploys
 │   └── ISSUE_TEMPLATE/             # Bug report / feature request
 └── pyproject.toml                  # uv workspace root
 ```
@@ -557,13 +609,16 @@ uv run pytest tests/unit/test_gap_analyzer/   # One subpackage
 
 ## Contributing
 
-Phase 1 is complete and the architecture is stable. High-value contribution
-areas:
+Phases 1, 1.5, 2 (Jira + AWS + GitHub), and Accessible GRC (v0.4.x web UI
++ air-gap mode) are shipped. High-value contribution areas:
 
-- **Production OSCAL catalogs** — drop-in JSON files from upstream sources
 - **Additional crosswalks** — especially ISO 27001 ↔ NIST 800-53 and PCI DSS ↔ SOC 2
-- **Phase 2 collectors** — AWS, GitHub, and Okta are the highest priority
-- **Test coverage** — particularly edge cases in CSV header matching and OSCAL parsing
+- **Queued collectors** — IAM Access Analyzer, Dependabot, Okta, Azure, GCP
+- **Queued integrations** — ServiceNow, Vanta, Drata
+- **Evidence chain of custody (v0.7.0)** — SHA-256 digests + GPG signing of OSCAL AR exports
+- **Risk-statement quality validation** — NIST SP 800-30 / IR 8286 scoring of AI output
+- **Production OSCAL catalogs** — drop-in JSON files from upstream sources
+- **Test coverage** — edge cases in CSV header matching, OSCAL parsing, and air-gap guard
 
 ---
 

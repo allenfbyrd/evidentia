@@ -1,0 +1,242 @@
+"""Evidence chain-of-custody verifier for OSCAL AR documents (v0.7.0).
+
+Orchestrates the two integrity checks applied to a signed OSCAL
+Assessment Results export:
+
+1. **Digest check.** Every embedded evidence resource in
+   ``back-matter.resources[]`` carries a ``hashes[]`` entry
+   (OSCAL-standard) computed by :mod:`evidentia_core.oscal.digest`.
+   :func:`verify_digests` re-hashes the embedded base64 content and
+   compares.
+
+2. **Signature check.** If a detached GPG signature (``.asc``) exists
+   alongside the AR JSON, :func:`verify_signature` runs
+   ``gpg --verify`` via :mod:`evidentia_core.oscal.signing`.
+
+A "clean" AR passes both. A "tampered" AR fails the digest check
+(someone rewrote an embedded finding). A "forged" AR passes digests
+but fails the signature check (someone regenerated the export on a
+different machine). A "replayed" AR passes everything but is stale
+— freshness is the operator's responsibility, not this module's.
+"""
+
+from __future__ import annotations
+
+import base64
+import json
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from evidentia_core.oscal.digest import digest_bytes, parse_digest
+
+
+@dataclass
+class DigestCheck:
+    """Per-resource outcome of the digest phase."""
+
+    resource_uuid: str
+    title: str
+    expected_digest: str
+    actual_digest: str
+    valid: bool
+
+
+@dataclass
+class VerifyReport:
+    """Full verification outcome for an OSCAL AR document.
+
+    ``overall_valid`` is the top-line pass/fail. Every other field is
+    there so a CLI or audit UI can drill into *why* the document failed.
+    """
+
+    ar_path: Path
+    digest_checks: list[DigestCheck] = field(default_factory=list)
+    signature_valid: bool | None = None  # None = not checked
+    signature_signer: str | None = None
+    signature_fingerprint: str | None = None
+    errors: list[str] = field(default_factory=list)
+
+    @property
+    def digests_valid(self) -> bool:
+        """True iff every embedded resource digest matches its content."""
+        return bool(self.digest_checks) and all(
+            check.valid for check in self.digest_checks
+        )
+
+    @property
+    def overall_valid(self) -> bool:
+        """Top-level pass/fail: no errors, digests valid, sig valid if present.
+
+        ``signature_valid is not False`` covers both the valid-True case
+        and the not-checked-None case in one comparison — we only flunk
+        the overall check when a signature was explicitly found and it
+        didn't verify.
+        """
+        if self.errors:
+            return False
+        if not self.digests_valid:
+            return False
+        return self.signature_valid is not False
+
+
+def verify_digests(ar_doc: dict[str, Any]) -> list[DigestCheck]:
+    """Re-hash every embedded evidence resource and compare to stored digests.
+
+    Walks ``back-matter.resources[]``, decodes each resource's ``base64``
+    content, and computes its SHA-256. Returns one :class:`DigestCheck`
+    per resource. A resource without an embedded ``base64`` block is
+    skipped (it might reference an external URL, which is out of scope
+    for v0.7.0 digest verification).
+    """
+    checks: list[DigestCheck] = []
+    back_matter = ar_doc.get("assessment-results", {}).get("back-matter", {})
+    resources = back_matter.get("resources", [])
+
+    for resource in resources:
+        uuid_ = resource.get("uuid", "")
+        title = resource.get("title", "")
+        b64_block = resource.get("base64")
+        if not b64_block or "value" not in b64_block:
+            # External resource or metadata-only — no content to hash.
+            continue
+
+        rlinks = resource.get("rlinks", [])
+        expected_hex = _extract_expected_digest(rlinks)
+        if expected_hex is None:
+            # Resource embeds content but has no hash to verify against.
+            # Flag as invalid — silent pass would defeat the whole point.
+            checks.append(
+                DigestCheck(
+                    resource_uuid=uuid_,
+                    title=title,
+                    expected_digest="",
+                    actual_digest="",
+                    valid=False,
+                )
+            )
+            continue
+
+        try:
+            content = base64.b64decode(b64_block["value"], validate=True)
+        except (ValueError, TypeError):
+            checks.append(
+                DigestCheck(
+                    resource_uuid=uuid_,
+                    title=title,
+                    expected_digest=expected_hex,
+                    actual_digest="<decode-error>",
+                    valid=False,
+                )
+            )
+            continue
+
+        actual_hex = digest_bytes(content)
+        checks.append(
+            DigestCheck(
+                resource_uuid=uuid_,
+                title=title,
+                expected_digest=expected_hex,
+                actual_digest=actual_hex,
+                valid=(actual_hex == expected_hex),
+            )
+        )
+
+    return checks
+
+
+def verify_ar_file(
+    ar_path: str | Path,
+    *,
+    require_signature: bool = False,
+    signature_path: str | Path | None = None,
+    gnupghome: str | Path | None = None,
+) -> VerifyReport:
+    """Verify an OSCAL AR JSON file end-to-end.
+
+    Parameters
+    ----------
+    ar_path:
+        Path to the ``.oscal-ar.json`` (or any ``.json``) OSCAL AR file.
+    require_signature:
+        If True, a missing signature file is a verification failure.
+        If False (default), an unsigned AR passes if digests check out —
+        signature checks are opportunistic.
+    signature_path:
+        Custom signature-file path. Defaults to ``<ar_path>.asc``.
+    gnupghome:
+        Optional ``GNUPGHOME`` override for signature verification. Useful
+        when verifying against a specific keyring (e.g., a CI-scoped key
+        store rather than the operator's default ``~/.gnupg``).
+    """
+    ar_path = Path(ar_path)
+    report = VerifyReport(ar_path=ar_path)
+
+    if not ar_path.is_file():
+        report.errors.append(f"AR file not found: {ar_path}")
+        return report
+
+    try:
+        ar_doc = json.loads(ar_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        report.errors.append(f"Malformed JSON: {e}")
+        return report
+
+    report.digest_checks = verify_digests(ar_doc)
+
+    sig_path = Path(signature_path) if signature_path else ar_path.with_suffix(
+        ar_path.suffix + ".asc"
+    )
+    sig_exists = sig_path.is_file()
+    if require_signature and not sig_exists:
+        report.errors.append(f"Signature required but not found: {sig_path}")
+        report.signature_valid = False
+        return report
+
+    if sig_exists:
+        # Deferred import — callers that don't need signature checks get
+        # loaded without touching the gpg-availability probe.
+        from evidentia_core.oscal.signing import (
+            GPGError,
+        )
+        from evidentia_core.oscal.signing import (
+            verify_file as gpg_verify_file,
+        )
+
+        try:
+            result = gpg_verify_file(
+                ar_path, signature_path=sig_path, gnupghome=gnupghome
+            )
+        except GPGError as e:
+            report.errors.append(f"Signature verification failed: {e}")
+            report.signature_valid = False
+            return report
+
+        report.signature_valid = result.valid
+        report.signature_signer = result.signer_key_id
+        report.signature_fingerprint = result.signer_fingerprint
+
+    return report
+
+
+def _extract_expected_digest(rlinks: list[dict[str, Any]]) -> str | None:
+    """Return the SHA-256 hex digest from the first matching ``rlinks[].hashes[]``.
+
+    OSCAL hashes entries look like ``{"algorithm": "SHA-256", "value": "<hex>"}``.
+    We accept the canonical ``SHA-256`` and also the compact ``sha256``
+    (plus a ``sha256:<hex>`` prop-style value as a fallback for older
+    v0.7.0-beta tooling that may have written the non-standard form).
+    """
+    for rlink in rlinks:
+        for hash_entry in rlink.get("hashes", []):
+            algo = str(hash_entry.get("algorithm", "")).lower().replace("-", "")
+            if algo == "sha256":
+                raw_value = str(hash_entry.get("value", ""))
+                if ":" in raw_value:
+                    try:
+                        _, hex_digest = parse_digest(raw_value)
+                        return hex_digest
+                    except ValueError:
+                        continue
+                return raw_value
+    return None

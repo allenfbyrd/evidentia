@@ -129,3 +129,133 @@ def test_uuid_is_unique_per_call() -> None:
     a = gap_report_to_oscal_ar(report)
     b = gap_report_to_oscal_ar(report)
     assert a["assessment-results"]["uuid"] != b["assessment-results"]["uuid"]
+
+
+# ─── v0.7.0: evidence embedding + integrity ──────────────────────────────
+#
+# These tests cover the new ``findings=`` kwarg. The goal is a
+# tamper-evident chain-of-custody: each SecurityFinding lands as an
+# OSCAL back-matter resource with base64 content + SHA-256 hash, and
+# observations sharing its control IDs cross-reference it.
+
+
+import base64  # noqa: E402  — grouped with v0.7.0 test helpers below
+
+from evidentia_core.models.common import Severity  # noqa: E402
+from evidentia_core.models.finding import SecurityFinding  # noqa: E402
+from evidentia_core.oscal.digest import digest_bytes, parse_digest  # noqa: E402
+
+
+def _make_finding(control_ids: list[str] | None = None) -> SecurityFinding:
+    return SecurityFinding(
+        id="00000000-0000-0000-0000-000000000042",
+        title="MFA not enforced on root",
+        description="Root account missing MFA.",
+        severity=Severity.HIGH,
+        source_system="aws-config",
+        control_ids=control_ids or ["AC-2"],
+    )
+
+
+def test_export_without_findings_has_no_back_matter() -> None:
+    """Back-compat: omitting ``findings`` must not change the pre-v0.7.0 shape."""
+    out = gap_report_to_oscal_ar(_make_report())
+    assert "back-matter" not in out["assessment-results"]
+
+
+def test_export_with_findings_creates_back_matter_resources() -> None:
+    out = gap_report_to_oscal_ar(_make_report(), findings=[_make_finding()])
+    resources = out["assessment-results"]["back-matter"]["resources"]
+    assert len(resources) == 1
+    resource = resources[0]
+    assert resource["uuid"] == "00000000-0000-0000-0000-000000000042"
+    # Standards-track hash + Evidentia-ns prop both present
+    assert resource["rlinks"][0]["hashes"][0]["algorithm"] == "SHA-256"
+    digest_prop = next(
+        p for p in resource["props"] if p["name"] == "evidence-digest"
+    )
+    assert digest_prop["value"].startswith("sha256:")
+
+
+def test_embedded_content_hashes_match_stored_digest() -> None:
+    """Bit-for-bit integrity: base64-decoded payload hashes to the
+    stored value. Verifier reuses this exact computation."""
+    finding = _make_finding()
+    out = gap_report_to_oscal_ar(_make_report(), findings=[finding])
+    resource = out["assessment-results"]["back-matter"]["resources"][0]
+
+    payload = base64.b64decode(resource["base64"]["value"])
+    stored_hex = resource["rlinks"][0]["hashes"][0]["value"]
+    assert digest_bytes(payload) == stored_hex
+
+    # And the Evidentia prop encodes the same digest under sha256: prefix.
+    digest_prop = next(
+        p for p in resource["props"] if p["name"] == "evidence-digest"
+    )
+    _, prop_hex = parse_digest(digest_prop["value"])
+    assert prop_hex == stored_hex
+
+
+def test_observations_crossref_matching_findings() -> None:
+    """A finding whose control_ids intersect a gap's control_id lands as
+    ``relevant-evidence[].href`` on that observation."""
+    finding = _make_finding(control_ids=["AC-2"])  # same as the AC-2 gap
+    out = gap_report_to_oscal_ar(_make_report(), findings=[finding])
+    observations = out["assessment-results"]["results"][0]["observations"]
+
+    ac2_obs = next(
+        o for o in observations if any(
+            p.get("value") == "AC-2" for p in o.get("props", [])
+        )
+    )
+    assert "relevant-evidence" in ac2_obs
+    hrefs = [e["href"] for e in ac2_obs["relevant-evidence"]]
+    assert f"#{finding.id}" in hrefs
+    # Evidence attached → method flips EXAMINE → TEST (automated finding).
+    assert ac2_obs["methods"] == ["TEST"]
+
+
+def test_observations_without_matching_findings_stay_examine() -> None:
+    """Gaps whose control_id has no matching finding keep the default
+    EXAMINE method and no relevant-evidence array."""
+    finding = _make_finding(control_ids=["AC-2"])  # only AC-2, not AU-2
+    out = gap_report_to_oscal_ar(_make_report(), findings=[finding])
+    observations = out["assessment-results"]["results"][0]["observations"]
+
+    au2_obs = next(
+        o for o in observations if any(
+            p.get("value") == "AU-2" for p in o.get("props", [])
+        )
+    )
+    assert au2_obs["methods"] == ["EXAMINE"]
+    assert "relevant-evidence" not in au2_obs
+
+
+def test_finding_spanning_multiple_controls_crossrefs_each() -> None:
+    """A single finding with control_ids=[AC-2, AU-2] becomes relevant
+    evidence on both observations."""
+    finding = _make_finding(control_ids=["AC-2", "AU-2"])
+    out = gap_report_to_oscal_ar(_make_report(), findings=[finding])
+    observations = out["assessment-results"]["results"][0]["observations"]
+
+    for obs in observations:
+        control_id = next(
+            p["value"] for p in obs["props"] if p["name"] == "control-id"
+        )
+        evidence_hrefs = {e["href"] for e in obs.get("relevant-evidence", [])}
+        assert f"#{finding.id}" in evidence_hrefs, (
+            f"Expected finding cross-referenced on {control_id}"
+        )
+
+
+def test_finding_with_no_matching_control_still_lands_in_back_matter() -> None:
+    """The finding still counts as evidence even if no current gap maps
+    to it — it just doesn't get cross-referenced anywhere."""
+    finding = _make_finding(control_ids=["CP-9"])  # not in our gaps
+    out = gap_report_to_oscal_ar(_make_report(), findings=[finding])
+
+    resources = out["assessment-results"]["back-matter"]["resources"]
+    assert len(resources) == 1
+    observations = out["assessment-results"]["results"][0]["observations"]
+    for obs in observations:
+        assert "relevant-evidence" not in obs

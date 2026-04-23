@@ -19,6 +19,7 @@ from evidentia.cli import explain as explain_cmd
 from evidentia.cli import gap as gap_cmd
 from evidentia.cli import init as init_cmd
 from evidentia.cli import integrations as integrations_cmd
+from evidentia.cli import oscal as oscal_cmd
 from evidentia.cli import risk as risk_cmd
 
 app = typer.Typer(
@@ -49,6 +50,11 @@ app.add_typer(
     collect_cmd.app,
     name="collect",
     help="Evidence collectors — AWS, GitHub, etc.",
+)
+app.add_typer(
+    oscal_cmd.app,
+    name="oscal",
+    help="OSCAL integrity + signature tooling (v0.7.0).",
 )
 app.command(name="init", help="Initialize a new Evidentia project.")(init_cmd.init)
 

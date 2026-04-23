@@ -1,6 +1,12 @@
 """Gap analysis report output formatters.
 
 Supports: JSON, CSV, Markdown, OSCAL Assessment Results.
+
+v0.7.0: the ``oscal-ar`` format optionally accepts a list of
+:class:`SecurityFinding` objects (``findings=``) to embed as hashed
+OSCAL resources, and a ``gpg_key_id`` to produce a detached ASCII-armored
+signature alongside the JSON. See :mod:`evidentia_core.oscal.verify`
+for the corresponding integrity checks.
 """
 
 from __future__ import annotations
@@ -9,9 +15,12 @@ import csv
 import json
 from io import StringIO
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from evidentia_core.models.gap import GapAnalysisReport
+
+if TYPE_CHECKING:
+    from evidentia_core.models.finding import SecurityFinding
 
 OutputFormat = Literal["json", "csv", "markdown", "oscal-ar"]
 
@@ -20,8 +29,33 @@ def export_report(
     report: GapAnalysisReport,
     output_path: str | Path,
     format: OutputFormat = "json",
+    *,
+    findings: list[SecurityFinding] | None = None,
+    gpg_key_id: str | None = None,
+    gnupghome: str | Path | None = None,
 ) -> Path:
-    """Export a gap analysis report in the specified format."""
+    """Export a gap analysis report in the specified format.
+
+    Parameters
+    ----------
+    report:
+        The gap analysis to export.
+    output_path:
+        Destination file path.
+    format:
+        One of ``json``, ``csv``, ``markdown``, ``oscal-ar``.
+    findings:
+        Optional :class:`SecurityFinding` list for the ``oscal-ar`` format.
+        Each finding becomes a hashed OSCAL back-matter resource and is
+        cross-referenced from observations that share a control ID.
+        Ignored by non-OSCAL formats.
+    gpg_key_id:
+        Optional GPG key identifier. When supplied alongside ``format="oscal-ar"``,
+        the AR JSON is signed with a detached ASCII-armored signature
+        written to ``<output_path>.asc``. Ignored by non-OSCAL formats.
+    gnupghome:
+        Optional ``GNUPGHOME`` override passed to the GPG subprocess.
+    """
     path = Path(output_path)
 
     if format == "json":
@@ -31,7 +65,13 @@ def export_report(
     if format == "markdown":
         return _export_markdown(report, path)
     if format == "oscal-ar":
-        return _export_oscal_ar(report, path)
+        return _export_oscal_ar(
+            report,
+            path,
+            findings=findings,
+            gpg_key_id=gpg_key_id,
+            gnupghome=gnupghome,
+        )
 
     raise ValueError(f"Unsupported format: {format}")
 
@@ -145,13 +185,33 @@ def _export_markdown(report: GapAnalysisReport, path: Path) -> Path:
     return path
 
 
-def _export_oscal_ar(report: GapAnalysisReport, path: Path) -> Path:
+def _export_oscal_ar(
+    report: GapAnalysisReport,
+    path: Path,
+    *,
+    findings: list[SecurityFinding] | None = None,
+    gpg_key_id: str | None = None,
+    gnupghome: str | Path | None = None,
+) -> Path:
     """Export as OSCAL Assessment Results JSON.
 
     Maps Evidentia gap report to a minimal OSCAL assessment-results structure.
+
+    v0.7.0: when ``findings`` is provided, each is embedded in the AR's
+    ``back-matter.resources[]`` with a SHA-256 digest (see
+    :mod:`evidentia_core.oscal.exporter`). When ``gpg_key_id`` is provided,
+    a detached ASCII-armored signature is written to ``<path>.asc``.
     """
     from evidentia_core.oscal.exporter import gap_report_to_oscal_ar
 
-    oscal_ar = gap_report_to_oscal_ar(report)
+    oscal_ar = gap_report_to_oscal_ar(report, findings=findings)
     path.write_text(json.dumps(oscal_ar, indent=2, default=str), encoding="utf-8")
+
+    if gpg_key_id:
+        # Deferred import — keeps the GPG probe out of the hot path for
+        # callers that don't sign.
+        from evidentia_core.oscal.signing import sign_file
+
+        sign_file(path, key_id=gpg_key_id, gnupghome=gnupghome)
+
     return path

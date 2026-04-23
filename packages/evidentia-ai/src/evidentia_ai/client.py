@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from typing import Any
+from typing import Any, cast
 
 import instructor
 import litellm
@@ -62,7 +62,10 @@ def get_instructor_client() -> instructor.Instructor:
     Uses `instructor.from_litellm` with a guarded completion wrapper so
     air-gapped mode stops cloud LLM calls before they leave the process.
     """
-    return instructor.from_litellm(_guarded_completion)
+    # `instructor.from_litellm` is typed as returning `Any` in recent
+    # Instructor releases; cast so `--strict` mypy accepts the declared
+    # return type. Runtime behaviour is unchanged.
+    return cast(instructor.Instructor, instructor.from_litellm(_guarded_completion))
 
 
 @lru_cache(maxsize=1)
@@ -73,4 +76,4 @@ def get_async_instructor_client() -> instructor.AsyncInstructor:
     calls (e.g. "generate risk statements for top 10 gaps in parallel")
     get the same offline enforcement.
     """
-    return instructor.from_litellm(_guarded_acompletion)
+    return cast(instructor.AsyncInstructor, instructor.from_litellm(_guarded_acompletion))

@@ -1,11 +1,11 @@
 # Evidentia roadmap
 
-**Last updated: v0.4.0-alpha.1 (April 2026).**
+**Last updated: v0.6.0 (April 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
-at the project root. It is scope-locked for v0.4.0 through v0.6.0.
-Beyond v0.6.0 is aspirational — the exact shape will depend on real-world
-usage patterns.
+at the project root. Versions v0.3.0 through v0.6.0 have shipped; v0.7.0
+is the next active scope. Anything beyond v0.7.0 is aspirational — the
+exact shape will depend on real-world usage patterns.
 
 ## v0.3.0 — Compliance-as-code — SHIPPED
 
@@ -146,33 +146,27 @@ Zero extra deps — uses httpx directly rather than pulling in PyGithub.
 CLI: `evidentia collect github --repo owner/repo`.
 REST: `POST /api/collectors/github/collect`.
 
-## v0.5.1 — more Phase 2 collectors + integrations
+## v0.5.1 — deprecation shims — SHIPPED
 
-Queued for the next minor. Same infrastructure, more sources:
+The six old PyPI names (`controlbridge`, `controlbridge-core`,
+`controlbridge-ai`, `controlbridge-api`, `controlbridge-collectors`,
+`controlbridge-integrations`) released at v0.5.1 as transitional shims
+that emit a `DeprecationWarning` on import and forward every attribute
+and submodule to their `evidentia-*` replacements via `sys.modules`
+aliasing. Scheduled for PyPI yank at v0.7.0 (~October 2026).
 
-### `evidentia-collectors[aws]` — IAM Access Analyzer
+## v0.6.0 — Project rename (ControlBridge → Evidentia) — SHIPPED
 
-Active findings from IAM Access Analyzer. Covers AC-3, AC-6, IA-2.
+The v0.5.0 name collided with `controlbridge.ai` — a live commercial
+SOX 302/404 compliance platform. v0.6.0 renamed the project end-to-end:
+PyPI packages (6 names), GitHub repo, CLI entry point, config file
+(`controlbridge.yaml` → `evidentia.yaml`), frontend npm scope, and
+all docs. No functional changes. See `RENAMED.md` at the repo root for
+the full rationale, `CHANGELOG.md § 0.6.0` for the mechanical details,
+and the `standing_rule_github_repo_names.md` memory note for the absolute
+rule protecting the GitHub URL redirect.
 
-### `evidentia-collectors[github]` — Dependabot alerts
-
-Repository-level CVE findings mapped to SI-2. Requires the
-security-events scope on the token.
-
-### `evidentia-collectors[okta]`
-
-MFA enforcement, inactive users, privileged account counts -> AC-2,
-IA-2, IA-5.
-
-### `evidentia-integrations[servicenow]`
-
-Push to `sn_compliance_task` via REST with OAuth 2.0.
-
-### `evidentia-integrations[vanta]` and `[drata]`
-
-Custom test results push into Vanta and Drata via their public APIs.
-
-## v0.6.0 — Evidence chain of custody
+## v0.7.0 — Evidence chain of custody (NEXT)
 
 ### Evidence integrity
 
@@ -181,7 +175,15 @@ evidence item. Optionally GPG-sign the whole AR document with the
 operator's key. Creates a tamper-evident audit trail that survives
 external-auditor scrutiny.
 
-## v0.7.0+ — Quality signals and UI polish
+Originally planned for v0.6.0; displaced by the rename release and
+pushed forward one minor.
+
+### Shim yank
+
+Yank the six `controlbridge-*` v0.5.1 shim wheels from PyPI as part
+of the v0.7.0 cut (coordinated with a `CHANGELOG.md § Yanked` note).
+
+## v0.7.0+ — Quality signals, more integrations, UI polish
 
 ### Risk-statement quality validator
 
@@ -189,6 +191,21 @@ Every AI-generated risk statement gets scored against NIST SP 800-30 /
 IR 8286 criteria. Statements that fail validation are automatically
 regenerated with corrective instructions. Produces audit-survivable
 output that no other open-source tool guarantees.
+
+### Additional collectors + integrations
+
+Same infrastructure as the shipped AWS / GitHub / Jira implementations,
+more sources:
+
+- `evidentia-collectors[aws]` — IAM Access Analyzer (AC-3, AC-6, IA-2)
+- `evidentia-collectors[github]` — Dependabot alerts (SI-2; requires
+  `security-events` scope)
+- `evidentia-collectors[okta]` — MFA enforcement, inactive users,
+  privileged account counts (AC-2, IA-2, IA-5)
+- `evidentia-integrations[servicenow]` — push to `sn_compliance_task`
+  via REST with OAuth 2.0
+- `evidentia-integrations[vanta]` and `[drata]` — custom test results
+  push via their public APIs
 
 ### Compliance ROI scoring
 
@@ -221,16 +238,19 @@ ROI framing in ways they don't respond to "coverage %".
 
 ### PyPI Trusted Publisher (OIDC) migration
 
-v0.4.0 continues using `PYPI_API_TOKEN` for release authentication.
-Before v0.5.0, the project should:
+v0.4.0 – v0.6.0 continue using `PYPI_API_TOKEN` for release authentication.
+Target: migrate before v0.7.0 ships.
 
 1. Configure a Trusted Publisher on PyPI's admin panel pointing at
-   `allenfbyrd/evidentia` / `.github/workflows/release.yml` for
-   each of the 6 packages.
+   `allenfbyrd/evidentia` / `.github/workflows/release.yml` for each of
+   the **12 packages** (6 primary `evidentia-*` + 6 shim `controlbridge-*`
+   names until yank). Forgetting one breaks its release silently while
+   the other 11 succeed — each is a per-package config.
 2. Update `release.yml` to add `permissions: id-token: write` and
    drop the `password: ${{ secrets.PYPI_API_TOKEN }}` input.
-3. Delete the PyPI API token from GitHub repo secrets.
+3. Verify with a test patch release, then delete the `PYPI_API_TOKEN`
+   GitHub repo secret.
 
 Why deferred: switching without step 1 first breaks the release
-pipeline. Step 1 requires PyPI UI clicks that the release workflow
-can't do from code.
+pipeline. Step 1 requires ~2 hours of PyPI UI clicks that the release
+workflow can't do from code.
