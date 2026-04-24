@@ -20,6 +20,15 @@ jobs:
       # v0.7.0: contents: write so the CycloneDX SBOM can be attached
       # to the GitHub Release via softprops/action-gh-release.
       contents: write
+      # v0.7.0: id-token: write enables PyPI Trusted Publisher OIDC
+      # token exchange. The pypa/gh-action-pypi-publish action mints a
+      # short-lived (~15 min) PyPI API token bound to this exact repo +
+      # workflow file + environment, and uses it for the upload. The
+      # legacy long-lived PYPI_API_TOKEN is no longer used. This also
+      # auto-enables PEP 740 attestations: every wheel + sdist is
+      # Sigstore-signed with our OIDC identity and logged to Rekor,
+      # with the attestation uploaded to PyPI alongside the file.
+      id-token: write
 
     steps:
       - name: Checkout
@@ -99,11 +108,21 @@ jobs:
           print(f\"components: {len(sbom.get('components', []))}\")
           "
 
-      - name: Publish to PyPI via API token
+      - name: Publish to PyPI via Trusted Publisher (OIDC)
+        # v0.7.0: migrated from long-lived PYPI_API_TOKEN to PyPI
+        # Trusted Publisher (OIDC). Per-package configuration on PyPI:
+        # https://pypi.org/manage/project/<name>/settings/publishing/
+        # All 6 packages (evidentia, evidentia-core, evidentia-collectors,
+        # evidentia-ai, evidentia-api, evidentia-integrations) must be
+        # registered with the same claims:
+        #   Owner=allenfbyrd, Repository=evidentia,
+        #   Workflow=release.yml, Environment=pypi
+        # `attestations: true` is the action's default since v1.11+
+        # (Nov 2024) when Trusted Publisher mode is detected, so PEP 740
+        # Sigstore attestations are produced automatically.
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: false
           verbose: true
 
