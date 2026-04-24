@@ -23,7 +23,20 @@ dependencies = [
     "python-dateutil>=2.9",
     "thefuzz[speedup]>=0.22",
     "platformdirs>=4.3",
+    # v0.7.0: audit module deps. tenacity drives bounded
+    # exponential-backoff retry with jitter; python-ulid produces
+    # time-sortable 128-bit unique IDs used for event.id and run_id
+    # in the ECS/OpenTelemetry log schema.
+    "tenacity>=9.0",
+    "python-ulid>=3.0",
 ]
+
+[project.optional-dependencies]
+# v0.7.0: Sigstore/Rekor signing for enterprise-grade evidence integrity.
+# Pulls ~30 MB of crypto + cosign deps; only install if you need it.
+# Not compatible with air-gap mode (Sigstore requires network access to
+# Fulcio + Rekor for signing). Air-gap deployments stay on GPG.
+sigstore = ["sigstore>=3.0"]
 
 [project.urls]
 Homepage = "https://github.com/allenfbyrd/evidentia"

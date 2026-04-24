@@ -87,13 +87,34 @@ def _global_options(
             "`evidentia doctor --check-air-gap` to validate posture."
         ),
     ),
+    json_logs: bool = typer.Option(
+        False,
+        "--json-logs",
+        help=(
+            "v0.7.0: emit logs as ECS 8.11-compliant JSON (one record "
+            "per line) instead of human-readable Rich console output. "
+            "Drop-in ingestable by Splunk / Elastic / Datadog / Sumo "
+            "Logic / Microsoft Sentinel. Use in SIEM-ingest pipelines "
+            "and CI systems that parse structured logs."
+        ),
+    ),
 ) -> None:
     """Global options applied to all commands."""
     level = logging.DEBUG if verbose else (logging.ERROR if quiet else logging.INFO)
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    )
+
+    if json_logs:
+        # v0.7.0: switch the ``evidentia`` logger hierarchy to ECS JSON
+        # output BEFORE basicConfig so the caller's JSON-consumer pipeline
+        # sees structured events from the first log line onward.
+        from evidentia_core.audit import enable_json_logs as _enable_json_logs
+
+        _enable_json_logs()
+        logging.getLogger("evidentia").setLevel(level)
+    else:
+        logging.basicConfig(
+            level=level,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        )
 
     # v0.4.0: flip the process-wide air-gap guard. Every LLM call and
     # every URL-based catalog import consults the module-level flag.
@@ -116,7 +137,7 @@ def _global_options(
 
     explicit_path = Path(config.name) if config is not None else None
     cfg = load_config(explicit_path)
-    ctx.obj = {"config": cfg, "offline": offline}
+    ctx.obj = {"config": cfg, "offline": offline, "json_logs": json_logs}
     if cfg.source_path is not None:
         logging.getLogger("evidentia.config").debug(
             "Loaded config from %s", cfg.source_path
