@@ -24,6 +24,13 @@ curated mapping in :mod:`.mapping`. Unmapped sources fall back to
 finding's ``raw_data`` for per-finding control attribution.
 """
 
+from evidentia_collectors.aws.access_analyzer import (
+    BLIND_SPOTS as ACCESS_ANALYZER_BLIND_SPOTS,
+)
+from evidentia_collectors.aws.access_analyzer import (
+    AccessAnalyzerCollector,
+    AccessAnalyzerCollectorError,
+)
 from evidentia_collectors.aws.collector import (
     AwsCollector,
     AwsCollectorError,
@@ -36,6 +43,9 @@ from evidentia_collectors.aws.mapping import (
 )
 
 __all__ = [
+    "ACCESS_ANALYZER_BLIND_SPOTS",
+    "AccessAnalyzerCollector",
+    "AccessAnalyzerCollectorError",
     "AwsCollector",
     "AwsCollectorError",
     "map_config_rule_to_control_mappings",
