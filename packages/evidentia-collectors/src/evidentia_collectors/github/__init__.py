@@ -33,8 +33,18 @@ from evidentia_collectors.github.collector import (
     GitHubCollector,
     GitHubCollectorError,
 )
+from evidentia_collectors.github.dependabot import (
+    DEFAULT_DISMISSAL_POLICY,
+    DependabotCollector,
+    DependabotCollectorError,
+    DismissalVerdict,
+)
 
 __all__ = [
+    "DEFAULT_DISMISSAL_POLICY",
+    "DependabotCollector",
+    "DependabotCollectorError",
+    "DismissalVerdict",
     "GitHubApiError",
     "GitHubClient",
     "GitHubCollector",

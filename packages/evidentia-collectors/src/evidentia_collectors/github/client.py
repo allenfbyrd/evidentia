@@ -122,6 +122,46 @@ class GitHubClient:
             body_excerpt=excerpt,
         )
 
+    def request(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        expected_status: set[int] | None = None,
+    ) -> Any:
+        """Issue a request; return the decoded JSON body as-is.
+
+        Added in v0.7.0 for endpoints that return JSON arrays (e.g.,
+        GitHub's Dependabot alerts endpoint at
+        ``/repos/{owner}/{repo}/dependabot/alerts``). The pre-existing
+        :meth:`_request` only handled dict responses; this method
+        returns whatever httpx decodes (list or dict) and honors
+        ``params`` for query-string pagination.
+        """
+        try:
+            response = self._http.request(method, path, params=params)
+        except httpx.HTTPError as e:
+            raise GitHubApiError(
+                f"GitHub request failed: {e}", status_code=0
+            ) from e
+
+        if 200 <= response.status_code < 300:
+            try:
+                return response.json()
+            except ValueError:
+                return None
+
+        if expected_status and response.status_code in expected_status:
+            return None
+
+        excerpt = response.text[:200]
+        raise GitHubApiError(
+            f"{method.upper()} {path}",
+            status_code=response.status_code,
+            body_excerpt=excerpt,
+        )
+
     # ── High-level operations ───────────────────────────────────────
 
     def get_repo(self, owner: str, repo: str) -> dict[str, Any]:
