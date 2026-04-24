@@ -1,4 +1,17 @@
-"""Generate six transitional shim packages for the v0.6.0 ControlBridge -> Evidentia rename.
+"""[DEPRECATED 2026-04-24] Historical reference: shim package generator.
+
+The 6 controlbridge-* shim workspace members were removed at v0.7.0 per the
+public contract documented in README.md, RENAMED.md, and CHANGELOG.md. The
+v0.5.1 shim wheels remain on PyPI for installed users (manually yanked at
+the v0.7.0 ship).
+
+This script is preserved for historical reference only and no longer
+needs to be run. Do not use it to regenerate the shim packages — the
+contract has been satisfied.
+
+----- Original docstring (v0.6.0) -----
+
+Generate six transitional shim packages for the v0.6.0 ControlBridge -> Evidentia rename.
 
 Each shim is a v0.5.1 patch release of the old `controlbridge-*` PyPI name
 that depends on its `evidentia-*` replacement and emits a DeprecationWarning

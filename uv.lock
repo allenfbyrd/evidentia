@@ -9,12 +9,6 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "controlbridge",
-    "controlbridge-ai",
-    "controlbridge-api",
-    "controlbridge-collectors",
-    "controlbridge-core",
-    "controlbridge-integrations",
     "evidentia",
     "evidentia-ai",
     "evidentia-api",
@@ -488,72 +482,6 @@ wheels = [
 ]
 
 [[package]]
-name = "controlbridge"
-version = "0.5.1"
-source = { editable = "packages/shim-controlbridge" }
-dependencies = [
-    { name = "evidentia" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "evidentia", editable = "packages/evidentia" }]
-
-[[package]]
-name = "controlbridge-ai"
-version = "0.5.1"
-source = { editable = "packages/shim-controlbridge-ai" }
-dependencies = [
-    { name = "evidentia-ai" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "evidentia-ai", editable = "packages/evidentia-ai" }]
-
-[[package]]
-name = "controlbridge-api"
-version = "0.5.1"
-source = { editable = "packages/shim-controlbridge-api" }
-dependencies = [
-    { name = "evidentia-api" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "evidentia-api", editable = "packages/evidentia-api" }]
-
-[[package]]
-name = "controlbridge-collectors"
-version = "0.5.1"
-source = { editable = "packages/shim-controlbridge-collectors" }
-dependencies = [
-    { name = "evidentia-collectors" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "evidentia-collectors", editable = "packages/evidentia-collectors" }]
-
-[[package]]
-name = "controlbridge-core"
-version = "0.5.1"
-source = { editable = "packages/shim-controlbridge-core" }
-dependencies = [
-    { name = "evidentia-core" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "evidentia-core", editable = "packages/evidentia-core" }]
-
-[[package]]
-name = "controlbridge-integrations"
-version = "0.5.1"
-source = { editable = "packages/shim-controlbridge-integrations" }
-dependencies = [
-    { name = "evidentia-integrations" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "evidentia-integrations", editable = "packages/evidentia-integrations" }]
-
-[[package]]
 name = "coverage"
 version = "7.13.5"
 source = { registry = "https://pypi.org/simple" }
@@ -755,7 +683,7 @@ wheels = [
 
 [[package]]
 name = "evidentia"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "packages/evidentia" }
 dependencies = [
     { name = "evidentia-ai" },
@@ -785,7 +713,7 @@ provides-extras = ["gui"]
 
 [[package]]
 name = "evidentia-ai"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "packages/evidentia-ai" }
 dependencies = [
     { name = "evidentia-core" },
@@ -804,7 +732,7 @@ requires-dist = [
 
 [[package]]
 name = "evidentia-api"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "packages/evidentia-api" }
 dependencies = [
     { name = "evidentia-ai" },
@@ -827,7 +755,7 @@ requires-dist = [
 
 [[package]]
 name = "evidentia-collectors"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "packages/evidentia-collectors" }
 dependencies = [
     { name = "evidentia-core" },
@@ -881,7 +809,7 @@ provides-extras = ["aws", "azure", "gcp", "github", "okta", "all"]
 
 [[package]]
 name = "evidentia-core"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "packages/evidentia-core" }
 dependencies = [
     { name = "platformdirs" },
@@ -915,7 +843,7 @@ provides-extras = ["sigstore"]
 
 [[package]]
 name = "evidentia-integrations"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "packages/evidentia-integrations" }
 dependencies = [
     { name = "evidentia-core" },
@@ -947,7 +875,7 @@ provides-extras = ["jira", "servicenow", "all"]
 
 [[package]]
 name = "evidentia-workspace"
-version = "0.6.0"
+version = "0.7.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]

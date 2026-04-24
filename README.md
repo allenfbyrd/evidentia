@@ -1,16 +1,5 @@
 # Evidentia
 
-> **Renamed from ControlBridge (April 2026).** This project was originally
-> published as `github.com/allenfbyrd/controlbridge` and was renamed to
-> avoid confusion with an unrelated commercial product at controlbridge.ai.
-> All old URLs redirect here automatically. The six previous PyPI packages
-> (`controlbridge`, `controlbridge-core`, `controlbridge-ai`,
-> `controlbridge-api`, `controlbridge-collectors`, `controlbridge-integrations`)
-> remain installable as v0.5.1 deprecation shims that forward every import
-> to the new `evidentia-*` names. Shims will be removed in v0.7.0.
-> See [CHANGELOG.md § 0.6.0](CHANGELOG.md) and [RENAMED.md](RENAMED.md)
-> for the full rationale.
-
 > **Bridge the gap between your controls and your frameworks.**
 
 **Evidentia** is an open-source, Python-first Governance, Risk, and Compliance
@@ -97,12 +86,18 @@ Evidentia is built on four principles:
 
 ## Current status: 82 frameworks bundled, full suite passing
 
-**v0.6.0 (April 2026)** is the **rename release**: `ControlBridge` became
-`Evidentia` to resolve a name collision with an unrelated commercial GRC
-product. No functional changes — every feature from v0.5.0 works identically
-under the new name. The six old PyPI packages remain installable as v0.5.1
-deprecation shims (scheduled for yank in v0.7.0). See
-[RENAMED.md](RENAMED.md) for the full rationale and migration steps.
+**v0.7.0 (April 2026)** is the **enterprise-grade release**, closing all 10
+BLOCKER items in [docs/enterprise-grade.md](docs/enterprise-grade.md):
+Sigstore/Rekor signing, CycloneDX SBOM on every release, PyPI Trusted
+Publishers (OIDC) with PEP 740 attestations, OSCAL Assessment Results
+schema conformance via [trestle](https://github.com/oscal-compass/compliance-trestle),
+AWS IAM Access Analyzer + GitHub Dependabot collectors, ECS-8.11 / NIST-AU-3 /
+OpenTelemetry structured logs, and a consolidated GitHub Action at
+`.github/actions/gap-analysis/`.
+
+The six v0.5.1 `controlbridge-*` deprecation shims are removed at this
+release per the public migration contract — historical context in
+[RENAMED.md](RENAMED.md) and [CHANGELOG.md](CHANGELOG.md).
 
 **v0.5.0 (April 2026)** is the **"Phase 2 integrations"** release.
 Evidentia finally ships the long-promised integrations and
@@ -561,8 +556,7 @@ Evidentia/
 │   ├── evidentia-integrations/ # Jira (push + sync)
 │   ├── evidentia-api/          # FastAPI REST server + bundled SPA
 │   ├── evidentia/              # CLI meta-package (Typer entry points)
-│   ├── evidentia-ui/           # Vite + React + shadcn/ui frontend
-│   └── shim-controlbridge*/    # v0.5.1 deprecation shims (6 packages)
+│   └── evidentia-ui/           # Vite + React + shadcn/ui frontend
 ├── tests/
 │   ├── fixtures/                   # Sample inventories + recorded fixtures
 │   ├── unit/                       # Unit tests (per-package subtrees)

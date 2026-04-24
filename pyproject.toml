@@ -1,6 +1,6 @@
 [project]
 name = "evidentia-workspace"
-version = "0.6.0"
+version = "0.7.0"
 requires-python = ">=3.12"
 description = "Workspace root for the Evidentia GRC tool monorepo"
 
@@ -12,17 +12,11 @@ members = [
     "packages/evidentia-integrations",
     "packages/evidentia",
     "packages/evidentia-api",
-    # v0.6.0 rename shims. Each `shim-controlbridge*` workspace member
-    # publishes the OLD PyPI name at v0.5.1 as a thin re-export forwarder
-    # to its `evidentia-*` replacement. Dev-installed alongside the
-    # primary packages so their DeprecationWarning + submodule-aliasing
-    # behavior is exercised by the test suite. Yanked from PyPI at v0.7.0.
-    "packages/shim-controlbridge",
-    "packages/shim-controlbridge-core",
-    "packages/shim-controlbridge-ai",
-    "packages/shim-controlbridge-api",
-    "packages/shim-controlbridge-collectors",
-    "packages/shim-controlbridge-integrations",
+    # v0.7.0: shim-controlbridge-* workspace members removed per the
+    # public contract documented in README.md, RENAMED.md, and CHANGELOG.md.
+    # The v0.5.1 shim wheels remain on PyPI for installed users (until
+    # manually yanked); future builds no longer produce shim wheels.
+    # See `scripts/_create_shim_packages.py` for the historical generator.
 ]
 # Note: packages/evidentia-ui is a Vite+React project, NOT a Python
 # workspace member. It builds via `npm run build` in its own directory;
