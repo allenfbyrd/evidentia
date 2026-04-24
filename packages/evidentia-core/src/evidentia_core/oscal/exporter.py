@@ -106,9 +106,7 @@ def gap_report_to_oscal_ar(
             back_matter_resources.append(_blind_spot_to_oscal_resource(bs))
 
     findings_output = [_gap_to_finding(gap) for gap in report.gaps]
-    observations = [
-        _gap_to_observation(gap, resource_by_control) for gap in report.gaps
-    ]
+    observations = [_gap_to_observation(gap, resource_by_control) for gap in report.gaps]
 
     ar_doc: dict[str, Any] = {
         "assessment-results": {
@@ -156,9 +154,7 @@ def gap_report_to_oscal_ar(
                     "reviewed-controls": {
                         "control-selections": [
                             {
-                                "description": (
-                                    f"Controls from {fw}"
-                                ),
+                                "description": (f"Controls from {fw}"),
                                 "include-all": {},
                             }
                             for fw in report.frameworks_analyzed
@@ -229,11 +225,7 @@ def _finding_to_oscal_resource(finding: SecurityFinding) -> dict[str, Any]:
     # reviewable diffs. Derive from finding.id (already a UUID v4).
     resource_uuid = finding.id
 
-    severity_value = (
-        finding.severity.value
-        if hasattr(finding.severity, "value")
-        else str(finding.severity)
-    )
+    severity_value = finding.severity.value if hasattr(finding.severity, "value") else str(finding.severity)
 
     return {
         "uuid": resource_uuid,
@@ -288,16 +280,12 @@ def _finding_canonical_json(finding: SecurityFinding) -> bytes:
     function, so both sides of the hash agree bit-for-bit.
     """
     payload = finding.model_dump(mode="json")
-    return json.dumps(
-        payload, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
+    return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
 def _gap_to_finding(gap: ControlGap) -> dict[str, Any]:
     """Map a ControlGap to an OSCAL finding."""
-    severity_value = (
-        gap.gap_severity.value if hasattr(gap.gap_severity, "value") else gap.gap_severity
-    )
+    severity_value = gap.gap_severity.value if hasattr(gap.gap_severity, "value") else gap.gap_severity
     return {
         "uuid": gap.id,
         "title": f"{gap.control_id}: {gap.control_title}",

@@ -14,15 +14,20 @@ Run before every commit:
 
 ```bash
 uv sync --all-extras --all-packages   # incl. sigstore + trestle dev-deps
-uv run --no-sync ruff format --check
-uv run --no-sync ruff check
-uv run --no-sync mypy packages/evidentia-core packages/evidentia-collectors packages/evidentia-api packages/evidentia-ai packages/evidentia-integrations packages/evidentia
+uv run --no-sync ruff check                   # lint — ENFORCED in CI
+uv run --no-sync python -m mypy packages/evidentia-core packages/evidentia-collectors packages/evidentia-api packages/evidentia-ai packages/evidentia-integrations packages/evidentia
 uv run --no-sync python -m pytest -q --no-header
 ```
 
-Expected: ruff + mypy clean, ~849 tests passing (8 skipped, 16
-benign Tier-C placeholder catalog warnings) in ~12 seconds on a warm
-checkout.
+Expected: ruff lint clean, mypy clean, 849 tests passing (8 skipped,
+16 benign Tier-C placeholder catalog warnings) in ~12 seconds on a
+warm checkout.
+
+`ruff format` is recommended on new code but not enforced in CI as
+of v0.7.0 — much of the pre-existing codebase predates the current
+ruff format config. Format-the-world is tracked as a v0.8.0 cleanup
+task. For new code, run `uv run --no-sync ruff format <files>` before
+committing.
 
 ## Pre-release smoke test sequence
 
@@ -32,10 +37,12 @@ Run after the last commit before tagging. This is the operationalized
 ### Pass 1 — automated checks
 
 ```bash
-# Format / lint / type-check
-uv run --no-sync ruff format --check
+# Lint / type-check
 uv run --no-sync ruff check
-uv run --no-sync mypy packages/evidentia-core packages/evidentia-collectors packages/evidentia-api packages/evidentia-ai packages/evidentia-integrations packages/evidentia
+uv run --no-sync python -m mypy packages/evidentia-core packages/evidentia-collectors packages/evidentia-api packages/evidentia-ai packages/evidentia-integrations packages/evidentia
+
+# Format new files only (not the whole repo — pre-existing format debt)
+uv run --no-sync ruff format <only-files-touched-this-release>
 
 # Tests with coverage
 uv run --no-sync python -m pytest -q --cov=packages

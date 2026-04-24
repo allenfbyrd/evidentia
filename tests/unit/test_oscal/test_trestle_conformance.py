@@ -135,9 +135,7 @@ def test_blind_spots_in_back_matter_accepted() -> None:
             "description": "Excluded from unused-access analysis.",
         },
     ]
-    ar_dict = gap_report_to_oscal_ar(
-        _make_minimal_report(), blind_spots=sample_blind_spots
-    )
+    ar_dict = gap_report_to_oscal_ar(_make_minimal_report(), blind_spots=sample_blind_spots)
 
     parsed = trestle_ar.Model.parse_obj(ar_dict)
     bm = parsed.assessment_results.back_matter
