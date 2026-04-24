@@ -135,7 +135,12 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          skip-existing: false
+          # skip-existing: true so re-runs after partial publishes
+          # don't choke on already-uploaded wheels (PyPI rejects
+          # re-uploads of the same version). With this flag, twine
+          # gracefully skips files PyPI already has and continues
+          # with the rest. Auth/OIDC errors still fail loud.
+          skip-existing: true
           verbose: true
 
       # Attach the SBOM to the GitHub Release alongside the wheels so
