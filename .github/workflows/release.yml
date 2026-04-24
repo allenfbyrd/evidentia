@@ -90,13 +90,20 @@ jobs:
       # release). cyclonedx-bom pins versions from the uv.lock so the
       # SBOM matches the actually-published wheels.
       - name: Generate CycloneDX SBOM
+        # cyclonedx-py environment CLI surface (cyclonedx-bom 6.x):
+        #   -o <file>            output path (NOT --outfile)
+        #   --of <format>        output format (or --output-format)
+        #   --sv <version>       spec version (NOT --schema-version)
+        #   --pyproject <file>   root component pyproject.toml
+        #   <python>             positional: path to Python INTERPRETER
+        #                        (sys.executable, NOT sys.prefix/.venv dir)
         run: |
           uvx --from cyclonedx-bom cyclonedx-py environment \
-            --outfile dist/evidentia-sbom.cdx.json \
-            --output-format JSON \
-            --schema-version 1.6 \
+            -o dist/evidentia-sbom.cdx.json \
+            --of JSON \
+            --sv 1.6 \
             --pyproject packages/evidentia-core/pyproject.toml \
-            "$(uv run python -c 'import sys; print(sys.prefix)')"
+            "$(uv run python -c 'import sys; print(sys.executable)')"
           echo "SBOM generated:"
           ls -la dist/evidentia-sbom.cdx.json
           python -c "
