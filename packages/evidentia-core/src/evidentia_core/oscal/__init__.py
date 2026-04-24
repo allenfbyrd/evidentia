@@ -47,6 +47,21 @@ from evidentia_core.oscal.signing import (
 from evidentia_core.oscal.signing import (
     verify_file as gpg_verify_file,
 )
+from evidentia_core.oscal.sigstore import (
+    SigstoreAirGapError,
+    SigstoreError,
+    SigstoreNotAvailableError,
+    SigstoreSigningError,
+    SigstoreVerifyError,
+    SigstoreVerifyResult,
+    sigstore_available,
+)
+from evidentia_core.oscal.sigstore import (
+    sign_file as sigstore_sign_file,
+)
+from evidentia_core.oscal.sigstore import (
+    verify_file as sigstore_verify_file,
+)
 from evidentia_core.oscal.verify import (
     DigestCheck,
     VerifyReport,
@@ -63,6 +78,12 @@ __all__ = [
     "GPGSigningError",
     "GPGVerifyError",
     "ProfileResolutionError",
+    "SigstoreAirGapError",
+    "SigstoreError",
+    "SigstoreNotAvailableError",
+    "SigstoreSigningError",
+    "SigstoreVerifyError",
+    "SigstoreVerifyResult",
     "VerifyReport",
     "VerifyResult",
     "catalog_to_oscal_json",
@@ -77,6 +98,9 @@ __all__ = [
     "parse_digest",
     "resolve_profile",
     "sign_file",
+    "sigstore_available",
+    "sigstore_sign_file",
+    "sigstore_verify_file",
     "verify_ar_file",
     "verify_digest_bytes",
     "verify_digest_file",

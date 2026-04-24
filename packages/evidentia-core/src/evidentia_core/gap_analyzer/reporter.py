@@ -33,6 +33,8 @@ def export_report(
     findings: list[SecurityFinding] | None = None,
     gpg_key_id: str | None = None,
     gnupghome: str | Path | None = None,
+    sign_with_sigstore: bool = False,
+    sigstore_identity_token: str | None = None,
 ) -> Path:
     """Export a gap analysis report in the specified format.
 
@@ -71,6 +73,8 @@ def export_report(
             findings=findings,
             gpg_key_id=gpg_key_id,
             gnupghome=gnupghome,
+            sign_with_sigstore=sign_with_sigstore,
+            sigstore_identity_token=sigstore_identity_token,
         )
 
     raise ValueError(f"Unsupported format: {format}")
@@ -192,15 +196,19 @@ def _export_oscal_ar(
     findings: list[SecurityFinding] | None = None,
     gpg_key_id: str | None = None,
     gnupghome: str | Path | None = None,
+    sign_with_sigstore: bool = False,
+    sigstore_identity_token: str | None = None,
 ) -> Path:
     """Export as OSCAL Assessment Results JSON.
 
     Maps Evidentia gap report to a minimal OSCAL assessment-results structure.
 
     v0.7.0: when ``findings`` is provided, each is embedded in the AR's
-    ``back-matter.resources[]`` with a SHA-256 digest (see
-    :mod:`evidentia_core.oscal.exporter`). When ``gpg_key_id`` is provided,
-    a detached ASCII-armored signature is written to ``<path>.asc``.
+    ``back-matter.resources[]`` with a SHA-256 digest. When
+    ``gpg_key_id`` is provided, a detached ASCII-armored signature is
+    written to ``<path>.asc``. When ``sign_with_sigstore=True``, a
+    Sigstore bundle is also written to ``<path>.sigstore.json``. GPG
+    and Sigstore are independent — both can coexist for defence-in-depth.
     """
     from evidentia_core.oscal.exporter import gap_report_to_oscal_ar
 
@@ -208,10 +216,13 @@ def _export_oscal_ar(
     path.write_text(json.dumps(oscal_ar, indent=2, default=str), encoding="utf-8")
 
     if gpg_key_id:
-        # Deferred import — keeps the GPG probe out of the hot path for
-        # callers that don't sign.
         from evidentia_core.oscal.signing import sign_file
 
         sign_file(path, key_id=gpg_key_id, gnupghome=gnupghome)
+
+    if sign_with_sigstore:
+        from evidentia_core.oscal.sigstore import sign_file as sigstore_sign
+
+        sigstore_sign(path, identity_token=sigstore_identity_token)
 
     return path
