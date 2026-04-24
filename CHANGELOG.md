@@ -122,6 +122,175 @@ checked) unless `require_signature=True`.
   around `instructor.from_litellm()` so the declared `Instructor` /
   `AsyncInstructor` return types propagate under strict type-checking.
 
+### Added — Enterprise-grade audit + compliance infrastructure (v0.7.0 scope)
+
+Second v0.7.0 batch, targeting the enterprise-grade checklist (Big-4
+audit firm, FedRAMP 3PAO adoption bar).
+
+#### Audit module (`evidentia_core.audit`)
+
+Four new modules power the enterprise-grade audit trail:
+
+- `events.py` — curated `EventAction` catalog: 30 action values across
+  collect / auth / config / sign / verify / manifest namespaces. Plus
+  ECS enums (`EventCategory`, `EventType`, `EventOutcome`).
+- `logger.py` — ECS 8.11 JSON logger with NIST SP 800-53 Rev 5 AU-3
+  content coverage (what / when / where / source / outcome / identity)
+  + OpenTelemetry trace correlation (`trace.id` = run_id). Secret
+  scrubber for AWS access keys, GitHub tokens, JWTs, generic
+  password/token patterns. Third-party log record fallback. Rich
+  console (default) and JSON (opt-in) output modes.
+- `retry.py` — `@with_retry` decorator built on tenacity with
+  exponential backoff + jitter. Emits `evidentia.collect.retry`
+  events on every attempt. Zero-backoff under `EVIDENTIA_TEST_MODE=1`.
+- `provenance.py` — `CollectionContext` (per-finding provenance),
+  `CollectionManifest` (per-run completeness attestation),
+  `PaginationContext`, `CoverageCount`, `new_run_id()` (ULID).
+
+CLI: global `--json-logs` flag switches all logging to ECS JSON for
+SIEM ingestion. Works with Splunk / Elastic / Datadog / Sumo Logic /
+Microsoft Sentinel without custom parsers.
+
+New deps: `tenacity>=9.0`, `python-ulid>=3.0`. Both small.
+
+#### OLIR (NIST relationship typing) on control mappings
+
+`evidentia_core.models.common.OLIRRelationship` — all six values from
+NIST OLIR Derived Relationship Mapping vocabulary (`equivalent-to`,
+`equal-to`, `subset-of`, `superset-of`, `intersects-with`, `related-to`).
+
+`ControlMapping` extended with `relationship` (default `RELATED_TO`)
+and `justification` (default empty, max 1024 chars). Pre-v0.7.0
+callers that construct `ControlMapping(framework, control_id)` continue
+to work without changes.
+
+`aws/mapping.py` — 27 Config rules and 25 Security Hub controls
+classified with authoritative per-entry OLIR relationships + FSBP/CIS
+citations. Security Hub entries use `SUBSET_OF` (per AWS's own
+"Related requirements" field as the authoritative subset claim);
+Config rules use a mix of `SUBSET_OF` and `INTERSECTS_WITH` per rule
+semantics. Added `map_config_rule_to_control_mappings` and
+`map_security_hub_control_to_control_mappings` functions.
+
+#### SecurityFinding schema migration
+
+`evidentia_core.models.finding.SecurityFinding`:
+
+- `control_mappings: list[ControlMapping]` replaces
+  `control_ids: list[str]`. A `@model_validator` accepts the old
+  `control_ids=[...]` kwarg at construction and auto-converts to
+  `RELATED_TO`-typed ControlMappings with "Pre-v0.7.0 mapping"
+  justification. A `.control_ids` property preserves read compat.
+- New `collection_context: CollectionContext` field; defaults to a
+  synthetic `"legacy-pre-v0.7.0"` placeholder so pre-v0.7.0 callers
+  keep working. Upgraded collectors pass real context.
+
+`models/migrations/v0_6_to_v0_7.py` — read-only JSON migration helper
+that detects legacy finding shapes and synthesizes v0.7.0 fields,
+emitting a WARN-level log event for audit visibility.
+
+#### Sigstore / Rekor signing
+
+New `evidentia_core.oscal.sigstore` (opt-in via
+`pip install 'evidentia-core[sigstore]'`):
+
+- Keyless signing via Fulcio + Rekor — the bundle
+  (`<artifact>.sigstore.json`) carries cert, signature, and Rekor
+  inclusion proof in one file.
+- Four typed error classes: `SigstoreNotAvailableError` (lib missing),
+  `SigstoreAirGapError` (offline refusal), `SigstoreSigningError`,
+  `SigstoreVerifyError`.
+- Air-gap mode refuses Sigstore before any network IO and points
+  operators at GPG for offline deployments.
+- Additive to GPG, not replacement. Both can coexist on the same AR
+  artifact for defence-in-depth.
+
+`export_report()` grows `sign_with_sigstore=True` + optional
+`sigstore_identity_token` to thread Sigstore signing through the
+OSCAL AR export path.
+
+#### Collector hardening (AWS Config + Security Hub + GitHub branch
+protection)
+
+- `aws/collector.py`: bare `except Exception` replaced with typed
+  catches emitting discrete ECS events. `@with_retry` wraps the
+  STS `GetCallerIdentity` call. New `collect_all_v2()` returns
+  `(findings, manifest)`. Every SecurityFinding carries a real
+  CollectionContext with the STS caller ARN + account:region.
+  `collect_all()` keeps the v0.6 signature; adds `dry_run=True`.
+  Security Hub findings with `Compliance.RelatedRequirements`
+  referring to NIST 800-53 get promoted to `SUBSET_OF` mappings
+  with justification citing AWS's native mapping.
+- `github/collector.py`: 9 inline `control_ids=[...]` call sites
+  migrated to OLIR-typed `ControlMapping` tables at module scope.
+  Every finding carries a CollectionContext. New `collect_v2()`
+  returns `(findings, manifest)` with coverage counts. `dry_run=True`
+  flag added to `collect()`.
+
+#### New collectors (v0.7.0 greenfield)
+
+- **AWS IAM Access Analyzer**
+  (`evidentia_collectors.aws.AccessAnalyzerCollector`) — supports
+  ExternalAccess, UnusedIAMRole, UnusedIAMUser\*Credential,
+  UnusedPermission, and Policy Validation finding types. Each type
+  has a curated OLIR-typed mapping to AC-2 / AC-3 / AC-4 / AC-5 /
+  AC-6 / AC-6(1) / IA-2 / IA-5(1) / SC-7 with authoritative
+  justifications. **Five blind-spot disclosures** (KMS grant chains,
+  S3 ACLs vs Block Public Access, service-linked role exclusion,
+  unsupported resource types, finding-generation latency) are
+  emitted as manifest warnings — the OSCAL exporter will promote
+  them to back-matter `class="blind-spot"` resources in a future
+  v0.7.x so auditors see the limits of coverage inline (Q7=Yes).
+- **GitHub Dependabot alerts**
+  (`evidentia_collectors.github.DependabotCollector`) — full state
+  coverage (open / fixed / dismissed / auto_dismissed) with
+  policy-driven dismissal handling (Tier 3): `no_bandwidth` and
+  `tolerable_risk` default to ACTIVE (auditor-surfaced gaps);
+  `fix_started`, `inaccurate`, `not_used` default to RESOLVED.
+  Operators override via `DismissalVerdict` policy dict. Seven
+  control mappings per alert (SI-2, SI-5, RA-5, SR-3, SR-11, plus
+  SSDF PO.3 / PW.4 / RV.2 with GitHub Well-Architected as the
+  authoritative citation source).
+
+#### Structured logging schema (`docs/log-schema.md`)
+
+New reference doc describing the ECS 8.11 + NIST AU-3 + OpenTelemetry
+field conventions used by the audit logger. Includes the EventAction
+catalog and example log records.
+
+#### Enterprise-grade credibility checklist (`docs/enterprise-grade.md`)
+
+30-item checklist synthesized from AWS Audit Manager, AWS Security Hub,
+FedRAMP Rev 5, NIST SP 800-53 AU-3, SSAE 18, AICPA TSP, and GitHub
+SSDF references. Each item tagged BLOCKER / HIGH / MEDIUM / LOW with
+the Evidentia v0.7.0 implementation status.
+
+#### CycloneDX SBOM on release (Q2=A)
+
+Release workflow now generates a CycloneDX 1.6 JSON SBOM via
+`cyclonedx-bom` and attaches it to the GitHub Release alongside the
+wheel artifacts. Addresses checklist item H2 (SLSA L2+/SBOM).
+
+#### Testing
+
+Total suite: **862 passed, 8 skipped** (up from 657 baseline at
+`e6dc94d`, +205 new tests). mypy clean across 96 source files.
+ruff clean.
+
+New test modules:
+
+- `tests/unit/test_audit/` — 79 tests (events vocabulary, ECS
+  record shape, retry semantics, provenance roundtrip).
+- `tests/unit/test_models/test_olir_and_finding_schema.py` — 20
+  tests (OLIR enum, ControlMapping backward compat, SecurityFinding
+  control_ids kwarg shim, migration shim).
+- `tests/unit/test_collectors/test_aws_olir_mappings.py` — 31 tests
+  (every Config rule + every Security Hub control classified).
+- `tests/unit/test_oscal/test_sigstore.py` — 10 tests (structural +
+  CI-gated sign/verify integration per Q5=A).
+- `tests/unit/test_collectors/test_access_analyzer.py` — 23 tests.
+- `tests/unit/test_collectors/test_dependabot.py` — 34 tests.
+
 ## [0.6.0] - 2026-04-22
 
 ### Renamed from ControlBridge to Evidentia
