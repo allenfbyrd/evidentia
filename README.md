@@ -455,9 +455,10 @@ plus a React/Vite frontend workspace:
 | `evidentia`              | CLI meta-package: Typer/Rich entry points (`evidentia` + `cb` alias)        |
 | `evidentia-ui` *(non-Python)* | Vite + React 18 + shadcn/ui frontend; built bundle is copied into `evidentia-api` at wheel time |
 
-Plus six `shim-controlbridge*` workspace members that publish the pre-rename
-PyPI names at v0.5.1 as deprecation shims (forward all imports to their
-`evidentia-*` replacements). Scheduled for PyPI yank in v0.7.0.
+The 6 v0.5.1 `controlbridge-*` deprecation shims published in v0.6.0
+were removed at v0.7.0 per the public migration contract. Existing
+v0.5.1 installs continue to work; future releases no longer produce
+shim wheels.
 
 ### Data flow
 
@@ -546,12 +547,19 @@ Summary below.
 - [x] ControlBridge → Evidentia across code, PyPI, GitHub, docs
 - [x] v0.5.1 deprecation shims for the six old PyPI names
 
-### Next — Evidence chain of custody (v0.7.0)
-- [ ] SHA-256 digest per evidence item in OSCAL AR exports
-- [ ] Optional GPG signing of the AR document
-- [ ] Tamper-evident audit trail for external-auditor review
+### Enterprise-grade release (v0.7.0) — SHIPPED
+- [x] SHA-256 digest per evidence item in OSCAL AR exports
+- [x] Optional GPG signing of the AR document (air-gap path)
+- [x] Sigstore/Rekor signing of the AR (online path, OIDC-based)
+- [x] CycloneDX SBOM on every release
+- [x] PyPI Trusted Publisher (OIDC) + PEP 740 attestations
+- [x] OSCAL conformance via `compliance-trestle` round-trip in CI
+- [x] AWS IAM Access Analyzer + GitHub Dependabot collectors
+- [x] ECS-8.11 / NIST-AU-3 / OpenTelemetry structured logs
+- [x] Consolidated GitHub Action at `.github/actions/gap-analysis/`
+- [x] Tamper-evident audit trail for external-auditor review
 
-### Later — quality signals + more integrations (v0.7.0+)
+### Later — quality signals + more integrations (v0.7.x+)
 - [ ] Risk-statement quality validator (NIST SP 800-30 / IR 8286 scoring + auto-regeneration)
 - [ ] Additional collectors — IAM Access Analyzer, Dependabot, Okta, Azure, GCP
 - [ ] Additional integrations — ServiceNow, Vanta, Drata
