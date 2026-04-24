@@ -43,6 +43,15 @@ dev = [
     # without an extra install step.
     "boto3>=1.35",
     "moto[all]>=5.0",
+    # v0.7.0: BLOCKER B7 (docs/enterprise-grade.md). Validates that our
+    # OSCAL Assessment Results output round-trips through the NIST
+    # OSCAL-Compass reference impl. Trestle is on pydantic.v1 internally
+    # with `Extra.forbid` everywhere — catches unknown-field bugs that
+    # NIST's JSON Schema does not (NIST's schema is permissive on
+    # additionalProperties). Custom `ns="https://evidentia.dev/oscal"`
+    # props in back-matter are accepted unchanged. Guarded with
+    # pytest.importorskip so the test suite runs on minimal installs.
+    "compliance-trestle>=4.0,<5.0",
 ]
 
 [tool.uv.sources]

@@ -34,7 +34,7 @@ Priority tiers:
 | B4 | No floating dependencies in lock file | ✅ `pyproject.toml` uses pinned minors; `uv.lock` committed |
 | B5 | Completeness attestation per collection run | ✅ `CollectionManifest` with `empty_categories` + `is_complete` + per-resource-type `CoverageCount` |
 | B6 | Air-gapped signed evidence path | ✅ GPG works in air-gap; Sigstore refuses and routes operators to GPG |
-| B7 | CI enforces OSCAL schema validation | ⚠️ **Planned for v0.7.x** via trestle |
+| B7 | CI enforces OSCAL schema validation | ✅ `compliance-trestle>=4.0` round-trip in `tests/unit/test_oscal/test_trestle_conformance.py`; covers `Extra.forbid` unknown-field detection that NIST's JSON Schema doesn't catch |
 | B8 | No sensitive data in logs | ✅ Regex-based secret scrubber in `evidentia_core.audit.logger._scrub` |
 | B9 | NIST-approved crypto algorithms | ✅ SHA-256, Ed25519 (via Sigstore), GPG RSA-2048+ |
 | B10 | Bounded retry + exponential backoff | ✅ `@with_retry` in AWS + GitHub + Dependabot + Access Analyzer collectors |
@@ -88,20 +88,25 @@ Priority tiers:
 
 Using the enterprise-grade scoring rubric:
 
-- **BLOCKER**: 9/10 (B7 planned; all others ✅)
-- **HIGH**: 11/15 ✅; 4 with documented remediation plan
+- **BLOCKER**: **10/10** ✅ (all closed for v0.7.0)
+- **HIGH**: 12/15 ✅; 3 with documented remediation plan (H7 OIDC + PEP 740 attestations also closing in v0.7.0)
 - **MEDIUM**: 6/10 ✅; 4 deferred
 - **LOW**: 1/5 ✅ (partial)
 
-**v0.7.0 classification: Enterprise-ready (L2–L3 on the research's
-capability-maturity scale), with a documented remediation plan for
-the 4 HIGH items that aren't fully covered yet.** This is the first
-fully-featured enterprise GRC release; operators evaluating Evidentia
-against competitive commercial tools (Vanta, Drata, Secureframe)
-should see technical parity on audit-integrity and scope. The two
-operational gaps to close for full L3 parity are PyPI Trusted
-Publisher (H7) and OSCAL schema validation in CI (B7); both are
-scoped for v0.7.x follow-ups.
+**v0.7.0 classification: Enterprise-ready, BLOCKER-complete (L3 on
+the research's capability-maturity scale).** This is the first
+fully-featured enterprise GRC release with all 10 BLOCKER items
+satisfied. Operators evaluating Evidentia against competitive
+commercial tools (Vanta, Drata, Secureframe) should see technical
+parity on audit-integrity, supply-chain transparency, and scope.
+
+The supply-chain hardening narrative is end-to-end:
+- **Build provenance**: GitHub Actions workflow with OIDC identity
+- **Signed publish**: PyPI Trusted Publisher (OIDC, no long-lived tokens)
+- **Per-artifact attestations**: PEP 740 Sigstore attestations on every wheel + sdist, logged to Rekor
+- **Software bill of materials**: CycloneDX SBOM attached to every GitHub Release
+- **Schema conformance**: `compliance-trestle` round-trip in CI
+- **Evidence integrity**: SHA-256 digests + GPG signatures (air-gap) or Sigstore bundles (online) on every AR
 
 ## Adoption path
 

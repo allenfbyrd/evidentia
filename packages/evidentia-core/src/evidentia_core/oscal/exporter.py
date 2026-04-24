@@ -46,6 +46,7 @@ def gap_report_to_oscal_ar(
     report: GapAnalysisReport,
     *,
     findings: list[SecurityFinding] | None = None,
+    blind_spots: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     """Convert a Evidentia gap report to an OSCAL Assessment Results dict.
 
@@ -55,7 +56,8 @@ def gap_report_to_oscal_ar(
     - results (one result containing findings, observations)
     - findings (one per gap, with severity and remediation)
     - back-matter.resources (v0.7.0: one per :class:`SecurityFinding` with
-      SHA-256 digest; only emitted when ``findings`` is non-empty)
+      SHA-256 digest; only emitted when ``findings`` or ``blind_spots`` is
+      non-empty)
 
     Parameters
     ----------
@@ -67,6 +69,15 @@ def gap_report_to_oscal_ar(
         observations sharing a control ID. Enables end-to-end evidence
         chain of custody: tampering with an embedded finding changes
         its hash and fails :func:`evidentia_core.oscal.verify.verify_ar_file`.
+    blind_spots:
+        Optional list of collector blind-spot disclosures (v0.7.0).
+        Each entry must have ``id``, ``title``, and ``description`` keys
+        (matching :data:`evidentia_collectors.aws.access_analyzer.BLIND_SPOTS`
+        shape). Each becomes a back-matter resource with
+        ``class="blind-spot"`` and Evidentia-namespaced props so auditors
+        see the explicit limits of automated coverage inline alongside
+        the AR. Auditor expectation: every collector documents what it
+        does NOT cover, surfaced in the same artifact as the findings.
 
     The output is a Python dict ready to be serialized as OSCAL JSON.
     """
@@ -85,6 +96,14 @@ def gap_report_to_oscal_ar(
             back_matter_resources.append(resource)
             for control_id in finding.control_ids:
                 resource_by_control.setdefault(control_id, []).append(resource)
+
+    # v0.7.0: blind-spot disclosures. Standalone back-matter resources
+    # (no observation cross-references — they're scope-limit declarations,
+    # not findings). Auditor-grade transparency: every collector documents
+    # what it does NOT cover, surfaced in the same artifact as the findings.
+    if blind_spots:
+        for bs in blind_spots:
+            back_matter_resources.append(_blind_spot_to_oscal_resource(bs))
 
     findings_output = [_gap_to_finding(gap) for gap in report.gaps]
     observations = [
@@ -161,6 +180,33 @@ def gap_report_to_oscal_ar(
         }
 
     return ar_doc
+
+
+def _blind_spot_to_oscal_resource(bs: dict[str, str]) -> dict[str, Any]:
+    """Convert a collector blind-spot disclosure to an OSCAL back-matter resource.
+
+    Blind-spots are scope-limit declarations, not findings. They tell
+    auditors what the automated collector explicitly does NOT cover, so
+    that the gap-analysis result is honest about its boundaries.
+
+    Required keys in ``bs``: ``id`` (stable identifier),
+    ``title`` (human-readable summary), ``description`` (what's not
+    covered + recommended supplementary control). Matches the shape of
+    ``evidentia_collectors.aws.access_analyzer.BLIND_SPOTS``.
+    """
+    return {
+        "uuid": str(uuid4()),
+        "title": bs["title"],
+        "description": bs["description"],
+        "props": [
+            {
+                "name": "blind-spot-id",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": bs["id"],
+                "class": "blind-spot",
+            },
+        ],
+    }
 
 
 def _finding_to_oscal_resource(finding: SecurityFinding) -> dict[str, Any]:
