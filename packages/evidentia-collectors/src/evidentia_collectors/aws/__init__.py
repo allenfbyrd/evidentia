@@ -29,13 +29,17 @@ from evidentia_collectors.aws.collector import (
     AwsCollectorError,
 )
 from evidentia_collectors.aws.mapping import (
+    map_config_rule_to_control_mappings,
     map_config_rule_to_controls,
+    map_security_hub_control_to_control_mappings,
     map_security_hub_control_to_controls,
 )
 
 __all__ = [
     "AwsCollector",
     "AwsCollectorError",
+    "map_config_rule_to_control_mappings",
     "map_config_rule_to_controls",
+    "map_security_hub_control_to_control_mappings",
     "map_security_hub_control_to_controls",
 ]

@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from typing import Final
 
+from evidentia_core.models.common import ControlMapping, OLIRRelationship
+
 # ── AWS Config rule name -> NIST 800-53 control IDs ───────────────────────
 
 #: Maps normalized AWS Config rule names (lowercase, hyphen-separated)
@@ -157,3 +159,389 @@ def _normalize_security_hub_id(raw: str) -> str:
         return f"cis.{cleaned}"
     # FSBP controls have a named section prefix ("iam.6", "s3.3").
     return f"fsbp.{cleaned}"
+
+
+# ═════════════════════════════════════════════════════════════════════════
+# v0.7.0: OLIR-typed mapping functions
+# ═════════════════════════════════════════════════════════════════════════
+#
+# Spot-checked against AWS Config Operational Best Practices for NIST
+# 800-53 Rev 5 (https://docs.aws.amazon.com/config/latest/developerguide/
+# operational-best-practices-for-nist-800-53_rev_5.html), AWS Audit
+# Manager 'AWS NIST 800-53 Rev 5' framework, and AWS Security Hub
+# controls reference (standards-reference-nist-800-53.html).
+#
+# Relationship classification convention:
+# - SUBSET_OF — Security Hub 'Related requirements' cites the control
+#   explicitly (authoritative subset claim per AWS docs).
+# - INTERSECTS_WITH — curated inference where the rule addresses one
+#   aspect of the NIST control but the control's scope is broader.
+# - RELATED_TO — weakest; used only when the connection is indirect.
+
+_CONFIG_RULE_OLIR: Final[
+    dict[str, dict[str, tuple[OLIRRelationship, str]]]
+] = {
+    "access-keys-rotated": {
+        "AC-2": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "AC-2 Account Management encompasses the full credential "
+            "lifecycle; rule evidences one aspect (key age).",
+        ),
+        "IA-5": (
+            OLIRRelationship.SUBSET_OF,
+            "IA-5 Authenticator Management requires periodic "
+            "authenticator refresh; rule directly evidences rotation.",
+        ),
+    },
+    "iam-password-policy": {
+        "IA-5": (
+            OLIRRelationship.SUBSET_OF,
+            "IA-5 requires complexity/composition policy; rule "
+            "evidences the policy-existence requirement of IA-5(1).",
+        ),
+    },
+    "iam-root-access-key-check": {
+        "AC-2": (
+            OLIRRelationship.SUBSET_OF,
+            "AC-2 privileged-account management; per Security Hub "
+            "FSBP/CIS, root access keys violate AC-2 hygiene.",
+        ),
+        "AC-6": (
+            OLIRRelationship.SUBSET_OF,
+            "AC-6 Least Privilege — root keys bypass boundaries; "
+            "Security Hub IAM.4 'Related requirements' cites AC-6.",
+        ),
+    },
+    "iam-user-mfa-enabled": {
+        "IA-2": (
+            OLIRRelationship.SUBSET_OF,
+            "IA-2(1) MFA for privileged accounts; rule evidences "
+            "MFA presence.",
+        ),
+    },
+    "iam-user-no-policies-check": {
+        "AC-2": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "Group-vs-user policy attachment is one axis of account "
+            "management structure.",
+        ),
+        "AC-6": (
+            OLIRRelationship.SUBSET_OF,
+            "AC-6 Least Privilege prefers group-scoped over user-"
+            "attached policies.",
+        ),
+    },
+    "mfa-enabled-for-iam-console-access": {
+        "IA-2": (
+            OLIRRelationship.SUBSET_OF,
+            "IA-2(1) Multifactor Authentication to Privileged "
+            "Accounts; console MFA is the canonical scenario.",
+        ),
+    },
+    "root-account-mfa-enabled": {
+        "IA-2": (
+            OLIRRelationship.SUBSET_OF,
+            "IA-2(1) MFA — root MFA is the highest-privilege auth "
+            "checkpoint.",
+        ),
+        "AC-6": (
+            OLIRRelationship.SUBSET_OF,
+            "AC-6 Least Privilege — root is max-privilege principal; "
+            "MFA is defence-in-depth for least-privilege enforcement.",
+        ),
+    },
+    "alb-http-to-https-redirection-check": {
+        "SC-8": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-8 Transmission Confidentiality — HTTPS redirect "
+            "ensures encryption in transit. FSBP ELB.1 cites SC-8.",
+        ),
+    },
+    "elb-tls-https-listeners-only": {
+        "SC-8": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-8 — TLS-only listeners enforce in-transit encryption "
+            "per FSBP ELB.2.",
+        ),
+    },
+    "encrypted-volumes": {
+        "SC-28": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-28 Protection of Information at Rest — EBS volume "
+            "encryption.",
+        ),
+    },
+    "rds-storage-encrypted": {
+        "SC-28": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-28 at-rest encryption; FSBP RDS.3 'Related "
+            "requirements' cites SC-28.",
+        ),
+    },
+    "s3-bucket-server-side-encryption-enabled": {
+        "SC-28": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-28 at-rest encryption for S3.",
+        ),
+    },
+    "s3-bucket-ssl-requests-only": {
+        "SC-8": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-8 in-transit encryption; enforces TLS on all S3 "
+            "requests per FSBP S3.5.",
+        ),
+    },
+    "ec2-security-group-attached-to-eni": {
+        "AC-4": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "AC-4 Information Flow Control — SG attachment is one "
+            "mechanism of flow control.",
+        ),
+        "SC-7": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-7 Boundary Protection — SGs are boundary-protection "
+            "mechanisms; FSBP EC2.2 cites SC-7.",
+        ),
+    },
+    "rds-instance-public-access-check": {
+        "AC-3": (
+            OLIRRelationship.SUBSET_OF,
+            "AC-3 Access Enforcement — blocking public DB access.",
+        ),
+        "AC-4": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "AC-4 — information flow restriction across public "
+            "boundary.",
+        ),
+        "SC-7": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-7 Boundary Protection; FSBP RDS.2 cites SC-7.",
+        ),
+    },
+    "s3-bucket-public-read-prohibited": {
+        "AC-3": (
+            OLIRRelationship.SUBSET_OF,
+            "AC-3 Access Enforcement; FSBP S3.2 cites AC-3.",
+        ),
+        "AC-6": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "AC-6 Least Privilege — public read grants broad access.",
+        ),
+    },
+    "s3-bucket-public-write-prohibited": {
+        "AC-3": (
+            OLIRRelationship.SUBSET_OF,
+            "AC-3 Access Enforcement; FSBP S3.3 cites AC-3.",
+        ),
+        "AC-6": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "AC-6 — public write grants excessive permission.",
+        ),
+    },
+    "vpc-default-security-group-closed": {
+        "AC-4": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "AC-4 Information Flow Control — default SG scope "
+            "affects flow policy.",
+        ),
+        "SC-7": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-7 Boundary Protection — default SG hygiene.",
+        ),
+    },
+    "cloudtrail-enabled": {
+        "AU-2": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-2 Event Logging; FSBP CloudTrail.1 cites AU-2.",
+        ),
+        "AU-3": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-3 Content of Audit Records — CloudTrail records "
+            "AU-3 required fields.",
+        ),
+        "AU-12": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-12 Audit Record Generation for AWS control plane.",
+        ),
+    },
+    "cloud-trail-log-file-validation-enabled": {
+        "AU-9": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-9 Protection of Audit Information — log-file "
+            "validation = tamper detection; FSBP CloudTrail.4.",
+        ),
+        "AU-10": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "AU-10 Non-Repudiation — validation supports non-"
+            "repudiation of logged events.",
+        ),
+    },
+    "cloudwatch-log-group-encrypted": {
+        "SC-28": (
+            OLIRRelationship.SUBSET_OF,
+            "SC-28 — log group KMS encryption protects audit data "
+            "at rest.",
+        ),
+        "AU-9": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-9 — encryption of audit-log storage.",
+        ),
+    },
+    "multi-region-cloudtrail-enabled": {
+        "AU-2": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-2 — multi-region ensures comprehensive audit coverage.",
+        ),
+        "AU-12": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-12 Audit Record Generation across all regions.",
+        ),
+    },
+    "s3-bucket-logging-enabled": {
+        "AU-2": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-2 — S3 access logging for data-plane events; FSBP "
+            "S3.9 cites AU-2.",
+        ),
+        "AU-12": (
+            OLIRRelationship.SUBSET_OF,
+            "AU-12 — data-plane audit source.",
+        ),
+    },
+    "backup-plan-min-frequency-and-min-retention-check": {
+        "CP-9": (
+            OLIRRelationship.SUBSET_OF,
+            "CP-9 System Backup — frequency + retention policy "
+            "evidence.",
+        ),
+    },
+    "rds-automatic-minor-version-upgrade-enabled": {
+        "SI-2": (
+            OLIRRelationship.SUBSET_OF,
+            "SI-2 Flaw Remediation — automated minor upgrades are "
+            "one mechanism of timely patching.",
+        ),
+    },
+    "rds-multi-az-support": {
+        "CP-9": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "CP-9 — multi-AZ supports availability but is distinct "
+            "from backup storage.",
+        ),
+        "CP-10": (
+            OLIRRelationship.SUBSET_OF,
+            "CP-10 System Recovery — multi-AZ enables automated "
+            "failover.",
+        ),
+    },
+    "ec2-managedinstance-patch-compliance-status-check": {
+        "SI-2": (
+            OLIRRelationship.SUBSET_OF,
+            "SI-2 Flaw Remediation — patch compliance is primary "
+            "evidence of timely patching.",
+        ),
+    },
+    "ec2-instance-detailed-monitoring-enabled": {
+        "CM-8": (
+            OLIRRelationship.INTERSECTS_WITH,
+            "CM-8 System Component Inventory — detailed monitoring "
+            "provides component-level telemetry.",
+        ),
+        "SI-4": (
+            OLIRRelationship.SUBSET_OF,
+            "SI-4 System Monitoring — detailed monitoring is "
+            "fine-grained system monitoring.",
+        ),
+    },
+    "ec2-instance-managed-by-ssm": {
+        "CM-8": (
+            OLIRRelationship.SUBSET_OF,
+            "CM-8 — SSM management implies inventory registration.",
+        ),
+    },
+}
+
+
+# Security Hub mappings → SUBSET_OF (authoritative per AWS 'Related
+# requirements' field).
+_SECURITY_HUB_OLIR_JUSTIFICATION: Final[dict[str, str]] = {
+    "cis.1.4": "CIS AWS Foundations v1.4 §1.4 — no root access keys.",
+    "cis.1.5": "CIS AWS Foundations v1.4 §1.5 — root MFA.",
+    "cis.1.7": "CIS AWS Foundations v1.4 §1.7 — MFA for every user.",
+    "cis.1.8": "CIS AWS Foundations v1.4 §1.8 — password length ≥14.",
+    "cis.1.10": "CIS AWS Foundations v1.4 §1.10 — password reuse prevention.",
+    "cis.1.14": "CIS AWS Foundations v1.4 §1.14 — access key rotation ≤90d.",
+    "cis.2.1.1": "CIS AWS Foundations v1.4 §2.1.1 — S3 default encryption.",
+    "cis.3.1": "CIS AWS Foundations v1.4 §3.1 — CloudTrail in all regions.",
+    "cis.3.4": "CIS AWS Foundations v1.4 §3.4 — log file validation.",
+    "fsbp.acm.1": "FSBP ACM.1 Related requirements cite SC-17.",
+    "fsbp.cloudtrail.1": "FSBP CloudTrail.1 cites AU-2, AU-12.",
+    "fsbp.cloudtrail.4": "FSBP CloudTrail.4 cites AU-9.",
+    "fsbp.ec2.2": "FSBP EC2.2 cites AC-4, SC-7.",
+    "fsbp.ec2.6": "FSBP EC2.6 cites AU-12.",
+    "fsbp.iam.1": "FSBP IAM.1 cites AC-6, IA-2.",
+    "fsbp.iam.4": "FSBP IAM.4 cites AC-2.",
+    "fsbp.iam.6": "FSBP IAM.6 cites IA-2.",
+    "fsbp.iam.8": "FSBP IAM.8 cites AC-2.",
+    "fsbp.rds.2": "FSBP RDS.2 cites AC-3, SC-7.",
+    "fsbp.rds.3": "FSBP RDS.3 cites SC-28.",
+    "fsbp.rds.4": "FSBP RDS.4 cites SC-8.",
+    "fsbp.s3.1": "FSBP S3.1 cites AC-3.",
+    "fsbp.s3.2": "FSBP S3.2 cites AC-3.",
+    "fsbp.s3.3": "FSBP S3.3 cites AC-3.",
+    "fsbp.s3.5": "FSBP S3.5 cites SC-8.",
+    "fsbp.s3.6": "FSBP S3.6 cites AU-2.",
+}
+
+
+def map_config_rule_to_control_mappings(
+    rule_name: str,
+) -> list[ControlMapping]:
+    """Return OLIR-typed :class:`ControlMapping` list for an AWS Config rule.
+
+    v0.7.0 addition. Each returned mapping carries an explicit OLIR
+    relationship (``SUBSET_OF`` / ``INTERSECTS_WITH``) plus a
+    justification citing the authoritative source. Empty list for
+    unknown rules.
+    """
+    normalized = _normalize_rule_name(rule_name)
+    per_rule = _CONFIG_RULE_OLIR.get(normalized)
+    if per_rule is None:
+        return []
+    return [
+        ControlMapping(
+            framework="nist-800-53-rev5",
+            control_id=control_id,
+            relationship=relationship,
+            justification=justification,
+        )
+        for control_id, (relationship, justification) in per_rule.items()
+    ]
+
+
+def map_security_hub_control_to_control_mappings(
+    control_id: str,
+) -> list[ControlMapping]:
+    """Return OLIR-typed :class:`ControlMapping` list for a Security Hub control.
+
+    Security Hub's 'Related requirements' field IS the authoritative
+    mapping source — every returned ControlMapping uses ``SUBSET_OF``
+    with a justification citing the specific FSBP/CIS control reference.
+    """
+    normalized = _normalize_security_hub_id(control_id)
+    raw_ids = SECURITY_HUB_CONTROL_TO_CONTROLS.get(normalized)
+    if raw_ids is None:
+        return []
+    justification = _SECURITY_HUB_OLIR_JUSTIFICATION.get(
+        normalized,
+        f"AWS Security Hub '{normalized}' Related requirements field.",
+    )
+    return [
+        ControlMapping(
+            framework="nist-800-53-rev5",
+            control_id=cid,
+            relationship=OLIRRelationship.SUBSET_OF,
+            justification=justification,
+        )
+        for cid in raw_ids
+    ]

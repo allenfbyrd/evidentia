@@ -69,8 +69,60 @@ class Severity(str, Enum):
 # ``evidentia_core.catalogs.manifest.load_manifest()``.
 
 
+class OLIRRelationship(str, Enum):
+    """NIST OLIR (Online Informative References) relationship types.
+
+    Added in v0.7.0 to support enterprise-grade mapping claims. Rather
+    than bare ``framework+control_id`` pairs, every :class:`ControlMapping`
+    now declares the strength and direction of the relationship between
+    the mapped evidence and the named control.
+
+    Values match the NIST OLIR Derived Relationship Mapping (DRM)
+    vocabulary at https://csrc.nist.gov/projects/olir/derived-relationship-mapping.
+    An auditor reading evidence can tell the difference between
+    "this finding fully evidences AC-6" (``SUBSET_OF``) and
+    "this finding is loosely related to AC-6" (``RELATED_TO``).
+    """
+
+    EQUIVALENT_TO = "equivalent-to"
+    """Evidence and control address the same objective via the same
+    method. Functionally identical with identical outcomes."""
+
+    EQUAL_TO = "equal-to"
+    """Evidence and control are word-for-word identical. Rare between
+    separate frameworks; common when mapping translations / re-issues."""
+
+    SUBSET_OF = "subset-of"
+    """Evidence is narrower than the control — addresses one specific
+    aspect. The usual relationship between an automated finding and a
+    NIST family control (e.g., 'S3 bucket is public' subset-of AC-3
+    Access Enforcement)."""
+
+    SUPERSET_OF = "superset-of"
+    """Evidence is broader than the control. Uncommon in automated
+    findings; typical for framework-to-framework crosswalks."""
+
+    INTERSECTS_WITH = "intersects-with"
+    """Evidence and control overlap but neither fully contains the
+    other. Used when a finding partially evidences a control but also
+    addresses things outside that control."""
+
+    RELATED_TO = "related-to"
+    """Weakest relationship: evidence and control share a topic but
+    the mapping strength is unclassified. Default for pre-v0.7.0
+    mappings that haven't been re-classified yet."""
+
+
 class ControlMapping(EvidentiaModel):
-    """Maps an entity (evidence, risk, gap) to a specific framework control."""
+    """Maps an entity (evidence, risk, gap) to a specific framework control.
+
+    v0.7.0 extended the model with OLIR relationship typing and
+    justification. Pre-v0.7.0 callers that constructed
+    ``ControlMapping(framework=..., control_id=...)`` without the new
+    fields continue to work — defaults (``relationship=RELATED_TO``,
+    ``justification=""``) are supplied automatically. Collectors and
+    mapping tables upgraded in v0.7.0 set explicit stronger relationships.
+    """
 
     framework: str = Field(
         description="Framework identifier, e.g. 'nist-800-53-rev5', 'soc2-tsc'"
@@ -81,6 +133,25 @@ class ControlMapping(EvidentiaModel):
     control_title: str | None = Field(
         default=None,
         description="Human-readable control title",
+    )
+    relationship: OLIRRelationship = Field(
+        default=OLIRRelationship.RELATED_TO,
+        description=(
+            "NIST OLIR relationship type. v0.7.0+ mappings should declare "
+            "the strongest honest relationship (typically ``SUBSET_OF`` "
+            "for automated findings against family controls). Default "
+            "``RELATED_TO`` preserves pre-v0.7.0 behaviour."
+        ),
+    )
+    justification: str = Field(
+        default="",
+        max_length=1024,
+        description=(
+            "Free-text rationale for the mapping, typically citing the "
+            "authoritative source (AWS Security Hub 'Related requirements', "
+            "AWS Audit Manager framework entry, NIST OLIR submission, "
+            "FedRAMP baseline appendix). Empty string = 'legacy mapping'."
+        ),
     )
 
     def __str__(self) -> str:
