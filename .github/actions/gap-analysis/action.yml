@@ -1,0 +1,205 @@
+name: 'Evidentia gap analysis'
+description: >-
+  Run Evidentia gap analysis against your committed control inventory,
+  diff against the main-branch baseline, post a sticky PR comment, and
+  gate merge on compliance regressions.
+author: 'Allen Byrd'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  inventory:
+    description: 'Path to control inventory file (YAML / CSV / JSON).'
+    required: true
+  frameworks:
+    description: >-
+      Comma-separated framework IDs, e.g. "nist-800-53-rev5-moderate,soc2-tsc".
+      When omitted, uses the `frameworks:` list from your evidentia.yaml.
+    required: false
+    default: ''
+  evidentia-version:
+    description: >-
+      pip spec for evidentia-core, e.g. "0.7.0", ">=0.7,<0.8", or "latest".
+      Defaults to the latest 0.7.x.
+    required: false
+    default: '>=0.7,<0.8'
+  python-version:
+    description: 'Python interpreter version.'
+    required: false
+    default: '3.12'
+  github-token:
+    description: >-
+      GITHUB_TOKEN with `pull-requests: write` (for sticky comment) and
+      `contents: read` (for checkout).
+    required: true
+  fail-on-regression:
+    description: >-
+      When "true", exits non-zero if any new gaps were opened or severities
+      increased compared to the base-branch baseline. Set to "false" for
+      reporting-only runs.
+    required: false
+    default: 'true'
+  emit-oscal-ar:
+    description: >-
+      When "true", also produces an OSCAL Assessment Results JSON next to
+      the gap report at `<output-dir>/oscal-ar.json`.
+    required: false
+    default: 'false'
+  emit-sigstore-bundle:
+    description: >-
+      When "true" (and `emit-oscal-ar` is true), signs the OSCAL AR with
+      Sigstore using the workflow's ambient OIDC identity. Requires
+      `permissions: id-token: write`. Bundle written to
+      `<output-dir>/oscal-ar.sigstore.json`.
+    required: false
+    default: 'false'
+  output-dir:
+    description: 'Directory for gap-report.json, oscal-ar.json, diff.md.'
+    required: false
+    default: '${{ github.workspace }}/.evidentia-out'
+
+outputs:
+  gap-report-path:
+    description: 'Absolute path to gap-report.json (current PR state).'
+    value: ${{ steps.analyze-head.outputs.path }}
+  baseline-path:
+    description: 'Absolute path to baseline-gap-report.json (base ref state).'
+    value: ${{ steps.baseline.outputs.path }}
+  diff-markdown-path:
+    description: 'Absolute path to the rendered markdown diff (PR-comment body).'
+    value: ${{ steps.diff.outputs.markdown-path }}
+  oscal-ar-path:
+    description: 'Absolute path to OSCAL AR JSON (empty when emit-oscal-ar=false).'
+    value: ${{ steps.analyze-head.outputs.oscal-path }}
+  sigstore-bundle-path:
+    description: 'Absolute path to Sigstore bundle (empty when emit-sigstore-bundle=false).'
+    value: ${{ steps.analyze-head.outputs.sigstore-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    # NOTE: production audit pipelines should SHA-pin all uses: refs.
+    # Dependabot's actions ecosystem will replace these version pins
+    # with SHA pins on first run. See README.md for the audit-pinned
+    # invocation pattern.
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'pip'
+
+    - name: Install evidentia-core
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        if [ "${{ inputs.emit-sigstore-bundle }}" = "true" ]; then
+          python -m pip install "evidentia-core[sigstore]${{ inputs.evidentia-version }}"
+        else
+          python -m pip install "evidentia-core${{ inputs.evidentia-version }}"
+        fi
+        evidentia --version
+
+    - name: Prepare output directory
+      shell: bash
+      run: mkdir -p "${{ inputs.output-dir }}"
+
+    # ---- Head (current PR / push state) ----
+    - name: Analyze head
+      id: analyze-head
+      shell: bash
+      run: |
+        FRAMEWORKS_FLAG=""
+        if [ -n "${{ inputs.frameworks }}" ]; then
+          FRAMEWORKS_FLAG="--frameworks ${{ inputs.frameworks }}"
+        fi
+        evidentia gap analyze \
+          --inventory "${{ inputs.inventory }}" \
+          $FRAMEWORKS_FLAG \
+          --output "${{ inputs.output-dir }}/gap-report.json" \
+          --format json
+        echo "path=${{ inputs.output-dir }}/gap-report.json" >> "$GITHUB_OUTPUT"
+
+        if [ "${{ inputs.emit-oscal-ar }}" = "true" ]; then
+          SIGN_FLAGS=""
+          if [ "${{ inputs.emit-sigstore-bundle }}" = "true" ]; then
+            SIGN_FLAGS="--sign-with-sigstore --bundle ${{ inputs.output-dir }}/oscal-ar.sigstore.json"
+          fi
+          evidentia gap analyze \
+            --inventory "${{ inputs.inventory }}" \
+            $FRAMEWORKS_FLAG \
+            --output "${{ inputs.output-dir }}/oscal-ar.json" \
+            --format oscal-ar \
+            $SIGN_FLAGS
+          echo "oscal-path=${{ inputs.output-dir }}/oscal-ar.json" >> "$GITHUB_OUTPUT"
+          if [ "${{ inputs.emit-sigstore-bundle }}" = "true" ]; then
+            echo "sigstore-path=${{ inputs.output-dir }}/oscal-ar.sigstore.json" >> "$GITHUB_OUTPUT"
+          else
+            echo "sigstore-path=" >> "$GITHUB_OUTPUT"
+          fi
+        else
+          echo "oscal-path=" >> "$GITHUB_OUTPUT"
+          echo "sigstore-path=" >> "$GITHUB_OUTPUT"
+        fi
+
+    # ---- Baseline (main-branch state, cached across PR runs) ----
+    - name: Restore baseline
+      id: baseline-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.output-dir }}/baseline-gap-report.json
+        key: evidentia-baseline-${{ github.repository }}-${{ github.base_ref || github.ref_name }}-${{ hashFiles(inputs.inventory) }}
+        restore-keys: |
+          evidentia-baseline-${{ github.repository }}-${{ github.base_ref || github.ref_name }}-
+          evidentia-baseline-${{ github.repository }}-main-
+
+    - name: Seed baseline on push to default branch
+      id: baseline
+      shell: bash
+      run: |
+        BASE="${{ inputs.output-dir }}/baseline-gap-report.json"
+        if [ ! -f "$BASE" ] && [ "${{ github.event_name }}" = "push" ]; then
+          # First run on main: seed the baseline from this run's head report.
+          cp "${{ inputs.output-dir }}/gap-report.json" "$BASE"
+        fi
+        echo "path=$BASE" >> "$GITHUB_OUTPUT"
+
+    # ---- PR path: compute diff, post comment, gate on regressions ----
+    - name: Gap diff (markdown for PR comment)
+      id: diff
+      if: github.event_name == 'pull_request' && hashFiles(format('{0}/baseline-gap-report.json', inputs.output-dir)) != ''
+      shell: bash
+      run: |
+        evidentia gap diff \
+          --base "${{ inputs.output-dir }}/baseline-gap-report.json" \
+          --head "${{ inputs.output-dir }}/gap-report.json" \
+          --format markdown \
+          --output "${{ inputs.output-dir }}/diff.md" || true
+        echo "markdown-path=${{ inputs.output-dir }}/diff.md" >> "$GITHUB_OUTPUT"
+
+    - name: Post sticky PR comment
+      if: github.event_name == 'pull_request' && steps.diff.outputs.markdown-path != ''
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: evidentia-gap-analysis
+        path: ${{ steps.diff.outputs.markdown-path }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+
+    - name: Gate on regressions
+      if: github.event_name == 'pull_request' && hashFiles(format('{0}/baseline-gap-report.json', inputs.output-dir)) != '' && inputs.fail-on-regression == 'true'
+      shell: bash
+      run: |
+        evidentia gap diff \
+          --base "${{ inputs.output-dir }}/baseline-gap-report.json" \
+          --head "${{ inputs.output-dir }}/gap-report.json" \
+          --format github \
+          --fail-on-regression
+
+    - name: Upload gap analysis artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: evidentia-gap-analysis-${{ github.run_id }}-${{ github.run_attempt }}
+        path: ${{ inputs.output-dir }}/
+        if-no-files-found: warn
+        retention-days: 90

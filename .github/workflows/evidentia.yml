@@ -1,5 +1,5 @@
 #
-# Evidentia is now dog-fooding its own GitHub Action.
+# Evidentia dogfoods its own gap-diff workflow.
 #
 # Every PR that touches the Meridian v2 fintech inventory (or the NIST /
 # SOC 2 / GDPR catalogs it depends on) triggers a gap-diff against the
@@ -8,9 +8,15 @@
 # what closed.
 #
 # This isn't a real compliance program — Meridian is a fictional demo
-# scenario — but running the workflow on every PR proves that the v0.3.0
+# scenario — but running the workflow on every PR proves that the
 # `gap diff` command works end-to-end and keeps the documented expected
 # counts in sync with reality as the bundled catalogs evolve.
+#
+# NOTE for external users: this workflow uses `uv sync` to test the
+# LOCAL source. For your own repo, use the composite action at
+# `.github/actions/gap-analysis/` (see docs/github-action/README.md).
+# The composite action installs evidentia-core from PyPI and is the
+# supported integration path.
 #
 
 name: Compliance check (Meridian v2 demo scenario)

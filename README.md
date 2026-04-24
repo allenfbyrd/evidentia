@@ -366,6 +366,45 @@ Expected output: a 17-gap report against 28 required controls, 39.3% coverage,
 11 critical / 5 high / 1 medium severities, with the top of the priority queue
 dominated by monitoring/detection gaps (CC7.1, CC7.2, SI-4, AU-6).
 
+### Use as a GitHub Action
+
+v0.7.0 ships a composite GitHub Action that turns every PR into a
+compliance check. It runs `evidentia gap analyze`, diffs against the
+main-branch baseline, posts a sticky PR comment with the diff, and gates
+merge on regressions.
+
+```yaml
+# .github/workflows/compliance.yml
+name: Compliance check
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 2 }
+
+      - uses: allenfbyrd/evidentia/.github/actions/gap-analysis@v0
+        with:
+          inventory: inventory.yaml
+          frameworks: nist-800-53-rev5-moderate,soc2-tsc
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+See [`.github/actions/gap-analysis/README.md`](.github/actions/gap-analysis/README.md)
+for the full input/output surface, OSCAL AR + Sigstore signing options,
+SHA-pinned variants for audit pipelines, and the migration guide from
+the legacy standalone `allenfbyrd/evidentia-action@v1` (now archived).
+
 ### Generate AI risk statements
 
 Requires an LLM API key. Any LiteLLM-supported provider works:

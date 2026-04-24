@@ -1,5 +1,29 @@
 # Evidentia GitHub Action — compliance-as-code for PRs
 
+v0.7.0 ships a **composite action** at
+[`.github/actions/gap-analysis/`](../../.github/actions/gap-analysis/)
+that turns every pull request into a compliance check. The standalone
+`allenfbyrd/evidentia-action` repo is archived in favor of this
+consolidated subpath action.
+
+```yaml
+- uses: allenfbyrd/evidentia/.github/actions/gap-analysis@v0
+  with:
+    inventory: inventory.yaml
+    frameworks: nist-800-53-rev5-moderate,soc2-tsc
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+See the [composite-action README](../../.github/actions/gap-analysis/README.md)
+for the full input/output surface, OSCAL AR + Sigstore signing options,
+SHA-pinned variants for audit pipelines, and a migration guide from
+`evidentia-action@v1`.
+
+---
+
+The rest of this document keeps the v0.3.0 hand-rolled-workflow pattern
+for users who prefer a copy-paste workflow over the action wrapper.
+
 v0.3.0 introduced `evidentia gap diff`, which turns every pull
 request into a compliance check. This guide shows how to wire it into
 GitHub Actions so your PRs block on compliance regressions the same way
@@ -145,23 +169,28 @@ Each opened gap becomes a `::error::` line; each severity increase
 becomes a `::warning::`; each closure becomes a `::notice::`. GitHub
 surfaces all three inline on the workflow summary page.
 
-## Reusable action (future)
+## Reusable composite action (v0.7.0+)
 
-v0.3.0 ships just the CLI; the reusable action wrapper
-`allenfbyrd/evidentia-action` is on the v0.3.1 roadmap. Once it
-lands, the workflow above collapses to:
+v0.7.0 ships the consolidated composite action at
+[`.github/actions/gap-analysis/`](../../.github/actions/gap-analysis/).
+The full ~80-line workflow above collapses to:
 
 ```yaml
-      - uses: allenfbyrd/evidentia-action@v1
+      - uses: allenfbyrd/evidentia/.github/actions/gap-analysis@v0
         with:
           inventory: inventory.yaml
           frameworks: nist-800-53-rev5-moderate,soc2-tsc
-          fail-on-regression: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-Until then, the full workflow above is the supported path. It's about
-80 lines; no magic beyond standard `actions/checkout`, `setup-uv`,
-`cache`, and `github-script`.
+The composite action handles cache restore, the sticky PR comment via
+`marocchino/sticky-pull-request-comment@v2`, regression gating, and
+optional OSCAL AR + Sigstore signing.
+
+**Migrating from `allenfbyrd/evidentia-action@v1`**: that standalone repo
+is archived as of v0.7.0. See the
+[composite-action README's migration guide](../../.github/actions/gap-analysis/README.md#migrating-from-allenfbyrdevidentia-actionv1)
+for the diff.
 
 ## Troubleshooting
 
