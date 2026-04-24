@@ -55,8 +55,7 @@ def _synthetic_legacy_context() -> CollectionContext:
 
     Marks every field with the placeholder ``"legacy-pre-v0.7.0"`` so
     audit-reviewers can tell the difference between real provenance
-    (populated by a v0.7.0+ collector) and this synthetic placeholder
-    (populated by a caller that hasn't been upgraded).
+    (populated by a v0.7.0+ collector) and this synthetic placeholder.
     """
     return CollectionContext(
         collector_id="legacy-pre-v0.7.0",

@@ -26,10 +26,14 @@ from evidentia_core.models.evidence import (
     EvidenceSufficiency,
     EvidenceType,
 )
-from evidentia_core.models.finding import (
-    FindingStatus,
-    SecurityFinding,
-)
+
+# v0.7.0: evidentia_core.models.finding is NOT re-exported from this
+# package root because it pulls in evidentia_core.audit.provenance,
+# which itself depends on evidentia_core.models.common — eager re-export
+# here creates a circular import when ``audit`` is loaded first (e.g.,
+# by a collector). Callers should ``from evidentia_core.models.finding
+# import SecurityFinding, FindingStatus`` directly. No production code
+# used the convenience path before v0.7.0.
 from evidentia_core.models.gap import (
     ControlGap,
     EfficiencyOpportunity,
@@ -81,7 +85,6 @@ __all__ = [
     "EvidenceSufficiency",
     "EvidenceType",
     "EvidentiaModel",
-    "FindingStatus",
     "FrameworkMapping",
     "GapAnalysisReport",
     "GapSeverity",
@@ -97,7 +100,6 @@ __all__ = [
     "RiskRegister",
     "RiskStatement",
     "RiskTreatment",
-    "SecurityFinding",
     "Severity",
     "SubjectRight",
     "TechniqueCatalog",
