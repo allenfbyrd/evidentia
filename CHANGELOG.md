@@ -7,6 +7,94 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet on the v0.7.1 development branch._
+
+## [0.7.0] - 2026-04-24
+
+**The enterprise-grade release.** Closes all 10 BLOCKER items in
+[`docs/enterprise-grade.md`](docs/enterprise-grade.md). Adds Sigstore/Rekor
+signing, CycloneDX SBOM on every release, PyPI Trusted Publishers (OIDC)
+with PEP 740 attestations on every wheel + sdist, OSCAL Assessment Results
+schema conformance via [`compliance-trestle`](https://github.com/oscal-compass/compliance-trestle),
+AWS IAM Access Analyzer + GitHub Dependabot collectors with explicit
+blind-spot disclosures embedded in the AR back-matter, ECS-8.11 / NIST-AU-3 /
+OpenTelemetry structured logs, and a consolidated GitHub Action at
+`.github/actions/gap-analysis/`. The 6 v0.5.1 `controlbridge-*`
+deprecation shims are removed at this release per the public migration
+contract documented since v0.6.0.
+
+**849 tests passing (8 skipped).** Includes 3 new trestle conformance
+tests (`tests/unit/test_oscal/test_trestle_conformance.py`) that
+round-trip the AR through pydantic.v1 with `Extra.forbid`, catching
+unknown-field bugs that NIST's JSON Schema misses.
+
+### Supply-chain hardening (v0.7.0)
+
+- **Build provenance**: GitHub Actions workflow with OIDC identity, no
+  long-lived publishing tokens.
+- **Signed publish**: PyPI Trusted Publisher (OIDC). The legacy
+  `PYPI_API_TOKEN` is removed from GitHub secrets after first OIDC
+  publish.
+- **Per-artifact attestations**: PEP 740 Sigstore attestations on every
+  wheel + sdist, signed with the GitHub Actions OIDC identity and
+  logged to the Rekor public transparency log. Verifiable via
+  `pip install pypi-attestations` + `pypi-attestations verify-pypi
+  --repository allenfbyrd/evidentia <file>` or
+  `gh attestation verify <file> -R allenfbyrd/evidentia`.
+- **Software bill of materials**: CycloneDX 1.6 SBOM generated from
+  `uv.lock`, attached to every GitHub Release alongside the wheels.
+- **Schema conformance**: `compliance-trestle>=4.0` round-trip in CI.
+- **Evidence integrity**: SHA-256 digests + GPG signatures (air-gap)
+  or Sigstore bundles (online) on every Assessment Results document.
+
+### Removed — controlbridge shim packages (per the public contract)
+
+The 6 v0.5.1 `controlbridge-*` deprecation shims published in v0.6.0
+are removed from the workspace at v0.7.0 per the public migration
+contract documented in README.md, RENAMED.md, and CHANGELOG.md. The
+v0.5.1 shim wheels remain on PyPI for installed users (manually yanked
+at the v0.7.0 ship); future builds no longer produce shim wheels.
+
+Removed:
+
+- `packages/shim-controlbridge/`
+- `packages/shim-controlbridge-core/`
+- `packages/shim-controlbridge-collectors/`
+- `packages/shim-controlbridge-ai/`
+- `packages/shim-controlbridge-api/`
+- `packages/shim-controlbridge-integrations/`
+- `tests/unit/test_rename_shims.py`
+
+`scripts/_create_shim_packages.py` is retained for historical reference
+only with a deprecation header.
+
+### Added — Composite GitHub Action consolidation
+
+The legacy standalone `allenfbyrd/evidentia-action` repo is archived
+in favor of a composite action at `.github/actions/gap-analysis/`.
+External users invoke as:
+
+```yaml
+- uses: allenfbyrd/evidentia/.github/actions/gap-analysis@v0
+  with:
+    inventory: inventory.yaml
+    frameworks: nist-800-53-rev5-moderate,soc2-tsc
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Surface: install evidentia-core from PyPI -> run `evidentia gap analyze`
+against the user's inventory -> restore base-branch baseline from
+actions/cache (cache key includes `hashFiles(inventory)`) -> run
+`evidentia gap diff` -> post sticky PR comment via
+`marocchino/sticky-pull-request-comment@v2` -> gate merge on
+regressions when `fail-on-regression: true`. Optional OSCAL AR JSON
+output and Sigstore signing of the AR via the workflow's ambient OIDC
+identity (requires `id-token: write`).
+
+See [`.github/actions/gap-analysis/README.md`](.github/actions/gap-analysis/README.md)
+for the full input/output surface, SHA-pinned variant for audit
+pipelines, and migration guide from `evidentia-action@v1`.
+
 ### Added — Evidence chain of custody (v0.7.0 scope)
 
 Originally planned for v0.6.0, displaced by the rename release. Every
