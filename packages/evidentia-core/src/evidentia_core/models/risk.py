@@ -12,6 +12,7 @@ from enum import Enum
 
 from pydantic import Field
 
+from evidentia_core.audit.provenance import GenerationContext
 from evidentia_core.models.common import (
     EvidentiaModel,
     current_version,
@@ -139,6 +140,16 @@ class RiskStatement(EvidentiaModel):
     model_used: str | None = Field(
         default=None,
         description="LLM model used for generation",
+    )
+    generation_context: GenerationContext | None = Field(
+        default=None,
+        description=(
+            "v0.7.1+ AI provenance block — model, temperature, prompt_hash, "
+            "run_id, attempts. Optional in v0.7.x to preserve deserialization "
+            "compat with pre-v0.7.1 RiskStatement payloads; will be tightened "
+            "to required in v0.8 with a deprecation cycle. "
+            "See ``evidentia_core.audit.provenance.GenerationContext``."
+        ),
     )
     reviewed_by: str | None = Field(default=None)
     reviewed_at: datetime | None = Field(default=None)

@@ -48,14 +48,15 @@ from evidentia_core.models.obligation import (
     PrivacyRegime,
     SubjectRight,
 )
-from evidentia_core.models.risk import (
-    ImpactRating,
-    LikelihoodRating,
-    RiskLevel,
-    RiskRegister,
-    RiskStatement,
-    RiskTreatment,
-)
+
+# v0.7.1: evidentia_core.models.risk is NOT re-exported from this
+# package root for the same reason as finding (above) — risk.py now
+# carries a ``GenerationContext`` field which lives in
+# ``evidentia_core.audit.provenance``, and that module already imports
+# ``EvidentiaModel`` from ``models.common``. Eager re-export here would
+# trigger a circular import on first ``audit.*`` access. Callers must
+# ``from evidentia_core.models.risk import RiskStatement, RiskRegister, ...``
+# directly. All existing callers already do.
 from evidentia_core.models.threat import (
     AttackTechnique,
     TechniqueCatalog,
@@ -89,17 +90,11 @@ __all__ = [
     "GapAnalysisReport",
     "GapSeverity",
     "GapStatus",
-    "ImpactRating",
     "ImplementationEffort",
-    "LikelihoodRating",
     "ObligationCatalog",
     "PrivacyObligation",
     "PrivacyRegime",
     "RelationshipType",
-    "RiskLevel",
-    "RiskRegister",
-    "RiskStatement",
-    "RiskTreatment",
     "Severity",
     "SubjectRight",
     "TechniqueCatalog",
