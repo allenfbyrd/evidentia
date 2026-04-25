@@ -17,7 +17,9 @@ and custom endpoints pointing at loopback / RFC-1918 pass through.
 
 from __future__ import annotations
 
+import getpass
 import os
+import socket
 from functools import lru_cache
 from typing import Any, cast
 
@@ -37,6 +39,30 @@ def get_default_model() -> str:
 def get_temperature() -> float:
     """Get the default temperature from environment or config."""
     return float(os.environ.get("EVIDENTIA_LLM_TEMPERATURE", "0.1"))
+
+
+def get_operator_identity() -> str:
+    """Best-effort operator identity for AI generation provenance (v0.7.1).
+
+    Returned string lands in :attr:`evidentia_core.audit.provenance.
+    GenerationContext.credential_identity` so an auditor can answer
+    "who authorized this LLM call". NEVER returns the API key itself.
+
+    Resolution order:
+
+    1. ``$EVIDENTIA_AI_OPERATOR`` if set \u2014 the operator-supplied label
+       (e.g., ``alice@acme.com``, ``ci-runner``, ``service-account-grc``).
+    2. Otherwise: ``getpass.getuser() + "@" + socket.gethostname()``
+       \u2014 best-effort OS-level fallback.
+    3. ``"unknown"`` if both fallbacks raise (sandboxed environments).
+    """
+    explicit = os.environ.get("EVIDENTIA_AI_OPERATOR")
+    if explicit:
+        return explicit
+    try:
+        return f"{getpass.getuser()}@{socket.gethostname()}"
+    except Exception:
+        return "unknown"
 
 
 def _guarded_completion(*args: Any, **kwargs: Any) -> Any:
