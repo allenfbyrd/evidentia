@@ -1,4 +1,17 @@
-"""One-shot bulk content rename: controlbridge → evidentia across tracked files.
+"""[DEPRECATED 2026-04-25] Historical reference: bulk content-rename script.
+
+Used exactly once during the v0.6.0 ControlBridge -> Evidentia rename
+release (April 2026). Retained in the repo for transparency about
+how the rename was performed; not safe to re-run because the source
+patterns no longer exist anywhere except in CHANGELOG entries,
+RENAMED.md, and historical migration shims (which were themselves
+removed at v0.7.0 per the public contract).
+
+Do not invoke this script. The rename is complete.
+
+----- Original docstring (v0.6.0) -----
+
+One-shot bulk content rename: controlbridge → evidentia across tracked files.
 
 Runs three case-sensitive replacements in a single pass per file:
   - lowercase: controlbridge  → evidentia
