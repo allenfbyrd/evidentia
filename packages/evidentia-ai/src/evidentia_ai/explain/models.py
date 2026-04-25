@@ -7,6 +7,7 @@ asked to produce.
 
 from __future__ import annotations
 
+from evidentia_core.audit.provenance import GenerationContext
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -66,5 +67,16 @@ class PlainEnglishExplanation(BaseModel):
             "Optional paragraph — common misreadings of the control's intent. "
             "For example: 'this control doesn't require encryption in transit, "
             "it requires network segmentation — which is different.'"
+        ),
+    )
+    generation_context: GenerationContext | None = Field(
+        default=None,
+        description=(
+            "v0.7.1+ AI provenance block. Optional in v0.7.x to preserve "
+            "deserialization compat with cached pre-v0.7.1 explanations and "
+            "v0.7.0 PlainEnglishExplanation payloads; will be tightened to "
+            "required in v0.8 with a deprecation cycle. NOT minted on cache "
+            "hits \u2014 the cached value (if any) is preserved verbatim. See "
+            "``evidentia_core.audit.provenance.GenerationContext``."
         ),
     )
