@@ -99,9 +99,10 @@ class VerifyReport:
             return False
         if self.signature_valid is False:
             return False
-        if self.sigstore_signature_valid is False:
-            return False
-        return True
+        # ``is not False`` covers both valid-True and not-checked-None in one
+        # comparison — we only flunk when a signature was found and didn't
+        # verify. Equivalent flatten of the previous ``if/return False / return True``.
+        return self.sigstore_signature_valid is not False
 
 
 def verify_digests(ar_doc: dict[str, Any]) -> list[DigestCheck]:
