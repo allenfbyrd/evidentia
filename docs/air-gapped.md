@@ -110,7 +110,7 @@ server {
 }
 ```
 
-**Important:** Evidentia has no auth in v0.4.0. Never bind to a non-loopback address without fronting with an authenticated proxy. Multi-user auth / RBAC is queued for v0.7.0+.
+**Important:** Evidentia has no built-in auth as of v0.7.0. Never bind to a non-loopback address without fronting with an authenticated proxy. Multi-user auth / RBAC is queued for v0.7.x+ per [`docs/v0.7.1-plan.md`](v0.7.1-plan.md).
 
 ## Verification checklist for auditors
 

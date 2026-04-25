@@ -16,6 +16,60 @@ reporting — all usable from a Python library, a CLI, or a REST API.
 
 ---
 
+## Why Evidentia is different
+
+GRC tooling has been waiting for its **Terraform moment**. Vanta and Drata
+are the AWS Consoles of compliance — polished SaaS dashboards charging
+$30K–$80K/year per framework. Evidentia is the **library-first compliance
+infrastructure layer underneath**: composable, embeddable, and built on the
+open standards (OSCAL) that the entire federal compliance stack is moving
+toward in 2026.
+
+It's the only OSS tool today that combines **all** of the following in one package:
+
+- **OSCAL-native end-to-end** — ingests NIST OSCAL catalogs, emits OSCAL
+  Assessment Results. Ready for the **September 2026 federal mandate**
+  (OMB M-24-15 + FedRAMP RFC-0024). Vanta, Drata, AuditBoard, OneTrust,
+  ServiceNow IRM, MetricStream all ship **zero OSCAL output** today.
+- **Cryptographically signed evidence** — Sigstore/Rekor keyless signing
+  of every Assessment Results document, PEP 740 attestations on every
+  released wheel + sdist, and a CycloneDX SBOM attached to every GitHub
+  Release. **No other OSS GRC tool puts cryptographic provenance on the
+  evidence itself.**
+- **82 framework catalogs bundled** — NIST 800-53 Rev 5 (full 1,196
+  controls + Low/Moderate/High/Privacy baselines), CSF 2.0, FedRAMP,
+  CMMC 2.0, EU AI Act, DORA, NIS2, GDPR, all 15 comprehensive US state
+  privacy laws, plus 20 Tier-C licensed-stub frameworks with
+  `evidentia catalog import` for your licensed copies. More than any
+  commercial vendor (Vanta: 35+, Drata: 20+, RegScale: 60+).
+- **Apache 2.0 license** — embeddable in commercial products without
+  AGPL friction. The OSS GRC alternatives (CISO Assistant, Eramba,
+  Comp AI) are AGPL with paid commercial tiers.
+- **Library-first, CLI-second, API-third** — `pip install evidentia-core;
+  from evidentia_core import GapAnalyzer`. The closest peers
+  (`compliance-trestle`, RegScale OSCAL Hub) are workflow / CLI tools, not
+  embeddable libraries.
+- **Air-gap capable** — `--offline` flag refuses network egress; signs
+  evidence with GPG when Sigstore can't reach Fulcio. Built for FedRAMP
+  High, CMMC Level 2, and EU sovereign-cloud deployments where SaaS GRC
+  is a non-starter.
+- **AI-optional, not AI-mandatory** — risk-statement generation and
+  control explanation use LLMs via LiteLLM (any provider — OpenAI,
+  Anthropic, Google, Azure, Bedrock, Ollama, vLLM). Everything else is
+  deterministic. No leakage of sensitive evidence to third-party AI APIs
+  unless you explicitly opt in.
+- **CI-native via composite GitHub Action** — drop in
+  `uses: allenfbyrd/evidentia/.github/actions/gap-analysis@v0` and every
+  PR runs gap analysis, posts a sticky compliance comment, and blocks
+  merge on regression. No commercial GRC tool does this at the PR level.
+
+For the full competitive analysis, market tailwinds, intellectual
+ancestry, and 12-month direction, see
+[`docs/positioning-and-value.md`](docs/positioning-and-value.md) — a
+12,000-word synthesis from 7 parallel research streams.
+
+---
+
 ## The problem
 
 Modern GRC is stuck in 2005. The typical compliance program runs on:
@@ -273,33 +327,46 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
   `--offline` (air-gap mode), `--json-logs` (ECS 8.11 structured output
   for SIEM ingestion), `--config <path>`, `--verbose`, `--quiet`.
 
-- **Full pytest suite passing** covering models, catalog loading (with a
+- **857 tests passing** covering models, catalog loading (with a
   parametric smoke test per bundled framework), recursive enhancement
   flattener for NIST Rev 5 3-level IDs, tier invariants, OSCAL profile
   resolution, user-import directory precedence, crosswalk bidirectionality,
   multi-format inventory parsing, severity calculation, all four report
-  exporters, Jira integration push/sync, AWS/GitHub evidence collection,
-  FastAPI `/api/*` endpoints, air-gap mode, and the v0.6.0 rename shims.
+  exporters, Jira integration push/sync, AWS Config + Security Hub +
+  IAM Access Analyzer + GitHub branch protection + CODEOWNERS +
+  Dependabot evidence collection, FastAPI `/api/*` endpoints, air-gap
+  mode, OSCAL AR digest + GPG + Sigstore round-trip verification, and
+  3 trestle conformance tests against the NIST OSCAL reference impl.
 
-### What's not yet included (as of v0.6.0)
+### What's not yet included (as of v0.7.0)
 
-Setting expectations matters. The following are on the roadmap but not yet
-shipped:
+Setting expectations matters. v0.7.0 shipped a substantial enterprise
+hardening pass, so several formerly-pending items have moved out of
+this list — see [`CHANGELOG.md`](CHANGELOG.md) for the full v0.7.0
+delta. The following are still on the roadmap but not yet shipped:
 
-- **LLM-based evidence validation** (Phase 3) — "is this screenshot
-  actually proof of MFA?" scoring, freshness detection, multi-modal
-  validation.
-- **Additional collectors / integrations** — IAM Access Analyzer,
-  Dependabot, Okta, ServiceNow, Vanta, Drata (all planned; same
-  infrastructure as the shipped AWS / GitHub / Jira implementations).
-- **Evidence chain of custody** — SHA-256 digests per evidence item in
-  OSCAL AR exports plus optional GPG signing of the AR document. Planned
-  for v0.7.0.
+- **AI features enterprise-grade hardening** (v0.7.1) — bring
+  `evidentia-ai` (risk statements + control explanation) up to the
+  v0.7.0 collector-pattern enterprise grade: typed exception hierarchy,
+  `@with_retry` for transient LLM failures, `GenerationContext` metadata,
+  ECS structured logging, and 250+ lines of new test coverage. See
+  [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md) for the design rationale
+  and acceptance criteria.
+- **LLM-based evidence validation** (Phase 3 / v0.8+) — "is this
+  screenshot actually proof of MFA?" scoring, freshness detection,
+  multi-modal validation via Document Screenshot Embedding (DSE).
+  Currently academic-only; tracked in
+  [`docs/positioning-and-value.md`](docs/positioning-and-value.md) §13.
+- **Additional collectors / integrations** — Okta (MFA, inactive users,
+  privileged-account counts), ServiceNow (`sn_compliance_task` push),
+  Vanta + Drata (push test results via their public APIs), Azure + GCP
+  evidence collectors. All scheduled for v0.7.1+ per
+  [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md).
 - **Multi-user auth / RBAC** — the web UI is localhost-only today;
-  network-deployment token auth is queued for v0.7.0+.
+  network-deployment token auth is queued for v0.7.x+.
 - **Authoritative control text for copyrighted frameworks** (ISO
   27001/27002, SOC 2 TSC, PCI DSS, HITRUST CSF, etc.) — ship as
-  **Tier C stubs** with public clause numbering only. Use
+  **Tier-C stubs** with public clause numbering only. Use
   `evidentia catalog import` to load your own licensed copy.
 
 ---
