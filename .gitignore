@@ -1,3 +1,20 @@
+# Secrets & credential stores (belt-and-suspenders safety net; the
+# user's working directory MUST keep secrets in C:\Users\<user>\.secrets\
+# and never inside the repo, but these patterns block accidental adds).
+# .env.example IS tracked intentionally — it documents the expected
+# variable names for new contributors.
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials.json
+
 # v0.4.0 — frontend build output lands in the Python package's static
 # directory at wheel-assembly time via the hatchling build hook. The
 # .gitkeep file in static/ is tracked; everything else is regenerated.
