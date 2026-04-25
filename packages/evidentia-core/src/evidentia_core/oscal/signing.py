@@ -31,6 +31,16 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from evidentia_core.audit.events import EventAction, EventOutcome
+from evidentia_core.audit.logger import get_logger
+
+# v0.7.0 Step-5 review: switched from stdlib logging to the ECS-8.11
+# structured logger used throughout v0.7.0 for SIEM-friendly audit
+# trail consistency (matches oscal/sigstore.py's logger setup so the
+# two signing paths emit comparable `evidentia.sign.*` events).
+_log = get_logger("evidentia.oscal.signing")
+# Retained for non-event debug lines that don't fit the EventAction
+# vocabulary (e.g., subprocess command construction).
 logger = logging.getLogger(__name__)
 
 
@@ -155,10 +165,32 @@ def sign_file(
         raise GPGNotAvailableError(str(e)) from e
 
     if result.returncode != 0:
+        _log.warning(
+            action=EventAction.SIGN_FAILED,
+            outcome=EventOutcome.FAILURE,
+            message=f"GPG signing failed for {artifact.name}",
+            error={"type": "GPGSigningError", "exit_code": result.returncode},
+            evidentia={
+                "artifact_path": str(artifact),
+                "key_id": key_id,
+                "stderr": result.stderr.strip()[:500],  # truncate for log size
+            },
+        )
         raise GPGSigningError(
             f"gpg --detach-sign failed (exit {result.returncode}): "
             f"{result.stderr.strip()}"
         )
+
+    _log.info(
+        action=EventAction.SIGN_GPG_SIGNED,
+        outcome=EventOutcome.SUCCESS,
+        message=f"GPG detached signature written for {artifact.name}",
+        evidentia={
+            "artifact_path": str(artifact),
+            "signature_path": str(sig_path),
+            "key_id": key_id,
+        },
+    )
     return sig_path
 
 
@@ -230,6 +262,31 @@ def verify_file(
 
     key_id, fingerprint = _parse_status_lines(result.stdout)
     valid = result.returncode == 0 and "GOODSIG" in result.stdout
+
+    if valid:
+        _log.info(
+            action=EventAction.VERIFY_SIGNATURE_PASSED,
+            outcome=EventOutcome.SUCCESS,
+            message=f"GPG signature valid for {artifact.name}",
+            evidentia={
+                "artifact_path": str(artifact),
+                "signature_path": str(sig_path),
+                "signer_key_id": key_id,
+                "signer_fingerprint": fingerprint,
+            },
+        )
+    else:
+        _log.warning(
+            action=EventAction.VERIFY_SIGNATURE_FAILED,
+            outcome=EventOutcome.FAILURE,
+            message=f"GPG signature invalid for {artifact.name}",
+            evidentia={
+                "artifact_path": str(artifact),
+                "signature_path": str(sig_path),
+                "stderr": result.stderr.strip()[:500],
+            },
+        )
+
     return VerifyResult(
         valid=valid,
         signer_key_id=key_id,

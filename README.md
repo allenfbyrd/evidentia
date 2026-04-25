@@ -263,10 +263,15 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
   validation failure. Works with any LiteLLM-supported model.
 
 - **Typer + Rich CLI** with `init`, `catalog list/show/crosswalk/import/
-  where/license-info/remove`, `gap analyze`, `risk generate`, `doctor`,
+  where/license-info/remove`, `gap analyze`, `gap diff`, `risk generate`,
+  `explain control`, `collect aws`, `collect github`, `integrations jira`,
+  `oscal verify` (v0.7.0 — verifies SHA-256 digests + GPG `.asc` and/or
+  Sigstore `.sigstore.json` signatures), `serve` (web UI), `doctor`,
   and `version` commands. `catalog list` supports `--tier` and `--category`
   filters; `catalog import` accepts direct JSON or an OSCAL profile (via
-  `--profile <profile.json> --catalog <source.json>`).
+  `--profile <profile.json> --catalog <source.json>`). Global flags:
+  `--offline` (air-gap mode), `--json-logs` (ECS 8.11 structured output
+  for SIEM ingestion), `--config <path>`, `--verbose`, `--quiet`.
 
 - **Full pytest suite passing** covering models, catalog loading (with a
   parametric smoke test per bundled framework), recursive enhancement
@@ -312,9 +317,9 @@ shipped:
 pip install evidentia
 ```
 
-This installs the `evidentia` and `cb` CLI commands, plus the four workspace
+This installs the `evidentia` and `cb` CLI commands, plus the five workspace
 sub-packages as transitive dependencies (`evidentia-core`, `evidentia-ai`,
-`evidentia-collectors`, `evidentia-integrations`).
+`evidentia-collectors`, `evidentia-integrations`, `evidentia-api`).
 
 ### Install from source (for contributors)
 
@@ -451,7 +456,7 @@ plus a React/Vite frontend workspace:
 | `evidentia-ai`           | LiteLLM + Instructor client, risk statement generator, control explainer  |
 | `evidentia-collectors`   | Evidence collection agents — AWS (Config + Security Hub), GitHub (branch protection + CODEOWNERS) |
 | `evidentia-integrations` | Jira push + bidirectional status sync; ServiceNow / Vanta / Drata queued    |
-| `evidentia-api`          | FastAPI server (18 REST endpoints) that bundles the React SPA for `evidentia serve` |
+| `evidentia-api`          | FastAPI server (26 REST routes across 12 router modules) that bundles the React SPA for `evidentia serve` |
 | `evidentia`              | CLI meta-package: Typer/Rich entry points (`evidentia` + `cb` alias)        |
 | `evidentia-ui` *(non-Python)* | Vite + React 18 + shadcn/ui frontend; built bundle is copied into `evidentia-api` at wheel time |
 
@@ -532,7 +537,7 @@ Summary below.
 - [x] Three realistic example scenarios (Meridian fintech, Acme Healthtech, Northstar DoD)
 
 ### Accessible GRC (v0.4.x) — SHIPPED
-- [x] FastAPI REST server (`evidentia serve`) — 18 `/api/*` endpoints
+- [x] FastAPI REST server (`evidentia serve`) — 26 `/api/*` routes across 12 router modules
 - [x] React + Vite + shadcn/ui web UI (WCAG 2.1 AA via Radix primitives)
 - [x] Air-gapped mode (`--offline` flag + `doctor --check-air-gap` validator)
 - [x] Reusable GitHub Action (`allenfbyrd/evidentia-action@v1`)

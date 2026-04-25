@@ -80,19 +80,38 @@ def _get_scope() -> dict[str, Any]:
 # Narrow patterns — anything with high confidence of being a credential.
 # False positives here are annoying but safe (redacted message); false
 # negatives are a compliance liability. Err on the side of over-scrubbing.
+#
+# v0.7.0 Step-5 review: expanded from the initial AWS+GitHub+JWT set to
+# also cover Slack, Stripe, Google API, and npm tokens — the most
+# common credential shapes seen in real-world incident logs (per OWASP
+# Cheat Sheet on credential leakage and the GitHub token-scan corpus
+# at github.com/leondz/garak/blob/main/garak/probes/leakreplay.py).
 _SECRET_PATTERNS = [
     # AWS access key IDs (AKIA prefix, 20 chars total, base32).
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
     re.compile(r"\bASIA[0-9A-Z]{16}\b"),  # temporary credentials
-    # GitHub personal access tokens (ghp_, gho_, ghu_, ghs_, ghr_ + 36 chars)
+    # GitHub personal access tokens (ghp_, gho_, ghu_, ghs_, ghr_ + 36 chars).
     re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b"),
-    # Generic "password=xxx" / "token=xxx" / "api_key=xxx" shapes, length ≥8
+    # Slack tokens (xoxb_, xoxp_, xoxa_, xoxr_, xoxs_ + variable length).
+    # Doc: https://api.slack.com/authentication/token-types
+    re.compile(r"\bxox[abprs]-[0-9]+-[0-9]+-[0-9]+-[A-Fa-f0-9]+\b"),
+    re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{20,}\b"),  # newer formats
+    # Stripe API keys (sk_live_, sk_test_, pk_live_, pk_test_,
+    # rk_live_, rk_test_ + 24+ chars). Doc: stripe.com/docs/keys
+    re.compile(r"\b(sk|pk|rk)_(live|test)_[A-Za-z0-9]{24,}\b"),
+    # Google API keys (AIza prefix, 39 chars total).
+    # Doc: cloud.google.com/docs/authentication/api-keys
+    re.compile(r"\bAIza[0-9A-Za-z_\-]{35}\b"),
+    # npm tokens (npm_ prefix, 36 chars total — introduced 2021).
+    # Doc: docs.npmjs.com/about-access-tokens
+    re.compile(r"\bnpm_[A-Za-z0-9]{36}\b"),
+    # Generic "password=xxx" / "token=xxx" / "api_key=xxx" shapes, length ≥8.
     re.compile(
         r"\b(password|token|api[_-]?key|secret|credential)\s*[=:]\s*[\'\"]?"
         r"[A-Za-z0-9_\-\.]{8,}[\'\"]?",
         re.IGNORECASE,
     ),
-    # JWTs — three base64url segments separated by dots
+    # JWTs — three base64url segments separated by dots.
     re.compile(r"\beyJ[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\b"),
 ]
 
