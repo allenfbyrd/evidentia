@@ -30,14 +30,14 @@ Priority tiers:
 |---|---|---|
 | B1 | Evidence integrity: SHA-256 digest + cryptographic signature on every finding | ✅ GPG (v0.7.0 initial) + Sigstore/Rekor (v0.7.0 enterprise) |
 | B2 | RFC 3339 UTC timestamps on every finding | ✅ `CollectionContext.collected_at` + NIST AU-3 content |
-| B3 | No bare `except` in evidence-generation code | ✅ Typed catches + structured log emission in AWS + GitHub collectors |
+| B3 | No bare `except` in evidence-generation code | ✅ Typed catches + structured log emission in AWS + GitHub collectors. **v0.7.1**: extended to AI features (`risk_statements/`, `explain/`) via the typed `EvidentiaAIError` hierarchy in `evidentia_ai.exceptions` (closes the v0.7.0 HIGH carry-over). |
 | B4 | No floating dependencies in lock file | ✅ `pyproject.toml` uses pinned minors; `uv.lock` committed |
 | B5 | Completeness attestation per collection run | ✅ `CollectionManifest` with `empty_categories` + `is_complete` + per-resource-type `CoverageCount` |
 | B6 | Air-gapped signed evidence path | ✅ GPG works in air-gap; Sigstore refuses and routes operators to GPG |
 | B7 | CI enforces OSCAL schema validation | ✅ `compliance-trestle>=4.0` round-trip in `tests/unit/test_oscal/test_trestle_conformance.py`; covers `Extra.forbid` unknown-field detection that NIST's JSON Schema doesn't catch |
 | B8 | No sensitive data in logs | ✅ Regex-based secret scrubber in `evidentia_core.audit.logger._scrub` |
 | B9 | NIST-approved crypto algorithms | ✅ SHA-256, Ed25519 (via Sigstore), GPG RSA-2048+ |
-| B10 | Bounded retry + exponential backoff | ✅ `@with_retry` in AWS + GitHub + Dependabot + Access Analyzer collectors |
+| B10 | Bounded retry + exponential backoff | ✅ `@with_retry` in AWS + GitHub + Dependabot + Access Analyzer collectors. **v0.7.1**: extended to AI features via `build_retrying`/`build_async_retrying` in `risk_statements/` and `explain/` (sync + async) against the shared `LLM_TRANSIENT_EXCEPTIONS` set (LiteLLM `RateLimitError`/`APIConnectionError`/`Timeout`/`InternalServerError`/`ServiceUnavailableError`/`BadGatewayError`). |
 
 ## HIGH items
 

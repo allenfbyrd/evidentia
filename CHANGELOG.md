@@ -7,7 +7,100 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.7.1 development branch._
+### v0.7.1 development — AI features hardening (in progress)
+
+In-flight work bringing the `evidentia-ai` package up to the v0.7.0
+collector enterprise-grade bar. See `docs/v0.7.1-plan.md` for the full
+scope; below is what's landed on the development branch so far.
+
+#### Added
+
+- **`GenerationContext`** Pydantic model in
+  `evidentia_core.audit.provenance`, sibling to `CollectionContext`.
+  Captures per-output AI provenance: `model`, `temperature`,
+  `prompt_hash` (SHA-256 of system+user prompts via the new
+  `compute_prompt_hash()` helper), `run_id` (ULID),
+  `generated_at` (microsecond UTC), `attempts` (network-layer retry
+  count), `instructor_max_retries` (validation-layer cap),
+  `credential_identity` (best-effort operator label per NIST AU-3),
+  `evidentia_version`.
+- **9 new `EventAction` entries** under the `evidentia.ai.*` namespace:
+  `AI_RISK_GENERATED`, `AI_RISK_FAILED`, `AI_RISK_RETRY`,
+  `AI_RISK_BATCH_COMPLETED`, `AI_EXPLAIN_GENERATED`,
+  `AI_EXPLAIN_FAILED`, `AI_EXPLAIN_RETRY`, `AI_EXPLAIN_CACHE_HIT`,
+  `AI_EXPLAIN_BATCH_COMPLETED`. Documented in `docs/log-schema.md`.
+- **`with_retry_async`** decorator + **`build_retrying`** /
+  **`build_async_retrying`** factory functions in
+  `evidentia_core.audit.retry`, supporting async callers and
+  per-call attempt tracking.
+- **`event_action`** kwarg on `with_retry`/`with_retry_async` (default
+  `EventAction.COLLECT_RETRY` preserves pre-v0.7.1 collector
+  behaviour); AI generators pass `AI_RISK_RETRY` /
+  `AI_EXPLAIN_RETRY` so SIEM operators can filter retry storms by
+  namespace.
+- **`evidentia_ai.exceptions`** module with the typed exception
+  hierarchy (`EvidentiaAIError`, `LLMUnavailableError`,
+  `LLMValidationError`, `RiskStatementError`, `RiskGenerationFailed`).
+- **`evidentia_ai.client.get_operator_identity()`** helper returning
+  `$EVIDENTIA_AI_OPERATOR` if set, else best-effort
+  `user@hostname`. Populates
+  `GenerationContext.credential_identity`.
+- Optional **`generation_context`** field on
+  `evidentia_core.models.risk.RiskStatement` AND
+  `evidentia_ai.explain.models.PlainEnglishExplanation` (default
+  `None` for v0.7.x backward compat; will tighten to required in v0.8
+  with a deprecation cycle).
+- Shared **`LLM_TRANSIENT_EXCEPTIONS`** tuple in
+  `evidentia_ai.exceptions` so `risk_statements/` and `explain/`
+  retry on identical conditions (single source of truth).
+- **`ExplainError`** + **`ExplainGenerationFailed`** in
+  `evidentia_ai.exceptions` (sibling of the risk-specific hierarchy
+  under the shared `EvidentiaAIError` base).
+
+#### Changed
+
+- `risk_statements/generator.py`: replaced stdlib `logging` with
+  `evidentia_core.audit.get_logger`; wrapped LLM calls in bounded
+  retry against the LiteLLM transient-exception set
+  (`RateLimitError`, `APIConnectionError`, `Timeout`,
+  `InternalServerError`, `ServiceUnavailableError`,
+  `BadGatewayError`); replaced two `except Exception` BLOCKER B3
+  sites with the typed exception hierarchy; emits structured events
+  for every state transition with `run_id` correlation across success,
+  failure, retry, and batch-summary events. Air-gap policy violations
+  (`OfflineViolationError`) propagate unchanged.
+- `explain/generator.py`: same hardening pattern as
+  `risk_statements/generator.py` \u2014 structured logger, `@with_retry`
+  via `build_retrying`, typed exception hierarchy
+  (`ExplainError`/`ExplainGenerationFailed`), `GenerationContext`
+  attached on cache miss (cache hits preserve whatever was cached),
+  structured `AI_EXPLAIN_GENERATED`/`AI_EXPLAIN_FAILED`/`AI_EXPLAIN_RETRY`/
+  `AI_EXPLAIN_CACHE_HIT` events with `run_id` correlation. Closes
+  the v0.7.0 BLOCKER B3 carry-over for the explain subsystem.
+
+#### Breaking changes
+
+- **`evidentia_core.models.risk` module is no longer re-exported from
+  the `evidentia_core.models` package root.** Callers must now use
+  `from evidentia_core.models.risk import RiskStatement, RiskRegister, ...`
+  directly. This mirrors the v0.7.0 exclusion of
+  `evidentia_core.models.finding` and is required to break a circular
+  import (`risk.py` now references `evidentia_core.audit.provenance`,
+  which already imports from `models.common`). All in-tree callers
+  already use the direct submodule path; downstream callers using
+  `from evidentia_core.models import RiskStatement` must update their
+  imports.
+
+#### Deserialization compatibility note
+
+- v0.7.0 readers will **reject** v0.7.1 `RiskStatement` JSON because
+  `EvidentiaModel` sets `extra='forbid'` and the new
+  `generation_context` field is unknown to v0.7.0. This is the same
+  forward-compat property that v0.7.0 introduced when adding
+  `collection_context` to `SecurityFinding`. Mixed-version
+  deployments must upgrade `evidentia-core` to v0.7.1 on every
+  reader before v0.7.1 writers go live. v0.7.1 readers accept v0.7.0
+  payloads cleanly (the optional field defaults to `None`).
 
 ## [0.7.0] - 2026-04-25
 
