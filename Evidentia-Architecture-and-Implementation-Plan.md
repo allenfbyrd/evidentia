@@ -6,6 +6,20 @@
 **Audience:** Senior Engineers, Technical Leads, Contributors  
 **License:** Apache 2.0  
 
+> **Implementation status as of 2026-04-25:** v0.7.0 (the
+> "enterprise-grade" release) is the latest shipped version. All
+> phases through Phase 2 (collectors) are SHIPPED. Phase 3 (AI evidence
+> validation) is partial (risk-statement generation + control
+> explanation shipped in v0.4.0; AI features hardening to the v0.7.0
+> collector-pattern enterprise grade is scheduled for v0.7.1 — see
+> [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md)). The v0.7.0 review
+> deliverables ([`docs/positioning-and-value.md`](docs/positioning-and-value.md),
+> [`docs/capability-matrix.md`](docs/capability-matrix.md), and
+> [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md)) supplement this
+> document with current competitive positioning, capability test
+> matrix, and forward roadmap. This architecture plan remains the
+> canonical design reference; cross-link the supplements for status.
+
 ---
 
 > **"Bridge the gap between your controls and your frameworks."**
