@@ -868,7 +868,7 @@ dependencies = [
 requires-dist = [
     { name = "evidentia-core", editable = "packages/evidentia-core" },
     { name = "instructor", specifier = ">=1.6" },
-    { name = "litellm", specifier = ">=1.50,<2.0" },
+    { name = "litellm", specifier = ">=1.83.0,<2.0" },
     { name = "tenacity", specifier = ">=9.0" },
 ]
 

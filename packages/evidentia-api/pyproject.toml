@@ -19,8 +19,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "evidentia-core>=0.6.0,<0.7.0",
-    "evidentia-ai>=0.6.0,<0.7.0",
+    "evidentia-core>=0.7.0,<0.8.0",
+    "evidentia-ai>=0.7.0,<0.8.0",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "python-multipart>=0.0.9",

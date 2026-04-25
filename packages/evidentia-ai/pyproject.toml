@@ -17,8 +17,13 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "evidentia-core>=0.6.0,<0.7.0",
-    "litellm>=1.50,<2.0",
+    "evidentia-core>=0.7.0,<0.8.0",
+    # v0.7.0 Step-3 review: pin LiteLLM above the compromised
+    # 1.82.7 / 1.82.8 versions from the March 24, 2026 PyPI supply
+    # chain incident (~40-min compromise window before quarantine).
+    # uv.lock already pins to 1.83.0 (safe); this protects raw pip
+    # users without lock-file hash verification.
+    "litellm>=1.83.0,<2.0",
     "instructor>=1.6",
     "tenacity>=9.0",
 ]

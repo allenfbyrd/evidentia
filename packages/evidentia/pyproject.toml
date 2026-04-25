@@ -17,10 +17,10 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "evidentia-core>=0.6.0,<0.7.0",
-    "evidentia-ai>=0.6.0,<0.7.0",
-    "evidentia-collectors>=0.6.0,<0.7.0",
-    "evidentia-integrations>=0.6.0,<0.7.0",
+    "evidentia-core>=0.7.0,<0.8.0",
+    "evidentia-ai>=0.7.0,<0.8.0",
+    "evidentia-collectors>=0.7.0,<0.8.0",
+    "evidentia-integrations>=0.7.0,<0.8.0",
     "typer>=0.14",
     "rich>=13.0",
 ]
@@ -29,7 +29,7 @@ dependencies = [
 # Web UI — installs the FastAPI server + bundled React SPA.
 # Usage: `pip install "evidentia[gui]"` or `uv tool install "evidentia[gui]"`,
 # then `evidentia serve` to open the local web UI.
-gui = ["evidentia-api>=0.6.0,<0.7.0"]
+gui = ["evidentia-api>=0.7.0,<0.8.0"]
 
 [project.scripts]
 evidentia = "evidentia.cli.main:app"
