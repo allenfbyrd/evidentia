@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No changes yet on the v0.7.1 development branch._
 
-## [0.7.0] - 2026-04-24
+## [0.7.0] - 2026-04-25
 
 **The enterprise-grade release.** Closes all 10 BLOCKER items in
 [`docs/enterprise-grade.md`](docs/enterprise-grade.md). Adds Sigstore/Rekor

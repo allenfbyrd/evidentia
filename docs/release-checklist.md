@@ -1,0 +1,347 @@
+# Evidentia release checklist
+
+> Step-6 deliverable from the v0.7.0 comprehensive pre-tag review
+> (compiled 2026-04-25). Comprehensive per-release update list to
+> ensure future consistency and uniformity in accordance with best
+> GRC and DevSecOps practice. Run this checklist for every release —
+> patch, minor, or major.
+>
+> **This checklist is self-referential** — Step 0 below is "review
+> and update this checklist itself" so it stays current as the
+> project evolves.
+>
+> Cross-link to: [testing-playbook.md](testing-playbook.md) (the
+> operational test loop), [enterprise-grade.md](enterprise-grade.md)
+> (the quality bar), [capability-matrix.md](capability-matrix.md)
+> (last release's test snapshot), [v0.7.1-plan.md](v0.7.1-plan.md)
+> (the next release's scope).
+
+---
+
+## Step 0 — Review this checklist
+
+Before doing anything else: **scan this document end-to-end** and
+update any item that is now stale (new package added, new doc
+created, new workflow added, etc.). A stale checklist gives you
+false confidence; an honest checklist catches real bugs.
+
+If the project has changed materially since the last release (new
+package, new collector, new top-level config, new workflow), add
+the corresponding new checklist items here.
+
+---
+
+## Step 1 — Pre-release scope confirmation
+
+Before writing any code for a release:
+
+- [ ] Read `docs/<X.Y.Z>-plan.md` (or `docs/ROADMAP.md` if no plan
+      doc exists for this release). Confirm scope is locked.
+- [ ] Verify any required design decisions for this release are
+      decided (e.g., v0.7.1 had 4 design decisions D1-D4).
+- [ ] Confirm any deferred items from the prior release's
+      `capability-matrix.md` HIGH bucket are scheduled or explicitly
+      re-deferred.
+- [ ] Open a release tracking issue on GitHub describing scope.
+
+---
+
+## Step 2 — Version bumps + dependency pins
+
+For every release (patch / minor / major):
+
+- [ ] Bump `version = "X.Y.Z"` in **all 7** pyproject.toml files:
+  - `pyproject.toml` (workspace root)
+  - `packages/evidentia/pyproject.toml`
+  - `packages/evidentia-core/pyproject.toml`
+  - `packages/evidentia-ai/pyproject.toml`
+  - `packages/evidentia-collectors/pyproject.toml`
+  - `packages/evidentia-integrations/pyproject.toml`
+  - `packages/evidentia-api/pyproject.toml`
+- [ ] Bump `"version": "X.Y.Z"` in `packages/evidentia-ui/package.json`.
+- [ ] **Bump inter-package dep pins** atomically. Pattern:
+      `>=PREV.0,<X.0` → `>=X.0,<NEXT.0` across:
+  - `packages/evidentia/pyproject.toml` (5 pins: evidentia-core,
+    -ai, -collectors, -integrations, -api in `[gui]` extra)
+  - `packages/evidentia-api/pyproject.toml` (2 pins: -core, -ai)
+  - `packages/evidentia-ai/pyproject.toml` (1 pin: -core)
+  - `packages/evidentia-collectors/pyproject.toml` (1 pin: -core)
+  - `packages/evidentia-integrations/pyproject.toml` (1 pin: -core)
+- [ ] **Why this matters**: Step 3 of the v0.7.0 review caught a real
+      bug where `version = "..."` was bumped but inter-package pins
+      were not, producing a within-release version mismatch for raw
+      pip users (commit `25ccca8`).
+- [ ] Run `uv sync --all-extras --all-packages` to regenerate `uv.lock`.
+- [ ] Verify with `git diff packages/*/pyproject.toml` that 9 pin
+      lines changed (not just 7 version lines).
+
+---
+
+## Step 3 — CHANGELOG
+
+- [ ] Rename `## [Unreleased]` → `## [X.Y.Z] - YYYY-MM-DD`.
+- [ ] Add a fresh `## [Unreleased]` block above with
+      `_No changes yet on the vX.Y.Z+1 development branch._`.
+- [ ] Write a 2-3 paragraph release-summary block at the top of the
+      new entry. Include test count (`uv run pytest -q | tail -1`),
+      headline features, and a cross-link to any deliverable docs
+      from a pre-tag review (e.g., positioning-and-value.md,
+      capability-matrix.md, vX.Y.Z+1-plan.md).
+- [ ] Add a "Deferred to vX.Y.Z+1" section if applicable, with
+      design rationale.
+- [ ] Verify CHANGELOG renders cleanly in Markdown preview.
+
+---
+
+## Step 4 — Documentation refresh
+
+- [ ] Update `docs/ROADMAP.md`:
+  - Mark this release as SHIPPED with a 1-paragraph summary.
+  - Add a "vX.Y.Z+1 — NEXT" section pointing at
+    `docs/<next-version>-plan.md`.
+  - Update the `**Last updated:**` line in the header.
+- [ ] Update `docs/enterprise-grade.md` if any BLOCKER / HIGH /
+      MEDIUM / LOW items moved status. Refresh the BLOCKER score.
+- [ ] Verify `README.md` "Current status" section reflects the new
+      version. Update version-callout banners.
+- [ ] If a `docs/positioning-and-value.md` re-sync is due (quarterly
+      cadence — see [`MEMORY.md` pointer](pointer_evidentia_positioning_and_value.md)):
+  - Re-run the 7 research streams per the recipe in MEMORY.md
+  - Snapshot the prior version as `docs/positioning-and-value-YYYY-Q[N].md`
+  - Promote new synthesis to canonical `docs/positioning-and-value.md`
+  - Update the version-history table in the doc
+- [ ] Update `docs/log-schema.md` if any new `EventAction` entries
+      were added in this release.
+- [ ] If new CLI commands or REST endpoints were added, update the
+      counts and command lists in:
+  - `README.md` §3.4 (REST endpoint count) + §"Typer + Rich CLI"
+  - `docs/capability-matrix.md` §Surface tier 7 / 8
+
+---
+
+## Step 5 — Test gate
+
+Run from a clean worktree:
+
+```bash
+uv sync --all-extras --all-packages
+uv run --no-sync ruff check
+uv run --no-sync python -m mypy \
+  packages/evidentia-core packages/evidentia-collectors \
+  packages/evidentia-api packages/evidentia-ai \
+  packages/evidentia-integrations packages/evidentia
+uv run --no-sync python -m pytest -q --cov=packages
+uv build --all-packages
+uvx twine check dist/*
+```
+
+Acceptance:
+
+- [ ] ruff: `All checks passed!`
+- [ ] mypy: `Success: no issues found in N source files`
+- [ ] pytest: ≥ 857 passed (the v0.7.0 baseline; will grow over
+      time), ≤ 8 skipped, 16 benign Tier-C warnings
+- [ ] `uv build --all-packages`: 6 evidentia-* wheels + sdists at the
+      new version (no shim wheels)
+- [ ] `uvx twine check dist/*`: every distribution PASSED
+
+---
+
+## Step 6 — Inconsistency scour
+
+Per the testing-playbook 3-pass scour pattern:
+
+```bash
+# Pass 1: stale name references (must only appear in CHANGELOG /
+# RENAMED.md / scripts/_create_shim_packages.py / scripts/_rename_content.py)
+grep -ri "controlbridge"
+
+# Pass 2: prior-version mentions (must only appear in CHANGELOG
+# entries documenting prior versions)
+grep -ri "PREV.X.Y"
+grep -ri "X.Y-1.0"
+
+# Pass 3: current-version coverage (should appear in 7 pyproject.toml
+# + package.json + CHANGELOG + ROADMAP + enterprise-grade.md +
+# capability-matrix.md as the current release)
+grep -ri "X.Y.Z"
+
+# Email leak audit (must return zero hits)
+git log --all --format="%ae" | sort -u | grep "@allenfbyrd.com$" || echo "OK: zero non-noreply emails"
+```
+
+- [ ] Zero stale-name hits outside expected files.
+- [ ] Prior-version mentions only in historical CHANGELOG entries.
+- [ ] Current-version mentioned consistently across all sources.
+- [ ] No real email addresses in commit history (only noreply forms).
+
+---
+
+## Step 7 — External repo + service review
+
+```bash
+gh repo view allenfbyrd/evidentia --json name,description,isArchived,defaultBranchRef
+gh secret list --env pypi --repo allenfbyrd/evidentia
+gh api repos/allenfbyrd/evidentia/environments/pypi --jq '{name, url}'
+gh search commits --author-email allen@allenfbyrd.com --owner allenfbyrd  # zero hits
+```
+
+- [ ] Repo About description is current (no stale "Previously: ..." text).
+- [ ] PyPI environment exists.
+- [ ] PyPI Trusted Publisher entries exist for all 6 published packages
+      (verify via `https://pypi.org/manage/project/<name>/settings/publishing/`).
+- [ ] Zero `allen@allenfbyrd.com` commits across all owned repos.
+
+---
+
+## Step 8 — Tag and push (the irreversible step)
+
+**STOP for explicit user approval before proceeding.** Surface a
+comprehensive pre-tag overview including:
+
+- Commit list since the prior release tag
+- Test results (passed / skipped / warnings)
+- Build artifacts (6 wheels + 6 sdists at new version)
+- Scour findings (zero stale references)
+- External services state (PyPI publishers, GitHub repo)
+- Known deferrals (HIGH-bucket items deferred to next release)
+
+After explicit approval:
+
+```bash
+git tag -a vX.Y.Z -m "Release vX.Y.Z — <one-line summary>"
+git push origin main          # if main has unpushed commits
+git push origin vX.Y.Z         # the tag triggers release.yml
+gh run watch                   # monitor the release workflow
+```
+
+If the release.yml workflow fails:
+
+- For OIDC bootstrap issues (per-package PyPI Trusted Publisher
+  registration mismatch), check the per-package
+  `https://pypi.org/manage/project/<name>/settings/publishing/`
+  page; correct the entry; re-trigger via re-pushing the tag (delete
+  and re-push, or push a new patch tag).
+- For SBOM / attestation issues, fix the workflow YAML, push the
+  fix, push a new tag (don't reuse the failed tag).
+- For partial publishes (some wheels published, others 403), fix
+  the failing publisher then re-run; `skip-existing: true` in
+  `release.yml` makes retries idempotent.
+
+---
+
+## Step 9 — Post-release verification
+
+Within 30 minutes of `release.yml` reporting success:
+
+- [ ] PyPI: each of the 6 packages shows version X.Y.Z at
+      `https://pypi.org/project/<name>/`.
+- [ ] PyPI per-file pages show the "Provenance" / PEP 740 attestation
+      section with the GitHub Actions workflow URL + commit SHA.
+- [ ] `gh attestation verify dist/evidentia_core-X.Y.Z-py3-none-any.whl -R allenfbyrd/evidentia`
+      returns valid.
+- [ ] CycloneDX SBOM attached to the GitHub Release.
+- [ ] CHANGELOG entry renders correctly on GitHub.
+- [ ] `pip install evidentia==X.Y.Z` from a clean venv succeeds; CLI
+      commands work end-to-end.
+
+---
+
+## Step 10 — Post-release housekeeping
+
+Within 1-3 days:
+
+- [ ] Update MEMORY.md pointer entries for the shipped version.
+- [ ] Archive any merged feature branches.
+- [ ] Open GitHub issues for any known follow-ups discovered during
+      the release process.
+- [ ] If this is the first release after a major review, update
+      `docs/capability-matrix.md` with any new bug findings + their
+      resolution status.
+- [ ] Outreach (per `docs/positioning-and-value.md` §12.5):
+  - Tweet / Substack post / LinkedIn announcement
+  - Engage 1-2 of the top-5-to-pitch voices (Mike Privette, Ross
+    Haleliuk, AJ Yawn, Greg Elin, FedRAMP team)
+  - Submit to OSCAL Plugfest if not already done
+  - Open issue on `oscal-compass/community` for new interop
+    scenarios if applicable
+- [ ] Optional manual PyPI yank operations (e.g., yank shim wheels
+      from prior versions if a contract specified yank at a future
+      version — we did this for v0.5.1 controlbridge-* shims at v0.7.0).
+
+---
+
+## Step 11 — Quarterly cadence (independent of releases)
+
+Run quarterly regardless of release schedule:
+
+- [ ] Re-sync `docs/positioning-and-value.md` per the
+      [`research_resync_automation_pattern.md`](pointer_research_resync_automation_pattern.md)
+      MEMORY pointer. Snapshot to dated file; review diff; promote
+      to canonical.
+- [ ] Refresh `docs/enterprise-grade.md` if standards have evolved
+      (NIST SSDF v1.X, FedRAMP RFC-NNNN, EU regulation enforcement
+      timelines).
+- [ ] Run `gh attestation verify` against a recent release to confirm
+      the Sigstore / Rekor chain still validates.
+- [ ] Verify Dependabot has been keeping `actions` and Python deps
+      current. Apply security-only PRs immediately; batch other
+      updates monthly.
+- [ ] Check OpenSSF Scorecard score (after v0.7.1 ships the
+      Scorecard workflow). Address any regressions.
+
+---
+
+## DevSecOps + GRC alignment
+
+This checklist explicitly aligns with:
+
+- **NIST SSDF v1.1** (PO.3 Implement Supporting Toolchains, PW.4 Reuse
+  Existing, RV.2 Identify and Mitigate Vulnerabilities)
+- **OpenSSF Scorecard** (Pinned-Dependencies, SBOM, Signed-Releases,
+  Security-Policy)
+- **CISA Secure by Design Pledge** (signed software, transparency)
+- **PEP 740** (Index-Hosted Attestations for Python Package Index)
+- **SLSA L3** (build provenance with isolated builders, target for
+  v0.7.1 per `docs/v0.7.1-plan.md` item S3)
+
+The 11 steps map to GRC release-management discipline:
+
+| Step | GRC discipline |
+|---|---|
+| 0 (this checklist) | Continuous control monitoring (CCM) |
+| 1 (scope) | Change management |
+| 2-4 (versions/CHANGELOG/docs) | Configuration management baseline |
+| 5 (test gate) | Verification & validation |
+| 6 (scour) | Configuration audit |
+| 7 (external review) | Third-party access management |
+| 8 (tag/push) | Approved change deployment |
+| 9 (verification) | Release verification |
+| 10 (housekeeping) | Post-implementation review |
+| 11 (quarterly) | Continuous monitoring |
+
+---
+
+## Future automation candidates
+
+Items currently manual that could be scripted/automated:
+
+- **Step 2 (version bumps)**: a generalized `_bump_version.py` script
+  parameterized by current and target versions, handling all 7
+  pyproject.toml + package.json + 9 inter-package pins atomically.
+  See deprecation header on the existing one-shot
+  `scripts/_bump_version.py`.
+- **Step 6 (scour)**: a `scripts/_release_scour.sh` script running the
+  three grep passes + the email-leak audit.
+- **Step 7 (external review)**: a `scripts/_release_external_check.sh`
+  script wrapping the gh API calls.
+- **Step 11 (quarterly research re-sync)**: per
+  `pointer_research_resync_automation_pattern.md`, can run as a
+  CronCreate-scheduled session or a GitHub Action workflow.
+
+---
+
+*End of release-checklist.md. Cross-link from MEMORY.md so future
+Claude sessions auto-load this checklist when a release is being
+prepared. Step 0 self-reference ensures the checklist itself is
+maintained.*
