@@ -1,4 +1,20 @@
-"""One-shot version bump: 0.5.0 -> 0.6.0 for the v0.6.0 rename release.
+"""[DEPRECATED 2026-04-25] Historical reference: v0.5.0 -> v0.6.0 version bumper.
+
+Used exactly once during the v0.6.0 rename release (April 2026) to
+bump version strings + inter-package dep pins from the 0.5.x series
+to the 0.6.x series. Retained in the repo for transparency about how
+the bump was performed; not safe to re-run because the source
+patterns (>=0.5.0,<0.6.0) no longer exist in any current pyproject.toml.
+
+For future version bumps, perform the equivalent set of edits manually
+or write a fresh script targeting the actual current/target versions.
+The Step-3 review of v0.7.0 caught a real bug (commit 25ccca8) that
+would have been prevented by a generalized version-bumper that handles
+inter-package pins atomically — consider this for v0.7.1+ tooling.
+
+----- Original docstring (v0.6.0) -----
+
+One-shot version bump: 0.5.0 -> 0.6.0 for the v0.6.0 rename release.
 
 Bumps three patterns across tracked config files:
   - `version = "0.5.0"`           (pyproject.toml)
