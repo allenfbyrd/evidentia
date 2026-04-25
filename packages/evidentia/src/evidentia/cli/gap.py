@@ -102,6 +102,39 @@ def analyze(
             "`evidentia oscal verify <output> --require-signature`."
         ),
     ),
+    sign_with_sigstore: bool = typer.Option(
+        False,
+        "--sign-with-sigstore",
+        help=(
+            "Optional Sigstore/Rekor signing (v0.7.0). When supplied with "
+            "--format oscal-ar, the exported JSON is keyless-signed via "
+            "Fulcio + Rekor using the workflow's ambient OIDC identity "
+            "(GitHub Actions, Google Workload Identity, AWS, etc.). Bundle "
+            "written to <output>.sigstore.json by default. Coexists with "
+            "--sign-with-gpg for defence-in-depth. Refused in air-gap mode "
+            "(use GPG instead). Requires the [sigstore] extra: "
+            "`pip install 'evidentia-core[sigstore]'`."
+        ),
+    ),
+    sigstore_bundle: Path | None = typer.Option(
+        None,
+        "--sigstore-bundle",
+        help=(
+            "Custom Sigstore bundle output path. Defaults to "
+            "<output>.sigstore.json. Only used with --sign-with-sigstore."
+        ),
+    ),
+    sigstore_identity_token: str | None = typer.Option(
+        None,
+        "--sigstore-identity-token",
+        envvar="SIGSTORE_ID_TOKEN",
+        help=(
+            "Optional explicit OIDC token for Sigstore signing. When omitted, "
+            "sigstore-python's detect_credential() resolves it from ambient "
+            "GitHub Actions / GCP / AWS environment. Read from $SIGSTORE_ID_TOKEN "
+            "if not passed."
+        ),
+    ),
 ) -> None:
     """Run gap analysis against one or more frameworks."""
     # v0.2.1: resolve inputs via the config-aware precedence chain:
@@ -226,6 +259,14 @@ def analyze(
         )
         sign_with_gpg = None
 
+    if sign_with_sigstore and format != "oscal-ar":
+        console.print(
+            "[yellow]Note:[/yellow] --sign-with-sigstore only applies to "
+            "--format oscal-ar. Ignoring for format=[bold]"
+            f"{format}[/bold]."
+        )
+        sign_with_sigstore = False
+
     # Export
     out_path = export_report(
         report,
@@ -233,6 +274,9 @@ def analyze(
         format=format,  # type: ignore[arg-type]
         findings=findings_list,
         gpg_key_id=sign_with_gpg,
+        sign_with_sigstore=sign_with_sigstore,
+        sigstore_bundle_path=sigstore_bundle,
+        sigstore_identity_token=sigstore_identity_token,
     )
     console.print(
         f"[green]Report exported:[/green] [bold]{out_path}[/bold] ({format})"
@@ -242,6 +286,13 @@ def analyze(
         console.print(
             f"[green]Detached signature written:[/green] [bold]{sig_path}[/bold] "
             f"(key={sign_with_gpg})"
+        )
+    if sign_with_sigstore:
+        bundle_path = sigstore_bundle or out_path.with_suffix(
+            out_path.suffix + ".sigstore.json"
+        )
+        console.print(
+            f"[green]Sigstore bundle written:[/green] [bold]{bundle_path}[/bold]"
         )
 
     # v0.2.1: save a canonical copy to the user-dir gap store so

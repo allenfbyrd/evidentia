@@ -124,7 +124,7 @@ runs:
         if [ "${{ inputs.emit-oscal-ar }}" = "true" ]; then
           SIGN_FLAGS=""
           if [ "${{ inputs.emit-sigstore-bundle }}" = "true" ]; then
-            SIGN_FLAGS="--sign-with-sigstore --bundle ${{ inputs.output-dir }}/oscal-ar.sigstore.json"
+            SIGN_FLAGS="--sign-with-sigstore --sigstore-bundle ${{ inputs.output-dir }}/oscal-ar.sigstore.json"
           fi
           evidentia gap analyze \
             --inventory "${{ inputs.inventory }}" \

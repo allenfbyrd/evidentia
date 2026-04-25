@@ -34,6 +34,7 @@ def export_report(
     gpg_key_id: str | None = None,
     gnupghome: str | Path | None = None,
     sign_with_sigstore: bool = False,
+    sigstore_bundle_path: str | Path | None = None,
     sigstore_identity_token: str | None = None,
 ) -> Path:
     """Export a gap analysis report in the specified format.
@@ -57,6 +58,19 @@ def export_report(
         written to ``<output_path>.asc``. Ignored by non-OSCAL formats.
     gnupghome:
         Optional ``GNUPGHOME`` override passed to the GPG subprocess.
+    sign_with_sigstore:
+        When True (and ``format="oscal-ar"``), produces a Sigstore/Rekor
+        keyless-signing bundle alongside the AR JSON. Defaults to
+        ``<output_path>.sigstore.json`` unless ``sigstore_bundle_path``
+        is supplied. Refused in air-gap mode.
+    sigstore_bundle_path:
+        Custom Sigstore bundle output path. Defaults to
+        ``<output_path>.sigstore.json``. Only used with
+        ``sign_with_sigstore=True``.
+    sigstore_identity_token:
+        Optional explicit OIDC token for Sigstore signing. When omitted,
+        sigstore-python's ``detect_credential()`` resolves it from the
+        ambient GitHub Actions / GCP / AWS environment.
     """
     path = Path(output_path)
 
@@ -74,6 +88,7 @@ def export_report(
             gpg_key_id=gpg_key_id,
             gnupghome=gnupghome,
             sign_with_sigstore=sign_with_sigstore,
+            sigstore_bundle_path=sigstore_bundle_path,
             sigstore_identity_token=sigstore_identity_token,
         )
 
@@ -197,6 +212,7 @@ def _export_oscal_ar(
     gpg_key_id: str | None = None,
     gnupghome: str | Path | None = None,
     sign_with_sigstore: bool = False,
+    sigstore_bundle_path: str | Path | None = None,
     sigstore_identity_token: str | None = None,
 ) -> Path:
     """Export as OSCAL Assessment Results JSON.
@@ -223,6 +239,10 @@ def _export_oscal_ar(
     if sign_with_sigstore:
         from evidentia_core.oscal.sigstore import sign_file as sigstore_sign
 
-        sigstore_sign(path, identity_token=sigstore_identity_token)
+        sigstore_sign(
+            path,
+            bundle_path=sigstore_bundle_path,
+            identity_token=sigstore_identity_token,
+        )
 
     return path

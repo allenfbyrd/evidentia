@@ -3,13 +3,15 @@
 Today this namespace exposes one verb:
 
 - ``evidentia oscal verify <path>`` — check SHA-256 digests of every
-  embedded evidence resource in an OSCAL AR document, and optionally
-  verify a detached GPG signature.
+  embedded evidence resource in an OSCAL AR document, and verify any
+  detached GPG signature (``.asc``) and/or Sigstore bundle
+  (``.sigstore.json``) found alongside it.
 
 The evidence-embedding + signing side of the story lives under
-``evidentia gap analyze --findings ... --sign-with-gpg <key-id>``.
-Verification is separated so auditors who didn't produce the AR can
-still run the check with just the JSON + ``.asc`` pair.
+``evidentia gap analyze --findings ... --sign-with-gpg <key-id>``
+and/or ``--sign-with-sigstore``. Verification is separated so
+auditors who didn't produce the AR can still run the check with just
+the JSON + signature artifacts.
 """
 
 from __future__ import annotations
@@ -71,6 +73,46 @@ def verify(
             "operator's default ~/.gnupg."
         ),
     ),
+    check_sigstore: bool = typer.Option(
+        True,
+        "--check-sigstore/--no-check-sigstore",
+        help=(
+            "Verify a Sigstore bundle (<path>.sigstore.json) if present. "
+            "Default True. Use --no-check-sigstore to skip Sigstore checks "
+            "entirely (e.g., for air-gap-only verification)."
+        ),
+    ),
+    sigstore_bundle: Path | None = typer.Option(
+        None,
+        "--sigstore-bundle",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help=(
+            "Custom Sigstore bundle path. Defaults to <path>.sigstore.json "
+            "next to the AR file."
+        ),
+    ),
+    expected_identity: str | None = typer.Option(
+        None,
+        "--expected-identity",
+        help=(
+            "Expected Sigstore signer identity (email or OIDC subject). "
+            "When omitted, the verifier accepts ANY signer (UnsafeNoOp "
+            "policy) and emits a warning. Production audit pipelines "
+            "should always set this AND --expected-issuer."
+        ),
+    ),
+    expected_issuer: str | None = typer.Option(
+        None,
+        "--expected-issuer",
+        help=(
+            "Expected Sigstore identity issuer URL "
+            "(e.g., 'https://token.actions.githubusercontent.com' for "
+            "GitHub Actions OIDC). Required if --expected-identity is set."
+        ),
+    ),
     json_output: bool = typer.Option(
         False,
         "--json",
@@ -80,17 +122,25 @@ def verify(
         ),
     ),
 ) -> None:
-    """Verify digests + optional GPG signature of an OSCAL AR document.
+    """Verify digests + optional GPG and/or Sigstore signatures of an OSCAL AR document.
 
     Exits 0 on successful verification, 1 otherwise. Useful in CI
     pipelines that pull a signed AR from storage and need to fail the
     job if the chain of custody is broken.
+
+    Both GPG (``.asc``) and Sigstore (``.sigstore.json``) signatures are
+    checked when present. With ``--require-signature``, EITHER one
+    satisfies the requirement.
     """
     report = verify_ar_file(
         path,
         require_signature=require_signature,
         signature_path=signature,
         gnupghome=gnupghome,
+        check_sigstore=check_sigstore,
+        sigstore_bundle_path=sigstore_bundle,
+        expected_sigstore_identity=expected_identity,
+        expected_sigstore_issuer=expected_issuer,
     )
 
     if json_output:
@@ -113,16 +163,22 @@ def _render_rich(report: VerifyReport) -> None:
         for err in report.errors:
             console.print(f"  - {err}")
 
+    if report.warnings:
+        console.print("[yellow]Warnings:[/yellow]")
+        for warn in report.warnings:
+            console.print(f"  - {warn}")
+
     if report.digest_checks:
         _render_digest_table(report.digest_checks)
     else:
         console.print("[dim]No embedded evidence resources (digests skipped).[/dim]")
 
+    # GPG signature
     if report.signature_valid is not None:
         sig_status = (
             "[green]valid[/green]" if report.signature_valid else "[red]INVALID[/red]"
         )
-        console.print(f"Signature: {sig_status}")
+        console.print(f"GPG signature: {sig_status}")
         if report.signature_signer:
             console.print(
                 f"  Signer key id: [cyan]{report.signature_signer}[/cyan]"
@@ -132,7 +188,30 @@ def _render_rich(report: VerifyReport) -> None:
                 f"  Fingerprint:   [cyan]{report.signature_fingerprint}[/cyan]"
             )
     else:
-        console.print("[dim]No signature checked.[/dim]")
+        console.print("[dim]No GPG signature checked.[/dim]")
+
+    # Sigstore signature
+    if report.sigstore_signature_valid is not None:
+        ss_status = (
+            "[green]valid[/green]"
+            if report.sigstore_signature_valid
+            else "[red]INVALID[/red]"
+        )
+        console.print(f"Sigstore signature: {ss_status}")
+        if report.sigstore_signer_identity:
+            console.print(
+                f"  Signer identity: [cyan]{report.sigstore_signer_identity}[/cyan]"
+            )
+        if report.sigstore_signer_issuer:
+            console.print(
+                f"  Issuer:          [cyan]{report.sigstore_signer_issuer}[/cyan]"
+            )
+        if report.sigstore_rekor_log_index is not None:
+            console.print(
+                f"  Rekor log index: [cyan]{report.sigstore_rekor_log_index}[/cyan]"
+            )
+    else:
+        console.print("[dim]No Sigstore signature checked.[/dim]")
 
 
 def _render_digest_table(checks: list[DigestCheck]) -> None:
@@ -162,7 +241,12 @@ def _emit_json(report: VerifyReport) -> None:
         "signature_valid": report.signature_valid,
         "signature_signer": report.signature_signer,
         "signature_fingerprint": report.signature_fingerprint,
+        "sigstore_signature_valid": report.sigstore_signature_valid,
+        "sigstore_signer_identity": report.sigstore_signer_identity,
+        "sigstore_signer_issuer": report.sigstore_signer_issuer,
+        "sigstore_rekor_log_index": report.sigstore_rekor_log_index,
         "errors": report.errors,
+        "warnings": report.warnings,
         "digest_checks": [
             {
                 "resource_uuid": c.resource_uuid,

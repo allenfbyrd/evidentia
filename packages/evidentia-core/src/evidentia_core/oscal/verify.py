@@ -1,6 +1,6 @@
 """Evidence chain-of-custody verifier for OSCAL AR documents (v0.7.0).
 
-Orchestrates the two integrity checks applied to a signed OSCAL
+Orchestrates up to three integrity checks applied to a signed OSCAL
 Assessment Results export:
 
 1. **Digest check.** Every embedded evidence resource in
@@ -9,15 +9,23 @@ Assessment Results export:
    :func:`verify_digests` re-hashes the embedded base64 content and
    compares.
 
-2. **Signature check.** If a detached GPG signature (``.asc``) exists
-   alongside the AR JSON, :func:`verify_signature` runs
+2. **GPG signature check.** If a detached GPG signature (``.asc``)
+   exists alongside the AR JSON, :func:`verify_signature` runs
    ``gpg --verify`` via :mod:`evidentia_core.oscal.signing`.
 
-A "clean" AR passes both. A "tampered" AR fails the digest check
-(someone rewrote an embedded finding). A "forged" AR passes digests
-but fails the signature check (someone regenerated the export on a
-different machine). A "replayed" AR passes everything but is stale
-— freshness is the operator's responsibility, not this module's.
+3. **Sigstore signature check (v0.7.0).** If a Sigstore bundle
+   (``.sigstore.json``) exists alongside the AR JSON, the bundle is
+   verified via :mod:`evidentia_core.oscal.sigstore`. Optional
+   ``expected_sigstore_identity`` + ``expected_sigstore_issuer`` enforce
+   a strict identity policy; without both, the verifier falls back to
+   ``UnsafeNoOp`` (accepts any signer) and emits a structured warning.
+
+A "clean" AR passes every check that's applicable. A "tampered" AR
+fails the digest check (someone rewrote an embedded finding). A
+"forged" AR passes digests but fails the signature check (someone
+regenerated the export on a different machine). A "replayed" AR
+passes everything but is stale — freshness is the operator's
+responsibility, not this module's.
 """
 
 from __future__ import annotations
@@ -48,14 +56,24 @@ class VerifyReport:
 
     ``overall_valid`` is the top-line pass/fail. Every other field is
     there so a CLI or audit UI can drill into *why* the document failed.
+
+    v0.7.0 added the ``sigstore_*`` fields to surface Sigstore/Rekor
+    signature verification alongside the existing GPG fields. Both can
+    coexist for defence-in-depth — the ``overall_valid`` property
+    requires every present signature to verify.
     """
 
     ar_path: Path
     digest_checks: list[DigestCheck] = field(default_factory=list)
-    signature_valid: bool | None = None  # None = not checked
+    signature_valid: bool | None = None  # None = not checked (GPG)
     signature_signer: str | None = None
     signature_fingerprint: str | None = None
+    sigstore_signature_valid: bool | None = None  # None = not checked
+    sigstore_signer_identity: str | None = None
+    sigstore_signer_issuer: str | None = None
+    sigstore_rekor_log_index: int | None = None
     errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
     @property
     def digests_valid(self) -> bool:
@@ -66,8 +84,10 @@ class VerifyReport:
 
     @property
     def overall_valid(self) -> bool:
-        """Top-level pass/fail: no errors, digests valid, sig valid if present.
+        """Top-level pass/fail.
 
+        Definition: no errors, every embedded digest valid, and every
+        signature that was present (GPG and/or Sigstore) verified.
         ``signature_valid is not False`` covers both the valid-True case
         and the not-checked-None case in one comparison — we only flunk
         the overall check when a signature was explicitly found and it
@@ -77,7 +97,11 @@ class VerifyReport:
             return False
         if not self.digests_valid:
             return False
-        return self.signature_valid is not False
+        if self.signature_valid is False:
+            return False
+        if self.sigstore_signature_valid is False:
+            return False
+        return True
 
 
 def verify_digests(ar_doc: dict[str, Any]) -> list[DigestCheck]:
@@ -151,6 +175,10 @@ def verify_ar_file(
     require_signature: bool = False,
     signature_path: str | Path | None = None,
     gnupghome: str | Path | None = None,
+    check_sigstore: bool = True,
+    sigstore_bundle_path: str | Path | None = None,
+    expected_sigstore_identity: str | None = None,
+    expected_sigstore_issuer: str | None = None,
 ) -> VerifyReport:
     """Verify an OSCAL AR JSON file end-to-end.
 
@@ -159,15 +187,34 @@ def verify_ar_file(
     ar_path:
         Path to the ``.oscal-ar.json`` (or any ``.json``) OSCAL AR file.
     require_signature:
-        If True, a missing signature file is a verification failure.
-        If False (default), an unsigned AR passes if digests check out —
+        If True, a missing signature is a verification failure. With
+        ``check_sigstore=True`` (default), EITHER a GPG ``.asc`` OR a
+        Sigstore ``.sigstore.json`` satisfies the requirement. If False
+        (default), an unsigned AR passes if digests check out —
         signature checks are opportunistic.
     signature_path:
-        Custom signature-file path. Defaults to ``<ar_path>.asc``.
+        Custom GPG signature-file path. Defaults to ``<ar_path>.asc``.
     gnupghome:
-        Optional ``GNUPGHOME`` override for signature verification. Useful
-        when verifying against a specific keyring (e.g., a CI-scoped key
-        store rather than the operator's default ``~/.gnupg``).
+        Optional ``GNUPGHOME`` override for GPG signature verification.
+        Useful when verifying against a specific keyring (e.g., a
+        CI-scoped key store rather than the operator's default ``~/.gnupg``).
+    check_sigstore:
+        When True (default), look for a Sigstore bundle alongside the AR
+        and verify it if present. Set to False to skip Sigstore checks
+        entirely (e.g., for air-gap-only verification).
+    sigstore_bundle_path:
+        Custom Sigstore bundle path. Defaults to ``<ar_path>.sigstore.json``.
+    expected_sigstore_identity:
+        Required signer identity (email or OIDC subject) for Sigstore
+        verification. When omitted along with ``expected_sigstore_issuer``,
+        the verifier falls back to ``UnsafeNoOp`` policy (accepts any
+        signer) and adds a structured warning to the report. Production
+        audit pipelines should always set both this AND
+        ``expected_sigstore_issuer``.
+    expected_sigstore_issuer:
+        Required Sigstore identity issuer (e.g.,
+        ``https://token.actions.githubusercontent.com``). Required if
+        ``expected_sigstore_identity`` is set; ignored otherwise.
     """
     ar_path = Path(ar_path)
     report = VerifyReport(ar_path=ar_path)
@@ -184,16 +231,31 @@ def verify_ar_file(
 
     report.digest_checks = verify_digests(ar_doc)
 
+    # ── GPG signature path ──────────────────────────────────────────────
     sig_path = Path(signature_path) if signature_path else ar_path.with_suffix(
         ar_path.suffix + ".asc"
     )
-    sig_exists = sig_path.is_file()
-    if require_signature and not sig_exists:
-        report.errors.append(f"Signature required but not found: {sig_path}")
+    gpg_exists = sig_path.is_file()
+
+    # ── Sigstore bundle path ────────────────────────────────────────────
+    sigstore_path = (
+        Path(sigstore_bundle_path)
+        if sigstore_bundle_path
+        else ar_path.with_suffix(ar_path.suffix + ".sigstore.json")
+    )
+    sigstore_exists = check_sigstore and sigstore_path.is_file()
+
+    # require_signature is satisfied by EITHER GPG or Sigstore in v0.7.0+
+    if require_signature and not gpg_exists and not sigstore_exists:
+        report.errors.append(
+            f"Signature required but neither found: {sig_path} or "
+            f"{sigstore_path}"
+        )
         report.signature_valid = False
+        report.sigstore_signature_valid = False
         return report
 
-    if sig_exists:
+    if gpg_exists:
         # Deferred import — callers that don't need signature checks get
         # loaded without touching the gpg-availability probe.
         from evidentia_core.oscal.signing import (
@@ -208,13 +270,57 @@ def verify_ar_file(
                 ar_path, signature_path=sig_path, gnupghome=gnupghome
             )
         except GPGError as e:
-            report.errors.append(f"Signature verification failed: {e}")
+            report.errors.append(f"GPG signature verification failed: {e}")
             report.signature_valid = False
+        else:
+            report.signature_valid = result.valid
+            report.signature_signer = result.signer_key_id
+            report.signature_fingerprint = result.signer_fingerprint
+
+    if sigstore_exists:
+        # Deferred import — sigstore-python is an optional extra; callers
+        # that didn't install [sigstore] still get GPG + digest checks.
+        try:
+            from evidentia_core.oscal.sigstore import (
+                SigstoreError,
+                SigstoreNotAvailableError,
+            )
+            from evidentia_core.oscal.sigstore import (
+                verify_file as sigstore_verify_file,
+            )
+        except ImportError as e:  # pragma: no cover — sigstore module always importable
+            report.errors.append(f"Sigstore module unavailable: {e}")
+            report.sigstore_signature_valid = False
             return report
 
-        report.signature_valid = result.valid
-        report.signature_signer = result.signer_key_id
-        report.signature_fingerprint = result.signer_fingerprint
+        if expected_sigstore_identity is None or expected_sigstore_issuer is None:
+            report.warnings.append(
+                "Sigstore signature found but no --expected-identity / "
+                "--expected-issuer supplied. Using UnsafeNoOp policy "
+                "(accepts ANY signer). Production audit pipelines should "
+                "always set both flags."
+            )
+
+        try:
+            ss_result = sigstore_verify_file(
+                ar_path,
+                bundle_path=sigstore_path,
+                expected_identity=expected_sigstore_identity,
+                expected_issuer=expected_sigstore_issuer,
+            )
+        except SigstoreNotAvailableError as e:
+            report.errors.append(f"Sigstore verification unavailable: {e}")
+            report.sigstore_signature_valid = False
+            return report
+        except SigstoreError as e:
+            report.errors.append(f"Sigstore verification failed: {e}")
+            report.sigstore_signature_valid = False
+            return report
+
+        report.sigstore_signature_valid = ss_result.valid
+        report.sigstore_signer_identity = ss_result.signer_identity
+        report.sigstore_signer_issuer = ss_result.signer_issuer
+        report.sigstore_rekor_log_index = ss_result.rekor_log_index
 
     return report
 
