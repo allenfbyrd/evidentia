@@ -1,4 +1,4 @@
-"""Per-finding and per-run provenance metadata (v0.7.0).
+"""Per-finding and per-run provenance metadata (v0.7.0+).
 
 Implements checklist items H5 (collector metadata on every finding),
 H10 (pagination continuation tokens preserved as evidence), and B5
@@ -12,7 +12,7 @@ H10 (pagination continuation tokens preserved as evidence), and B5
 - FedRAMP CA-7 (Continuous Monitoring) — evidence collection scope
   must be documented and verifiable on demand.
 
-Two public classes:
+Public classes:
 
 - :class:`CollectionContext` is embedded on every finding. Redundant
   across findings from the same run, but stays with each finding if
@@ -23,10 +23,16 @@ Two public classes:
   file. Captures coverage, filters, record counts, and — crucially —
   explicit empty-set attestations so a reviewer can distinguish
   "no findings" from "collection never ran" or "collection crashed".
+- :class:`GenerationContext` (v0.7.1) is the AI-output sibling of
+  :class:`CollectionContext`. Risk statements and plain-English control
+  explanations are *generated* (not collected from a source system) and
+  carry distinct provenance — model, temperature, prompt hash, retry
+  count — so an auditor can reproduce or challenge an AI-derived claim.
 """
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime
 from typing import Any
 
@@ -174,6 +180,132 @@ class CollectionContext(EvidentiaModel):
             "Version of evidentia-core orchestrating the collection. "
             "Paired with collector_version, lets auditors verify the "
             "exact release that produced the evidence."
+        ),
+    )
+
+
+def compute_prompt_hash(system_prompt: str, user_prompt: str) -> str:
+    """Return a deterministic SHA-256 of the prompt pair driving an LLM call.
+
+    Used as :attr:`GenerationContext.prompt_hash` so an auditor can prove
+    two AI outputs were generated from byte-identical prompts (or detect
+    when a prompt was subtly altered between runs). The hash is over the
+    UTF-8 encoding of ``system_prompt + "\\n---\\n" + user_prompt`` — the
+    separator is fixed so no caller-side concatenation choice can collide
+    pairs that were actually distinct.
+
+    Returns the lowercase hex digest (64 chars).
+    """
+    payload = f"{system_prompt}\n---\n{user_prompt}".encode()
+    return hashlib.sha256(payload).hexdigest()
+
+
+class GenerationContext(EvidentiaModel):
+    """Per-output provenance for AI-generated artifacts (v0.7.1).
+
+    Sibling of :class:`CollectionContext`, but for outputs that are
+    *generated* by an LLM rather than *collected* from a source system.
+    Risk statements (`evidentia-ai.risk_statements`) and plain-English
+    control explanations (`evidentia-ai.explain`) attach one of these
+    to every output so an auditor or reviewer can:
+
+    1. Reproduce the call (``model`` + ``temperature`` + ``prompt_hash``).
+    2. Distinguish a clean first-attempt success from a flaky-network
+       success-after-retry (``attempts`` vs ``instructor_max_retries``).
+    3. Group outputs from a single batch (``run_id``).
+    4. Pin the artifact to the exact release that produced it
+       (``evidentia_version``).
+
+    Fields deliberately mirror :class:`CollectionContext` field naming
+    where the semantics align (``run_id``, ``evidentia_version``) so
+    downstream tooling that joins on those keys works identically for
+    collected and generated artifacts.
+    """
+
+    model: str = Field(
+        description=(
+            "LiteLLM model identifier passed to the underlying LLM call. "
+            "Examples: 'claude-sonnet-4', 'gpt-4o', "
+            "'openrouter/anthropic/claude-sonnet-4'. The exact string an "
+            "auditor would re-pass to LiteLLM to reproduce the call."
+        ),
+    )
+    temperature: float = Field(
+        ge=0.0,
+        le=2.0,
+        description=(
+            "Sampling temperature used for the LLM call. Pinned in the "
+            "context because two outputs from the same model+prompt at "
+            "different temperatures are NOT equivalent for audit reproduction."
+        ),
+    )
+    prompt_hash: str = Field(
+        min_length=64,
+        max_length=64,
+        description=(
+            "SHA-256 hex digest of the (system_prompt, user_prompt) pair "
+            "driving this generation. Computed via "
+            ":func:`compute_prompt_hash` so the separator is fixed. "
+            "Lets an auditor prove byte-equivalence of prompts across runs."
+        ),
+    )
+    run_id: str = Field(
+        default_factory=lambda: str(ulid.ULID()),
+        description=(
+            "ULID identifying the generation run. Defaults to a fresh "
+            "ULID per call so single-shot generations get a unique id; "
+            "callers wrapping a batch should mint one ``run_id`` via "
+            ":func:`new_run_id` and pass it down to every output so the "
+            "batch can be reconstructed from the audit log."
+        ),
+    )
+    generated_at: datetime = Field(
+        default_factory=utc_now,
+        description=(
+            "Exact UTC timestamp when the LLM call returned a validated "
+            "response (microsecond precision). Mirrors "
+            ":attr:`CollectionContext.collected_at` semantics."
+        ),
+    )
+    attempts: int = Field(
+        default=1,
+        ge=1,
+        description=(
+            "Total network-layer attempts made before this output succeeded. "
+            "1 = first try succeeded; >1 = ``@with_retry`` fired N-1 retries. "
+            "Distinct from ``instructor_max_retries`` which counts validation-"
+            "layer retries (LLM returned non-conforming JSON)."
+        ),
+    )
+    instructor_max_retries: int = Field(
+        default=3,
+        ge=0,
+        description=(
+            "The Instructor ``max_retries`` cap configured for this call. "
+            "Echoed into the context (rather than only the actual retry "
+            "count) so an auditor reviewing a failed-batch postmortem can "
+            "see the configured tolerance, not just what happened to fire."
+        ),
+    )
+    credential_identity: str | None = Field(
+        default=None,
+        description=(
+            "Best-effort identifier of the operator/principal that "
+            "authorized the LLM call. Mirrors :attr:`CollectionContext."
+            "credential_identity` so AI artifacts satisfy NIST SP 800-53 "
+            "Rev 5 AU-3 ('Identity') the same way collected findings do. "
+            "Populated by callers from the ``EVIDENTIA_AI_OPERATOR`` env "
+            "var when set, falling back to ``user@hostname`` from the OS. "
+            "NEVER the API key itself \u2014 always a label or principal "
+            "identifier that the secret authenticates."
+        ),
+    )
+    evidentia_version: str = Field(
+        default_factory=current_version,
+        description=(
+            "Version of evidentia-core orchestrating the generation. "
+            "Paired with ``model``, lets an auditor identify the exact "
+            "(orchestrator, model) pair that produced the artifact."
         ),
     )
 

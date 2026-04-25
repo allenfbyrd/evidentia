@@ -1,4 +1,4 @@
-"""Bounded retry with exponential backoff + jitter (v0.7.0).
+"""Bounded retry with exponential backoff + jitter (v0.7.0+).
 
 Implements checklist item B10: every API call made by a collector must
 be wrapped in bounded retry logic so transient source-system failures
@@ -12,19 +12,36 @@ Design principles:
   ``wait_exponential_jitter`` applies full jitter per the AWS
   Architecture Blog guidance.
 - **Structured logging on every retry.** Every retry emits a
-  :attr:`~evidentia_core.audit.events.EventAction.COLLECT_RETRY` event.
+  configurable :class:`~evidentia_core.audit.events.EventAction` event.
+  Defaults to
+  :attr:`~evidentia_core.audit.events.EventAction.COLLECT_RETRY` to
+  preserve the v0.7.0 collector behaviour; AI generators (v0.7.1+)
+  override with :attr:`~evidentia_core.audit.events.EventAction.AI_RISK_RETRY`
+  or :attr:`~evidentia_core.audit.events.EventAction.AI_EXPLAIN_RETRY` so
+  SIEM operators can filter by namespace.
 - **Test-mode short-circuit.** When ``EVIDENTIA_TEST_MODE=1`` is set,
   backoff is zeroed so retry-heavy tests don't burn wall-clock time.
+
+Public surface:
+
+- :func:`with_retry` — sync decorator. The collector-friendly wrapper.
+- :func:`with_retry_async` — async sibling decorator (v0.7.1).
+- :func:`build_retrying` / :func:`build_async_retrying` — factory
+  functions returning configured tenacity ``Retrying`` /
+  ``AsyncRetrying`` instances. Used by the AI generators directly so
+  they can read ``retry_state.attempt_number`` for the
+  ``GenerationContext.attempts`` provenance field.
 """
 
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from functools import wraps
 from typing import ParamSpec, TypeVar
 
 from tenacity import (
+    AsyncRetrying,
     RetryCallState,
     Retrying,
     retry_if_exception_type,
@@ -46,6 +63,67 @@ TEST_MODE_ENV = "EVIDENTIA_TEST_MODE"
 _log = get_logger("evidentia.audit.retry")
 
 
+def _effective_backoff(
+    initial_backoff: float, max_backoff: float
+) -> tuple[float, float]:
+    """Apply the test-mode short-circuit: zero out backoff under EVIDENTIA_TEST_MODE."""
+    if os.environ.get(TEST_MODE_ENV):
+        return (0.0, 0.0)
+    return (initial_backoff, max_backoff)
+
+
+def build_retrying(
+    *,
+    function_name: str,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    initial_backoff: float = DEFAULT_INITIAL_BACKOFF_SECONDS,
+    max_backoff: float = DEFAULT_MAX_BACKOFF_SECONDS,
+    retry_on: tuple[type[BaseException], ...] = (
+        ConnectionError,
+        TimeoutError,
+    ),
+    event_action: EventAction = EventAction.COLLECT_RETRY,
+) -> Retrying:
+    """Return a configured :class:`tenacity.Retrying` instance.
+
+    Public so callers (notably the v0.7.1 AI generators) can drive the
+    retry loop manually and read ``retry_state.attempt_number`` for
+    structured provenance, instead of using the :func:`with_retry`
+    decorator which hides that state.
+    """
+    initial, mx = _effective_backoff(initial_backoff, max_backoff)
+    return Retrying(
+        stop=stop_after_attempt(max_attempts),
+        wait=wait_exponential_jitter(initial=initial, max=mx),
+        retry=retry_if_exception_type(retry_on),
+        before_sleep=_log_retry_event(function_name, max_attempts, event_action),
+        reraise=True,
+    )
+
+
+def build_async_retrying(
+    *,
+    function_name: str,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    initial_backoff: float = DEFAULT_INITIAL_BACKOFF_SECONDS,
+    max_backoff: float = DEFAULT_MAX_BACKOFF_SECONDS,
+    retry_on: tuple[type[BaseException], ...] = (
+        ConnectionError,
+        TimeoutError,
+    ),
+    event_action: EventAction = EventAction.COLLECT_RETRY,
+) -> AsyncRetrying:
+    """Async sibling of :func:`build_retrying` returning :class:`tenacity.AsyncRetrying`."""
+    initial, mx = _effective_backoff(initial_backoff, max_backoff)
+    return AsyncRetrying(
+        stop=stop_after_attempt(max_attempts),
+        wait=wait_exponential_jitter(initial=initial, max=mx),
+        retry=retry_if_exception_type(retry_on),
+        before_sleep=_log_retry_event(function_name, max_attempts, event_action),
+        reraise=True,
+    )
+
+
 def with_retry(
     *,
     max_attempts: int = DEFAULT_MAX_ATTEMPTS,
@@ -55,32 +133,31 @@ def with_retry(
         ConnectionError,
         TimeoutError,
     ),
+    event_action: EventAction = EventAction.COLLECT_RETRY,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    """Decorator adding bounded exponential-backoff retry to a function.
+    """Decorator adding bounded exponential-backoff retry to a sync function.
 
     The wrapped function's signature is preserved. On the final failed
     attempt, the last exception is re-raised.
-    """
 
-    if os.environ.get(TEST_MODE_ENV):
-        effective_initial = 0.0
-        effective_max = 0.0
-    else:
-        effective_initial = initial_backoff
-        effective_max = max_backoff
+    ``event_action`` determines the structured-log event that fires on
+    each retry. Defaults to
+    :attr:`~evidentia_core.audit.events.EventAction.COLLECT_RETRY` so
+    pre-v0.7.1 collectors keep their existing behaviour; AI generators
+    pass an ``AI_*_RETRY`` action so SIEM filters can distinguish the
+    namespaces.
+    """
 
     def decorator(fn: Callable[P, R]) -> Callable[P, R]:
         @wraps(fn)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            retrying = Retrying(
-                stop=stop_after_attempt(max_attempts),
-                wait=wait_exponential_jitter(
-                    initial=effective_initial,
-                    max=effective_max,
-                ),
-                retry=retry_if_exception_type(retry_on),
-                before_sleep=_log_retry_event(fn.__name__, max_attempts),
-                reraise=True,
+            retrying = build_retrying(
+                function_name=fn.__name__,
+                max_attempts=max_attempts,
+                initial_backoff=initial_backoff,
+                max_backoff=max_backoff,
+                retry_on=retry_on,
+                event_action=event_action,
             )
             for attempt in retrying:
                 with attempt:
@@ -92,8 +169,51 @@ def with_retry(
     return decorator
 
 
+def with_retry_async(
+    *,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    initial_backoff: float = DEFAULT_INITIAL_BACKOFF_SECONDS,
+    max_backoff: float = DEFAULT_MAX_BACKOFF_SECONDS,
+    retry_on: tuple[type[BaseException], ...] = (
+        ConnectionError,
+        TimeoutError,
+    ),
+    event_action: EventAction = EventAction.COLLECT_RETRY,
+) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[R]]]:
+    """Async sibling of :func:`with_retry` for ``async def`` functions.
+
+    Mirrors :func:`with_retry` exactly — same parameters, same defaults,
+    same retry/backoff semantics — but uses tenacity's
+    :class:`~tenacity.AsyncRetrying` so the awaitable is awaited
+    correctly between retries. Added in v0.7.1 to support
+    ``evidentia-ai``'s async generators.
+    """
+
+    def decorator(fn: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
+        @wraps(fn)
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            retrying = build_async_retrying(
+                function_name=fn.__name__,
+                max_attempts=max_attempts,
+                initial_backoff=initial_backoff,
+                max_backoff=max_backoff,
+                retry_on=retry_on,
+                event_action=event_action,
+            )
+            async for attempt in retrying:
+                with attempt:
+                    return await fn(*args, **kwargs)
+            raise RuntimeError("unreachable")
+
+        return wrapper
+
+    return decorator
+
+
 def _log_retry_event(
-    function_name: str, max_attempts: int
+    function_name: str,
+    max_attempts: int,
+    event_action: EventAction = EventAction.COLLECT_RETRY,
 ) -> Callable[[RetryCallState], None]:
     """Build a tenacity ``before_sleep`` callback emitting retry events."""
 
@@ -104,7 +224,7 @@ def _log_retry_event(
             exc = retry_state.outcome.exception()
 
         _log.warning(
-            action=EventAction.COLLECT_RETRY,
+            action=event_action,
             outcome=EventOutcome.FAILURE,
             message=(
                 # Tenacity invokes ``before_sleep`` AFTER an attempt
@@ -143,6 +263,9 @@ __all__ = [
     "DEFAULT_MAX_ATTEMPTS",
     "DEFAULT_MAX_BACKOFF_SECONDS",
     "TEST_MODE_ENV",
+    "build_async_retrying",
+    "build_retrying",
     "is_test_mode",
     "with_retry",
+    "with_retry_async",
 ]
