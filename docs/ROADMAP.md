@@ -1,11 +1,14 @@
 # Evidentia roadmap
 
-**Last updated: v0.6.0 (April 2026).**
+**Last updated: v0.7.0 (April 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
-at the project root. Versions v0.3.0 through v0.6.0 have shipped; v0.7.0
-is the next active scope. Anything beyond v0.7.0 is aspirational — the
-exact shape will depend on real-world usage patterns.
+at the project root. Versions v0.3.0 through v0.7.0 have shipped;
+v0.7.1 is the next active scope (see
+[`v0.7.1-plan.md`](v0.7.1-plan.md)). Anything beyond v0.7.1 is
+forward-looking — the exact shape will depend on real-world usage
+patterns and the bigger v0.8+ direction documented in
+[`positioning-and-value.md`](positioning-and-value.md) §13.
 
 ## v0.3.0 — Compliance-as-code — SHIPPED
 
@@ -166,22 +169,58 @@ the full rationale, `CHANGELOG.md § 0.6.0` for the mechanical details,
 and the `standing_rule_github_repo_names.md` memory note for the absolute
 rule protecting the GitHub URL redirect.
 
-## v0.7.0 — Evidence chain of custody (NEXT)
+## v0.7.0 — Enterprise-grade release — SHIPPED
 
-### Evidence integrity
+The "enterprise-grade" release. Closes all 10 BLOCKER items in
+[`docs/enterprise-grade.md`](enterprise-grade.md) and ships the
+end-to-end supply-chain hardening narrative:
 
-Every OSCAL Assessment Results export carries a SHA-256 digest of each
-evidence item. Optionally GPG-sign the whole AR document with the
-operator's key. Creates a tamper-evident audit trail that survives
-external-auditor scrutiny.
+- **Evidence integrity** — SHA-256 digests on every embedded
+  resource in OSCAL Assessment Results back-matter; optional GPG
+  signing (air-gap path) or Sigstore/Rekor signing (online path,
+  OIDC-keyless via Fulcio).
+- **Verification** — `evidentia oscal verify` checks digests + GPG
+  `.asc` + Sigstore `.sigstore.json` bundles end-to-end.
+  `--require-signature` is satisfied by either GPG or Sigstore.
+  `--expected-identity` / `--expected-issuer` enforce signer
+  identity for production audit pipelines.
+- **CycloneDX SBOM** — generated from `uv.lock` on every release,
+  attached to the GitHub Release alongside the wheels.
+- **PyPI Trusted Publisher (OIDC)** — long-lived `PYPI_API_TOKEN`
+  removed; release publishes are signed via the workflow's ambient
+  OIDC identity. Auto-enables PEP 740 attestations on every wheel
+  + sdist (Sigstore-signed, Rekor-logged).
+- **OSCAL schema conformance** — `compliance-trestle>=4.0` round-trip
+  in CI catches unknown-field bugs that NIST's JSON Schema misses.
+- **AWS IAM Access Analyzer** + **GitHub Dependabot** collectors
+  with explicit `BLIND_SPOTS` disclosure lists threaded into the
+  AR back-matter for auditor transparency.
+- **ECS-8.11 / NIST AU-3 / OpenTelemetry** structured logs via
+  `--json-logs`. Drop-in for Splunk / Elastic / Datadog / Sentinel.
+- **Secret scrubber** covers AWS / GitHub / Slack / Stripe / Google
+  / npm tokens + JWTs + generic password= patterns.
+- **Consolidated GitHub Action** at `.github/actions/gap-analysis/`
+  (replaces the archived `allenfbyrd/evidentia-action` repo).
+- **6 controlbridge-* deprecation shims removed** from the workspace
+  per the public migration contract from v0.6.0.
 
-Originally planned for v0.6.0; displaced by the rename release and
-pushed forward one minor.
+The release was preceded by a 6-step comprehensive pre-tag review
+(see [`docs/positioning-and-value.md`](positioning-and-value.md),
+[`docs/capability-matrix.md`](capability-matrix.md),
+[`docs/v0.7.1-plan.md`](v0.7.1-plan.md)).
 
-### Shim yank
+**857 tests passing**; mypy strict clean; ruff lint clean; all 10
+BLOCKER items in `docs/enterprise-grade.md` closed.
 
-Yank the six `controlbridge-*` v0.5.1 shim wheels from PyPI as part
-of the v0.7.0 cut (coordinated with a `CHANGELOG.md § Yanked` note).
+## v0.7.1 — AI features hardening + supply-chain polish — NEXT
+
+See [`docs/v0.7.1-plan.md`](v0.7.1-plan.md) for the full plan. Theme:
+bring `evidentia-ai` (risk_statements/ + explain/) up to the v0.7.0
+collector-pattern enterprise grade after 4 documented design
+decisions are made. Plus small supply-chain follow-ups (SHA-pin
+composite action, action E2E smoke test, SLSA L3 build provenance,
+OpenSSF Scorecard, Sigstore verify warning log emission). 6-8 week
+ship target.
 
 ## v0.7.0+ — Quality signals, more integrations, UI polish
 
@@ -234,23 +273,10 @@ ROI framing in ways they don't respond to "coverage %".
   human-in-the-loop review. An LLM-authored crosswalk should be
   reviewed and committed, not generated at runtime.
 
-## Release-runbook follow-ups (not a feature, operational debt)
+## Release-runbook follow-ups
 
-### PyPI Trusted Publisher (OIDC) migration
-
-v0.4.0 – v0.6.0 continue using `PYPI_API_TOKEN` for release authentication.
-Target: migrate before v0.7.0 ships.
-
-1. Configure a Trusted Publisher on PyPI's admin panel pointing at
-   `allenfbyrd/evidentia` / `.github/workflows/release.yml` for each of
-   the **12 packages** (6 primary `evidentia-*` + 6 shim `controlbridge-*`
-   names until yank). Forgetting one breaks its release silently while
-   the other 11 succeed — each is a per-package config.
-2. Update `release.yml` to add `permissions: id-token: write` and
-   drop the `password: ${{ secrets.PYPI_API_TOKEN }}` input.
-3. Verify with a test patch release, then delete the `PYPI_API_TOKEN`
-   GitHub repo secret.
-
-Why deferred: switching without step 1 first breaks the release
-pipeline. Step 1 requires ~2 hours of PyPI UI clicks that the release
-workflow can't do from code.
+PyPI Trusted Publisher (OIDC) migration: **DONE in v0.7.0** for the
+6 published evidentia-* packages. The legacy `PYPI_API_TOKEN`
+remains in the `pypi` GitHub environment as a rollback path; deletion
+is queued for v0.7.1 (per `docs/v0.7.1-plan.md` item S6) once the
+OIDC publish flow has run cleanly across multiple releases.

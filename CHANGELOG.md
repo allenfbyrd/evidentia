@@ -23,10 +23,76 @@ OpenTelemetry structured logs, and a consolidated GitHub Action at
 deprecation shims are removed at this release per the public migration
 contract documented since v0.6.0.
 
-**849 tests passing (8 skipped).** Includes 3 new trestle conformance
+**857 tests passing (8 skipped).** Includes 3 new trestle conformance
 tests (`tests/unit/test_oscal/test_trestle_conformance.py`) that
 round-trip the AR through pydantic.v1 with `Extra.forbid`, catching
-unknown-field bugs that NIST's JSON Schema misses.
+unknown-field bugs that NIST's JSON Schema misses, plus 8 new
+Sigstore-verify integration tests added during the pre-tag review
+cycle (`tests/unit/test_oscal/test_verify.py`) that mock the Sigstore
+client to exercise bundle detection, custom paths, identity policies,
+warning emission, and require_signature satisfaction by either GPG
+or Sigstore.
+
+### Pre-tag review cycle (Steps 1-5)
+
+Before v0.7.0 was tagged, a comprehensive 6-step review was run
+against `main` to validate the release end-to-end. Outputs:
+
+- **`docs/positioning-and-value.md`** — exhaustive ~12k-word synthesis
+  of Evidentia's competitive positioning, intellectual ancestry, AI
+  posture, industry voices to follow/cite/pitch, and 12-month
+  direction. Compiled from 7 parallel research streams (commercial
+  GRC vendors, OSS GRC ecosystem, regulatory + M&A signals, academic
+  foundations, AI/LLM tools in GRC, named industry voices, internal
+  capability inventory).
+- **`docs/capability-matrix.md`** — 5 risk tiers + 5 surface tiers,
+  functional + code-review + adversarial smoke tests. Surfaced 18
+  bugs across 5 categorized buckets (CRITICAL all fixed, HIGH
+  deferred to v0.7.1, MEDIUM fixed in same review, LOW accepted).
+- **`docs/v0.7.1-plan.md`** — forward-looking plan for the AI features
+  hardening + supply-chain polish minor release. 6-8 week ship target.
+
+Critical bugs fixed during the review:
+
+- **Inter-package version pins** were stale at `>=0.6.0,<0.7.0`
+  across 5 pyproject.toml files (would have made `pip install evidentia
+  ==0.7.0` resolve `evidentia-core` at 0.6.0). All bumped to
+  `>=0.7.0,<0.8.0`.
+- **LiteLLM** dep range tightened from `>=1.50,<2.0` to
+  `>=1.83.0,<2.0` to exclude the compromised 1.82.7 / 1.82.8 versions
+  from the March 24, 2026 PyPI supply chain incident.
+- **Sigstore CLI integration**: added `--sign-with-sigstore`,
+  `--sigstore-bundle`, `--sigstore-identity-token` to `evidentia gap
+  analyze` (the library API existed but the CLI flag was missing).
+- **Sigstore verification**: `verify_ar_file` now detects
+  `<path>.sigstore.json` bundles and verifies them alongside GPG
+  `.asc` signatures. New CLI flags `--check-sigstore`,
+  `--sigstore-bundle`, `--expected-identity`, `--expected-issuer`.
+  `evidentia oscal verify` rich + JSON output extended.
+- **Composite action.yml** flag rename `--bundle` -> `--sigstore-bundle`
+  to match the new CLI surface (the old flag would have failed at
+  runtime).
+- **Secret scrubber** patterns expanded to cover Slack tokens,
+  Stripe API keys, Google API keys, npm tokens (in addition to the
+  existing AWS / GitHub / JWT / generic password= shapes).
+- **`oscal/signing.py`** logger consistency: switched from stdlib
+  `logging` to the v0.7.0 ECS-8.11 structured logger to match
+  `oscal/sigstore.py`. Both signing paths now emit comparable
+  `evidentia.sign.*` events for SIEM ingestion.
+- **README documentation accuracy**: corrected REST endpoint count
+  (18 -> 26 routes across 12 router modules), workspace sub-package
+  count (4 -> 5), CLI command list (added `gap diff`, `explain`,
+  `collect`, `integrations`, `oscal verify`, `serve`, global flags).
+
+### Deferred to v0.7.1 (with documented design rationale)
+
+Bringing `evidentia-ai` (`risk_statements/` + `explain/`) up to the
+v0.7.0 collector-pattern enterprise grade requires 4 design decisions
+that benefit from focused thought, not rushed inclusion in this
+release. See `docs/v0.7.1-plan.md` for the scope: typed exception
+hierarchy + `@with_retry` + new `GenerationContext` type + 7 new
+`EventAction` enum entries + 250+ lines of mocked LLM tests for
+`risk_statements/`.
 
 ### Supply-chain hardening (v0.7.0)
 
