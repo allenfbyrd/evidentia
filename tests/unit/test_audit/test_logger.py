@@ -32,15 +32,26 @@ def reset_logger_state() -> None:
     _reset_for_tests()
 
 
+# NOTE: AWS canonical example-credential strings (AKIAIOSFODNN7EXAMPLE,
+# ASIAIOSFODNN7EXAMPLE) are intentionally split via concatenation so
+# GitHub's secret-scanning regex doesn't false-positive on the literal
+# substring at scan time. The runtime values still match our scrubber's
+# `\bAKIA[0-9A-Z]{16}\b` and `\bASIA[0-9A-Z]{16}\b` regexes. These are
+# the AWS-documented placeholder values, not real credentials — see
+# https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html
+_AWS_PERM_KEY_EXAMPLE = "AKIA" + "IOSFODNN7EXAMPLE"
+_AWS_TEMP_KEY_EXAMPLE = "ASIA" + "IOSFODNN7EXAMPLE"
+
+
 def test_scrub_redacts_aws_access_key() -> None:
     assert (
-        _scrub("using AKIAIOSFODNN7EXAMPLE as credential")
+        _scrub(f"using {_AWS_PERM_KEY_EXAMPLE} as credential")
         == "using [REDACTED] as credential"
     )
 
 
 def test_scrub_redacts_aws_session_credential() -> None:
-    assert "ASIA" not in _scrub("token ASIAIOSFODNN7EXAMPLE leaked")
+    assert "ASIA" not in _scrub(f"token {_AWS_TEMP_KEY_EXAMPLE} leaked")
 
 
 def test_scrub_redacts_github_token() -> None:
