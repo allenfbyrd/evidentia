@@ -1,0 +1,125 @@
+{
+  // Evidentia VS Code launch configurations — version-controlled.
+  // Cursor reads this same file. See docs/ide-setup.md for usage.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Pytest — current file",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "${file}",
+        "-v",
+        "--no-cov"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      }
+    },
+    {
+      "name": "Pytest — full suite",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "tests",
+        "-q",
+        "--no-cov"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      }
+    },
+    {
+      "name": "Pytest — single test (prompt)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "${input:pytestNodeId}",
+        "-v",
+        "--no-cov"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "evidentia serve — FastAPI + UI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "evidentia",
+      "args": [
+        "serve",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8000",
+        "--verbose"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "jinja": true
+    },
+    {
+      "name": "evidentia gap analyze — Meridian sample",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "evidentia",
+      "args": [
+        "gap",
+        "analyze",
+        "--inventory",
+        "examples/meridian-fintech-v2/inventory.yaml",
+        "--frameworks",
+        "nist-800-53-rev5-moderate,soc2-tsc",
+        "--format",
+        "console"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "evidentia explain — single control",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "evidentia",
+      "args": [
+        "explain",
+        "${input:controlId}",
+        "--framework",
+        "nist-800-53-rev5"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "evidentia doctor",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "evidentia",
+      "args": [
+        "doctor",
+        "--check-air-gap"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ],
+  "inputs": [
+    {
+      "id": "pytestNodeId",
+      "type": "promptString",
+      "description": "Pytest node id (e.g. tests/unit/test_audit/test_retry.py::test_with_retry_async_succeeds)"
+    },
+    {
+      "id": "controlId",
+      "type": "promptString",
+      "description": "Control ID (e.g. AC-2, AU-3, SI-2)"
+    }
+  ]
+}

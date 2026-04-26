@@ -1,0 +1,164 @@
+# Evidentia — Cursor AI guardrails
+
+> Read this entire file before suggesting code changes. These rules
+> reflect the project's enterprise-grade quality bar (see
+> [docs/enterprise-grade.md](docs/enterprise-grade.md)) and the
+> publishing-authority discipline that keeps the supply-chain story
+> intact end-to-end.
+
+## Project context
+
+**Evidentia** is an open-source Python GRC tool: gap analysis,
+AI-generated risk statements, OSCAL-first compliance automation,
+cryptographic evidence chain of custody (Sigstore + GPG), CycloneDX
+SBOM, PyPI Trusted Publisher OIDC + PEP 740 attestations.
+
+- **Architecture**: pnpm-workspace-style uv workspace with 6 PyPI
+  packages: `evidentia-core` (models + catalogs + gap analyzer),
+  `evidentia-ai` (LiteLLM + Instructor risk/explain), `evidentia-collectors`
+  (AWS / GitHub / Dependabot / Access Analyzer), `evidentia-integrations`
+  (Jira + future ServiceNow), `evidentia-api` (FastAPI + bundled React
+  SPA), `evidentia` (CLI meta-package, Typer entry points). Plus
+  `evidentia-ui` (Vite + React + shadcn/ui frontend, bundled into
+  `evidentia-api` wheel via hatchling build hook).
+- **Languages**: Python 3.12 strict mypy + ruff + pytest;
+  TypeScript strict + Vitest (UI only).
+- **Canonical docs**:
+  [docs/positioning-and-value.md](docs/positioning-and-value.md) (12k-word
+  competitive synthesis), [docs/capability-matrix.md](docs/capability-matrix.md)
+  (every public surface tested), [docs/enterprise-grade.md](docs/enterprise-grade.md)
+  (the quality bar), [docs/release-checklist.md](docs/release-checklist.md)
+  (the per-release runbook), [docs/v0.7.2-plan.md](docs/v0.7.2-plan.md)
+  (current scope).
+
+## Quality bar — non-negotiable patterns
+
+When suggesting changes that touch evidence-generation code, follow
+the v0.7.0 collector pattern + v0.7.1 AI generator pattern:
+
+1. **Typed exception hierarchy** — never bare `except Exception`. Use
+   the existing `evidentia_ai.exceptions.EvidentiaAIError` family for
+   AI code; new collector subsystems define their own typed exceptions
+   (e.g., `JiraIntegrationError`, `OktaCollectorError`).
+2. **Bounded retry on transient failures** — wrap network/LLM calls
+   with `@with_retry` or `@with_retry_async` from
+   `evidentia_core.audit.retry`. For AI: pass `event_action=AI_*_RETRY`.
+   For collectors: default `EventAction.COLLECT_RETRY` is correct.
+3. **Structured logging via `evidentia_core.audit.get_logger`** — never
+   stdlib `logging`. Emit ECS 8.11 / NIST AU-3 / OpenTelemetry events
+   for every state transition (started, succeeded, failed, retried).
+4. **Run-id correlation** — every event carries `run_id` (ULID) so
+   SIEM operators can join failures + retries + successes by namespace.
+5. **Provenance metadata** — every output carries either
+   `CollectionContext` (collectors) or `GenerationContext` (AI).
+6. **`BLIND_SPOTS` disclosure** — collectors must publish an explicit
+   list of what they DON'T cover. Auditor transparency principle.
+7. **Air-gap enforcement** — never bypass `evidentia_core.network_guard`.
+   Any LLM/network call must consult it; non-loopback / non-RFC-1918
+   targets raise `OfflineViolationError` BEFORE network IO fires.
+8. **Secret scrubber** — log emission goes through the audit logger's
+   `_scrub` regex set. Never call `print` or stdlib `logging` with
+   credential-bearing strings.
+9. **No shortened/blocked-imports** — `evidentia_core.models.risk` and
+   `evidentia_core.models.finding` are NOT re-exported from the
+   `evidentia_core.models` package root. Import directly from the
+   submodule.
+
+## Testing patterns
+
+- **Pytest**: every public function needs at least one test. New AI
+  generator surfaces follow `tests/unit/test_ai/test_risk_statements.py`
+  (772 lines covering sync + async + batch + retry + air-gap +
+  GenerationContext). Mock LLM via `unittest.mock.patch` of
+  `instructor.Instructor.chat.completions.create`.
+- **Mypy strict**: `--strict` against all 6 packages; expect
+  `Success: no issues found in 98 source files` (count grows with
+  new modules).
+- **Ruff**: lint-clean is required; format-on-save is the default.
+- **Three OS matrix**: tests pass on Ubuntu / Windows / macOS via CI
+  (`tests.yml`). Local Windows shows 8 environmental skips (GnuPG
+  entropy + Sigstore CI-OIDC); these all pass on Linux CI.
+- **Coverage**: ≥ 80% line per `docs/enterprise-grade.md` H1; current
+  coverage is ~77% workspace-wide and grows per release.
+
+## Frontend patterns (packages/evidentia-ui/)
+
+- **WCAG 2.1 AA** via Radix primitives — never roll custom interactive
+  components (dialogs, dropdowns, comboboxes); use shadcn/ui wrappers.
+- **TanStack Query** for all REST calls — never `fetch` directly.
+  Cache keys follow `['evidentia', '<resource>', ...args]`.
+- **Hand-written types** for the FastAPI surface today (auto-gen from
+  OpenAPI is on the v0.4.2 polish list per ROADMAP). Keep the types
+  in `packages/evidentia-ui/src/api/types.ts`.
+- **Zustand for client state**, never Redux. Client state is small.
+
+## Release / publishing discipline — read carefully
+
+**Allen owns publish authority. Cursor must NEVER**:
+
+1. Suggest `git push` (any remote) without prefacing it as
+   "irreversible — needs explicit approval".
+2. Suggest `git tag <name> && git push origin <name>` — tag pushes
+   trigger `release.yml` → 6 PyPI publishes + Sigstore attestations
+   (recorded permanently in Rekor).
+3. Suggest `gh` mutations: `gh repo edit`, `gh secret set`, `gh issue
+   close`, `gh release create`, `gh api -X PUT/POST/PATCH/DELETE`,
+   environment / branch protection changes.
+4. Suggest publishing to package registries: `twine upload`, `npm
+   publish`.
+5. Bypass any local hook with `--no-verify`, `--no-gpg-sign`, etc.
+6. Use `git commit --amend` on already-pushed commits.
+7. Suggest force-push to `main` or any release tag.
+8. Bypass the `pypi` GitHub environment's `protected_branches=true`
+   policy (only `main` deploys).
+
+Local edits + local commits are OK. Surfacing irreversible commands
+for Allen to run is OK. Running them is NOT.
+
+## Commit-attribution discipline
+
+Commits authored by Allen Byrd
+`<125306425+allenfbyrd@users.noreply.github.com>`. **Never include**:
+
+- `Co-Authored-By: Claude` or other Claude/AI co-author trailers
+- `🤖 Generated with [Claude Code]` or similar attribution footers
+- Any reference to the Cursor or Claude Code CLI tool in commit
+  metadata
+
+The README's "AI assistance" acknowledgment section is the right
+place to credit AI tools (acknowledgment in content, not attribution
+in git metadata). The contributor widget on GitHub stays human.
+
+## Commit-decomposition rubric
+
+Per `~/.claude/skills/pre-release-review/SKILL.md` Step 5:
+
+1. Each commit is buildable on its own (no broken-bisect commits).
+2. Group by dependency depth, not file path. Foundation primitives
+   first; callers next; documentation last.
+3. Conventional-commit prefix per project convention:
+   `feat(<scope>):` / `fix(<scope>):` / `chore(release|lint|refinements):`
+   / `docs(<scope>):` / `ci(<scope>):`.
+4. One thematic concern per commit. Cross-cutting fixes split.
+5. Run the test gate after each commit lands (`pytest -q` minimum).
+6. Trivially small changes (1-3 files, single concern, < 50 LOC):
+   one commit is fine.
+
+## Catalog refresh / upstream drift
+
+- The `catalog-refresh.yml` workflow detects drift via
+  `git diff --quiet --ignore-all-space` against the committed
+  `frameworks.yaml`. Don't suggest removing the `--ignore-all-space`
+  flag; it's the belt-and-suspenders fix for v0.7.1 issues #1-#4.
+- `scripts/catalogs/regenerate_manifest.py` pins
+  `yaml.safe_dump(width=200)` for byte-stable emit. Don't suggest
+  reverting to the default `width=80` — that re-introduces the
+  whitespace-only false positives.
+
+## Cross-link to Allen's global memory
+
+The project's CLAUDE.md / Cursor patterns + global publishing-authority
+protocol live in `~/.claude/CLAUDE.md` (Allen's private global
+instructions). Cursor cannot read that path, but its rules are
+mirrored above. When in doubt, defer to Allen's explicit instruction
+for any unfamiliar command, especially anything irreversible.

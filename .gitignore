@@ -81,7 +81,14 @@ dmypy.json
 .ruff_cache/
 
 # IDE
-.vscode/
+# .vscode/ is ignored by default but the canonical shared workspace
+# config files are version-controlled (see docs/ide-setup.md). Per-developer
+# overrides (.vscode/*.local.json, scratch files, etc.) stay ignored.
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo

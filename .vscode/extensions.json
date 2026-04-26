@@ -1,0 +1,46 @@
+{
+  // Recommended extensions for Evidentia development. VS Code prompts
+  // contributors to install these on first open. Cursor reads the same
+  // file. See docs/ide-setup.md for the rationale per extension.
+  "recommendations": [
+    // Core Python
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "ms-python.mypy-type-checker",
+    "charliermarsh.ruff",
+
+    // Testing
+    "ms-python.python",
+    "ryanluker.vscode-coverage-gutters",
+
+    // Frontend (packages/evidentia-ui/)
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "vitest.explorer",
+
+    // Markdown / docs
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+
+    // YAML (catalogs, evidentia.yaml, GH Actions)
+    "redhat.vscode-yaml",
+
+    // GitHub Actions workflow editing
+    "github.vscode-github-actions",
+
+    // Editor consistency
+    "editorconfig.editorconfig",
+
+    // Git / GitHub workflow
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github"
+  ],
+  "unwantedRecommendations": [
+    // Pylint conflicts with Ruff for linting
+    "ms-python.pylint",
+    // Black conflicts with Ruff for formatting
+    "ms-python.black-formatter"
+  ]
+}

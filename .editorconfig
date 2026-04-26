@@ -1,0 +1,51 @@
+# EditorConfig — version-controlled editor consistency.
+# https://editorconfig.org/
+#
+# Both Cursor and VS Code (with the EditorConfig extension) honor
+# this file. Settings here apply to ALL editors that read .editorconfig
+# (PyCharm, Sublime, vim, etc.), so Evidentia contributors get
+# consistent indentation/whitespace regardless of editor choice.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Python — PEP 8 4-space indent (already the default above)
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+# Frontend — 2-space indent (community convention for TS/JS/JSX/TSX)
+[*.{js,jsx,ts,tsx,json,jsonc,html,css,scss,vue,svelte}]
+indent_size = 2
+
+# YAML — 2-space indent (PyYAML default + GitHub Actions convention)
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown — preserve trailing whitespace (it's significant for hard
+# line breaks in some renderers) and don't enforce max-line-length
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# Shell scripts — 4-space indent for readability
+[*.sh]
+indent_size = 4
+
+# Makefile — REQUIRES tabs (not spaces)
+[Makefile]
+indent_style = tab
+
+# uv.lock + package-lock.json — auto-generated, leave alone
+[{uv.lock,package-lock.json}]
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = false
+insert_final_newline = unset

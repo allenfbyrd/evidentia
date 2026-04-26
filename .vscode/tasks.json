@@ -1,0 +1,218 @@
+{
+  // Evidentia VS Code task definitions — version-controlled.
+  // Cursor reads this same file. See docs/ide-setup.md for usage.
+  // Run via: Ctrl+Shift+B (default build task) OR
+  // Ctrl+Shift+P → "Tasks: Run Task" → pick from list.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "uv sync (all-extras, all-packages)",
+      "type": "shell",
+      "command": "uv sync --all-extras --all-packages",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pytest -q (full suite, no coverage)",
+      "type": "shell",
+      "command": "uv run --no-sync python -m pytest -q --no-cov",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pytest --cov=packages (full suite + coverage)",
+      "type": "shell",
+      "command": "uv run --no-sync python -m pytest -q --cov=packages --cov-report=term-missing --cov-report=xml",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mypy --strict (all 6 packages)",
+      "type": "shell",
+      "command": "uv run --no-sync python -m mypy packages/evidentia-core packages/evidentia-collectors packages/evidentia-api packages/evidentia-ai packages/evidentia-integrations packages/evidentia",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ruff check",
+      "type": "shell",
+      "command": "uv run --no-sync ruff check",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ruff check --fix",
+      "type": "shell",
+      "command": "uv run --no-sync ruff check --fix",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ruff format",
+      "type": "shell",
+      "command": "uv run --no-sync ruff format",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "uv build --all-packages",
+      "type": "shell",
+      "command": "uv build --all-packages",
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "twine check dist/*",
+      "type": "shell",
+      "command": "uvx twine check dist/*",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pre-release gate (ruff + mypy + pytest + build + twine)",
+      "type": "shell",
+      "command": "uv run --no-sync ruff check && uv run --no-sync python -m mypy packages/evidentia-core packages/evidentia-collectors packages/evidentia-api packages/evidentia-ai packages/evidentia-integrations packages/evidentia && uv run --no-sync python -m pytest -q --cov=packages && uv build --all-packages && uvx twine check dist/*",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "evidentia doctor (smoke check)",
+      "type": "shell",
+      "command": "uv run --no-sync evidentia doctor",
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "evidentia serve (FastAPI + UI on :8000)",
+      "type": "shell",
+      "command": "uv run --no-sync evidentia serve --host 127.0.0.1 --port 8000 --verbose",
+      "group": "build",
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend — npm run build (UI dist)",
+      "type": "shell",
+      "command": "npm run build",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/evidentia-ui"
+      },
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend — npm run dev (Vite HMR)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/evidentia-ui"
+      },
+      "group": "build",
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend — vitest (UI unit tests)",
+      "type": "shell",
+      "command": "npm run test",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/evidentia-ui"
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend — typecheck (tsc --noEmit)",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/evidentia-ui"
+      },
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

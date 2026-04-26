@@ -1,0 +1,106 @@
+{
+  // Evidentia VS Code workspace settings — version-controlled.
+  // See docs/ide-setup.md for the full IDE setup walkthrough.
+  // Cursor reads the same .vscode/ directory, so these settings
+  // apply to both editors.
+
+  // Python interpreter — pinned to the uv-managed venv
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.typeCheckingMode": "strict",
+  "python.analysis.autoImportCompletions": true,
+
+  // Pytest — discovery + run-from-gutter
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+
+  // Mypy — surface inline errors via the Python extension
+  "python.linting.mypyEnabled": true,
+  "python.linting.mypyArgs": [
+    "--strict",
+    "packages/evidentia-core",
+    "packages/evidentia-collectors",
+    "packages/evidentia-api",
+    "packages/evidentia-ai",
+    "packages/evidentia-integrations",
+    "packages/evidentia"
+  ],
+
+  // Ruff — primary linter + formatter via charliermarsh.ruff extension
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+
+  // Frontend (packages/evidentia-ui/) — React + TS + Vitest
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "typescript.tsdk": "packages/evidentia-ui/node_modules/typescript/lib",
+
+  // Coverage gutters — render coverage from `pytest --cov` runs
+  "coverage-gutters.coverageFileNames": [
+    "coverage.xml",
+    ".coverage"
+  ],
+  "coverage-gutters.showLineCoverage": true,
+  "coverage-gutters.showRulerCoverage": true,
+
+  // Markdown — docs/* live editing
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  },
+
+  // YAML — schema for evidentia.yaml (loose; the canonical schema
+  // lives in evidentia_core.config)
+  "yaml.schemas": {},
+
+  // File associations
+  "files.associations": {
+    "*.yml": "yaml",
+    ".cursorrules": "markdown"
+  },
+
+  // Workspace etiquette
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.eol": "\n",
+
+  // Search exclusions — avoid grepping into virtualenvs + node_modules
+  "search.exclude": {
+    "**/.venv": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/htmlcov": true,
+    "**/.coverage": true,
+    "**/coverage.xml": true,
+    "**/uv.lock": false
+  },
+
+  // Git — show diff editor for working tree changes
+  "git.openDiffOnClick": true,
+  "git.confirmSync": true
+}
