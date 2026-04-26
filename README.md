@@ -140,6 +140,21 @@ Evidentia is built on four principles:
 
 ## Current status: 82 frameworks bundled, full suite passing
 
+**v0.7.1 (April 2026)** is the **AI features hardening release**.
+Brings `evidentia-ai` (`risk_statements/` + `explain/`) up to the
+v0.7.0 collector-pattern enterprise grade — closing the v0.7.0
+BLOCKER B3 carry-over for both AI subsystems. Adds `GenerationContext`
+metadata on every generated artifact (sibling of `CollectionContext`),
+9 new `AI_*` `EventAction` entries for ECS-structured AI audit
+events, a typed exception hierarchy in `evidentia_ai.exceptions`,
+bounded retry against the shared `LLM_TRANSIENT_EXCEPTIONS` set
+(LiteLLM rate-limit + transport + timeout), and
+`run_id`-correlated audit trails so SIEM operators can join AI
+failures + retries + successes by namespace. See
+[docs/v0.7.1-plan.md](docs/v0.7.1-plan.md) for the full ship summary;
+the deferred supply-chain polish + documentation refresh items move
+to [docs/v0.7.2-plan.md](docs/v0.7.2-plan.md).
+
 **v0.7.0 (April 2026)** is the **enterprise-grade release**, closing all 10
 BLOCKER items in [docs/enterprise-grade.md](docs/enterprise-grade.md):
 Sigstore/Rekor signing, CycloneDX SBOM on every release, PyPI Trusted
@@ -149,8 +164,8 @@ AWS IAM Access Analyzer + GitHub Dependabot collectors, ECS-8.11 / NIST-AU-3 /
 OpenTelemetry structured logs, and a consolidated GitHub Action at
 `.github/actions/gap-analysis/`.
 
-The six v0.5.1 `controlbridge-*` deprecation shims are removed at this
-release per the public migration contract — historical context in
+The six v0.5.1 `controlbridge-*` deprecation shims are removed at v0.7.0
+per the public migration contract — historical context in
 [RENAMED.md](RENAMED.md) and [CHANGELOG.md](CHANGELOG.md).
 
 **v0.5.0 (April 2026)** is the **"Phase 2 integrations"** release.
@@ -327,7 +342,8 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
   `--offline` (air-gap mode), `--json-logs` (ECS 8.11 structured output
   for SIEM ingestion), `--config <path>`, `--verbose`, `--quiet`.
 
-- **857 tests passing** covering models, catalog loading (with a
+- **965 tests passing + 8 environmental skips** (Windows-local; full
+  suite of 973 passes on Linux CI per the v0.7.0 baseline) covering models, catalog loading (with a
   parametric smoke test per bundled framework), recursive enhancement
   flattener for NIST Rev 5 3-level IDs, tier invariants, OSCAL profile
   resolution, user-import directory precedence, crosswalk bidirectionality,
@@ -338,20 +354,22 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
   mode, OSCAL AR digest + GPG + Sigstore round-trip verification, and
   3 trestle conformance tests against the NIST OSCAL reference impl.
 
-### What's not yet included (as of v0.7.0)
+### What's not yet included (as of v0.7.1)
 
 Setting expectations matters. v0.7.0 shipped a substantial enterprise
-hardening pass, so several formerly-pending items have moved out of
-this list — see [`CHANGELOG.md`](CHANGELOG.md) for the full v0.7.0
-delta. The following are still on the roadmap but not yet shipped:
+hardening pass and v0.7.1 closed the AI features carry-over (typed
+`EvidentiaAIError` hierarchy, `GenerationContext` metadata, bounded
+retry, ECS structured logging across `risk_statements/` + `explain/`),
+so several formerly-pending items have moved out of this list — see
+[`CHANGELOG.md`](CHANGELOG.md) for the full v0.7.0 + v0.7.1 deltas.
+The following are still on the roadmap but not yet shipped:
 
-- **AI features enterprise-grade hardening** (v0.7.1) — bring
-  `evidentia-ai` (risk statements + control explanation) up to the
-  v0.7.0 collector-pattern enterprise grade: typed exception hierarchy,
-  `@with_retry` for transient LLM failures, `GenerationContext` metadata,
-  ECS structured logging, and 250+ lines of new test coverage. See
-  [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md) for the design rationale
-  and acceptance criteria.
+- **Supply-chain polish** (v0.7.2) — SHA-pin third-party actions in
+  `.github/actions/gap-analysis/action.yml`, composite action E2E
+  smoke test, SLSA L3 build provenance via
+  `actions/attest-build-provenance@v2`, weekly OpenSSF Scorecard
+  workflow. See [`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md) for the
+  full plan; 4-6 week ship target.
 - **LLM-based evidence validation** (Phase 3 / v0.8+) — "is this
   screenshot actually proof of MFA?" scoring, freshness detection,
   multi-modal validation via Document Screenshot Embedding (DSE).
@@ -360,8 +378,10 @@ delta. The following are still on the roadmap but not yet shipped:
 - **Additional collectors / integrations** — Okta (MFA, inactive users,
   privileged-account counts), ServiceNow (`sn_compliance_task` push),
   Vanta + Drata (push test results via their public APIs), Azure + GCP
-  evidence collectors. All scheduled for v0.7.1+ per
-  [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md).
+  evidence collectors. Carried forward to v0.7.2 as
+  optional/community-driven items per
+  [`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md) §"P2 — Optional /
+  community-driven".
 - **Multi-user auth / RBAC** — the web UI is localhost-only today;
   network-deployment token auth is queued for v0.7.x+.
 - **Authoritative control text for copyrighted frameworks** (ISO
@@ -630,6 +650,15 @@ Summary below.
 - [x] ECS-8.11 / NIST-AU-3 / OpenTelemetry structured logs
 - [x] Consolidated GitHub Action at `.github/actions/gap-analysis/`
 - [x] Tamper-evident audit trail for external-auditor review
+
+### AI features hardening (v0.7.1) — SHIPPED
+- [x] `GenerationContext` metadata on every AI-generated artifact (sibling of `CollectionContext`)
+- [x] 9 new `evidentia.ai.*` `EventAction` entries for ECS-structured AI audit events
+- [x] Typed exception hierarchy in `evidentia_ai.exceptions` — closes BLOCKER B3 for `risk_statements/` + `explain/`
+- [x] Bounded retry via `with_retry_async` + `build_retrying`/`build_async_retrying` against shared `LLM_TRANSIENT_EXCEPTIONS` set
+- [x] `run_id`-correlated audit trails across AI generated/failed/retry/cache_hit/batch_completed events
+- [x] Best-effort operator identity via `evidentia_ai.client.get_operator_identity()` — closes NIST AU-3 "Identity" gap for AI artifacts
+- [x] 116+ net new tests across `test_ai/`, `test_audit/`, `test_models/`
 
 ### Later — quality signals + more integrations (v0.7.x+)
 - [ ] Risk-statement quality validator (NIST SP 800-30 / IR 8286 scoring + auto-regeneration)
