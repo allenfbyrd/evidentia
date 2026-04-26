@@ -1,11 +1,11 @@
 # Evidentia roadmap
 
-**Last updated: v0.7.0 (April 2026).**
+**Last updated: v0.7.1 (April 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
-at the project root. Versions v0.3.0 through v0.7.0 have shipped;
-v0.7.1 is the next active scope (see
-[`v0.7.1-plan.md`](v0.7.1-plan.md)). Anything beyond v0.7.1 is
+at the project root. Versions v0.3.0 through v0.7.1 have shipped;
+v0.7.2 is the next active scope (see
+[`v0.7.2-plan.md`](v0.7.2-plan.md)). Anything beyond v0.7.2 is
 forward-looking — the exact shape will depend on real-world usage
 patterns and the bigger v0.8+ direction documented in
 [`positioning-and-value.md`](positioning-and-value.md) §13.
@@ -212,15 +212,64 @@ The release was preceded by a 6-step comprehensive pre-tag review
 **857 tests passing**; mypy strict clean; ruff lint clean; all 10
 BLOCKER items in `docs/enterprise-grade.md` closed.
 
-## v0.7.1 — AI features hardening + supply-chain polish — NEXT
+## v0.7.1 — AI features hardening (P0-only) — SHIPPED
 
-See [`docs/v0.7.1-plan.md`](v0.7.1-plan.md) for the full plan. Theme:
-bring `evidentia-ai` (risk_statements/ + explain/) up to the v0.7.0
-collector-pattern enterprise grade after 4 documented design
-decisions are made. Plus small supply-chain follow-ups (SHA-pin
-composite action, action E2E smoke test, SLSA L3 build provenance,
-OpenSSF Scorecard, Sigstore verify warning log emission). 6-8 week
-ship target.
+The "AI features hardening" release. Brings `evidentia-ai`
+(`risk_statements/` + `explain/`) up to the v0.7.0 collector-pattern
+enterprise grade — closing the v0.7.0 BLOCKER B3 carry-over for both
+AI subsystems:
+
+- **`GenerationContext`** Pydantic model in `evidentia_core.audit.provenance`,
+  sibling of `CollectionContext`. Captures per-output AI provenance:
+  `model`, `temperature`, `prompt_hash` (SHA-256), `run_id` (ULID),
+  `generated_at`, `attempts`, `instructor_max_retries`,
+  `credential_identity` (best-effort operator label per NIST AU-3),
+  `evidentia_version`. Optional field on `RiskStatement` and
+  `PlainEnglishExplanation` (default `None` for v0.7.x backward compat;
+  will tighten to required in v0.8 with deprecation cycle).
+- **9 new `EventAction` entries** under the `evidentia.ai.*` namespace
+  (`AI_RISK_*` + `AI_EXPLAIN_*` covering generated/failed/retry/cache_hit/batch_completed).
+- **Typed exception hierarchy** in `evidentia_ai.exceptions`
+  (`EvidentiaAIError`, `LLMUnavailableError`, `LLMValidationError`,
+  `RiskStatementError`, `RiskGenerationFailed`, `ExplainError`,
+  `ExplainGenerationFailed`) — closes BLOCKER B3 for both AI subsystems.
+- **Bounded retry against shared `LLM_TRANSIENT_EXCEPTIONS`** via the
+  new `with_retry_async` decorator + `build_retrying`/
+  `build_async_retrying` factory functions in
+  `evidentia_core.audit.retry`. AI generators pass `AI_RISK_RETRY` /
+  `AI_EXPLAIN_RETRY` so SIEM operators can filter retry storms by namespace.
+- **Audit-trail correlation** — every `AI_*` event carries `run_id`
+  (and inherited `trace.id` from the run_id scope), so SIEM queries
+  on `evidentia.run_id` surface failures + successes + retry storms
+  attributable to the same batch.
+- **Best-effort operator identity** via
+  `evidentia_ai.client.get_operator_identity()` (returns
+  `$EVIDENTIA_AI_OPERATOR` if set, else `user@hostname`). Closes the
+  NIST AU-3 "Identity" gap for AI-derived artifacts.
+
+Shipped as **P0-only** by deliberate scope-narrowing decision at ship
+time. P1 (supply-chain polish — SHA-pin composite action, action E2E
+smoke test, SLSA L3 build provenance, OpenSSF Scorecard) and P2/P3
+(documentation polish + community-driven items) **moved to
+[`docs/v0.7.2-plan.md`](v0.7.2-plan.md)** so v0.7.1 could land
+focused on the BLOCKER B3 closure without scope creep.
+
+**973 tests collected** (965 passed + 8 environmental skips on local
+Windows; 8 skips are GnuPG entropy + Sigstore CI-OIDC-only and pass on
+Linux CI per the v0.7.0 baseline); mypy strict clean (98 source files);
+ruff lint clean.
+
+## v0.7.2 — Supply-chain polish + documentation refresh — NEXT
+
+See [`docs/v0.7.2-plan.md`](v0.7.2-plan.md) for the full plan. Theme:
+SHA-pin the composite action's third-party dependencies, add a composite
+action E2E smoke test, achieve SLSA L3 build provenance, publish weekly
+OpenSSF Scorecard. Plus a documentation refresh pass (sigstore
+quickstart, v0.8.0 plan, conditional architecture-plan refresh,
+quarterly positioning-and-value re-sync if the cadence falls in this
+release window). 4-6 week ship target. Optional/community items
+(Okta collector, ServiceNow integration, Vanta/Drata push, OSCAL
+Plugfest submission, multi-industry sample data) carry forward.
 
 ## v0.7.0+ — Quality signals, more integrations, UI polish
 
@@ -276,7 +325,10 @@ ROI framing in ways they don't respond to "coverage %".
 ## Release-runbook follow-ups
 
 PyPI Trusted Publisher (OIDC) migration: **DONE in v0.7.0** for the
-6 published evidentia-* packages. The legacy `PYPI_API_TOKEN`
-remains in the `pypi` GitHub environment as a rollback path; deletion
-is queued for v0.7.1 (per `docs/v0.7.1-plan.md` item S6) once the
-OIDC publish flow has run cleanly across multiple releases.
+6 published evidentia-* packages. The legacy `PYPI_API_TOKEN` was
+deleted from the `pypi` GitHub environment during v0.7.0 ship-day
+housekeeping (verified absent post-v0.7.1 via
+`gh secret list --env=pypi --repo allenfbyrd/evidentia` — zero
+secrets remain at the repo or env level). The originally-queued
+v0.7.1 deletion-verification step is therefore a no-op carried into
+v0.7.2 only as a bookkeeping line in `docs/v0.7.2-plan.md`.
