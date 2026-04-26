@@ -52,8 +52,13 @@ jobs:
         run: |
           set -e
           uv run python scripts/catalogs/regenerate_manifest.py | tee regen.out
-          # Detect drift against committed manifest
-          if git diff --quiet packages/evidentia-core/src/evidentia_core/catalogs/data/frameworks.yaml; then
+          # Detect drift against committed manifest. `--ignore-all-space`
+          # belt-and-suspenders against PyYAML word-wrap drift across
+          # versions/locales (the script pins width=200 to mitigate at
+          # source, but a workflow-side guard prevents whitespace-only
+          # diffs from re-opening the false-positive issues seen at
+          # v0.7.1 ship time as #1-#4).
+          if git diff --quiet --ignore-all-space packages/evidentia-core/src/evidentia_core/catalogs/data/frameworks.yaml; then
             echo "drift_detected=false" >> "$GITHUB_OUTPUT"
           else
             echo "drift_detected=true" >> "$GITHUB_OUTPUT"

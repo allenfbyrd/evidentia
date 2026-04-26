@@ -35,8 +35,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/cjis-v6.json
-  source_url: FBI Criminal Justice Information Services Division — CJIS Security Policy
-    (federal agency document)
+  source_url: FBI Criminal Justice Information Services Division — CJIS Security Policy (federal agency document)
   refresh: monthly
 - id: cmmc-2-l1
   name: CMMC 2.0 Level 1 (Foundational)
@@ -44,8 +43,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/cmmc-2-l1.json
-  source_url: DoD CIO — https://dodcio.defense.gov/CMMC/ (U.S. Government work). Based
-    on the 17 FAR 52.204-21 basic safeguarding practices.
+  source_url: DoD CIO — https://dodcio.defense.gov/CMMC/ (U.S. Government work). Based on the 17 FAR 52.204-21 basic safeguarding practices.
   refresh: monthly
 - id: cmmc-2-l2
   name: CMMC 2.0 Level 2 (Advanced)
@@ -53,8 +51,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/cmmc-2-l2.json
-  source_url: DoD CIO — https://dodcio.defense.gov/CMMC/. Level 2 = all 110 NIST SP
-    800-171 Rev 2 requirements.
+  source_url: DoD CIO — https://dodcio.defense.gov/CMMC/. Level 2 = all 110 NIST SP 800-171 Rev 2 requirements.
   refresh: monthly
 - id: cmmc-2-l3
   name: CMMC 2.0 Level 3 (Expert)
@@ -62,8 +59,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/cmmc-2-l3.json
-  source_url: DoD CIO — https://dodcio.defense.gov/CMMC/. Level 3 = Level 2 + subset
-    of NIST SP 800-172 enhanced requirements.
+  source_url: DoD CIO — https://dodcio.defense.gov/CMMC/. Level 3 = Level 2 + subset of NIST SP 800-172 enhanced requirements.
   refresh: monthly
 - id: cms-ars-5.1
   name: CMS Acceptable Risk Safeguards (ARS) 5.1
@@ -71,8 +67,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/cms-ars-5.1.json
-  source_url: CMS Information Security & Privacy Group — CMS-specific overlay on NIST
-    SP 800-53 Rev 5
+  source_url: CMS Information Security & Privacy Group — CMS-specific overlay on NIST SP 800-53 Rev 5
   refresh: monthly
 - id: fda-21-cfr-pt11
   name: FDA 21 CFR Part 11 — Electronic Records; Electronic Signatures
@@ -88,8 +83,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/fedramp-rev5-high.json
-  source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public
-    domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
+  source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
   refresh: monthly
 - id: fedramp-rev5-li-saas
   name: FedRAMP Rev 5 LI-SAAS Baseline
@@ -97,8 +91,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/fedramp-rev5-li-saas.json
-  source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public
-    domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
+  source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
   refresh: monthly
 - id: fedramp-rev5-low
   name: FedRAMP Rev 5 Low Baseline
@@ -106,8 +99,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/fedramp-rev5-low.json
-  source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public
-    domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
+  source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
   refresh: monthly
 - id: fedramp-rev5-moderate
   name: FedRAMP Rev 5 Moderate Baseline
@@ -115,8 +107,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/fedramp-rev5-moderate.json
-  source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public
-    domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
+  source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
   refresh: monthly
 - id: glba-safeguards
   name: GLBA Safeguards Rule (16 CFR § 314)
@@ -164,8 +155,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/nerc-cip-v7.json
-  source_url: North American Electric Reliability Corporation (NERC) — NERC CIP standards
-    (public)
+  source_url: North American Electric Reliability Corporation (NERC) — NERC CIP standards (public)
   refresh: monthly
 - id: nist-800-171-r2
   name: NIST SP 800-171 Rev 2 — Protecting CUI in Nonfederal Systems
@@ -197,10 +187,8 @@ frameworks:
   tier: A
   category: control
   path: us-federal/nist-800-53-mod.json
-  source_url: v0.1.x paraphrased 16-control sample. Retained for v0.2.0 yaml-pin backward
-    compatibility; deprecated in v0.2.1, removal planned for v0.3.0. Use framework_id
-    'nist-800-53-rev5-moderate' for the full 287-control FedRAMP-aligned baseline
-    derived from usnistgov/oscal-content@v1.4.0.
+  source_url: v0.1.x paraphrased 16-control sample. Retained for v0.2.0 yaml-pin backward compatibility; deprecated in v0.2.1, removal planned for v0.3.0. Use framework_id 'nist-800-53-rev5-moderate' for
+    the full 287-control FedRAMP-aligned baseline derived from usnistgov/oscal-content@v1.4.0.
   refresh: monthly
 - id: nist-800-53-rev5-high
   name: NIST SP 800-53 Rev 5 High Baseline
@@ -208,8 +196,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/nist-800-53-rev5-high.json
-  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_HIGH-baseline_profile.json
-    resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
+  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_HIGH-baseline_profile.json resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
   refresh: monthly
 - id: nist-800-53-rev5-low
   name: NIST SP 800-53 Rev 5 Low Baseline
@@ -217,8 +204,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/nist-800-53-rev5-low.json
-  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_LOW-baseline_profile.json
-    resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
+  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_LOW-baseline_profile.json resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
   refresh: monthly
 - id: nist-800-53-rev5-moderate
   name: NIST SP 800-53 Rev 5 Moderate Baseline
@@ -226,8 +212,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/nist-800-53-rev5-moderate.json
-  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_MODERATE-baseline_profile.json
-    resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
+  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_MODERATE-baseline_profile.json resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
   refresh: monthly
 - id: nist-800-53-rev5-privacy
   name: NIST SP 800-53 Rev 5 Privacy Baseline
@@ -235,8 +220,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/nist-800-53-rev5-privacy.json
-  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_PRIVACY-baseline_profile.json
-    resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
+  source_url: usnistgov/oscal-content@v1.4.0 — NIST_SP-800-53_rev5_PRIVACY-baseline_profile.json resolved against NIST_SP-800-53_rev5_catalog.json (CC0 / U.S. Government work)
   refresh: monthly
 - id: nist-800-53-rev5
   name: nist-800-53-rev5
@@ -259,8 +243,7 @@ frameworks:
   tier: A
   category: control
   path: us-federal/nist-csf-2.0.json
-  source_url: NIST (https://www.nist.gov/cyberframework) — U.S. Government work, public
-    domain
+  source_url: NIST (https://www.nist.gov/cyberframework) — U.S. Government work, public domain
   license_url: https://www.nist.gov/cyberframework
   refresh: monthly
 - id: nist-privacy-framework-1.0
@@ -293,8 +276,7 @@ frameworks:
   tier: A
   category: control
   path: international/au-essential-8.json
-  source_url: Australian Cyber Security Centre (ACSC) — https://cyber.gov.au/essential-eight
-    (Creative Commons BY 4.0)
+  source_url: Australian Cyber Security Centre (ACSC) — https://cyber.gov.au/essential-eight (Creative Commons BY 4.0)
   refresh: monthly
 - id: au-ism
   name: Australian Information Security Manual
@@ -302,8 +284,7 @@ frameworks:
   tier: A
   category: control
   path: international/au-ism.json
-  source_url: Australian Signals Directorate (ACSC) — https://cyber.gov.au/ism (Creative
-    Commons BY 4.0)
+  source_url: Australian Signals Directorate (ACSC) — https://cyber.gov.au/ism (Creative Commons BY 4.0)
   refresh: monthly
 - id: canada-itsg-33
   name: 'Canada ITSG-33 — IT Security Risk Management: A Lifecycle Approach'
@@ -311,8 +292,7 @@ frameworks:
   tier: A
   category: control
   path: international/canada-itsg-33.json
-  source_url: Canadian Centre for Cyber Security (CCCS) — ITSG-33 Annex 3A (public
-    document)
+  source_url: Canadian Centre for Cyber Security (CCCS) — ITSG-33 Annex 3A (public document)
   refresh: monthly
 - id: canada-pipeda
   name: Canada PIPEDA — Personal Information Protection and Electronic Documents Act
@@ -320,8 +300,7 @@ frameworks:
   tier: D
   category: obligation
   path: international/canada-pipeda.json
-  source_url: Government of Canada — https://laws-lois.justice.gc.ca/eng/acts/P-8.6/
-    (federal statute)
+  source_url: Government of Canada — https://laws-lois.justice.gc.ca/eng/acts/P-8.6/ (federal statute)
   refresh: monthly
 - id: eu-ai-act
   name: EU AI Act (Regulation 2024/1689)
@@ -353,8 +332,7 @@ frameworks:
   tier: D
   category: control
   path: international/eu-nis2.json
-  source_url: Official Journal of the European Union — NIS2 Directive (regulation
-    text)
+  source_url: Official Journal of the European Union — NIS2 Directive (regulation text)
   refresh: monthly
 - id: nz-nzism
   name: New Zealand Information Security Manual (NZISM)
@@ -362,8 +340,7 @@ frameworks:
   tier: A
   category: control
   path: international/nz-nzism.json
-  source_url: Government Communications Security Bureau (GCSB) — https://nzism.gcsb.govt.nz
-    (Creative Commons BY 4.0)
+  source_url: Government Communications Security Bureau (GCSB) — https://nzism.gcsb.govt.nz (Creative Commons BY 4.0)
   refresh: monthly
 - id: uk-cyber-essentials
   name: UK Cyber Essentials
@@ -379,8 +356,7 @@ frameworks:
   tier: D
   category: obligation
   path: international/uk-dpa-2018.json
-  source_url: UK Parliament — https://www.legislation.gov.uk/ukpga/2018/12 (Open Government
-    Licence v3.0)
+  source_url: UK Parliament — https://www.legislation.gov.uk/ukpga/2018/12 (Open Government Licence v3.0)
   refresh: monthly
 - id: uk-ncsc-caf-3.2
   name: UK NCSC Cyber Assessment Framework (CAF) v3.2
@@ -388,8 +364,7 @@ frameworks:
   tier: A
   category: control
   path: international/uk-ncsc-caf-3.2.json
-  source_url: UK National Cyber Security Centre — https://www.ncsc.gov.uk/collection/cyber-assessment-framework
-    (Open Government Licence v3.0)
+  source_url: UK National Cyber Security Centre — https://www.ncsc.gov.uk/collection/cyber-assessment-framework (Open Government Licence v3.0)
   refresh: monthly
 - id: us-ca-ccpa-cpra
   name: California Consumer Privacy Act / California Privacy Rights Act (CCPA/CPRA)
@@ -397,8 +372,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-ca-ccpa-cpra.json
-  source_url: California Office of the Attorney General / California Privacy Protection
-    Agency (US state statute, not copyrightable under government edicts doctrine)
+  source_url: California Office of the Attorney General / California Privacy Protection Agency (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-co-cpa
   name: Colorado Privacy Act (CPA)
@@ -406,8 +380,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-co-cpa.json
-  source_url: Colorado General Assembly (US state statute, not copyrightable under
-    government edicts doctrine)
+  source_url: Colorado General Assembly (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-ct-ctdpa
   name: Connecticut Data Privacy Act (CTDPA)
@@ -415,8 +388,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-ct-ctdpa.json
-  source_url: Connecticut General Assembly (US state statute, not copyrightable under
-    government edicts doctrine)
+  source_url: Connecticut General Assembly (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-de-dpdpa
   name: Delaware Personal Data Privacy Act (DPDPA)
@@ -424,8 +396,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-de-dpdpa.json
-  source_url: Delaware General Assembly (US state statute, not copyrightable under
-    government edicts doctrine)
+  source_url: Delaware General Assembly (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-fl-fdbr
   name: Florida Digital Bill of Rights (FDBR)
@@ -433,8 +404,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-fl-fdbr.json
-  source_url: Florida Legislature (US state statute, not copyrightable under government
-    edicts doctrine)
+  source_url: Florida Legislature (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-ia-icdpa
   name: Iowa Consumer Data Protection Act (ICDPA)
@@ -442,8 +412,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-ia-icdpa.json
-  source_url: Iowa Legislature (US state statute, not copyrightable under government
-    edicts doctrine)
+  source_url: Iowa Legislature (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-md-mdpa
   name: Maryland Online Data Privacy Act (MODPA)
@@ -451,8 +420,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-md-mdpa.json
-  source_url: Maryland General Assembly (US state statute, not copyrightable under
-    government edicts doctrine)
+  source_url: Maryland General Assembly (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-mn-mncdpa
   name: Minnesota Consumer Data Privacy Act (MCDPA)
@@ -460,8 +428,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-mn-mncdpa.json
-  source_url: Minnesota Legislature (US state statute, not copyrightable under government
-    edicts doctrine)
+  source_url: Minnesota Legislature (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-mt-mcdpa
   name: Montana Consumer Data Privacy Act (MCDPA)
@@ -469,8 +436,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-mt-mcdpa.json
-  source_url: Montana Legislature (US state statute, not copyrightable under government
-    edicts doctrine)
+  source_url: Montana Legislature (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-nh-nhpa
   name: New Hampshire Privacy Act (NHPA)
@@ -478,8 +444,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-nh-nhpa.json
-  source_url: New Hampshire General Court (US state statute, not copyrightable under
-    government edicts doctrine)
+  source_url: New Hampshire General Court (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-or-ocpa
   name: Oregon Consumer Privacy Act (OCPA)
@@ -487,8 +452,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-or-ocpa.json
-  source_url: Oregon Legislature (US state statute, not copyrightable under government
-    edicts doctrine)
+  source_url: Oregon Legislature (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-tn-tipa
   name: Tennessee Information Protection Act (TIPA)
@@ -496,8 +460,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-tn-tipa.json
-  source_url: Tennessee General Assembly (US state statute, not copyrightable under
-    government edicts doctrine)
+  source_url: Tennessee General Assembly (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-tx-tdpsa
   name: Texas Data Privacy and Security Act (TDPSA)
@@ -505,8 +468,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-tx-tdpsa.json
-  source_url: Texas Legislature (US state statute, not copyrightable under government
-    edicts doctrine)
+  source_url: Texas Legislature (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-ut-ucpa
   name: Utah Consumer Privacy Act (UCPA)
@@ -514,8 +476,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-ut-ucpa.json
-  source_url: Utah Legislature (US state statute, not copyrightable under government
-    edicts doctrine)
+  source_url: Utah Legislature (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: us-va-vcdpa
   name: Virginia Consumer Data Protection Act (VCDPA)
@@ -523,8 +484,7 @@ frameworks:
   tier: D
   category: obligation
   path: state-privacy/us-va-vcdpa.json
-  source_url: Virginia General Assembly (US state statute, not copyrightable under
-    government edicts doctrine)
+  source_url: Virginia General Assembly (US state statute, not copyrightable under government edicts doctrine)
   refresh: monthly
 - id: cisa-kev
   name: CISA Known Exploited Vulnerabilities (sample)
@@ -532,10 +492,8 @@ frameworks:
   tier: B
   category: vulnerability
   path: threats/cisa-kev.json
-  source_url: CISA — https://www.cisa.gov/known-exploited-vulnerabilities-catalog
-    (U.S. Government work)
-  license: U.S. Government work, public domain. Sample bundled in Evidentia; refresh
-    CI pulls the full KEV daily.
+  source_url: CISA — https://www.cisa.gov/known-exploited-vulnerabilities-catalog (U.S. Government work)
+  license: U.S. Government work, public domain. Sample bundled in Evidentia; refresh CI pulls the full KEV daily.
   refresh: daily
 - id: mitre-attack-enterprise
   name: MITRE ATT&CK Enterprise
@@ -544,8 +502,7 @@ frameworks:
   category: technique
   path: threats/mitre-attack-enterprise.json
   source_url: MITRE Corporation — https://attack.mitre.org (free to use with attribution)
-  license: © MITRE Corporation. ATT&CK is freely available under MITRE's terms of
-    use.
+  license: © MITRE Corporation. ATT&CK is freely available under MITRE's terms of use.
   refresh: weekly
 - id: mitre-capec
   name: MITRE Common Attack Pattern Enumeration and Classification (CAPEC) — Sample
@@ -572,8 +529,7 @@ frameworks:
   category: control
   path: stubs/cis-benchmark-aws.json
   source_url: Center for Internet Security (CIS)
-  license: © Center for Internet Security. CIS Benchmarks are freely downloadable;
-    redistribution in catalog form requires CIS licensing.
+  license: © Center for Internet Security. CIS Benchmarks are freely downloadable; redistribution in catalog form requires CIS licensing.
   license_url: https://www.cisecurity.org/cis-benchmarks
   license_required: true
   placeholder: true
@@ -585,8 +541,7 @@ frameworks:
   category: control
   path: stubs/cis-benchmark-azure.json
   source_url: Center for Internet Security (CIS)
-  license: © Center for Internet Security. CIS Benchmarks are freely downloadable;
-    redistribution in catalog form requires CIS licensing.
+  license: © Center for Internet Security. CIS Benchmarks are freely downloadable; redistribution in catalog form requires CIS licensing.
   license_url: https://www.cisecurity.org/cis-benchmarks
   license_required: true
   placeholder: true
@@ -598,8 +553,7 @@ frameworks:
   category: control
   path: stubs/cis-benchmark-gcp.json
   source_url: Center for Internet Security (CIS)
-  license: © Center for Internet Security. CIS Benchmarks are freely downloadable;
-    redistribution in catalog form requires CIS licensing.
+  license: © Center for Internet Security. CIS Benchmarks are freely downloadable; redistribution in catalog form requires CIS licensing.
   license_url: https://www.cisecurity.org/cis-benchmarks
   license_required: true
   placeholder: true
@@ -611,8 +565,7 @@ frameworks:
   category: control
   path: stubs/cis-benchmark-kubernetes.json
   source_url: Center for Internet Security (CIS)
-  license: © Center for Internet Security. CIS Benchmarks are freely downloadable;
-    redistribution in catalog form requires CIS licensing.
+  license: © Center for Internet Security. CIS Benchmarks are freely downloadable; redistribution in catalog form requires CIS licensing.
   license_url: https://www.cisecurity.org/cis-benchmarks
   license_required: true
   placeholder: true
@@ -624,8 +577,7 @@ frameworks:
   category: control
   path: stubs/cis-benchmark-rhel9.json
   source_url: Center for Internet Security (CIS)
-  license: © Center for Internet Security. CIS Benchmarks are freely downloadable;
-    redistribution in catalog form requires CIS licensing.
+  license: © Center for Internet Security. CIS Benchmarks are freely downloadable; redistribution in catalog form requires CIS licensing.
   license_url: https://www.cisecurity.org/cis-benchmarks
   license_required: true
   placeholder: true
@@ -637,9 +589,8 @@ frameworks:
   category: control
   path: stubs/cis-controls-v8.1.json
   source_url: Center for Internet Security (CIS)
-  license: © Center for Internet Security. CIS Controls are freely available under
-    CIS's terms; however, redistribution in catalog form requires CIS licensing. Ships
-    as stub — download from cisecurity.org and import.
+  license: © Center for Internet Security. CIS Controls are freely available under CIS's terms; however, redistribution in catalog form requires CIS licensing. Ships as stub — download from cisecurity.org
+    and import.
   license_url: https://www.cisecurity.org/controls
   license_required: true
   placeholder: true
@@ -699,9 +650,8 @@ frameworks:
   category: control
   path: stubs/iso-27001-2022.json
   source_url: ISO/IEC — ISO/IEC 27001:2022
-  license: © ISO/IEC. Control text is copyrighted. Ships as a stub with public Annex
-    A numbering and neutral control titles. Purchase the standard from ISO and import
-    your licensed copy via `evidentia catalog import`.
+  license: © ISO/IEC. Control text is copyrighted. Ships as a stub with public Annex A numbering and neutral control titles. Purchase the standard from ISO and import your licensed copy via `evidentia catalog
+    import`.
   license_url: https://www.iso.org/standard/27001
   license_required: true
   placeholder: true
@@ -713,9 +663,7 @@ frameworks:
   category: control
   path: stubs/iso-27002-2022.json
   source_url: ISO/IEC — ISO/IEC 27002:2022
-  license: © ISO/IEC. Control text and implementation guidance are copyrighted. Same
-    93 controls as ISO 27001:2022 Annex A, but with detailed implementation guidance
-    (ships as stub — purchase from ISO).
+  license: © ISO/IEC. Control text and implementation guidance are copyrighted. Same 93 controls as ISO 27001:2022 Annex A, but with detailed implementation guidance (ships as stub — purchase from ISO).
   license_url: https://www.iso.org/standard/27002
   license_required: true
   placeholder: true
@@ -775,9 +723,7 @@ frameworks:
   category: control
   path: stubs/pci-dss-4.0.1.json
   source_url: PCI Security Standards Council
-  license: © PCI Security Standards Council. PCI DSS text is copyrighted. Download
-    the standard (free registration required) from PCI SSC and import your licensed
-    copy.
+  license: © PCI Security Standards Council. PCI DSS text is copyrighted. Download the standard (free registration required) from PCI SSC and import your licensed copy.
   license_url: https://www.pcisecuritystandards.org/document_library/
   license_required: true
   placeholder: true
@@ -789,9 +735,7 @@ frameworks:
   category: control
   path: stubs/scf-2024.json
   source_url: Secure Controls Framework Council
-  license: © Secure Controls Framework. SCF is licensed CC BY-ND — no derivatives.
-    Download the current SCF spreadsheet from securecontrolsframework.com and import
-    your copy.
+  license: © Secure Controls Framework. SCF is licensed CC BY-ND — no derivatives. Download the current SCF spreadsheet from securecontrolsframework.com and import your copy.
   license_url: https://securecontrolsframework.com
   license_required: true
   placeholder: true
@@ -803,12 +747,8 @@ frameworks:
   category: control
   path: stubs/soc2-tsc.json
   source_url: https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022
-  license: The AICPA Trust Services Criteria are published and copyrighted by the
-    AICPA. Criterion text is not bundled with Evidentia. Download the free PDF
-    from AICPA (link in license_url) and use `evidentia catalog import` to load
-    a local copy, or supply your own service-organization-specific criteria mapping.
-    Evidentia ships only the public category and criterion numbering (CC1-CC9,
-    A1, C1, P1-P8, PI1).
+  license: The AICPA Trust Services Criteria are published and copyrighted by the AICPA. Criterion text is not bundled with Evidentia. Download the free PDF from AICPA (link in license_url) and use `evidentia
+    catalog import` to load a local copy, or supply your own service-organization-specific criteria mapping. Evidentia ships only the public category and criterion numbering (CC1-CC9, A1, C1, P1-P8, PI1).
   license_url: https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022
   license_required: true
   placeholder: true
