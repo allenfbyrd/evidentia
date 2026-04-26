@@ -6,19 +6,26 @@
 **Audience:** Senior Engineers, Technical Leads, Contributors  
 **License:** Apache 2.0  
 
-> **Implementation status as of 2026-04-25:** v0.7.0 (the
-> "enterprise-grade" release) is the latest shipped version. All
-> phases through Phase 2 (collectors) are SHIPPED. Phase 3 (AI evidence
-> validation) is partial (risk-statement generation + control
-> explanation shipped in v0.4.0; AI features hardening to the v0.7.0
-> collector-pattern enterprise grade is scheduled for v0.7.1 — see
-> [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md)). The v0.7.0 review
-> deliverables ([`docs/positioning-and-value.md`](docs/positioning-and-value.md),
-> [`docs/capability-matrix.md`](docs/capability-matrix.md), and
-> [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md)) supplement this
-> document with current competitive positioning, capability test
-> matrix, and forward roadmap. This architecture plan remains the
-> canonical design reference; cross-link the supplements for status.
+> **Implementation status as of 2026-04-26:** v0.7.1 (the
+> "AI features hardening" release) is the latest shipped version,
+> following v0.7.0 (the "enterprise-grade" release). All phases
+> through Phase 2 (collectors) are SHIPPED. Phase 3 (AI evidence
+> validation) baseline is hardened: risk-statement generation +
+> control explanation (shipped in v0.4.0) were brought up to the
+> v0.7.0 collector-pattern enterprise grade in v0.7.1 (typed exception
+> hierarchy in `evidentia_ai.exceptions`, `GenerationContext` metadata
+> on every artifact, bounded retry against shared `LLM_TRANSIENT_EXCEPTIONS`,
+> ECS structured logging with `run_id`-correlated `evidentia.ai.*`
+> events). See [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md) (now
+> SHIPPED) for the ship summary and
+> [`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md) for the next-release
+> scope (supply-chain polish: SHA-pin composite action, action E2E
+> smoke test, SLSA L3, OpenSSF Scorecard; documentation refresh).
+> The v0.7.0 review deliverables ([`docs/positioning-and-value.md`](docs/positioning-and-value.md),
+> [`docs/capability-matrix.md`](docs/capability-matrix.md)) supplement
+> this document with current competitive positioning and capability
+> test matrix. This architecture plan remains the canonical design
+> reference; cross-link the supplements for status.
 
 ---
 

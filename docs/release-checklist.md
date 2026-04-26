@@ -13,8 +13,9 @@
 > Cross-link to: [testing-playbook.md](testing-playbook.md) (the
 > operational test loop), [enterprise-grade.md](enterprise-grade.md)
 > (the quality bar), [capability-matrix.md](capability-matrix.md)
-> (last release's test snapshot), [v0.7.1-plan.md](v0.7.1-plan.md)
-> (the next release's scope).
+> (last release's test snapshot), [v0.7.2-plan.md](v0.7.2-plan.md)
+> (the next release's scope), [v0.7.1-plan.md](v0.7.1-plan.md)
+> (the prior release's scope, SHIPPED 2026-04-26).
 
 ---
 
@@ -303,7 +304,8 @@ This checklist explicitly aligns with:
 - **CISA Secure by Design Pledge** (signed software, transparency)
 - **PEP 740** (Index-Hosted Attestations for Python Package Index)
 - **SLSA L3** (build provenance with isolated builders, target for
-  v0.7.1 per `docs/v0.7.1-plan.md` item S3)
+  v0.7.2 per `docs/v0.7.2-plan.md` item S3 — deferred from v0.7.1
+  when that release narrowed to P0-only AI features hardening)
 
 The 11 steps map to GRC release-management discipline:
 

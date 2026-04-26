@@ -49,7 +49,7 @@ Both modes emit the same events; only the encoding differs.
 
   "service": {
     "name": "evidentia",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "type": "grc"
   },
 
@@ -73,7 +73,7 @@ Both modes emit the same events; only the encoding differs.
 
   "evidentia": {
     "run_id": "01KPXRYJVQ0BNNHTC8TC3GXC2V",
-    "collector": {"id": "aws-access-analyzer", "version": "0.7.0"},
+    "collector": {"id": "aws-access-analyzer", "version": "0.7.1"},
     "analyzer_arn": "arn:aws:access-analyzer:us-east-1:…:analyzer/grc",
     "findings_count": 42
   }

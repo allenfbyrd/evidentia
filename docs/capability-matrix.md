@@ -13,6 +13,44 @@
 
 ---
 
+## Re-validation snapshot — 2026-04-26 (v0.7.1 ship)
+
+This v0.7.0 snapshot below remains representative for v0.7.1 because
+**v0.7.1 added no new public capability surfaces** — the AI features
+hardening (P0) was an internal refactor of `risk_statements/` and
+`explain/` (typed exception hierarchy, `@with_retry`,
+`GenerationContext` metadata, ECS structured logging,
+`run_id`-correlated audit events). The CLI surface, REST surface,
+output formats, and configuration-precedence chain are unchanged.
+
+**Per-row updates for v0.7.1**:
+
+- **Risk-tier 1 — AI features**: `risk_statements/generator.py` and
+  `explain/generator.py` rows now PASS (HIGH-bucket H1-H4 all closed).
+  All four AI subsystems (`evidentia_ai.client`, `risk_statements/`,
+  `explain/`, `explain/cache.py`) now ship with the v0.7.0
+  collector-pattern enterprise grade. Detail: see
+  [`docs/v0.7.1-plan.md`](v0.7.1-plan.md) §"P0 — AI features
+  enterprise-grade hardening".
+- **Surface tier 7 — CLI commands**: `evidentia version` would now
+  report "Evidentia v0.7.1" (the table below shows the v0.7.0 review
+  output as a historical record); `evidentia risk generate` row
+  upgrades from "⚠ no test coverage (deferred to v0.7.1)" to "✅
+  comprehensive test coverage in `tests/unit/test_ai/test_risk_statements.py`
+  (772 lines covering sync + async + batch + retry + air-gap + GenerationContext)".
+- **Surface tier 8 — REST API**: `GET /api/health` would now report
+  `{"status": "ok", "version": "0.7.1"}`; route count and surface
+  unchanged.
+- **All other tiers**: unchanged from the v0.7.0 snapshot below.
+
+The next full re-validation pass is scheduled for v0.7.2 ship per the
+release-checklist Step 5 + Step 6 acceptance gates and the testing-playbook
+operational test loop. The historical v0.7.0 tables below remain the
+canonical Step-4 review record per the audit-trail-preservation principle
+(don't rewrite the past; layer the present on top).
+
+---
+
 ## 1. Risk-first ordering — what was tested, what was found
 
 Surfaces are ordered by **enterprise risk** (higher rows = bugs in
