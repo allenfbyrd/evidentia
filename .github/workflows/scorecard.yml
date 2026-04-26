@@ -1,0 +1,97 @@
+# OpenSSF Scorecard — weekly supply-chain security scoring.
+#
+# Runs the ossf/scorecard-action against the Evidentia repo every
+# Monday at 06:00 UTC and on push to main. Surfaces results to the
+# OpenSSF Scorecard dashboard at https://securityscorecards.dev/
+# viewer/?uri=github.com/allenfbyrd/evidentia and as a SARIF artifact
+# in the GitHub Security tab.
+#
+# What it scores (~20 supply-chain checks):
+#   - Pinned-Dependencies (action.yml + Dockerfile + workflow file pins)
+#   - Branch-Protection (main branch enforcement)
+#   - Code-Review (PR review requirements)
+#   - Dependency-Update-Tool (Dependabot / Renovate presence)
+#   - Maintained (commits in last 90 days)
+#   - SAST (CodeQL or equivalent presence)
+#   - Security-Policy (SECURITY.md presence + structure)
+#   - Signed-Releases (Sigstore / GPG signatures on releases)
+#   - SBOM (CycloneDX / SPDX artifact attached to releases)
+#   - Vulnerabilities (open advisories from osv.dev)
+#   - Webhooks (auth presence on hooks)
+#   + others — see https://github.com/ossf/scorecard#scorecard-checks
+#
+# v0.7.0 enterprise-grade work already covers many of these:
+#   - SBOM ✅ (CycloneDX 1.6 attached to every GitHub Release)
+#   - Signed-Releases ✅ (PEP 740 + Sigstore via release.yml OIDC)
+#   - Security-Policy ✅ (SECURITY.md present)
+#   - Code-Review ✅ (PR-based + branch-protection on main)
+#
+# v0.7.2 work targets:
+#   - Pinned-Dependencies (S1 SHA-pin composite action third-party deps)
+#   - SAST (currently no CodeQL — add in a follow-up if Scorecard flags)
+#
+# This workflow is a v0.7.2 P0 deliverable per docs/v0.7.2-plan.md S4.
+
+name: OpenSSF Scorecard
+
+on:
+  schedule:
+    # Mondays at 06:00 UTC — captures any drift since the prior week
+    - cron: "0 6 * * 1"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Declare permissions explicitly. id-token: write is required for the
+# scorecard-action to publish to the public scorecard dashboard via
+# OIDC. security-events: write is required for SARIF upload to the
+# repo's GitHub Security tab. contents: read is the default + minimum
+# for the checkout action.
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for SARIF upload to GitHub Security tab
+      security-events: write
+      # Required to publish results to the public scorecard dashboard
+      # via OIDC (no long-lived token needed)
+      id-token: write
+      # Required for actions/checkout
+      contents: read
+      # Read-only — Scorecard reads workflow + branch protection metadata
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # full history needed for some Scorecard checks
+          # (e.g., the Maintained check looks at commit cadence)
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # publish_results=true requires id-token: write above and
+          # makes results visible at securityscorecards.dev — visible
+          # OpenSSF scoring is marketing for a GRC tool's supply-chain
+          # story.
+          publish_results: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to code-scanning dashboard
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
