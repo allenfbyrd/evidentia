@@ -119,7 +119,22 @@ def main() -> None:
 #   refresh       Adapter schedule: daily | weekly | monthly | manual.
 
 """
-    body = yaml.safe_dump(manifest, sort_keys=False, default_flow_style=False, allow_unicode=True)
+    # width=200 pins PyYAML's word-wrap behavior so the regenerated
+    # frameworks.yaml is byte-stable across PyYAML versions and
+    # platform locales. The default (width=80) silently re-wraps long
+    # license: strings on different column boundaries depending on
+    # PyYAML's exact version, producing whitespace-only diffs that
+    # the catalog-refresh.yml workflow flagged as drift (issues #1-#4
+    # at v0.7.1 ship time). 200 keeps lines readable while reducing
+    # wrap-induced churn for the SOC 2 / ISO 27001 / similar long
+    # license-disclaimer strings.
+    body = yaml.safe_dump(
+        manifest,
+        sort_keys=False,
+        default_flow_style=False,
+        allow_unicode=True,
+        width=200,
+    )
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(header)
         f.write(body)
