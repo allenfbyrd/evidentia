@@ -7,11 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### v0.7.1 development — AI features hardening (in progress)
+_No changes yet on the v0.7.2 development branch._
 
-In-flight work bringing the `evidentia-ai` package up to the v0.7.0
-collector enterprise-grade bar. See `docs/v0.7.1-plan.md` for the full
-scope; below is what's landed on the development branch so far.
+## [0.7.1] - 2026-04-26
+
+**The AI features hardening release.** Brings `evidentia-ai`
+(`risk_statements/` + `explain/`) up to the v0.7.0 collector-pattern
+enterprise grade — closing the v0.7.0 BLOCKER B3 carry-over for both
+AI subsystems via the typed `EvidentiaAIError` hierarchy in
+`evidentia_ai.exceptions`. Adds `GenerationContext` metadata on every
+AI-generated artifact (sibling of `CollectionContext` in
+`evidentia_core.audit.provenance`), 9 new `evidentia.ai.*`
+`EventAction` entries for ECS-structured AI audit events, bounded
+retry against the shared `LLM_TRANSIENT_EXCEPTIONS` set (LiteLLM
+`RateLimitError` / `APIConnectionError` / `Timeout` /
+`InternalServerError` / `ServiceUnavailableError` / `BadGatewayError`),
+and `run_id`-correlated audit trails so SIEM operators can join AI
+failures, retries, successes, and cache hits by namespace. Best-effort
+operator identity is captured via the new
+`evidentia_ai.client.get_operator_identity()` helper, closing the
+NIST AU-3 "Identity" gap for AI-derived artifacts.
+
+**973 tests collected** (965 passed + 8 environmental skips on local
+Windows; the 8 skips are GnuPG entropy + Sigstore CI-OIDC-only and
+pass on Linux CI per the v0.7.0 baseline). Net new tests for the
+v0.7.1 P0 work ≈ 116 across `tests/unit/test_ai/`,
+`tests/unit/test_audit/`, and `tests/unit/test_models/`. mypy strict
+clean (98 source files); ruff lint clean.
+
+**Shipped as P0-only by deliberate scope-narrowing decision** at ship
+time. The P1 (supply-chain polish — SHA-pin composite action, action
+E2E smoke test, SLSA L3 build provenance, OpenSSF Scorecard) and
+P2/P3 (documentation polish + community-driven items) originally
+scoped for v0.7.1 in
+[`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md) **moved to**
+[`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md) so v0.7.1 could land
+focused on the BLOCKER B3 closure without scope creep. S5 ("Sigstore
+verify warning log emission") was implemented as part of P0 and S6
+("`PYPI_API_TOKEN` deletion verification") landed during v0.7.0
+ship-day housekeeping (verified absent post-v0.7.1) — neither carries
+to v0.7.2. See [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md) (now
+SHIPPED) for the line-item ship summary and
+[`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md) for the forward plan.
+
+### v0.7.1 detail — AI features hardening
 
 #### Added
 
@@ -70,7 +109,7 @@ scope; below is what's landed on the development branch so far.
   failure, retry, and batch-summary events. Air-gap policy violations
   (`OfflineViolationError`) propagate unchanged.
 - `explain/generator.py`: same hardening pattern as
-  `risk_statements/generator.py` \u2014 structured logger, `@with_retry`
+  `risk_statements/generator.py` — structured logger, `@with_retry`
   via `build_retrying`, typed exception hierarchy
   (`ExplainError`/`ExplainGenerationFailed`), `GenerationContext`
   attached on cache miss (cache hits preserve whatever was cached),
