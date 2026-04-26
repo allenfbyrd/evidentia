@@ -137,7 +137,7 @@ def main() -> int:
         print()
         print("Next steps (per the publishing-authority protocol, do these manually):")
         print(f"  1. uv sync --all-packages   # regenerate uv.lock at {args.to}")
-        print(f"  2. Run pytest + mypy + ruff to confirm nothing broke")
+        print("  2. Run pytest + mypy + ruff to confirm nothing broke")
         print(
             f"  3. git add -p && git commit -m 'chore(release): bump to {args.to}'"
         )
