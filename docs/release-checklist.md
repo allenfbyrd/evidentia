@@ -279,8 +279,8 @@ Within 1-3 days:
       resolution status.
 - [ ] Outreach (per `docs/positioning-and-value.md` §12.5):
   - Tweet / Substack post / LinkedIn announcement
-  - Engage 1-2 of the top-5-to-pitch voices (Mike Privette, Ross
-    Haleliuk, AJ Yawn, Greg Elin, FedRAMP team)
+  - Engage 1-2 of the top-4-to-pitch voices (Mike Privette,
+    AJ Yawn, Greg Elin, FedRAMP team)
   - Submit to OSCAL Plugfest if not already done
   - Open issue on `oscal-compass/community` for new interop
     scenarios if applicable

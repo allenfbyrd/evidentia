@@ -601,24 +601,22 @@ These are the gaps that will get a sales-eng on a Vanta/Drata bake-off to win, a
 > Cyber / fwd:cloudsec / GRC-Engineering). Two outreach actions
 > reach the entire community in one quarter: submit Evidentia to
 > OSCAL Plugfest 2026 + open issue on `oscal-compass/community`
-> proposing compliance-trestle interop. Top 5 voices to pitch:
-> Mike Privette (Return on Security), Ross Haleliuk (Venture in
-> Security), AJ Yawn (Aquia, GRC Engineering), Pete Waterman
-> (FedRAMP) + Brian Ruf (OSCAL Foundation), Greg Elin (RegScale,
-> ex-GovReady).
+> proposing compliance-trestle interop. Top 4 voices to pitch:
+> Mike Privette (Return on Security), AJ Yawn (Aquia, GRC
+> Engineering), Pete Waterman (FedRAMP) + Brian Ruf (OSCAL
+> Foundation), Greg Elin (RegScale, ex-GovReady).
 
-### 12.1 Top 10 voices to follow continuously
+### 12.1 Top 9 voices to follow continuously
 
 1. **Phil Venables** — philvenables.com (strategic CISO frame; "industrialize security" thesis)
 2. **Mike Privette** — Return on Security (market signal for OSS GRC)
-3. **Ross Haleliuk** — Venture in Security (founder/investor lens; OSS-as-distribution thesis)
-4. **Chris Hughes** — Resilient Cyber (SBOM + supply chain + GRC — closest editorial fit for Evidentia)
-5. **Anton Chuvakin** — Anton on Security + Cloud Security Podcast (cloud threat data)
-6. **Kelly Shortridge** — kellyshortridge.com (resilience engineering + sharp DBIR analysis)
-7. **AJ Yawn** — fwd:cloudsec talks + LinkedIn (GRC Engineering thought leadership)
-8. **Wade Baker / Jay Jacobs** — Cyentia Institute (the empirical baseline for risk data)
-9. **Greg Elin** — RegScale OSCAL leader, longest pro-OSS-GRC voice in the field (since 2014)
-10. **Dr. Michaela Iorga** — NIST OSCAL Director (the standard itself)
+3. **Chris Hughes** — Resilient Cyber (SBOM + supply chain + GRC — closest editorial fit for Evidentia)
+4. **Anton Chuvakin** — Anton on Security + Cloud Security Podcast (cloud threat data)
+5. **Kelly Shortridge** — kellyshortridge.com (resilience engineering + sharp DBIR analysis)
+6. **AJ Yawn** — fwd:cloudsec talks + LinkedIn (GRC Engineering thought leadership)
+7. **Wade Baker / Jay Jacobs** — Cyentia Institute (the empirical baseline for risk data)
+8. **Greg Elin** — RegScale OSCAL leader, longest pro-OSS-GRC voice in the field (since 2014)
+9. **Dr. Michaela Iorga** — NIST OSCAL Director (the standard itself)
 
 ### 12.2 Top 5 voices to cite in Evidentia's positioning copy
 
@@ -630,13 +628,12 @@ These are the gaps that will get a sales-eng on a Vanta/Drata bake-off to win, a
 | **Andrew Jaquith** | "Security Metrics" framework | Risk-statement output schema |
 | **Dr. Michaela Iorga + NIST CSWP 53** | OSCAL authority | Cite for the standard Evidentia speaks |
 
-### 12.3 Top 5 voices to pitch Evidentia to (most likely amplifiers)
+### 12.3 Top 4 voices to pitch Evidentia to (most likely amplifiers)
 
 1. **Mike Privette / Return on Security** — single-best newsletter for OSS GRC tool launch coverage
-2. **Ross Haleliuk / Venture in Security** — actively writes about open-source-as-go-to-market in cybersecurity
-3. **AJ Yawn (Aquia, ByteChek co-founder)** — same intellectual project (GRC Engineering); pitching him as a podcast guest or co-presenter at fwd:cloudsec 2026 is the natural ask
-4. **Pete Waterman (FedRAMP) + Brian Ruf (OSCAL Foundation)** — Evidentia is exactly the kind of independent OSS tool that strengthens the FedRAMP 20x ecosystem; submit Evidentia for the FedRAMP 20x conformance pilot stream
-5. **Greg Elin (RegScale OSCAL Lead, ex-GovReady)** — has been waiting for more OSS in this space since 2014; will recognize Evidentia as kin
+2. **AJ Yawn (Aquia, ByteChek co-founder)** — same intellectual project (GRC Engineering); pitching him as a podcast guest or co-presenter at fwd:cloudsec 2026 is the natural ask
+3. **Pete Waterman (FedRAMP) + Brian Ruf (OSCAL Foundation)** — Evidentia is exactly the kind of independent OSS tool that strengthens the FedRAMP 20x ecosystem; submit Evidentia for the FedRAMP 20x conformance pilot stream
+4. **Greg Elin (RegScale OSCAL Lead, ex-GovReady)** — has been waiting for more OSS in this space since 2014; will recognize Evidentia as kin
 
 ### 12.4 The intellectual home community (named individuals)
 
@@ -675,7 +672,7 @@ These are the gaps that will get a sales-eng on a Vanta/Drata bake-off to win, a
 - Wade Baker, Jay Jacobs (Cyentia Institute)
 - Bruce Schneier (Harvard Kennedy School / Inrupt)
 - Dan Geer (In-Q-Tel)
-- Mike Privette (Return on Security), Ross Haleliuk (Venture in Security)
+- Mike Privette (Return on Security)
 - Anton Chuvakin (Google Cloud), Kelly Shortridge
 
 ### 12.5 Two outreach actions that reach the whole community in one quarter
@@ -845,7 +842,6 @@ These are the gaps that will get a sales-eng on a Vanta/Drata bake-off to win, a
 
 - Phil Venables: https://www.philvenables.com
 - Mike Privette / Return on Security: https://www.returnonsecurity.com
-- Ross Haleliuk / Venture in Security: https://ventureinsecurity.net
 - Chris Hughes / Resilient Cyber: https://www.resilientcyber.io
 - AJ Yawn (Aquia, fwd:cloudsec 2025 talk): https://pretalx.com/fwd-cloudsec-2025/talk/GRRE3N/
 - Walter Haydock / StackAware: https://blog.stackaware.com
