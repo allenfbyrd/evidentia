@@ -1,0 +1,98 @@
+# Dependabot configuration for Evidentia.
+#
+# Security updates run regardless of this file (GitHub auto-detects
+# manifests for security advisories). This file enables and configures
+# regular VERSION updates — periodic non-security bumps that keep deps
+# current.
+#
+# Conventions:
+#   - Weekly cadence (Monday 06:00 ET) — single batch to triage at the
+#     start of the week, not a daily drip.
+#   - Grouped updates (one PR per group, not per package) — turns ~10
+#     individual PRs into ~3 reviewable batches.
+#   - Per-ecosystem open-PR cap so the queue can't run away.
+#   - Conventional-commit prefixes so release-automation tooling parses
+#     the bump-type correctly.
+#
+# Security update PRs are NEVER grouped (see `applies-to: version-updates`
+# scope on each group below) — each advisory deserves its own PR with a
+# clear advisory reference, per the v0.7.2 supply-chain follow-up
+# pattern (commit 8baa93d).
+
+version: 2
+updates:
+
+  # ---------------------------------------------------------------------
+  # Python (uv workspace — covers all 7 pyproject.toml files via uv.lock)
+  # ---------------------------------------------------------------------
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python:uv"
+    groups:
+      python-runtime:
+        applies-to: version-updates
+        dependency-type: "production"
+      python-dev:
+        applies-to: version-updates
+        dependency-type: "development"
+
+  # ---------------------------------------------------------------------
+  # Frontend (npm — packages/evidentia-ui)
+  # ---------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/packages/evidentia-ui"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+    groups:
+      npm-runtime:
+        applies-to: version-updates
+        dependency-type: "production"
+      npm-dev:
+        applies-to: version-updates
+        dependency-type: "development"
+
+  # ---------------------------------------------------------------------
+  # GitHub Actions (workflow files in .github/workflows/)
+  # ---------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"

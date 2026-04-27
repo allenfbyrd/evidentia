@@ -787,6 +787,23 @@ Phases 1, 1.5, 2 (Jira + AWS + GitHub), and Accessible GRC (v0.4.x web UI
 
 ---
 
+## Security
+
+Please **do not open a public GitHub issue** for security concerns.
+See [`SECURITY.md`](SECURITY.md) for the disclosure process —
+GitHub Private Vulnerability Reporting is the preferred channel;
+email is documented as a backup. The policy also covers the
+supported-version table, scope, disclosure timeline, and
+supply-chain provenance verification.
+
+Every release ships with cryptographic provenance: PEP 740
+attestations on every wheel + sdist (Sigstore + Rekor), CycloneDX
+1.6 SBOM attached to each [GitHub
+Release](https://github.com/allenfbyrd/evidentia/releases).
+Verification command in [`SECURITY.md`](SECURITY.md).
+
+---
+
 ## License
 
 [Apache License 2.0](LICENSE)

@@ -7,7 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.7.3 development branch._
+Post-v0.7.2 hardening (operational + policy; no source changes):
+
+### Added
+
+- **`SECURITY.md`** — vulnerability disclosure policy at the repo
+  root (rendered under the GitHub Security tab + linked from the
+  "Report a vulnerability" affordance). Documents the GitHub
+  Private Vulnerability Reporting flow (preferred channel) +
+  email backup, required-info checklist for reports, SLA
+  (3 business days initial / 10 business days triage), supported
+  versions (single-supported-patch policy with explicit
+  deprecation reasons for older patches that carry vulnerable
+  transitive dep ranges), 90-day disclosure timeline with
+  documented flexibility (shorter for upstream-fix-then-bump per
+  v0.7.2 commit `8baa93d`, longer for architectural fixes by
+  mutual agreement), in/out of scope (explicitly out: AWS
+  canonical-example placeholders in test fixtures, Tier-C
+  placeholder catalog text, third-party deps), supply-chain
+  provenance verification command (`pypi-attestations verify
+  pypi`).
+- **`.github/dependabot.yml`** — weekly grouped version-update
+  PRs across uv (Python — covers all 7 pyproject.toml files via
+  uv.lock), npm (frontend), and github-actions ecosystems.
+  Single Monday-06:00-ET batch (no daily drip), grouped by
+  production/development split, per-ecosystem open-PR caps
+  (5/5/3). Conventional-commit prefixes (`chore(deps)`,
+  `chore(deps-dev)`, `chore(actions)`). Security update PRs
+  remain ungrouped (groups scoped via `applies-to:
+  version-updates`) so each advisory still gets its own PR with
+  clear references, per the v0.7.2 supply-chain follow-up
+  pattern.
+- **README.md `## Security` section** — points at SECURITY.md +
+  summarizes supply-chain provenance.
+- **CONTRIBUTING.md `## Reporting security issues` section** —
+  routes security reports to SECURITY.md; warns against using
+  the bug-report template for vulnerabilities.
+
+### Changed
+
+- **GitHub repo settings (operational, not in source)** —
+  branch protection on `main` (required status checks: pytest x
+  3 OS + ruff + mypy + frontend; `enforce_admins: false`;
+  `allow_force_pushes: false`; `allow_deletions: false`).
+  Dependabot security updates + Dependabot malware alerts +
+  automatic dependency submission enabled. CodeQL default-config
+  analysis enabled. Secret-scanning non-provider patterns +
+  validity checks deferred — currently unavailable on
+  personal-account public repositories.
 
 ## [0.7.2] - 2026-04-27
 
@@ -26,8 +73,8 @@ silently dropped malformed catalog files).
 
 **965 tests passing** (8 environmental skips on local Windows for
 GnuPG entropy + Sigstore CI-OIDC; full suite passes on Linux CI per
-the v0.7.1 baseline). mypy strict clean (98 source files); ruff lint
-clean.
+the v0.7.1 baseline). mypy clean against the CI gate
+(`--strict-optional` over 86 source files); ruff lint clean.
 
 This release also adds a `.local/` per-developer scratch directory
 to `.gitignore` for working notes and drafts not ready to share. The
@@ -58,15 +105,10 @@ polish + DOC6 pre-commit hooks + DOC7 dev container).
   doctor), 16 pre-canned tasks (uv sync, pytest, mypy, ruff, build,
   twine check, pre-release gate composite, evidentia doctor, serve,
   + 4 frontend tasks).
-- **`.cursorrules`** — Cursor AI guardrails encoding the Evidentia
-  quality-bar patterns (typed exception hierarchy, `@with_retry`,
-  `BLIND_SPOTS`, audit logger, network_guard, secret scrubber,
-  no-shortened-imports), testing patterns, frontend patterns
-  (Radix primitives for WCAG, TanStack Query, Zustand), release /
-  publishing-authority discipline (Cursor must NEVER suggest
-  irreversible commands), commit-attribution discipline (no
-  `Co-Authored-By: Claude` trailers ever), commit-decomposition
-  rubric. Mirrors the publicly-safe parts of `~/.claude/CLAUDE.md`.
+- **`.cursorrules`** — Cursor AI guardrails encoding project
+  conventions (typed exception hierarchy, audit logger, network
+  guard, secret scrubber, commit-attribution, publishing-authority
+  discipline). Inline-enforcement sister to CONTRIBUTING.md.
 - **`.editorconfig`** — cross-editor consistency for any IDE that
   honors EditorConfig: utf-8, LF, trim trailing whitespace, final
   newline, 4-space indent for Python, 2-space for JS/TS/YAML, tab
