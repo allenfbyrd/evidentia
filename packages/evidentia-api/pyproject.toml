@@ -23,7 +23,11 @@ dependencies = [
     "evidentia-ai>=0.7.0,<0.8.0",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
-    "python-multipart>=0.0.9",
+    # v0.7.2 supply-chain follow-up: floor bumped from >=0.0.9 to
+    # >=0.0.26 to exclude CVE-2026-40347 (GHSA-mj87-hwqh-73pj MEDIUM:
+    # DoS via large multipart preamble or epilogue data). Reachable
+    # via FastAPI multipart endpoints under `evidentia serve`.
+    "python-multipart>=0.0.26",
     "sse-starlette>=2.1",
 ]
 

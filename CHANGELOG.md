@@ -108,6 +108,56 @@ polish + DOC6 pre-commit hooks + DOC7 dev container).
   → 2026-04-24 to match git, re-phrased DORA Q1 2026 reference to
   past tense ("in force since Q1 2026") since the date has now passed.
 
+### Supply-chain follow-up — disclosed CVEs
+
+Dependabot surfaced 6 open advisories on the v0.7.2 push. Four
+addressed in this release; two transitive vitest dev-deps deferred
+to v0.7.3 with documented rationale.
+
+- **`packages/evidentia-ai/pyproject.toml`** — `litellm` floor
+  bumped from `>=1.83.0,<2.0` to `>=1.83.7,<2.0`. Resolves
+  three open advisories that all affect LiteLLM's proxy server
+  mode (Evidentia uses LiteLLM as a client library — `from litellm
+  import completion` — so reachability is theoretical, but the
+  visible-signal hygiene matters):
+  - `GHSA-r75f-5x8p-qvmc` CRITICAL (CVSS 9.3) — SQL injection in
+    proxy API key verification path.
+  - `GHSA-xqmj-j6mv-4862` HIGH — server-side template injection
+    in `/prompts/test` endpoint.
+  - `GHSA-v4p8-mg3p-g94g` HIGH — authenticated command execution
+    via MCP stdio test endpoints (`/mcp-rest/test/connection` +
+    `/mcp-rest/test/tools/list`).
+- **`packages/evidentia-api/pyproject.toml`** — `python-multipart`
+  floor bumped from `>=0.0.9` to `>=0.0.26`. Resolves
+  `GHSA-mj87-hwqh-73pj` / `CVE-2026-40347` MEDIUM — DoS via
+  oversized multipart preamble or epilogue parsing. Reachable via
+  FastAPI multipart endpoints under `evidentia serve`.
+- **`packages/evidentia-ui/package.json`** — `vite` bumped from
+  `^5.4.9` to `^6.4.2` (resolved at `6.4.2`). Pulls `esbuild` past
+  `0.24.2` transitively (resolved at `0.25.12`). Resolves the
+  direct-dep paths for `GHSA-4w7w-66w2-5vf9` / `CVE-2026-39365`
+  (vite path traversal in optimized-deps `.map` handling) and
+  `GHSA-67mh-4wv8-2f99` (esbuild dev-server CORS bypass).
+  - **Choice rationale**: Dependabot's auto-PR proposed
+    `vite@8.0.10`, which broke the `@vitejs/plugin-react@^4.3.3`
+    peer chain (supports vite 4–7 but not 8). `6.4.2` is the
+    smallest CVE-fix version that preserves peer compatibility
+    with the existing React plugin. Coordinated bump of vite to
+    7+ deferred to v0.7.3 alongside `@vitejs/plugin-react`
+    upgrade.
+  - **Vitest transitive vite/esbuild deferred**: vitest 2.1.9
+    bundles its own vite 5.4.21 + esbuild 0.21.5 in its
+    dependency tree. `npm audit --omit=dev` reports 0
+    vulnerabilities (production tree is clean). Bumping the
+    vitest tree to a vite-6-compatible version (vitest 3+)
+    deferred to v0.7.3 with the broader frontend-stack-bump
+    pass.
+
+After the bump, `npm audit --omit=dev` reports zero
+vulnerabilities. The 7 remaining moderate-severity advisories
+are all dev-scope (vitest test runner) and never reach
+production users.
+
 ## [0.7.1] - 2026-04-26
 
 **The AI features hardening release.** Brings `evidentia-ai`
