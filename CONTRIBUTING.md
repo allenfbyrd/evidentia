@@ -78,6 +78,13 @@ Python 3.12+ and [uv](https://docs.astral.sh/uv/) 0.4+ are required.
 - [ ] New third-party dependencies are justified in the PR description
 - [ ] The PR description explains the "why", not just the "what"
 
+## Reporting security issues
+
+**Security issues do not belong in public bug reports.** See
+[`SECURITY.md`](SECURITY.md) for the private vulnerability
+disclosure process — GitHub Private Vulnerability Reporting is
+the preferred channel; email is documented as a backup.
+
 ## Reporting bugs and proposing features
 
 Use the GitHub issue templates:
@@ -85,7 +92,9 @@ Use the GitHub issue templates:
 - **Bug report** — for something that doesn't work as documented
 - **Feature request** — for new functionality or behavior changes
 
-For questions, use GitHub Discussions rather than issues.
+For questions, use GitHub Discussions rather than issues. For
+**security issues, see the section above** — never use the bug
+report template for vulnerabilities.
 
 ## License
 

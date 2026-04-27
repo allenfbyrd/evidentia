@@ -7,7 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.7.3 development branch._
+Post-v0.7.2 hardening (operational + policy; no source changes):
+
+### Added
+
+- **`SECURITY.md`** — vulnerability disclosure policy at the repo
+  root (rendered under the GitHub Security tab + linked from the
+  "Report a vulnerability" affordance). Documents the GitHub
+  Private Vulnerability Reporting flow (preferred channel) +
+  email backup, required-info checklist for reports, SLA
+  (3 business days initial / 10 business days triage), supported
+  versions (single-supported-patch policy with explicit
+  deprecation reasons for older patches that carry vulnerable
+  transitive dep ranges), 90-day disclosure timeline with
+  documented flexibility (shorter for upstream-fix-then-bump per
+  v0.7.2 commit `8baa93d`, longer for architectural fixes by
+  mutual agreement), in/out of scope (explicitly out: AWS
+  canonical-example placeholders in test fixtures, Tier-C
+  placeholder catalog text, third-party deps), supply-chain
+  provenance verification command (`pypi-attestations verify
+  pypi`).
+- **`.github/dependabot.yml`** — weekly grouped version-update
+  PRs across uv (Python — covers all 7 pyproject.toml files via
+  uv.lock), npm (frontend), and github-actions ecosystems.
+  Single Monday-06:00-ET batch (no daily drip), grouped by
+  production/development split, per-ecosystem open-PR caps
+  (5/5/3). Conventional-commit prefixes (`chore(deps)`,
+  `chore(deps-dev)`, `chore(actions)`). Security update PRs
+  remain ungrouped (groups scoped via `applies-to:
+  version-updates`) so each advisory still gets its own PR with
+  clear references, per the v0.7.2 supply-chain follow-up
+  pattern.
+- **README.md `## Security` section** — points at SECURITY.md +
+  summarizes supply-chain provenance.
+- **CONTRIBUTING.md `## Reporting security issues` section** —
+  routes security reports to SECURITY.md; warns against using
+  the bug-report template for vulnerabilities.
+
+### Changed
+
+- **GitHub repo settings (operational, not in source)** —
+  branch protection on `main` (required status checks: pytest x
+  3 OS + ruff + mypy + frontend; `enforce_admins: false`;
+  `allow_force_pushes: false`; `allow_deletions: false`).
+  Dependabot security updates + Dependabot malware alerts +
+  automatic dependency submission enabled. CodeQL default-config
+  analysis enabled. Secret-scanning non-provider patterns +
+  validity checks deferred — currently unavailable on
+  personal-account public repositories.
 
 ## [0.7.2] - 2026-04-27
 

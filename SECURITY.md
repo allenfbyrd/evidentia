@@ -37,24 +37,36 @@ the full coordination window.
 
 ## Supported versions
 
-Evidentia is pre-1.0 and ships from a single supported release line.
-Security patches land on the latest minor; older minors do not
-receive backports.
+Evidentia is pre-1.0 and ships from a **single supported patch
+release**, not a minor-line. The latest patch is the only version
+guaranteed to be free of disclosed advisories — older patches in the
+same minor are deprecated as soon as a successor ships, even if the
+deprecation reason is "carries pinned dep ranges that allow
+installation of upstream-vulnerable transitive versions" rather than
+a vulnerability in Evidentia's own code.
 
-| Version | Status | Security patches |
-|---------|--------|------------------|
-| `0.7.x` | **Supported** | ✅ landed in next patch |
-| `0.6.x` | Deprecated | ❌ — upgrade to `0.7.x` |
-| `0.5.x` and earlier | Unsupported | ❌ — upgrade to `0.7.x` |
-| Legacy `controlbridge*` packages | Yanked from PyPI | ❌ — every version yanked; upgrade path documented in [`RENAMED.md`](RENAMED.md) |
+| Version | Status | Reason |
+|---------|--------|--------|
+| **`0.7.2`** | ✅ **Supported** | Latest patch. Pin floors raised past the v0.7.2 supply-chain follow-up advisories ([commit `8baa93d`](https://github.com/allenfbyrd/evidentia/commit/8baa93d)). |
+| `0.7.1` | ❌ Deprecated | Pinned `litellm>=1.83.0` (allows install of vulnerable 1.83.0–1.83.6 — see [GHSA-r75f-5x8p-qvmc](https://github.com/advisories/GHSA-r75f-5x8p-qvmc) CRITICAL, [GHSA-xqmj-j6mv-4862](https://github.com/advisories/GHSA-xqmj-j6mv-4862) HIGH, [GHSA-v4p8-mg3p-g94g](https://github.com/advisories/GHSA-v4p8-mg3p-g94g) HIGH) and `python-multipart>=0.0.9` (allows vulnerable 0.0.9–0.0.25 — [CVE-2026-40347](https://nvd.nist.gov/vuln/detail/CVE-2026-40347)). Upgrade to `0.7.2`. |
+| `0.7.0` | ❌ Deprecated | Same pin-floor exposure as `0.7.1` plus the AI-features hardening that landed in `0.7.1`. Upgrade to `0.7.2`. |
+| `0.6.x` | ❌ Deprecated | Predates the `enterprise-grade` supply-chain hardening (Sigstore signing, PEP 740 attestations, OIDC publisher) that landed in `0.7.0`. Upgrade to `0.7.2`. |
+| `0.5.x` and earlier | ❌ Unsupported | Pre-rename codebase + missing AI-features hardening + missing supply-chain hardening. Upgrade to `0.7.2`. |
+| Legacy `controlbridge*` packages | ❌ Yanked from PyPI | Every version of every legacy package was yanked at the v0.6.0 rename. Upgrade path documented in [`RENAMED.md`](RENAMED.md). |
 
-When v0.8.0 ships, v0.7.x moves to maintenance mode (security-only
-patches for one minor cycle, then deprecation). The exact deprecation
-timeline will be documented in the v0.8.0 release notes and in
-[`docs/release-checklist.md`](docs/release-checklist.md).
+**Read this strictly**: an older patch — even `0.7.1` shipped less
+than 24 hours before `0.7.2` — is deprecated the moment a successor
+ships if disclosed advisories make the older patch's resolved
+dependency tree exploitable. Pre-1.0, there are no backports. The
+single supported patch is always the answer.
 
-Once v1.0 ships, the supported-version policy will tighten to
-explicit semver guarantees (latest minor of each supported major).
+When `v0.8.0` ships, the same single-supported-patch policy applies
+to `0.8.x`. `v0.7.2` will move to a brief maintenance window
+(security-only patches for the period documented in the v0.8.0
+release notes), then deprecation.
+
+Once `v1.0` ships, the supported-version policy will tighten to
+explicit semver guarantees (latest patch of each supported minor).
 
 ## Disclosure timeline
 
