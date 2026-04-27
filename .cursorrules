@@ -71,9 +71,11 @@ the v0.7.0 collector pattern + v0.7.1 AI generator pattern:
   (772 lines covering sync + async + batch + retry + air-gap +
   GenerationContext). Mock LLM via `unittest.mock.patch` of
   `instructor.Instructor.chat.completions.create`.
-- **Mypy strict**: `--strict` against all 6 packages; expect
-  `Success: no issues found in 98 source files` (count grows with
-  new modules).
+- **Mypy**: CI runs `--strict-optional` against the 5 in-tree
+  src directories; expect `Success: no issues found in 86 source
+  files` (count grows with new modules). `--strict` mode reveals
+  additional findings from third-party type stubs that aren't
+  blocking; not gated.
 - **Ruff**: lint-clean is required; format-on-save is the default.
 - **Three OS matrix**: tests pass on Ubuntu / Windows / macOS via CI
   (`tests.yml`). Local Windows shows 8 environmental skips (GnuPG
@@ -94,7 +96,7 @@ the v0.7.0 collector pattern + v0.7.1 AI generator pattern:
 
 ## Release / publishing discipline — read carefully
 
-**Allen owns publish authority. Cursor must NEVER**:
+**The maintainer owns publish authority. Cursor must NEVER**:
 
 1. Suggest `git push` (any remote) without prefacing it as
    "irreversible — needs explicit approval".
@@ -113,25 +115,23 @@ the v0.7.0 collector pattern + v0.7.1 AI generator pattern:
    policy (only `main` deploys).
 
 Local edits + local commits are OK. Surfacing irreversible commands
-for Allen to run is OK. Running them is NOT.
+for the maintainer to run is OK. Running them is NOT.
 
 ## Commit-attribution discipline
 
-Commits authored by Allen Byrd
-`<125306425+allenfbyrd@users.noreply.github.com>`. **Never include**:
+The repository maintains human-only attribution in git metadata.
+**Never include**:
 
-- `Co-Authored-By: Claude` or other Claude/AI co-author trailers
-- `🤖 Generated with [Claude Code]` or similar attribution footers
-- Any reference to the Cursor or Claude Code CLI tool in commit
-  metadata
+- `Co-Authored-By:` trailers naming AI assistants (Claude, Copilot,
+  any model)
+- `🤖 Generated with` or similar AI-attribution footers
+- Any reference to the AI editor / CLI tool in commit metadata
 
 The README's "AI assistance" acknowledgment section is the right
 place to credit AI tools (acknowledgment in content, not attribution
-in git metadata). The contributor widget on GitHub stays human.
+in git metadata). The contributor widget on GitHub stays human-only.
 
 ## Commit-decomposition rubric
-
-Per `~/.claude/skills/pre-release-review/SKILL.md` Step 5:
 
 1. Each commit is buildable on its own (no broken-bisect commits).
 2. Group by dependency depth, not file path. Foundation primitives
@@ -155,10 +155,7 @@ Per `~/.claude/skills/pre-release-review/SKILL.md` Step 5:
   reverting to the default `width=80` — that re-introduces the
   whitespace-only false positives.
 
-## Cross-link to Allen's global memory
+## When in doubt
 
-The project's CLAUDE.md / Cursor patterns + global publishing-authority
-protocol live in `~/.claude/CLAUDE.md` (Allen's private global
-instructions). Cursor cannot read that path, but its rules are
-mirrored above. When in doubt, defer to Allen's explicit instruction
-for any unfamiliar command, especially anything irreversible.
+Defer to the maintainer's explicit instruction for any unfamiliar
+command, especially anything irreversible.
