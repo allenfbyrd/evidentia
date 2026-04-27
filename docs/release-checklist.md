@@ -239,12 +239,30 @@ Within 30 minutes of `release.yml` reporting success:
       `https://pypi.org/project/<name>/`.
 - [ ] PyPI per-file pages show the "Provenance" / PEP 740 attestation
       section with the GitHub Actions workflow URL + commit SHA.
-- [ ] `gh attestation verify dist/evidentia_core-X.Y.Z-py3-none-any.whl -R allenfbyrd/evidentia`
-      returns valid.
+- [ ] **Verify PEP 740 publish attestations** — primary verifier:
+      ```bash
+      uvx pypi-attestations verify pypi \
+          --repository https://github.com/allenfbyrd/evidentia \
+          "pypi:evidentia_core-X.Y.Z-py3-none-any.whl"
+      ```
+      Repeat for the other 5 wheels. Expect `OK: <wheel>`.
+      **Do NOT use `gh attestation verify` for this** — that command
+      defaults to looking for SLSA provenance v1 predicate, which
+      v0.7.0/v0.7.1/v0.7.2 PEP 740 publish attestations don't emit
+      (they use the `https://docs.pypi.org/attestations/publish/v1`
+      predicate instead). `gh attestation verify` returns HTTP 404
+      against PEP 740 publish attestations until SLSA L3 build
+      provenance is added (planned for v0.7.3 S3 — see
+      `docs/v0.7.3-plan.md`). After that, both verifiers will work
+      and the line below should be re-enabled.
+- [ ] (Re-enabled v0.7.3+) `gh attestation verify dist/evidentia_core-X.Y.Z-py3-none-any.whl -R allenfbyrd/evidentia`
+      returns valid (validates the SLSA-path attestation).
 - [ ] CycloneDX SBOM attached to the GitHub Release.
 - [ ] CHANGELOG entry renders correctly on GitHub.
 - [ ] `pip install evidentia==X.Y.Z` from a clean venv succeeds; CLI
-      commands work end-to-end.
+      commands work end-to-end. Also verify `pip install "evidentia[gui]==X.Y.Z"`
+      pulls in `evidentia_api` (the `[gui]` extra; required to import
+      the FastAPI surface).
 
 ---
 
