@@ -32,10 +32,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
         with:
           version: "latest"
           enable-cache: true
@@ -48,7 +48,7 @@ jobs:
       # (packages/evidentia-api/hatch_build.py) drives `npm run build`
       # automatically during `uv build`; this step just provisions Node.
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: "npm"
@@ -146,7 +146,7 @@ jobs:
       # Attach the SBOM to the GitHub Release alongside the wheels so
       # consumers can validate their install against the shipped SBOM.
       - name: Attach SBOM to GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: evidentia-sbom.cdx.json
           fail_on_unmatched_files: false
