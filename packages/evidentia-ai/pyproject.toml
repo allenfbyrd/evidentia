@@ -21,9 +21,13 @@ dependencies = [
     # v0.7.0 Step-3 review: pin LiteLLM above the compromised
     # 1.82.7 / 1.82.8 versions from the March 24, 2026 PyPI supply
     # chain incident (~40-min compromise window before quarantine).
-    # uv.lock already pins to 1.83.0 (safe); this protects raw pip
-    # users without lock-file hash verification.
-    "litellm>=1.83.0,<2.0",
+    # v0.7.2 supply-chain follow-up: floor bumped to 1.83.7 to exclude
+    # disclosed CVEs in the proxy server mode (GHSA-r75f-5x8p-qvmc
+    # CRITICAL SQL injection, GHSA-xqmj-j6mv-4862 HIGH SSTI,
+    # GHSA-v4p8-mg3p-g94g HIGH auth'd command exec via MCP stdio test
+    # endpoints). Evidentia uses LiteLLM as a client library, not the
+    # proxy server, so reachability is theoretical; bumped anyway.
+    "litellm>=1.83.7,<2.0",
     "instructor>=1.6",
     "tenacity>=9.0",
 ]
