@@ -49,7 +49,7 @@ Both modes emit the same events; only the encoding differs.
 
   "service": {
     "name": "evidentia",
-    "version": "0.7.1",
+    "version": "0.7.2",
     "type": "grc"
   },
 

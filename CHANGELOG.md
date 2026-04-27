@@ -7,7 +7,106 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.7.2 development branch._
+_No changes yet on the v0.7.3 development branch._
+
+## [0.7.2] - 2026-04-27
+
+**The supply-chain polish + documentation refresh release.** Adds
+`OpenSSF Scorecard` weekly workflow publishing to
+`securityscorecards.dev` (S4 deliverable), version-controlled
+Cursor + VS Code workspace configuration for testing/validation
+inline (DOC6), and fixes the long-standing catalog-drift false
+positive that opened daily as issues #1, #2, #3, and #4 between
+2026-04-23 and 2026-04-26 (S0 — `yaml.safe_dump(width=200)` for
+byte-stable manifest emit + `--ignore-all-space` belt-and-suspenders
+guard in the catalog-refresh.yml workflow). Carries the
+pre-release-review refinements pass (4 MEDIUM fixes for cross-platform
+IDE config + doc accuracy + a stderr warning when the regen script
+silently dropped malformed catalog files).
+
+**965 tests passing** (8 environmental skips on local Windows for
+GnuPG entropy + Sigstore CI-OIDC; full suite passes on Linux CI per
+the v0.7.1 baseline). mypy strict clean (98 source files); ruff lint
+clean.
+
+This release also adds a `.local/` per-developer scratch directory
+to `.gitignore` for working notes and drafts not ready to share. The
+convention follows the existing `.vscode/` split: ignore by default;
+un-ignore specific files only if they're meant to be shared. See
+[`docs/ide-setup.md`](docs/ide-setup.md) for the contributor-facing
+IDE walkthrough.
+
+The v0.7.2 cycle ran the full `pre-release-review` SKILL.md flow
+(Pre-tag variant, all 6 steps) on top of v0.7.1's ship; produced
+[`docs/v0.7.3-plan.md`](docs/v0.7.3-plan.md) for the next release
+(carries the v0.7.1-plan-originated S1+S2+S3 composite-action
+hardening items that didn't make v0.7.2 + DOC2/DOC3/DOC5 docs
+polish + DOC6 pre-commit hooks + DOC7 dev container).
+
+### Added
+
+- **`.github/workflows/scorecard.yml`** — OpenSSF Scorecard weekly
+  workflow (Mondays 06:00 UTC + on push-to-main + workflow_dispatch).
+  Publishes to `securityscorecards.dev` via OIDC; uploads SARIF to
+  the GitHub Security tab. Permissions follow least-privilege
+  (read-all at workflow level; per-job escalations explicit).
+- **`.vscode/{settings,launch,tasks,extensions}.json`** — shared
+  workspace config for VS Code + Cursor: pytest discovery + run-on-save,
+  mypy strict inline, ruff format-on-save + auto-fix-on-save,
+  coverage gutters, 7 debug launch configs (pytest current-file /
+  full-suite / single-test, evidentia serve, gap analyze, explain,
+  doctor), 16 pre-canned tasks (uv sync, pytest, mypy, ruff, build,
+  twine check, pre-release gate composite, evidentia doctor, serve,
+  + 4 frontend tasks).
+- **`.cursorrules`** — Cursor AI guardrails encoding the Evidentia
+  quality-bar patterns (typed exception hierarchy, `@with_retry`,
+  `BLIND_SPOTS`, audit logger, network_guard, secret scrubber,
+  no-shortened-imports), testing patterns, frontend patterns
+  (Radix primitives for WCAG, TanStack Query, Zustand), release /
+  publishing-authority discipline (Cursor must NEVER suggest
+  irreversible commands), commit-attribution discipline (no
+  `Co-Authored-By: Claude` trailers ever), commit-decomposition
+  rubric. Mirrors the publicly-safe parts of `~/.claude/CLAUDE.md`.
+- **`.editorconfig`** — cross-editor consistency for any IDE that
+  honors EditorConfig: utf-8, LF, trim trailing whitespace, final
+  newline, 4-space indent for Python, 2-space for JS/TS/YAML, tab
+  for Makefile, hands-off for `uv.lock` + `package-lock.json`.
+- **`docs/ide-setup.md`** — contributor-facing walkthrough covering
+  Cursor + VS Code paths from clone-to-test-feedback in one page.
+  Tooling matrix, defined tasks, defined launch configs,
+  Cursor-specific guidance, troubleshooting, planned pre-commit
+  hooks + dev container.
+- **`docs/v0.7.3-plan.md`** — forward-looking plan for the next
+  release (composite action hardening + sample-data expansion).
+- **`docs/positioning-and-value.md` §16 "Version history"** — new
+  section capturing per-release skip-by-reuse decisions; first entry
+  documents the v0.7.2 review-for-skip with all 5 skip criteria.
+- **`.gitignore` `.local/`** — new per-developer scratch directory
+  for working notes and drafts not ready to share. Convention
+  follows the `.vscode/` split.
+
+### Changed
+
+- **`scripts/catalogs/regenerate_manifest.py`** — pinned
+  `yaml.safe_dump(width=200)` so manifest emit is byte-stable across
+  PyYAML versions and platform locales (closes false-positive issues
+  #1-#4). Also: now emits `WARN: skipped malformed catalog file
+  <path>: <repr>` to stderr on `(OSError, json.JSONDecodeError)`
+  rather than silently dropping the catalog.
+- **`packages/evidentia-core/src/evidentia_core/catalogs/data/frameworks.yaml`** —
+  one-time canonical regen at the new `width=200` setting. 174 lines
+  re-flowed; zero semantic changes.
+- **`.github/workflows/catalog-refresh.yml`** — drift detection now
+  uses `git diff --quiet --ignore-all-space` as belt-and-suspenders
+  against future PyYAML word-wrap drift across versions.
+- **`.vscode/settings.json`** — removed hardcoded
+  `python.defaultInterpreterPath = "${workspaceFolder}/.venv/Scripts/python.exe"`
+  which only worked on Windows. Python extension auto-discovers
+  `.venv/` via `python.terminal.activateEnvironment` cross-platform.
+- **`docs/positioning-and-value.md`** — minor refinements per the
+  v0.7.2 pre-release-review Step 5.A: corrected stamp date 2026-04-25
+  → 2026-04-24 to match git, re-phrased DORA Q1 2026 reference to
+  past tense ("in force since Q1 2026") since the date has now passed.
 
 ## [0.7.1] - 2026-04-26
 

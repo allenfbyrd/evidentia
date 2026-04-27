@@ -6,22 +6,22 @@
 **Audience:** Senior Engineers, Technical Leads, Contributors  
 **License:** Apache 2.0  
 
-> **Implementation status as of 2026-04-26:** v0.7.1 (the
-> "AI features hardening" release) is the latest shipped version,
-> following v0.7.0 (the "enterprise-grade" release). All phases
-> through Phase 2 (collectors) are SHIPPED. Phase 3 (AI evidence
-> validation) baseline is hardened: risk-statement generation +
-> control explanation (shipped in v0.4.0) were brought up to the
-> v0.7.0 collector-pattern enterprise grade in v0.7.1 (typed exception
-> hierarchy in `evidentia_ai.exceptions`, `GenerationContext` metadata
-> on every artifact, bounded retry against shared `LLM_TRANSIENT_EXCEPTIONS`,
-> ECS structured logging with `run_id`-correlated `evidentia.ai.*`
-> events). See [`docs/v0.7.1-plan.md`](docs/v0.7.1-plan.md) (now
-> SHIPPED) for the ship summary and
-> [`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md) for the next-release
-> scope (supply-chain polish: SHA-pin composite action, action E2E
-> smoke test, SLSA L3, OpenSSF Scorecard; documentation refresh).
-> The v0.7.0 review deliverables ([`docs/positioning-and-value.md`](docs/positioning-and-value.md),
+> **Implementation status as of 2026-04-27:** v0.7.2 (the
+> "supply-chain polish + documentation refresh" release) is the latest
+> shipped version, following v0.7.1 ("AI features hardening") and
+> v0.7.0 ("enterprise-grade"). All phases through Phase 2 (collectors)
+> are SHIPPED. Phase 3 (AI evidence validation) baseline is hardened
+> in v0.7.1; v0.7.2 added OpenSSF Scorecard weekly publication,
+> version-controlled Cursor + VS Code workspace config for
+> testing/validation inline (see [`docs/ide-setup.md`](docs/ide-setup.md)),
+> and fixed the catalog-drift detector false positive that opened
+> daily as issues #1-#4. See [`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md)
+> (now SHIPPED) for the ship summary and
+> [`docs/v0.7.3-plan.md`](docs/v0.7.3-plan.md) for the next-release
+> scope (composite action hardening: SHA-pin, action E2E smoke test,
+> SLSA L3 build provenance; documentation polish: sigstore-quickstart,
+> v0.8.0-plan, pre-commit hooks, dev container). The v0.7.0 review
+> deliverables ([`docs/positioning-and-value.md`](docs/positioning-and-value.md),
 > [`docs/capability-matrix.md`](docs/capability-matrix.md)) supplement
 > this document with current competitive positioning and capability
 > test matrix. This architecture plan remains the canonical design

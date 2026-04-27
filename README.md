@@ -140,6 +140,20 @@ Evidentia is built on four principles:
 
 ## Current status: 82 frameworks bundled, full suite passing
 
+**v0.7.2 (April 2026)** is the **supply-chain polish + documentation
+refresh release**. Adds OpenSSF Scorecard weekly workflow publishing
+to securityscorecards.dev, version-controlled Cursor + VS Code
+workspace configuration for testing/validation inline, fixes the
+catalog-drift detector false positive that opened daily as issues
+#1-#4 between 2026-04-23 and 2026-04-26 (PyYAML word-wrap deterministic
+emit + workflow `--ignore-all-space` guard), and the
+pre-release-review refinements pass. See
+[docs/v0.7.2-plan.md](docs/v0.7.2-plan.md) for the full ship summary;
+the deferred composite-action hardening (S1 SHA-pinning + S2 action
+E2E smoke + S3 SLSA L3) and docs polish (sigstore-quickstart,
+v0.8.0-plan, pre-commit hooks, dev container) move to
+[docs/v0.7.3-plan.md](docs/v0.7.3-plan.md).
+
 **v0.7.1 (April 2026)** is the **AI features hardening release**.
 Brings `evidentia-ai` (`risk_statements/` + `explain/`) up to the
 v0.7.0 collector-pattern enterprise grade — closing the v0.7.0
@@ -354,22 +368,24 @@ See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
   mode, OSCAL AR digest + GPG + Sigstore round-trip verification, and
   3 trestle conformance tests against the NIST OSCAL reference impl.
 
-### What's not yet included (as of v0.7.1)
+### What's not yet included (as of v0.7.2)
 
 Setting expectations matters. v0.7.0 shipped a substantial enterprise
-hardening pass and v0.7.1 closed the AI features carry-over (typed
+hardening pass, v0.7.1 closed the AI features carry-over (typed
 `EvidentiaAIError` hierarchy, `GenerationContext` metadata, bounded
 retry, ECS structured logging across `risk_statements/` + `explain/`),
-so several formerly-pending items have moved out of this list — see
-[`CHANGELOG.md`](CHANGELOG.md) for the full v0.7.0 + v0.7.1 deltas.
-The following are still on the roadmap but not yet shipped:
+and v0.7.2 added supply-chain visibility via OpenSSF Scorecard +
+contributor-experience IDE config + a catalog-drift detector fix.
+See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.7.0 + v0.7.1 +
+v0.7.2 deltas. The following are still on the roadmap but not yet
+shipped:
 
-- **Supply-chain polish** (v0.7.2) — SHA-pin third-party actions in
-  `.github/actions/gap-analysis/action.yml`, composite action E2E
-  smoke test, SLSA L3 build provenance via
-  `actions/attest-build-provenance@v2`, weekly OpenSSF Scorecard
-  workflow. See [`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md) for the
-  full plan; 4-6 week ship target.
+- **Composite action hardening** (v0.7.3) — SHA-pin third-party
+  actions in `.github/actions/gap-analysis/action.yml`, composite
+  action E2E smoke test, SLSA L3 build provenance via
+  `actions/attest-build-provenance@v2`. See
+  [`docs/v0.7.3-plan.md`](docs/v0.7.3-plan.md) for the full plan;
+  2-4 week ship target.
 - **LLM-based evidence validation** (Phase 3 / v0.8+) — "is this
   screenshot actually proof of MFA?" scoring, freshness detection,
   multi-modal validation via Document Screenshot Embedding (DSE).
@@ -378,9 +394,9 @@ The following are still on the roadmap but not yet shipped:
 - **Additional collectors / integrations** — Okta (MFA, inactive users,
   privileged-account counts), ServiceNow (`sn_compliance_task` push),
   Vanta + Drata (push test results via their public APIs), Azure + GCP
-  evidence collectors. Carried forward to v0.7.2 as
+  evidence collectors. Carried forward to v0.7.3 as
   optional/community-driven items per
-  [`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md) §"P2 — Optional /
+  [`docs/v0.7.3-plan.md`](docs/v0.7.3-plan.md) §"P2 — Optional /
   community-driven".
 - **Multi-user auth / RBAC** — the web UI is localhost-only today;
   network-deployment token auth is queued for v0.7.x+.
@@ -659,6 +675,13 @@ Summary below.
 - [x] `run_id`-correlated audit trails across AI generated/failed/retry/cache_hit/batch_completed events
 - [x] Best-effort operator identity via `evidentia_ai.client.get_operator_identity()` — closes NIST AU-3 "Identity" gap for AI artifacts
 - [x] 116+ net new tests across `test_ai/`, `test_audit/`, `test_models/`
+
+### Supply-chain polish + documentation refresh (v0.7.2) — SHIPPED
+- [x] OpenSSF Scorecard weekly workflow (`.github/workflows/scorecard.yml`) publishing to `securityscorecards.dev`
+- [x] Cursor + VS Code workspace config (`.vscode/{4 files}` + `.cursorrules` + `.editorconfig`) for testing/validation inline
+- [x] `docs/ide-setup.md` walkthrough — pytest discovery, mypy strict, ruff format-on-save, coverage gutters, 7 debug configs, 16 pre-canned tasks
+- [x] Catalog-drift detector fix — pinned `yaml.safe_dump(width=200)` for byte-stable manifest emit + `--ignore-all-space` workflow guard (closes issues #1-#4)
+- [x] Pre-release-review refinements — 4 MEDIUM doc/config polish fixes (DORA past-tense, doc stamp date, Windows venv path, regen stderr warning)
 
 ### Later — quality signals + more integrations (v0.7.x+)
 - [ ] Risk-statement quality validator (NIST SP 800-30 / IR 8286 scoring + auto-regeneration)

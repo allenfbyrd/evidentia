@@ -1,11 +1,11 @@
 # Evidentia roadmap
 
-**Last updated: v0.7.1 (April 2026).**
+**Last updated: v0.7.2 (April 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
-at the project root. Versions v0.3.0 through v0.7.1 have shipped;
-v0.7.2 is the next active scope (see
-[`v0.7.2-plan.md`](v0.7.2-plan.md)). Anything beyond v0.7.2 is
+at the project root. Versions v0.3.0 through v0.7.2 have shipped;
+v0.7.3 is the next active scope (see
+[`v0.7.3-plan.md`](v0.7.3-plan.md)). Anything beyond v0.7.3 is
 forward-looking — the exact shape will depend on real-world usage
 patterns and the bigger v0.8+ direction documented in
 [`positioning-and-value.md`](positioning-and-value.md) §13.
@@ -259,17 +259,59 @@ Windows; 8 skips are GnuPG entropy + Sigstore CI-OIDC-only and pass on
 Linux CI per the v0.7.0 baseline); mypy strict clean (98 source files);
 ruff lint clean.
 
-## v0.7.2 — Supply-chain polish + documentation refresh — NEXT
+## v0.7.2 — Supply-chain polish + documentation refresh — SHIPPED
 
-See [`docs/v0.7.2-plan.md`](v0.7.2-plan.md) for the full plan. Theme:
-SHA-pin the composite action's third-party dependencies, add a composite
-action E2E smoke test, achieve SLSA L3 build provenance, publish weekly
-OpenSSF Scorecard. Plus a documentation refresh pass (sigstore
-quickstart, v0.8.0 plan, conditional architecture-plan refresh,
-quarterly positioning-and-value re-sync if the cadence falls in this
-release window). 4-6 week ship target. Optional/community items
-(Okta collector, ServiceNow integration, Vanta/Drata push, OSCAL
-Plugfest submission, multi-industry sample data) carry forward.
+The "supply-chain polish + documentation refresh" release. What
+landed:
+
+- **OpenSSF Scorecard weekly workflow** — `.github/workflows/scorecard.yml`
+  publishes to `securityscorecards.dev` on Mondays + push-to-main.
+  Surfaces ~20 supply-chain checks (Pinned-Dependencies, Branch-Protection,
+  Code-Review, SBOM, Signed-Releases, etc.). v0.7.0 work covers most
+  baseline checks; v0.7.3 S1 SHA-pinning will improve Pinned-Dependencies.
+- **IDE setup for testing/validation** — version-controlled
+  `.vscode/{settings,launch,tasks,extensions}.json` + `.cursorrules`
+  + `.editorconfig` + `docs/ide-setup.md` walkthrough. Both Cursor
+  and VS Code share the same config; pytest discovery / mypy strict /
+  ruff format-on-save / coverage gutters / 7 debug launch configs /
+  16 pre-canned tasks. Pre-commit hooks + dev container queued
+  for v0.7.3 (DOC6 + DOC7).
+- **Catalog-drift false positive fix** — closes daily-noise issues
+  #1, #2, #3, #4 opened by `catalog-refresh.yml` between
+  2026-04-23 and 2026-04-26. Pinned `yaml.safe_dump(width=200)` for
+  byte-stable manifest emit + `--ignore-all-space` belt-and-suspenders
+  workflow guard.
+- **Pre-release-review refinements** — 4 MEDIUM doc/config polish
+  fixes from the v0.7.2 comprehensive pre-tag review (DORA past-tense,
+  doc stamp date, Windows venv path removal, regen stderr warning).
+- **Scratch-directory convention** — `.gitignore` adds `.local/`
+  for per-developer working notes and drafts not ready to share.
+
+Shipped without the originally-scoped P0 supply-chain items
+(SHA-pinning, action E2E smoke test, SLSA L3) — those moved to
+[`docs/v0.7.3-plan.md`](v0.7.3-plan.md) along with the originally-scoped
+docs polish (sigstore-quickstart, v0.8.0-plan, etc.). See the v0.7.2
+plan's "Deferred to v0.7.3" section for the full carry-forward
+inventory.
+
+**965 tests passing** + 8 environmental skips on local Windows
+(GnuPG entropy + Sigstore CI-OIDC; full pass on Linux CI per
+v0.7.1 baseline); mypy strict clean (98 source files); ruff lint
+clean.
+
+## v0.7.3 — Composite action hardening + sample-data expansion — NEXT
+
+See [`docs/v0.7.3-plan.md`](v0.7.3-plan.md) for the full plan. Theme:
+finishes the v0.7.1-plan-originated supply-chain items that didn't
+make v0.7.2. P0: SHA-pin composite action third-party deps + composite
+action E2E smoke test workflow + SLSA L3 build provenance via
+`actions/attest-build-provenance@v2`. P1: docs polish (release-checklist
+verifier-note for `pypi-attestations`, v0.8.0-plan draft,
+sigstore-quickstart walkthrough, conditional architecture-plan
+refresh, quarterly positioning re-sync target Q3, pre-commit hooks,
+dev container). P2: optional/community items (Okta, ServiceNow,
+Vanta/Drata, OSCAL Plugfest, multi-industry sample data) carry forward.
+2-4 week ship target.
 
 ## v0.7.0+ — Quality signals, more integrations, UI polish
 
