@@ -9,6 +9,7 @@ Run this script whenever catalogs are added/removed/modified.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import yaml
@@ -54,7 +55,17 @@ def scan_dir(subdir: str) -> list[dict]:
         try:
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
-        except (OSError, json.JSONDecodeError):
+        except (OSError, json.JSONDecodeError) as exc:
+            # Surface the skip explicitly (stderr, not stdout, so it
+            # doesn't pollute the manifest summary going to a pipe).
+            # Silent drops would otherwise produce a smaller frameworks.yaml
+            # that only the catalog-refresh.yml workflow's pytest step
+            # would notice (via test_all_bundled.py's count assertion) —
+            # devs running the script locally see nothing without this.
+            print(
+                f"WARN: skipped malformed catalog file {path}: {exc!r}",
+                file=sys.stderr,
+            )
             continue
 
         entry = {

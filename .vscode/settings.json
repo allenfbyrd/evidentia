@@ -4,8 +4,13 @@
   // Cursor reads the same .vscode/ directory, so these settings
   // apply to both editors.
 
-  // Python interpreter — pinned to the uv-managed venv
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  // Python interpreter — auto-discovered by the Python extension from
+  // the workspace .venv/ regardless of OS. We deliberately do NOT
+  // hardcode python.defaultInterpreterPath because the Windows-vs-Unix
+  // path layout differs (.venv/Scripts/python.exe vs .venv/bin/python)
+  // and a literal path here only works on the OS it was authored on.
+  // The Python extension's auto-discovery handles both correctly via
+  // python.terminal.activateEnvironment below.
   "python.terminal.activateEnvironment": true,
   "python.analysis.typeCheckingMode": "strict",
   "python.analysis.autoImportCompletions": true,

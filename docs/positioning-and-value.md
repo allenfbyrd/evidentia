@@ -3,9 +3,10 @@
 > Synthesis of ~25,000 words of independent research across 7 parallel
 > streams (commercial GRC vendors, OSS GRC ecosystem, regulatory and
 > M&A signals, academic foundations, AI/LLM tooling, industry voices,
-> and an internal capability inventory). Compiled 2026-04-25 for
-> v0.7.0 release readiness. Cite by URL; verify any claim before
-> reusing externally.
+> and an internal capability inventory). Compiled 2026-04-24 for
+> v0.7.0 release readiness. See §16 "Version history" at the bottom
+> for the per-release review trail. Cite by URL; verify any claim
+> before reusing externally.
 
 ---
 
@@ -107,7 +108,7 @@ Meanwhile, the compliance workload keeps growing. A single fintech or healthcare
 - **Platform teams** who want to embed gap analysis into their CI pipelines and catch drift before the auditor does
 - **CISO offices** that want a real audit trail on risk decisions, backed by versioned structured data instead of Slack threads
 - **Defense contractors** facing CMMC Phase 2 (Nov 2026) who can't afford $30k/yr SaaS for SPRS-affirmation evidence
-- **EU regulated entities** facing DORA enforcement (Q1 2026) who need sovereign / on-prem evidence collection
+- **EU regulated entities** under DORA (in force since Q1 2026) who need sovereign / on-prem evidence collection
 - **Federal agencies** facing OMB M-24-15 (July 2026) requiring OSCAL ingestion and emission
 
 ---
@@ -864,6 +865,15 @@ These are the gaps that will get a sales-eng on a Vanta/Drata bake-off to win, a
 - Sigstore: https://www.sigstore.dev/
 - CycloneDX 1.6 spec: https://cyclonedx.org/specification/overview/
 - PEP 740 (PyPI attestations): https://peps.python.org/pep-0740/
+
+---
+
+## 16. Version history
+
+| Date | Release | Note |
+|---|---|---|
+| 2026-04-25 | v0.7.0 (initial compile) | Compiled from 7 parallel research streams as Step 2 of the v0.7.0 comprehensive pre-tag review. |
+| 2026-04-27 | v0.7.2 (skip-by-reuse) | Reviewed for v0.7.2 release on 2026-04-27; no material change since v0.7.0. Skip criteria all pass: doc < 90 days old, patch release, no new enterprise-grade claim, no category-defining competitor feature in interim, no tailwind dates passed unobserved (DORA Q1 2026 enforcement noted as past-tense in §3 buyer-personas list — minor MEDIUM bundled into v0.7.2 Step 5.A fix). Per the [release-checklist](release-checklist.md) §"Step 11 — Quarterly cadence", next full re-sync target: 2026-Q3 (~July 2026). |
 
 ---
 
