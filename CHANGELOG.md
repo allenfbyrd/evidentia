@@ -12,6 +12,18 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`docs/sigstore-quickstart.md`** — five-minute end-to-end
+  walkthrough for Sigstore signing + verifying OSCAL Assessment
+  Results documents (v0.7.3 P1 deliverable DOC3). Covers: install
+  with `[sigstore]` extra, why Sigstore for compliance evidence,
+  signing in CI via the composite action's `emit-sigstore-bundle`
+  flag, signing locally via OAuth browser fallback, opportunistic
+  vs strict (`--require-signature` + `--expected-identity` +
+  `--expected-issuer`) verification, common identity/issuer
+  combinations table for GitHub Actions / GCP / AWS / local OAuth,
+  air-gap fallback to GPG, and a troubleshooting matrix. Closes
+  the v0.7.0 enterprise-grade documentation gap (the only Sigstore
+  docs were the CLI `--help` text and action.yml inline comments).
 - **`docs/v0.8.0-plan.md`** — forward-looking release plan for the
   v0.8.0 "OSS-native AI moat" minor (v0.7.3 P1 deliverable DOC2).
   Scopes the differentiation features sketched in
