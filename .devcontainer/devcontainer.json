@@ -1,0 +1,127 @@
+// Evidentia dev container (v0.7.3 P1 DOC7).
+//
+// Promised in `docs/ide-setup.md` "Dev container (planned, not yet
+// enabled)". Provides a guaranteed-reproducible contributor
+// environment so anyone with VS Code or Cursor (and the Dev Containers
+// extension) can clone the repo, click "Reopen in Container", and
+// have a fully-pinned Python 3.12 + Node 20 + GPG + git + gh
+// toolchain ready to run `uv sync --all-packages` + tests + the
+// composite action smoke test.
+//
+// Spec: https://containers.dev/implementors/json_reference/
+{
+  "name": "Evidentia",
+
+  // Microsoft's `mcr.microsoft.com/devcontainers/python` image is
+  // Debian-based, ships GPG + git + curl + standard build tools, and
+  // is rebuilt monthly with security patches. The 3.12 tag matches
+  // the workspace's [tool.ruff] target-version + the CI matrix
+  // Python version (.github/workflows/test.yml).
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
+
+  // ---------------------------------------------------------------
+  // Tooling features (layered onto the base image).
+  // ---------------------------------------------------------------
+  "features": {
+    // Node 20 — matches the release.yml + test.yml `actions/setup-node`
+    // pin. Needed for the evidentia-ui Vite build hatchling hook.
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    // GitHub CLI for the publishing-authority workflow + gh API
+    // helpers documented in CLAUDE.md.
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+    // uv — Astral's Rust-based Python package + project manager.
+    // Used everywhere in the workspace; no `pip install` should be
+    // needed at the workspace level.
+    "ghcr.io/astral-sh/uv:0": {
+      "version": "latest"
+    }
+  },
+
+  // ---------------------------------------------------------------
+  // Editor integration — same VS Code + Cursor extensions the public
+  // `.vscode/extensions.json` recommends, baked into the container
+  // so they're available on first open without an interactive
+  // "install recommended extensions" prompt.
+  // ---------------------------------------------------------------
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Python core
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.mypy-type-checker",
+        // Linter / formatter
+        "charliermarsh.ruff",
+        // YAML + JSON Schema
+        "redhat.vscode-yaml",
+        // TypeScript / React
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        // Coverage gutters (matches .vscode/settings.json)
+        "ryanluker.vscode-coverage-gutters",
+        // GitHub Actions YAML schema
+        "github.vscode-github-actions",
+        // Markdown linting (matches .markdownlint.yaml)
+        "DavidAnson.vscode-markdownlint",
+        // Pre-commit hook visibility
+        "elagil.pre-commit-helper"
+      ],
+      // Editor settings inherit from the version-controlled
+      // .vscode/settings.json — nothing to override here.
+      "settings": {}
+    }
+  },
+
+  // ---------------------------------------------------------------
+  // Workspace-level setup.
+  // ---------------------------------------------------------------
+  // After the container builds, sync the uv workspace once so the
+  // .venv/ exists before the editor + pre-commit hooks try to use
+  // it. The `--frozen` flag gates on `uv.lock` already being present
+  // (it is — committed for reproducibility). The frontend build is
+  // skipped in dev (`EVIDENTIA_SKIP_FRONTEND_BUILD=1`) for parity
+  // with test.yml's pytest job.
+  "postCreateCommand": "EVIDENTIA_SKIP_FRONTEND_BUILD=1 uv sync --all-packages --frozen && uv tool install pre-commit && pre-commit install",
+
+  // After every container start, re-verify the toolchain is intact
+  // (catches base-image drift between rebuilds without forcing a
+  // full re-sync).
+  "postStartCommand": "uv run --no-sync python --version && uv run --no-sync evidentia --version || echo 'evidentia CLI not yet installed; run: uv sync --all-packages'",
+
+  // ---------------------------------------------------------------
+  // Container runtime configuration.
+  // ---------------------------------------------------------------
+  // Forwarded ports — Evidentia's FastAPI server runs at 8000 by
+  // default; expose it so a host browser can hit it during dev.
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "evidentia serve (FastAPI + React UI)",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // Mount the uv cache to a named volume so dependency downloads
+  // persist across container rebuilds.
+  "mounts": [
+    "source=evidentia-uv-cache,target=/home/vscode/.cache/uv,type=volume"
+  ],
+
+  // Default user matches the base image's pre-created `vscode` user.
+  // Avoids root-owned files in mounted source.
+  "remoteUser": "vscode",
+
+  // Environment variables that should be set inside the container.
+  // Real secrets (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.) are NOT
+  // baked in — devs paste them into a `.env.local` per the secret-
+  // handling protocol in ~/.claude/CLAUDE.md.
+  "containerEnv": {
+    "EVIDENTIA_DEV_CONTAINER": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+  }
+}

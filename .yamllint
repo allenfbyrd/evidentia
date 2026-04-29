@@ -1,0 +1,66 @@
+# yamllint config for Evidentia (v0.7.3 P1 DOC6).
+#
+# Scope: applies to .github/, .cursor/, and docs/ YAML files via the
+# `files:` filter in .pre-commit-config.yaml. The 82 bundled catalog
+# files (packages/evidentia-core/src/evidentia_core/catalogs/data/)
+# are NOT subject to these rules — their upstream authoritative
+# sources aren't yamllint-clean by our standards and we don't author
+# them.
+#
+# Most rules at default; a handful relaxed to match the existing
+# project style (line-length 120 to mirror [tool.ruff], commit-style
+# document-start optional, etc.).
+
+extends: default
+
+rules:
+  # Match the [tool.ruff] line-length of 120. Default 80 is too tight
+  # for GitHub Actions YAML where step descriptions wrap awkwardly.
+  line-length:
+    max: 120
+    level: warning
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # `---` document-start markers are nice-to-have but not idiomatic
+  # for GitHub Actions / Dependabot / pre-commit configs. Don't fail
+  # CI over their absence.
+  document-start: disable
+
+  # Allow `True / False / Yes / No / on / off` in addition to the
+  # canonical lowercase. GitHub Actions uses `true/false` exclusively
+  # but some upstream YAML samples mix case.
+  truthy:
+    allowed-values: ['true', 'false', 'on', 'off']
+    check-keys: false  # `on:` is reserved in GitHub Actions
+
+  # Allow up to 2 trailing spaces (markdown-style hard line break in
+  # YAML strings); end-of-file-fixer + trailing-whitespace handle
+  # the more aggressive cleanup.
+  trailing-spaces:
+    level: warning
+
+  # Default 2-space indent — matches GitHub Actions + Dependabot
+  # convention. Indentation rule stays strict (errors, not warnings).
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Comments may be indented as the author prefers — yamllint's
+  # default rule conflicts with the comment-heavy style of our
+  # `.github/dependabot.yml` and the new pre-commit config.
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1  # default is 2; relaxed to 1
+  comments-indentation: disable
+
+  # Allow `key: |` and `key: >` blocks without forcing the trailing
+  # newline rule that breaks some workflow expression shapes.
+  empty-lines:
+    max: 2
+    max-end: 1
+
+  # Don't require a final newline — `end-of-file-fixer` already
+  # enforces this, and yamllint's rule fires before EOF-fixer can fix.
+  new-line-at-end-of-file: enable

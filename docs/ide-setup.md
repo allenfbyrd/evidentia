@@ -154,30 +154,65 @@ project-relevant + safe to commit publicly.
 
 ---
 
-## Pre-commit hooks (planned for v0.7.x+)
+## Pre-commit hooks (active since v0.7.3)
 
-Not yet enabled. When the `.pre-commit-config.yaml` lands, both
-Cursor and VS Code will run hooks on save via the EditorConfig +
-git hook integration. Expected hooks:
+`.pre-commit-config.yaml` ships at the repo root. Both Cursor and
+VS Code run hooks on commit (and on demand via
+`pre-commit run --all-files`). One-time setup per clone:
 
-- ruff (check + format)
-- mypy
-- markdownlint
-- prettier (for `packages/evidentia-ui/`)
-- yamllint (for catalog YAML + GitHub Actions)
-- end-of-file-fixer
-- trailing-whitespace
-- check-yaml + check-toml + check-json
+```bash
+uv tool install pre-commit
+pre-commit install         # installs the .git/hooks/pre-commit shim
+pre-commit run --all-files # one-time sweep (optional)
+```
+
+Active hooks:
+
+- **ruff (check + format)** — same `[tool.ruff]` config as CI
+- **mypy** (strict) — same source roots + flags as the
+  `test.yml::typecheck` job
+- **markdownlint-cli2** — config at `.markdownlint.yaml`
+- **prettier** — applies to `packages/evidentia-ui/{src,public}/`;
+  excludes generated TypeScript types at `src/types/api.ts`
+- **yamllint** — config at `.yamllint`; scoped to `.github/`,
+  `.cursor/`, and `docs/` YAML (the 82 bundled catalog YAML files
+  are explicitly excluded — their upstream sources aren't
+  yamllint-clean by our standards and we don't author them)
+- **end-of-file-fixer**, **trailing-whitespace**, **check-yaml**,
+  **check-toml**, **check-json**, **check-merge-conflict**,
+  **check-added-large-files** (max 2 MB to allow CycloneDX SBOM)
+
+Hook config conventions: ruff + mypy + prettier inherit the
+project's existing config so editor + CI + hook all behave
+identically. yamllint and markdownlint configs ship as
+project-root files.
 
 ---
 
-## Dev container (planned, not yet enabled)
+## Dev container (active since v0.7.3)
 
-A `.devcontainer/devcontainer.json` is on the v0.7.x+ roadmap. Until
-it lands, run `uv sync --all-extras --all-packages` after each pull.
-The dev container will pin Python 3.12, Node 20, and the system
-dependencies (`gpg`, `git`, `gh`) so contributors get a
-guaranteed-reproducible environment.
+`.devcontainer/devcontainer.json` ships a guaranteed-reproducible
+contributor environment. With the
+[Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+installed in VS Code or Cursor, click "Reopen in Container" after
+cloning and you get:
+
+- Python 3.12 (matches CI matrix + `[tool.ruff]` target)
+- Node 20 (matches release.yml + test.yml `actions/setup-node` pin)
+- `uv` (Astral) — primary Python package + project manager
+- `gh` (GitHub CLI) — for the publishing-authority workflow
+- `gpg` + `git` + standard build tools (from the base image)
+- All recommended VS Code extensions pre-installed (matches
+  `.vscode/extensions.json`)
+- A `postCreateCommand` that runs `uv sync --all-packages --frozen`
+  + installs pre-commit hooks
+- Port 8000 forwarded for `evidentia serve`
+- A named volume mounted at `/home/vscode/.cache/uv` so dependency
+  downloads persist across container rebuilds
+
+Real secrets (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.) are NOT
+baked into the container — paste them into a local `.env` per the
+secret-handling protocol in your global Claude config.
 
 ---
 

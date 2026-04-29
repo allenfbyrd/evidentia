@@ -1,0 +1,131 @@
+# Pre-commit hook configuration (v0.7.3 P1 DOC6).
+#
+# Promised in docs/ide-setup.md "Pre-commit hooks (planned for v0.7.x+)".
+# Activates the same quality gates as CI on every commit so contributors
+# don't push CI-failing changes by accident. Both Cursor and VS Code
+# pick these up automatically when `pre-commit install` has been run
+# in the contributor's local clone.
+#
+# Setup (once per clone):
+#
+#   uv tool install pre-commit
+#   pre-commit install         # installs the .git/hooks/pre-commit shim
+#   pre-commit run --all-files # one-time sweep (optional)
+#
+# Run on demand (without committing):
+#
+#   pre-commit run --all-files
+
+# Match the active CI floor (Python 3.12) so hooks behave identically
+# to the test/lint workflows.
+default_language_version:
+  python: python3.12
+
+# Don't fail the whole run on first broken hook — surfaces every
+# fixable issue in one pass.
+fail_fast: false
+
+repos:
+
+  # ---------------------------------------------------------------
+  # Generic file hygiene — language-agnostic.
+  # ---------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        # Markdown trailing whitespace can be intentional (forces a
+        # `<br>`); keep markdown out of this hook.
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ['--allow-multiple-documents']
+        # The 82-catalog YAML files use anchors and aliases that
+        # check-yaml's safe loader handles fine, but the upstream
+        # catalogs/manifest is gigantic and slow — skip it.
+        exclude: 'packages/evidentia-core/src/evidentia_core/catalogs/data/.*\.ya?ml$'
+      - id: check-toml
+      - id: check-json
+        # Evidentia ships JSON gap-report fixtures with intentional
+        # trailing newlines + minified payloads in tests; skip them.
+        exclude: '^(tests/fixtures|examples)/.*\.json$'
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=2048']  # CycloneDX SBOM lands in releases at ~200KB
+
+  # ---------------------------------------------------------------
+  # Python — ruff (check + format) + mypy.
+  # ---------------------------------------------------------------
+  # `ruff-pre-commit` ships both `ruff` (check) and `ruff-format`
+  # (format) hooks. They share the project's `[tool.ruff]` config in
+  # the root pyproject.toml so editor + CI + hook all behave identically.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: ['--fix']
+      - id: ruff-format
+
+  # mypy in strict mode against the same source roots as the CI
+  # workflow `test.yml::typecheck` job. Run via `uv` so the workspace
+  # interpreter + dep set match the CI environment.
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (strict)
+        language: system
+        entry: uv run mypy
+        args:
+          - packages/evidentia-core/src/evidentia_core
+          - packages/evidentia/src/evidentia
+          - packages/evidentia-api/src/evidentia_api
+          - packages/evidentia-integrations/src/evidentia_integrations
+          - packages/evidentia-collectors/src/evidentia_collectors
+          - --strict-optional
+        # mypy is too slow to run on every file individually; let it
+        # operate on the whole package set at once instead.
+        pass_filenames: false
+        types: [python]
+        # Skip if no Python files changed — saves ~15 seconds per commit.
+        files: '\.py$'
+
+  # ---------------------------------------------------------------
+  # YAML — yamllint covering CI workflows + Evidentia-authored
+  # catalog metadata. The 82 bundled catalog files are excluded
+  # (their upstream sources aren't yamllint-clean by our standards
+  # and we don't author them).
+  # ---------------------------------------------------------------
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: ['-c=.yamllint', '--strict']
+        files: '^(\.github/|\.cursor/|docs/).*\.ya?ml$'
+
+  # ---------------------------------------------------------------
+  # Markdown — markdownlint-cli2 against in-repo docs (not
+  # third-party docs in `node_modules/` or the `examples/*/README.md`
+  # which intentionally diverge from project style).
+  # ---------------------------------------------------------------
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.14.0
+    hooks:
+      - id: markdownlint-cli2
+        args: ['--config=.markdownlint.yaml']
+        files: '^(docs/|README\.md$|CHANGELOG\.md$|CONTRIBUTING\.md$|SECURITY\.md$|ROADMAP\.md$)'
+
+  # ---------------------------------------------------------------
+  # Frontend — prettier on packages/evidentia-ui/ source. Uses
+  # prettier's default config (the frontend npm scripts pick up
+  # defaults too; no .prettierrc.json is committed). Keeps in-flight
+  # commits aligned without waiting for CI.
+  # ---------------------------------------------------------------
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        args: ['--write']
+        files: '^packages/evidentia-ui/(src|public)/.*\.(ts|tsx|js|jsx|json|css|html)$'
+        # Don't try to format generated TypeScript types or
+        # OpenAPI-derived files.
+        exclude: '^packages/evidentia-ui/src/types/api\.ts$'

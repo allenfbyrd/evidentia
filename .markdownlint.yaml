@@ -1,0 +1,61 @@
+# markdownlint-cli2 config for Evidentia (v0.7.3 P1 DOC6).
+#
+# Applies to in-repo docs (docs/, README.md, CHANGELOG.md, etc.) via
+# the `files:` filter in .pre-commit-config.yaml. The full default
+# rule set is generally sane for GRC documentation; this file
+# disables the rules that conflict with the project's established
+# voice (long lines for citations + URLs, embedded HTML for
+# blockquote callouts, etc.).
+#
+# Reference:
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# ---------------------------------------------------------------
+# Rule overrides
+# ---------------------------------------------------------------
+default: true  # Inherit all rules; opt-out below.
+
+# MD013 (line-length): the 80-char default fights the project's
+# extensive use of inline-cited URLs (arXiv links, NIST references,
+# OSCAL spec sections). Match [tool.ruff] line-length of 120.
+MD013:
+  line_length: 120
+  code_blocks: false
+  tables: false
+  headings: false  # long heading text is fine when it carries citation context
+
+# MD024 (no-duplicate-heading): release plans repeat sub-headings
+# like "What", "Architecture sketch", "Why P0" across multiple P0
+# items. Allow duplicates within sibling-different parent contexts.
+MD024:
+  siblings_only: true
+
+# MD025 (single-h1): some docs (positioning-and-value.md) carry
+# multiple H1 sections by design. Don't fail.
+MD025: false
+
+# MD033 (no-inline-html): we use blockquote callouts with `>` and
+# the occasional `<br>` for forced line breaks in tables. Allowed
+# elements:
+MD033:
+  allowed_elements: ['br', 'sub', 'sup', 'kbd', 'details', 'summary']
+
+# MD034 (no-bare-urls): bare URLs are fine in cross-reference
+# contexts (`See also: https://...`). Backtick-wrapping every URL
+# adds noise.
+MD034: false
+
+# MD036 (no-emphasis-as-heading): the project uses **bold-as-label**
+# in tables and inline definitions; not a heading misuse.
+MD036: false
+
+# MD041 (first-line-h1): a few docs (memory MEMORY.md indexes) start
+# with a list, not a heading. Don't enforce.
+MD041: false
+
+# MD046 (code-block-style): the project mixes fenced + indented
+# code blocks. Don't enforce one style.
+MD046: false
+
+# Globs handled by .pre-commit-config.yaml `files:` filter; nothing
+# excluded here.

@@ -12,6 +12,33 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`.pre-commit-config.yaml`** + companion `.yamllint` +
+  `.markdownlint.yaml` — pre-commit hook configuration (v0.7.3 P1
+  deliverable DOC6). Activates the same quality gates as CI on
+  every commit so contributors don't push CI-failing changes by
+  accident. Hooks: ruff (check + format), mypy strict,
+  markdownlint-cli2, prettier (UI), yamllint, end-of-file-fixer,
+  trailing-whitespace, check-yaml, check-toml, check-json,
+  check-merge-conflict, check-added-large-files. Both Cursor and
+  VS Code pick up the hooks automatically once
+  `pre-commit install` has been run. The promise in
+  `docs/ide-setup.md` "Pre-commit hooks (planned for v0.7.x+)"
+  flipped to "active since v0.7.3."
+- **`.devcontainer/devcontainer.json`** — guaranteed-reproducible
+  contributor environment (v0.7.3 P1 deliverable DOC7). Base image
+  `mcr.microsoft.com/devcontainers/python:1-3.12` (matches the CI
+  matrix Python version) layered with the dev-container features
+  for Node 20, GitHub CLI, and uv (Astral). `postCreateCommand`
+  runs `uv sync --all-packages --frozen` + installs pre-commit
+  hooks. Forwards port 8000 for `evidentia serve`. Bakes the same
+  VS Code extensions the version-controlled
+  `.vscode/extensions.json` recommends so contributors get a
+  fully-set-up editor on first open. The promise in
+  `docs/ide-setup.md` "Dev container (planned, not yet enabled)"
+  flipped to "active since v0.7.3."
+- **`docs/ide-setup.md`** — pre-commit hooks + dev container
+  sections rewritten from "planned" to "active since v0.7.3" with
+  the concrete setup commands and full hook list.
 - **`docs/sigstore-quickstart.md`** — five-minute end-to-end
   walkthrough for Sigstore signing + verifying OSCAL Assessment
   Results documents (v0.7.3 P1 deliverable DOC3). Covers: install
