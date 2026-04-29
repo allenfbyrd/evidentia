@@ -12,6 +12,19 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`Evidentia-Architecture-and-Implementation-Plan.md`** — added
+  an "Updates since v0.7.0" callout block at the top of the
+  architecture plan (v0.7.3 P1 deliverable DOC4) covering: v0.7.1
+  AI-features hardening (`GenerationContext`, 9 new `EventAction`
+  entries, typed exception hierarchy, `with_retry_async`,
+  audit-trail correlation, operator identity); v0.7.2 supply-chain
+  visibility + IDE config + catalog-drift fix; v0.7.3
+  composite-action hardening + SLSA L3 + pre-commit hooks + dev
+  container; and a forward-direction pointer to v0.8.0+ (DFAH
+  harness, PRT mode, MCP server, plugin-contract scaffolding) and
+  v0.9.0 (federal-compliance reserved). Document body unchanged —
+  the callout block carries the per-release deltas without
+  rewriting the v0.7.0 baseline.
 - **`.pre-commit-config.yaml`** + companion `.yamllint` +
   `.markdownlint.yaml` — pre-commit hook configuration (v0.7.3 P1
   deliverable DOC6). Activates the same quality gates as CI on

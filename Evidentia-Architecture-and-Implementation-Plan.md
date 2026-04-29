@@ -6,26 +6,119 @@
 **Audience:** Senior Engineers, Technical Leads, Contributors  
 **License:** Apache 2.0  
 
-> **Implementation status as of 2026-04-27:** v0.7.2 (the
+> **Implementation status as of 2026-04-29:** v0.7.2 (the
 > "supply-chain polish + documentation refresh" release) is the latest
-> shipped version, following v0.7.1 ("AI features hardening") and
-> v0.7.0 ("enterprise-grade"). All phases through Phase 2 (collectors)
-> are SHIPPED. Phase 3 (AI evidence validation) baseline is hardened
-> in v0.7.1; v0.7.2 added OpenSSF Scorecard weekly publication,
-> version-controlled Cursor + VS Code workspace config for
-> testing/validation inline (see [`docs/ide-setup.md`](docs/ide-setup.md)),
-> and fixed the catalog-drift detector false positive that opened
-> daily as issues #1-#4. See [`docs/v0.7.2-plan.md`](docs/v0.7.2-plan.md)
-> (now SHIPPED) for the ship summary and
+> shipped version. v0.7.3 is in flight (composite action hardening +
+> docs polish + audit cleanup). All phases through Phase 2
+> (collectors) are SHIPPED. Phase 3 (AI evidence validation) baseline
+> is hardened in v0.7.1 — see "Updates since v0.7.0" below. v0.8.0
+> ships the AI moat features (DFAH determinism harness, PRT mode,
+> MCP server, plugin-contract scaffolding) per
+> [`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md). See
 > [`docs/v0.7.3-plan.md`](docs/v0.7.3-plan.md) for the next-release
-> scope (composite action hardening: SHA-pin, action E2E smoke test,
-> SLSA L3 build provenance; documentation polish: sigstore-quickstart,
-> v0.8.0-plan, pre-commit hooks, dev container). The v0.7.0 review
-> deliverables ([`docs/positioning-and-value.md`](docs/positioning-and-value.md),
-> [`docs/capability-matrix.md`](docs/capability-matrix.md)) supplement
-> this document with current competitive positioning and capability
-> test matrix. This architecture plan remains the canonical design
-> reference; cross-link the supplements for status.
+> scope and [`docs/positioning-and-value.md`](docs/positioning-and-value.md)
+> + [`docs/capability-matrix.md`](docs/capability-matrix.md) for
+> current competitive positioning and capability test matrix. This
+> architecture plan remains the canonical design reference; the
+> supplements carry status + forward direction.
+
+---
+
+> ## Updates since v0.7.0
+>
+> The body of this document describes the v0.7.0 design baseline.
+> Subsequent releases extended specific subsystems without changing
+> the document's structure. This section is the canonical
+> what-changed callout so readers don't need to walk the per-release
+> CHANGELOG to understand the current shape.
+>
+> ### v0.7.1 — AI features enterprise-grade hardening
+>
+> Brought `evidentia-ai` (`risk_statements/` + `explain/`) up to the
+> v0.7.0 collector-pattern enterprise grade. Substantive additions
+> to §7.2 (AI Risk Statement Generator) + the as-yet-unwritten §9.1
+> (AI evidence validator):
+>
+> - **`GenerationContext`** Pydantic model in
+>   `evidentia_core.audit.provenance` (sibling of `CollectionContext`).
+>   Captures per-output AI provenance: `model`, `temperature`,
+>   `prompt_hash` (SHA-256 of the rendered prompt), `run_id` (ULID),
+>   `generated_at` (RFC 3339 UTC), `attempts`,
+>   `instructor_max_retries`, `credential_identity`,
+>   `evidentia_version`. Optional field on `RiskStatement` and
+>   `PlainEnglishExplanation` (default `None` for v0.7.x backward
+>   compat; will tighten to required in v0.8 with deprecation cycle).
+> - **9 new `EventAction` entries** under the `evidentia.ai.*`
+>   namespace (`AI_RISK_GENERATED`, `AI_RISK_FAILED`, `AI_RISK_RETRY`,
+>   `AI_EXPLAIN_GENERATED`, `AI_EXPLAIN_FAILED`, `AI_EXPLAIN_RETRY`,
+>   `AI_EXPLAIN_CACHE_HIT`, `AI_RISK_BATCH_COMPLETED`,
+>   `AI_EXPLAIN_BATCH_COMPLETED`).
+> - **Typed exception hierarchy** in `evidentia_ai.exceptions`:
+>   `EvidentiaAIError` (parent), `LLMUnavailableError`,
+>   `LLMValidationError`, `RiskStatementError`,
+>   `RiskGenerationFailed`, `ExplainError`, `ExplainGenerationFailed`.
+>   Closes the v0.7.0 BLOCKER B3 carry-over for both AI subsystems.
+> - **Bounded retry against shared `LLM_TRANSIENT_EXCEPTIONS`** via
+>   the new `with_retry_async` decorator and
+>   `build_retrying`/`build_async_retrying` factory functions in
+>   `evidentia_core.audit.retry`. Stacks cleanly on top of
+>   Instructor's `max_retries` (which handles validation retries).
+> - **Audit-trail correlation** — every `AI_*` event carries
+>   `run_id` so SIEM queries can attribute retry storms,
+>   regenerations, and final outputs to the same batch.
+> - **Best-effort operator identity** via
+>   `evidentia_ai.client.get_operator_identity()` — closes the
+>   NIST AU-3 "Identity" gap for AI-derived artifacts.
+>
+> ### v0.7.2 — supply-chain visibility + dev-loop ergonomics
+>
+> No source-architecture changes. Adds:
+>
+> - **OpenSSF Scorecard weekly workflow**
+>   (`.github/workflows/scorecard.yml`) publishing to
+>   `securityscorecards.dev`.
+> - **Version-controlled IDE config** —
+>   `.vscode/{settings,launch,tasks,extensions}.json` + `.cursorrules`
+>   + `.editorconfig` + the `docs/ide-setup.md` walkthrough.
+> - **`.gitignore` `.local/`** scratch-directory convention for
+>   per-developer working notes.
+> - **Catalog-drift false-positive fix** —
+>   `yaml.safe_dump(width=200)` byte-stable manifest emit +
+>   `--ignore-all-space` workflow guard.
+>
+> ### v0.7.3 — composite action hardening + docs polish (in flight)
+>
+> No source-architecture changes. Adds:
+>
+> - **SHA-pinning** all third-party `uses:` refs across the composite
+>   action + every workflow file. Closes OpenSSF Scorecard
+>   "Pinned-Dependencies".
+> - **Composite action E2E smoke test**
+>   (`.github/workflows/action-smoke-test.yml`) catches future
+>   action.yml ↔ CLI drift.
+> - **SLSA L3 build provenance** via
+>   `actions/attest-build-provenance@v2` in `release.yml`. Closes
+>   enterprise-grade H2 + restores `gh attestation verify` as a
+>   working verifier alongside the PEP 740 path.
+> - **Pre-commit hooks** (`.pre-commit-config.yaml`) + **dev
+>   container** (`.devcontainer/devcontainer.json`) — closes the two
+>   outstanding promises in `docs/ide-setup.md`.
+> - **Forward plans** — `docs/v0.8.0-plan.md` (the AI moat) +
+>   `docs/sigstore-quickstart.md` (signing walkthrough) +
+>   `docs/release-checklist.md` Step 9 verifier-note refresh.
+>
+> ### Future direction (v0.8.0+)
+>
+> See [`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md). The
+> `evidentia-ai` package gains a new `eval/` submodule (DFAH
+> determinism harness), `risk_statements/` gains a `--emit-trace`
+> mode (Policy Reasoning Traces with structured clause citations
+> per claim), a new `evidentia-mcp` workspace package exposes the
+> library surface to AI agents under the Model Context Protocol,
+> and `evidentia_core.plugins.{auth,storage,marketplace}`
+> formalises the extension surface for out-of-tree authors. v0.9.0
+> reserves the federal-compliance theme (POA&M, CONMON cycle
+> calendar) per domain-expert input.
 
 ---
 
