@@ -183,7 +183,8 @@ git log --all --format="%ae" | sort -u | grep "@allenfbyrd.com$" || echo "OK: ze
 ```bash
 gh repo view allenfbyrd/evidentia --json name,description,isArchived,defaultBranchRef
 gh secret list --env pypi --repo allenfbyrd/evidentia
-gh api repos/allenfbyrd/evidentia/environments/pypi --jq '{name, url}'
+gh api repos/allenfbyrd/evidentia/environments/pypi --jq '{name, url, deployment_branch_policy}'
+gh api repos/allenfbyrd/evidentia/branches/main/protection --jq '{required_status_checks, required_pull_request_reviews, enforce_admins, allow_force_pushes, allow_deletions}'
 gh search commits --author-email allen@allenfbyrd.com --owner allenfbyrd  # zero hits
 ```
 
@@ -192,6 +193,31 @@ gh search commits --author-email allen@allenfbyrd.com --owner allenfbyrd  # zero
 - [ ] PyPI Trusted Publisher entries exist for all 6 published packages
       (verify via `https://pypi.org/manage/project/<name>/settings/publishing/`).
 - [ ] Zero `allen@allenfbyrd.com` commits across all owned repos.
+- [ ] **Branch protection on `main` still active** (added in v0.7.2
+      post-audit hardening). Required status checks include the test
+      matrix + ruff + mypy + scorecard. `allow_force_pushes` and
+      `allow_deletions` both `false`. If protection has been
+      accidentally removed, re-apply per the rule documented in
+      [`SECURITY.md`](../SECURITY.md) before tagging.
+- [ ] **`pypi` environment branch policy correct**: with branch
+      protection in place,
+      `deployment_branch_policy.custom_branch_policies` should be
+      `true` and the policy should include both `main` and `v*`
+      (the tag-triggered release path needs to deploy from a tag,
+      not just a branch). If only `main` is allowed, tag pushes will
+      block at the deployment-protection gate.
+- [ ] **Dependabot review** — check the open Dependabot PR queue
+      (`gh pr list --label dependencies --state open`). For the
+      week-of-ship batch, either roll the PRs in (security updates +
+      low-risk patch bumps) or defer them to the next release with
+      a documented reason. Don't ship next to a security advisory
+      that has an open auto-PR.
+- [ ] **SECURITY.md vulnerability-coordination flow** — confirm
+      `SECURITY.md` is current: SLA still accurate (3 business days
+      initial / 10 business days triage), 90-day disclosure timeline
+      still applies, supported-versions table reflects the
+      single-supported-patch policy as of this release. If a CVE
+      shipped between releases, ensure its handling is documented.
 
 ---
 

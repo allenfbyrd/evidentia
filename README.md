@@ -140,149 +140,46 @@ Evidentia is built on four principles:
 
 ## Current status: 82 frameworks bundled, full suite passing
 
-**v0.7.2 (April 2026)** is the **supply-chain polish + documentation
-refresh release**. Adds OpenSSF Scorecard weekly workflow publishing
-to securityscorecards.dev, version-controlled Cursor + VS Code
-workspace configuration for testing/validation inline, fixes the
-catalog-drift detector false positive that opened daily as issues
-#1-#4 between 2026-04-23 and 2026-04-26 (PyYAML word-wrap deterministic
-emit + workflow `--ignore-all-space` guard), and the
-pre-release-review refinements pass. See
-[docs/v0.7.2-plan.md](docs/v0.7.2-plan.md) for the full ship summary;
-the deferred composite-action hardening (S1 SHA-pinning + S2 action
-E2E smoke + S3 SLSA L3) and docs polish (sigstore-quickstart,
-v0.8.0-plan, pre-commit hooks, dev container) move to
-[docs/v0.7.3-plan.md](docs/v0.7.3-plan.md).
+### Recent releases
 
-**v0.7.1 (April 2026)** is the **AI features hardening release**.
-Brings `evidentia-ai` (`risk_statements/` + `explain/`) up to the
-v0.7.0 collector-pattern enterprise grade — closing the v0.7.0
-BLOCKER B3 carry-over for both AI subsystems. Adds `GenerationContext`
-metadata on every generated artifact (sibling of `CollectionContext`),
-9 new `AI_*` `EventAction` entries for ECS-structured AI audit
-events, a typed exception hierarchy in `evidentia_ai.exceptions`,
-bounded retry against the shared `LLM_TRANSIENT_EXCEPTIONS` set
-(LiteLLM rate-limit + transport + timeout), and
-`run_id`-correlated audit trails so SIEM operators can join AI
-failures + retries + successes by namespace. See
-[docs/v0.7.1-plan.md](docs/v0.7.1-plan.md) for the full ship summary;
-the deferred supply-chain polish + documentation refresh items move
-to [docs/v0.7.2-plan.md](docs/v0.7.2-plan.md).
+**v0.7.2 (April 2026)** — *supply-chain polish + documentation
+refresh*. OpenSSF Scorecard weekly workflow publishing to
+[securityscorecards.dev](https://securityscorecards.dev/),
+version-controlled Cursor + VS Code workspace config for
+testing/validation inline, catalog-drift false-positive fix
+(PyYAML word-wrap deterministic emit + workflow
+`--ignore-all-space` guard), pre-release-review refinements pass.
+Ship summary: [docs/v0.7.2-plan.md](docs/v0.7.2-plan.md).
 
-**v0.7.0 (April 2026)** is the **enterprise-grade release**, closing all 10
-BLOCKER items in [docs/enterprise-grade.md](docs/enterprise-grade.md):
+**v0.7.1 (April 2026)** — *AI features hardening*. Brings
+`evidentia-ai` (`risk_statements/` + `explain/`) up to the v0.7.0
+collector-pattern enterprise grade. Adds `GenerationContext` metadata
+on every generated artifact (sibling of `CollectionContext`), 9 new
+`AI_*` `EventAction` entries, a typed exception hierarchy in
+`evidentia_ai.exceptions`, bounded retry against the shared
+`LLM_TRANSIENT_EXCEPTIONS` set (LiteLLM rate-limit + transport +
+timeout), and `run_id`-correlated audit trails so SIEM operators can
+join AI failures + retries + successes by namespace. Ship summary:
+[docs/v0.7.1-plan.md](docs/v0.7.1-plan.md).
+
+**v0.7.0 (April 2026)** — *enterprise-grade*. Closes all 10 BLOCKER
+items in [docs/enterprise-grade.md](docs/enterprise-grade.md):
 Sigstore/Rekor signing, CycloneDX SBOM on every release, PyPI Trusted
 Publishers (OIDC) with PEP 740 attestations, OSCAL Assessment Results
-schema conformance via [trestle](https://github.com/oscal-compass/compliance-trestle),
-AWS IAM Access Analyzer + GitHub Dependabot collectors, ECS-8.11 / NIST-AU-3 /
-OpenTelemetry structured logs, and a consolidated GitHub Action at
-`.github/actions/gap-analysis/`.
+schema conformance via
+[trestle](https://github.com/oscal-compass/compliance-trestle),
+AWS IAM Access Analyzer + GitHub Dependabot collectors, ECS-8.11 /
+NIST-AU-3 / OpenTelemetry structured logs, and a consolidated GitHub
+Action at `.github/actions/gap-analysis/`. The six v0.5.1
+`controlbridge-*` deprecation shims are removed per the public
+migration contract — historical context in
+[RENAMED.md](RENAMED.md).
 
-The six v0.5.1 `controlbridge-*` deprecation shims are removed at v0.7.0
-per the public migration contract — historical context in
-[RENAMED.md](RENAMED.md) and [CHANGELOG.md](CHANGELOG.md).
-
-**v0.5.0 (April 2026)** is the **"Phase 2 integrations"** release.
-Evidentia finally ships the long-promised integrations and
-collectors: push gaps as Jira issues with bidirectional status sync,
-auto-collect compliance evidence from AWS (Config + Security Hub),
-and audit GitHub repos (branch protection + CODEOWNERS + visibility).
-Every finding is pre-mapped to NIST 800-53 control families.
-
-Install:
-
-```bash
-uv tool install --upgrade "evidentia[gui]"
-
-# Jira: push open gaps as issues, sync status back on resolve
-export JIRA_BASE_URL=https://acme.atlassian.net
-export JIRA_EMAIL=compliance@acme.com
-export JIRA_API_TOKEN=...
-export JIRA_PROJECT_KEY=SEC
-evidentia integrations jira push --gaps report.json
-
-# AWS: collect evidence from the default region
-evidentia collect aws --output aws-findings.json
-
-# GitHub: audit a single repo
-evidentia collect github --repo allenfbyrd/evidentia
-```
-
-**v0.4.0-alpha.1 (April 2026)** is the **"Accessible GRC"** release.
-Evidentia grows beyond the CLI with a FastAPI REST server, a
-React + shadcn/ui web UI (localhost-only, WCAG 2.1 AA via Radix
-primitives), an air-gapped mode (`--offline` flag +
-`doctor --check-air-gap` validator), and a new sixth workspace
-package (`evidentia-api`).
-
-Install the UI via the new `[gui]` extra:
-
-```bash
-uv tool install "evidentia[gui]"
-# or
-pip install "evidentia[gui]"
-
-evidentia serve   # web UI at http://127.0.0.1:8000
-```
-
-See [`docs/gui/README.md`](docs/gui/README.md) for the full UI guide and
-[`docs/air-gapped.md`](docs/air-gapped.md) for air-gapped deployments.
-The alpha.1 ships the read-only web UI (Home / Dashboard / Frameworks /
-Settings); the interactive onboarding wizard, Gap Analyze form, Gap
-Diff picker, and Risk Generate streaming page land in alpha.2.
-
-**v0.3.1 (April 2026)** added three realistic end-to-end example
-scenarios — Meridian Financial (fintech), Acme Healthtech (HIPAA),
-Northstar Systems (DoD contractor) — with pre-generated gap
-snapshots and a full walkthrough that exercises every feature
-added through v0.3.0. The repo dog-foods its own GitHub Action
-(`.github/workflows/evidentia.yml`) on every PR against the
-Meridian v2 inventory. Start at
-[`examples/WALKTHROUGH.md`](examples/WALKTHROUGH.md). Also fixed one
-latent bug in `compute_gap_diff` that only affected library-level
-(non-CLI) callers — flagged by the new integration-test regression
-guard.
-
-**v0.3.0 (April 2026)** is the **compliance-as-code release**:
-
-- **`evidentia gap diff`** — compare two gap-analysis snapshots,
-  classify each gap as opened / closed / severity-changed / unchanged.
-  Pair with `--fail-on-regression` in a GitHub Action to block PRs
-  that make compliance posture worse. No commercial GRC tool does this
-  at the PR level. See [`docs/github-action/README.md`](docs/github-action/README.md)
-  for the drop-in workflow.
-- **`evidentia explain <control_id>`** — LLM-generated plain-English
-  translation of any framework's control text. Answers the questions
-  engineers actually ask ("what does this mean, why should I care,
-  what do I do?") instead of quoting the NIST legal prose verbatim.
-  Cached to disk per (framework, control, model, temperature) so
-  repeat lookups are free.
-
-Also: the `FrameworkId` enum (deprecated in v0.2.0) is removed; mypy
-CI is now strict (no more `continue-on-error`); +32 new tests.
-
-**v0.2.1 (April 2026)** was the correctness patch that:
-
-- Bundles the full **NIST SP 800-53 Rev 5** catalog (1,196 controls,
-  verbatim from `usnistgov/oscal-content`) plus the four resolved
-  **Low / Moderate / High / Privacy baselines** — so `gap analyze
-  --framework nist-800-53-rev5-moderate` actually runs against the real
-  287-control baseline instead of a 16-control sample.
-- Rewrites the FedRAMP baselines with real NIST text (v0.2.0 shipped them
-  as pointer-only stubs).
-- Replaces the always-LOW gap effort estimator with a keyword-aware
-  hybrid heuristic, so the prioritized roadmap actually surfaces
-  easy-win controls.
-- Wires the `evidentia.yaml` project config loader that `init` has
-  been generating since v0.1.0 but nothing read. Precedence:
-  **CLI flag > env var > yaml > built-in default**.
-- Persists gap reports to a user-dir store, making `risk generate
-  --gap-id GAP-…` work without re-running `gap analyze`.
-- +221 new tests (131 → 352 passing); all `evidentia catalog`
-  subcommands now covered; OSCAL profile resolver tested end-to-end.
-
-See [`CHANGELOG.md`](CHANGELOG.md) for the full v0.2.1 entry and
-[`docs/ROADMAP.md`](docs/ROADMAP.md) for the v0.3.0+ plan.
+See [`CHANGELOG.md`](CHANGELOG.md) for the full version history
+(v0.1.0 through v0.7.2). For forward direction, see
+[`docs/v0.7.3-plan.md`](docs/v0.7.3-plan.md) (next),
+[`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md) (the AI moat), and
+[`docs/ROADMAP.md`](docs/ROADMAP.md) (everything else).
 
 ### What works today
 

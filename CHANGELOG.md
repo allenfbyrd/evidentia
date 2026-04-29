@@ -12,6 +12,25 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`CITATION.cff`** — Citation File Format 1.2.0 metadata at the
+  repo root (audit-cleanup item A10). Renders as a "Cite this
+  repository" widget on the GitHub repo sidebar; integrates with
+  Zenodo when the user opts in to software-DOI minting. Documents
+  the project title, sole author + email, abstract, repository URL,
+  PyPI URL, version (0.7.2), date released, license, and the 13
+  domain keywords (grc, oscal, nist-800-53, fedramp, cmmc, soc2,
+  compliance-as-code, gap-analysis, risk-statements, sigstore,
+  slsa, python). Updated at each release alongside the `version`
+  bumps in the 7 pyproject.toml files.
+- **`docs/release-checklist.md` Step 7** — added 4 new line items
+  surfaced by the v0.7.2 post-audit hardening (audit-cleanup item
+  B4): branch-protection-on-`main` verification, `pypi` environment
+  branch policy verification (`custom_branch_policies: true` with
+  both `main` and `v*` allowed for tag-triggered releases),
+  Dependabot week-of-ship review, and SECURITY.md
+  vulnerability-coordination-flow currency check. Closes the
+  release-checklist refresh promised in the v0.7.2 audit findings.
+
 - **`Evidentia-Architecture-and-Implementation-Plan.md`** — added
   an "Updates since v0.7.0" callout block at the top of the
   architecture plan (v0.7.3 P1 deliverable DOC4) covering: v0.7.1
@@ -192,6 +211,12 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
   analysis enabled. Secret-scanning non-provider patterns +
   validity checks deferred — currently unavailable on
   personal-account public repositories.
+- **`README.md`** — version-history section truncated to last three
+  releases (v0.7.2 / v0.7.1 / v0.7.0) with a pointer to
+  `CHANGELOG.md` for full version history (audit-cleanup item A6).
+  Removes 8 entries spanning v0.5.0 through v0.2.1 plus their
+  in-section install snippets. Reduces the chronology from ~150
+  lines to ~30.
 
 ## [0.7.2] - 2026-04-27
 

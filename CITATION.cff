@@ -1,0 +1,51 @@
+# Citation File Format 1.2.0 — https://citation-file-format.github.io/
+#
+# Renders as a "Cite this repository" widget on the GitHub repo
+# sidebar and integrates with Zenodo (when the user opts in to
+# software-DOI minting). v0.7.3 P1 deliverable A10 from the
+# 2026-04-29 release-planning plan.
+#
+# Updated at each release: bump `version` + `date-released`. The
+# release-checklist Step 3 ("update version + bump intra-repo
+# pins") references this file as one of the per-release bumps.
+
+cff-version: 1.2.0
+message: >-
+  If you use Evidentia in academic work, government/SBIR
+  research, or formal compliance documentation, please cite it
+  using the metadata below.
+title: 'Evidentia: Open-Source Compliance Infrastructure for OSCAL-Native GRC'
+type: software
+authors:
+  - given-names: Allen
+    family-names: Byrd
+    email: allen@allenfbyrd.com
+abstract: >-
+  Evidentia is an open-source GRC (Governance, Risk, and
+  Compliance) tool that ships 82 framework catalogs out of the
+  box (NIST 800-53 Rev 5, FedRAMP, CMMC 2.0, GDPR, SOC 2 TSC,
+  and more), runs gap analysis as an embeddable Python library,
+  emits cryptographically-signed OSCAL Assessment Results, and
+  integrates AI risk-statement generation under the NIST SP
+  800-30 structure. Apache 2.0 licensed; air-gap capable; CI
+  native.
+repository-code: 'https://github.com/allenfbyrd/evidentia'
+url: 'https://pypi.org/project/evidentia/'
+keywords:
+  - grc
+  - governance-risk-compliance
+  - oscal
+  - nist-800-53
+  - fedramp
+  - cmmc
+  - soc2
+  - compliance-automation
+  - compliance-as-code
+  - gap-analysis
+  - risk-statements
+  - sigstore
+  - slsa
+  - python
+license: Apache-2.0
+version: 0.7.2
+date-released: '2026-04-27'
