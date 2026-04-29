@@ -12,6 +12,30 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`Dockerfile`** at repo root + **`.github/workflows/container-build.yml`**
+  — repo-root container image build (audit-cleanup item B2,
+  lightweight variant). Single-stage `python:3.12-slim` image
+  installs `evidentia[gui]>=0.7,<0.8` from PyPI as a non-root user
+  (uid 1000); runs `evidentia serve` on port 8000 by default;
+  override `CMD` for any other CLI subcommand. Includes the gpg +
+  ca-certificates + curl system deps so the air-gap GPG path
+  works inside the image. The new workflow builds the image on
+  every PR touching `Dockerfile` (and on push to `main`) and runs
+  4 smoke tests: `evidentia --version`, `evidentia frameworks
+  list`, OCI labels populated, non-root execution (uid 1000).
+  Image is **not yet published** — the workflow does
+  `push: false`, `load: true`. Publishing to
+  `ghcr.io/allenfbyrd/evidentia` with cosign signing is gated to
+  a future release that explicitly opts in. Closes the
+  documentation half of enterprise-grade L1
+  ([`docs/enterprise-grade.md`](docs/enterprise-grade.md))
+  ("Not currently published" → "Repo-root Dockerfile + CI
+  smoke-test, not yet published").
+- **`.github/dependabot.yml`** — adds a `docker` ecosystem entry
+  so Dependabot tracks the new `Dockerfile`'s `python:3.12-slim`
+  base image. Same Monday 06:00 ET cadence and grouped-by-batch
+  pattern as the existing uv / npm / github-actions ecosystems.
+  `chore(docker)` commit prefix.
 - **`packages/evidentia-ui/package.json`** + regenerated
   `package-lock.json` — coordinated frontend dev-stack bump
   (audit-cleanup item A3) closing the v0.7.2 deferred dev-tree

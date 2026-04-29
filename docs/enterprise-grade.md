@@ -78,7 +78,7 @@ Priority tiers:
 
 | # | Item | v0.7.0 status |
 |---|---|---|
-| L1 | Container image (Docker Hub / ECR) | ❌ Not currently published |
+| L1 | Container image (Docker Hub / ECR) | ⚠️ Repo-root `Dockerfile` ships in v0.7.3 + CI smoke-test on every PR (`.github/workflows/container-build.yml`) — but **not yet published** to a public registry. Pin to a future release that explicitly opts in to ghcr.io publishing + cosign signing. |
 | L2 | SLA documentation | ❌ Not currently documented |
 | L3 | Terraform / CloudFormation templates | ❌ Not currently provided |
 | L4 | Pre-built compliance profile library | ⚠️ 82 frameworks bundled (v0.2+); not OSCAL Profile format |

@@ -1,0 +1,83 @@
+# Container image build smoke test (v0.7.3 P2 B2 lightweight).
+#
+# Builds the repo-root `Dockerfile` on every PR that touches it +
+# every push to main. Validates that the image builds end-to-end
+# and that the in-image `evidentia --version` + `evidentia
+# frameworks list` invocations succeed against the latest published
+# evidentia wheel from PyPI.
+#
+# This workflow does NOT publish the built image — publishing to
+# `ghcr.io/allenfbyrd/evidentia` is gated to a future release that
+# explicitly opts in (likely v0.7.4 with cosign signing wired in).
+# Runs in PR context so any breaking change to the Dockerfile or
+# to the published evidentia wheel surfaces here, not at consumer-
+# pull time.
+
+name: Container build smoke test
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/container-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/container-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build + smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3.12.0
+
+      - name: Build image (load into local Docker, not pushed)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6.19.2
+        with:
+          context: .
+          push: false
+          load: true
+          tags: evidentia:smoke
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test — `evidentia --version`
+        run: |
+          docker run --rm evidentia:smoke --version
+
+      - name: Smoke test — `evidentia frameworks list`
+        run: |
+          # Validate the bundled catalog set ships in the image.
+          # Pipe to head to limit log noise; we just need to see at
+          # least one framework row to know the catalog data made it
+          # through the install.
+          docker run --rm evidentia:smoke frameworks list | head -10
+
+      - name: Smoke test — image labels
+        run: |
+          # Validate the OCI labels are populated (downstream registry
+          # tooling reads these for description / license / source).
+          docker inspect evidentia:smoke --format '{{json .Config.Labels}}' \
+              | python -m json.tool
+
+      - name: Smoke test — non-root execution
+        run: |
+          # Confirm the image runs as the `evidentia` user (uid 1000),
+          # not root. A future regression that flips USER to root would
+          # be caught here.
+          uid=$(docker run --rm --entrypoint id evidentia:smoke -u)
+          if [ "$uid" != "1000" ]; then
+            echo "FAIL: container runs as uid $uid; expected 1000"
+            exit 1
+          fi
+          echo "OK: container runs as uid $uid (non-root)"
