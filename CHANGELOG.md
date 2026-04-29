@@ -12,6 +12,27 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`packages/evidentia-ui/package.json`** + regenerated
+  `package-lock.json` — coordinated frontend dev-stack bump
+  (audit-cleanup item A3) closing the v0.7.2 deferred dev-tree
+  Dependabot alerts. Bumps:
+    - `vite` `^6.4.2` → `^8.0.10`
+    - `vitest` `^2.1.3` → `^4.1.5`
+    - `@vitejs/plugin-react` `^4.3.3` → `^6.0.1`
+    - `@vitest/coverage-v8` `^2.1.3` → `^4.1.5`
+    - `@vitest/ui` `^2.1.3` → `^4.1.5`
+
+  v0.7.2 had pinned `vite` to `^6.4.2` because Dependabot's auto-PR
+  proposed `vite@8.0.10` which broke the
+  `@vitejs/plugin-react@^4.3.3` peer chain (plugin-react 4 supports
+  vite 4-7, not 8). Bumping plugin-react to 6 resolves the peer
+  chain and lets vite 7+ ship; bumping vitest to 4 closes the
+  remaining 2 dev-tree moderate alerts (vitest's bundled
+  vite/esbuild). Result: `npm audit` reports 0 vulnerabilities
+  across both production and full trees. Validated via
+  `npm run typecheck` (clean), `npm run build` (2.73s, 281 KB JS /
+  22 KB CSS gzipped — in line with prior baseline), and
+  `npm run test -- --run` (6/6 vitest tests passing under v4.1.5).
 - **`CITATION.cff`** — Citation File Format 1.2.0 metadata at the
   repo root (audit-cleanup item A10). Renders as a "Cite this
   repository" widget on the GitHub repo sidebar; integrates with
