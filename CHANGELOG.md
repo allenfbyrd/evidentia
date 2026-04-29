@@ -12,6 +12,20 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`.github/workflows/action-smoke-test.yml`** — composite-action
+  E2E smoke test (v0.7.3 P0 S2). Runs the consumer-facing
+  `./.github/actions/gap-analysis` against the bundled Meridian
+  fintech v2 sample inventory on every PR that touches the action
+  surface, the underlying CLI, or the sample data. Catches the kind
+  of action.yml ↔ CLI drift that surfaced as the
+  `--bundle` vs `--sigstore-bundle` mismatch in v0.7.0 Step 4.
+  Uses an editable install of the PR's `evidentia-core` so the
+  action runs against the same-PR CLI source rather than the
+  latest PyPI release. Validates that `gap-report.json` and
+  `oscal-ar.json` land with the expected structure (`assessment-results`
+  root key on the AR). Sigstore is intentionally off (covered by
+  release.yml + S3); `fail-on-regression: false` because Meridian
+  is a demo scenario.
 - **`.github/actions/gap-analysis/action.yml`** — all four
   third-party actions SHA-pinned to specific 40-char commit SHAs
   with the pinned-version recorded in trailing comments

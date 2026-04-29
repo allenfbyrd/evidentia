@@ -1,0 +1,122 @@
+# Composite action smoke test (v0.7.3 P0 S2).
+#
+# Runs the consumer-facing `./.github/actions/gap-analysis` composite
+# action against the bundled Meridian fintech v2 sample inventory on
+# every PR that touches the action surface or the underlying CLI.
+# Catches the kind of action.yml ↔ CLI drift surfaced as the
+# `--bundle` vs `--sigstore-bundle` mismatch in v0.7.0 Step 4 — a
+# CLI-flag rename that broke the action only after release because no
+# integration test exercised the action against the same-PR CLI source.
+#
+# Why use the local PR source instead of the latest PyPI release:
+# the historical drift bug was a PR that updated the CLI flag in the
+# SAME commit batch as the action.yml. PyPI hadn't published yet; the
+# action.yml change tested-green against the latest PyPI release; it
+# failed only after evidentia-core was published with the flag rename.
+# Pre-installing evidentia-core from the PR's local source forces the
+# smoke test to validate the action against the same-PR CLI.
+
+name: Composite action smoke test
+
+on:
+  pull_request:
+    paths:
+      - '.github/actions/gap-analysis/**'
+      - '.github/workflows/action-smoke-test.yml'
+      - 'packages/evidentia/**'
+      - 'packages/evidentia-core/**'
+      - 'packages/evidentia-ai/**'
+      - 'examples/meridian-fintech-v2/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write  # composite action posts a sticky PR comment
+
+jobs:
+  smoke:
+    name: Composite action against Meridian
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+        with:
+          fetch-depth: 2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39  # v3.2.4
+        with:
+          version: latest
+          python-version: '3.12'
+
+      - name: Sync workspace + install evidentia-core editable from PR
+        # The composite action below runs `python -m pip install
+        # "evidentia-core>=0.7,<0.8"` as one of its steps. By
+        # pre-installing the PR's evidentia-core in editable mode and
+        # putting the uv venv's Python first on PATH, the composite
+        # action's pip install becomes a no-op (pip reports
+        # "Requirement already satisfied" because the editable install
+        # already meets the version range), preserving the PR's CLI
+        # source as the one actually exercised.
+        run: |
+          uv sync --all-packages
+          .venv/bin/python -m pip install -e packages/evidentia-core
+          .venv/bin/evidentia --version
+          # Make the uv venv the default Python for downstream steps,
+          # so the composite action's `python -m pip install` and
+          # `evidentia` invocations resolve to our editable install.
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
+
+      - name: Run gap-analysis composite action against Meridian
+        uses: ./.github/actions/gap-analysis
+        with:
+          inventory: examples/meridian-fintech-v2/my-controls.yaml
+          frameworks: nist-800-53-rev5-moderate,soc2-tsc
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Smoke test runs in reporting-only mode — Meridian is a
+          # demo scenario, not a real compliance program, so a
+          # regression here does not need to fail the PR. The smoke
+          # test succeeds when the action.yml runs end-to-end without
+          # error, regardless of what the gap report says.
+          fail-on-regression: 'false'
+          emit-oscal-ar: 'true'
+          # Sigstore is intentionally OFF — Sigstore needs the runner
+          # to have id-token: write and a working OIDC binding, which
+          # is brittle to test in PR contexts. SLSA L3 + Sigstore are
+          # exercised by release.yml on tag push (covered separately
+          # by S3).
+          emit-sigstore-bundle: 'false'
+
+      - name: Verify expected outputs landed
+        # Strong-form drift detection: not just "did the action run"
+        # but "did each documented output exist + parse?". Catches
+        # silent regressions where the action runs to completion but
+        # produces malformed or missing artifacts.
+        run: |
+          set -e
+          OUT="${{ github.workspace }}/.evidentia-out"
+          ls -la "$OUT"
+
+          # gap-report.json — required output
+          test -f "$OUT/gap-report.json" \
+            || (echo "FAIL: gap-report.json missing" && exit 1)
+          .venv/bin/python -c "
+          import json
+          report = json.load(open('$OUT/gap-report.json'))
+          assert 'gaps' in report, 'gap-report.json missing gaps key'
+          print(f\"OK: gap-report.json — {len(report['gaps'])} gaps\")
+          "
+
+          # oscal-ar.json — emit-oscal-ar=true was requested
+          test -f "$OUT/oscal-ar.json" \
+            || (echo "FAIL: oscal-ar.json missing despite emit-oscal-ar=true" && exit 1)
+          .venv/bin/python -c "
+          import json
+          ar = json.load(open('$OUT/oscal-ar.json'))
+          assert 'assessment-results' in ar, 'oscal-ar.json not OSCAL AR'
+          print('OK: oscal-ar.json — valid OSCAL AR root')
+          "
+
+          echo ''
+          echo 'Smoke test PASSED.'
