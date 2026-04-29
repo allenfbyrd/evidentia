@@ -26,11 +26,13 @@
 #   - Security-Policy ✅ (SECURITY.md present)
 #   - Code-Review ✅ (PR-based + branch-protection on main)
 #
-# v0.7.2 work targets:
-#   - Pinned-Dependencies (S1 SHA-pin composite action third-party deps)
-#   - SAST (currently no CodeQL — add in a follow-up if Scorecard flags)
+# v0.7.2 shipped this workflow itself; v0.7.3 closes Pinned-Dependencies
+# by SHA-pinning every third-party action across the composite action +
+# all .github/workflows/*.yml files (S1 in docs/v0.7.3-plan.md).
+#   - Pinned-Dependencies — closed in v0.7.3 (S1)
+#   - SAST — currently no CodeQL; add in a follow-up if Scorecard flags
 #
-# This workflow is a v0.7.2 P0 deliverable per docs/v0.7.2-plan.md S4.
+# This workflow itself was a v0.7.2 P0 deliverable per docs/v0.7.2-plan.md S4.
 
 name: OpenSSF Scorecard
 
@@ -67,14 +69,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
         with:
           # full history needed for some Scorecard checks
           # (e.g., the Maintained check looks at commit cadence)
           persist-credentials: false
 
       - name: Run analysis
-        uses: ossf/scorecard-action@v2.4.0
+        uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46  # v2.4.0
         with:
           results_file: results.sarif
           results_format: sarif
@@ -85,13 +87,13 @@ jobs:
           publish_results: true
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: SARIF file
           path: results.sarif
           retention-days: 5
 
       - name: Upload to code-scanning dashboard
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@ce64ddcb0d8d890d2df4a9d1c04ff297367dea2a  # v3.35.2
         with:
           sarif_file: results.sarif

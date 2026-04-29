@@ -7,9 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Post-v0.7.2 hardening (operational + policy; no source changes):
+v0.7.3 in-flight scope (composite action hardening + docs polish +
+audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
+
+- **`.github/actions/gap-analysis/action.yml`** — all four
+  third-party actions SHA-pinned to specific 40-char commit SHAs
+  with the pinned-version recorded in trailing comments
+  (`@<sha> # vX.Y.Z`). Closes the OpenSSF Scorecard
+  ["Pinned-Dependencies"](https://scorecard.dev/checks#pinned-dependencies)
+  check for the composite action consumed by downstream audit
+  pipelines: `actions/setup-python` v5.6.0,
+  `actions/cache` v4.3.0,
+  `marocchino/sticky-pull-request-comment` v2.9.4, and
+  `actions/upload-artifact` v4.6.2. Dependabot's
+  `github-actions` ecosystem (added in v0.7.2 post-audit hardening)
+  opens grouped weekly PRs to advance the pins; review release
+  notes per PR before merge. v0.7.3 P0 S1 per
+  [`docs/v0.7.3-plan.md`](docs/v0.7.3-plan.md).
+- **`.github/workflows/*.yml`** — same SHA-pinning treatment
+  extended across every workflow file in the repo so the
+  Scorecard score reflects end-to-end pinned dependencies, not
+  just the externally-consumed composite action. Affected
+  workflows: `catalog-refresh.yml`, `evidentia.yml`,
+  `release.yml`, `scorecard.yml`, `test.yml`. Pinned actions:
+  `actions/checkout` v4.3.1, `astral-sh/setup-uv` v3.2.4,
+  `actions/github-script` v7.1.0, `actions/setup-node` v4.4.0,
+  `softprops/action-gh-release` v2.6.2,
+  `ossf/scorecard-action` v2.4.0,
+  `github/codeql-action/upload-sarif` v3.35.2, plus the four
+  also used by the composite action. Total: 28 pinned refs across
+  6 files. The single remaining major-version-tag-pinned ref
+  (`pypa/gh-action-pypi-publish@release/v1`) is the documented
+  PyPA pattern for trusted-publisher OIDC publishes — the
+  release branch is maintainer-controlled and Scorecard accepts
+  it as a known-secure case.
 
 - **`SECURITY.md`** — vulnerability disclosure policy at the repo
   root (rendered under the GitHub Security tab + linked from the
