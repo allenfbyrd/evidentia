@@ -12,6 +12,24 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`docs/v0.8.0-plan.md`** — forward-looking release plan for the
+  v0.8.0 "OSS-native AI moat" minor (v0.7.3 P1 deliverable DOC2).
+  Scopes the differentiation features sketched in
+  [`positioning-and-value.md`](docs/positioning-and-value.md) §13.2
+  into a single ~3-month minor: DFAH determinism harness
+  (`evidentia eval`), Policy Reasoning Traces mode
+  (`evidentia risk generate --emit-trace`), MCP server
+  (`evidentia mcp serve`), and a stable plugin contract
+  (`AuthProvider` / `StorageBackend` / `MarketplaceProvider`) for
+  out-of-tree extension authors. P1 closes enterprise-grade
+  follow-ups (mutation testing, property-based tests, Prometheus
+  `/metrics`, reproducible builds, perf benchmarks doc, anti-tamper
+  guidance doc). P2 carries optional / community items
+  (DSE preview, evidentia-catalogs split, HF benchmark dataset).
+- **`docs/ROADMAP.md`** — adds a v0.8.0 PLANNED section pointing
+  at the new plan file, and a v0.9.0 RESERVED section for the
+  federal-compliance capability work (POA&M, CONMON cycle
+  calendar) informed by domain-expert input.
 - **`.github/workflows/release.yml`** — SLSA L3 build provenance
   attestation step (v0.7.3 P0 S3) via
   `actions/attest-build-provenance@v2.4.0`. Generated after the

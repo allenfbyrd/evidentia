@@ -313,6 +313,39 @@ dev container). P2: optional/community items (Okta, ServiceNow,
 Vanta/Drata, OSCAL Plugfest, multi-industry sample data) carry forward.
 2-4 week ship target.
 
+## v0.8.0 — The OSS-native AI moat — PLANNED
+
+See [`docs/v0.8.0-plan.md`](v0.8.0-plan.md) for the full plan. Theme:
+the differentiation features that no commercial GRC vendor offers
+today. P0: DFAH determinism harness for risk-statement generation
+(`evidentia eval`) + Policy Reasoning Traces mode
+(`evidentia risk generate --emit-trace`) + MCP server
+(`evidentia mcp serve`) exposing Evidentia's library surface to AI
+agents + plugin-contract scaffolding (AuthProvider / StorageBackend
+/ MarketplaceProvider) for out-of-tree extension authors. P1:
+mutation-testing CI gate, property-based tests, Prometheus
+`/metrics`, reproducible build target, `evidentia oscal export
+--bundle-for-auditor` workflow, `evidentia trust-center` static-site
+generator (preview), `docs/benchmarks.md`, `docs/evidence-integrity.md`.
+P2: DSE evidence-validator preview, `evidentia-catalogs` standalone
+repo split, Hugging Face benchmark dataset publication. ~3 month
+ship target.
+
+## v0.9.0 — Federal compliance — RESERVED
+
+Theme reserved for federal-compliance capability work informed by
+domain-expert input on FedRAMP / FISMA / NIST 800-53 (CA-5 / CA-7 /
+significant-change request) workflows. Likely scope candidates:
+OSCAL POA&M (Plan of Action and Milestones) emit + auto-generation
+from gap-analysis findings, manageable POA&M tracking primitives
+(state model + milestones + cycle-diff), CONMON (Continuous
+Monitoring) cycle calendar — read-only library + CLI listing
+upcoming monthly / quarterly / annual control cadence per
+framework. Walk-through with the contributing domain expert
+scheduled before v0.9.0 scope-lock to confirm which surfaces +
+which scenario library to test against. Plan file lands during
+the v0.8.0 cycle. ~3 month ship target after v0.8.0 ships.
+
 ## v0.7.0+ — Quality signals, more integrations, UI polish
 
 ### Risk-statement quality validator
