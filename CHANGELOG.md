@@ -12,6 +12,26 @@ audit cleanup) plus post-v0.7.2 hardening (operational + policy):
 
 ### Added
 
+- **`.github/workflows/release.yml`** — SLSA L3 build provenance
+  attestation step (v0.7.3 P0 S3) via
+  `actions/attest-build-provenance@v2.4.0`. Generated after the
+  build + CycloneDX SBOM steps so a single attestation covers the
+  6 wheels + 6 sdists + the SBOM. Stored under the repo's
+  Attestations endpoint and verifiable by consumers via
+  `gh attestation verify dist/<wheel> -R allenfbyrd/evidentia`.
+  This is the SLSA-path verifier; the PEP 740 PyPI path
+  (`pypi-attestations verify pypi`) continues to work
+  independently. Closes the H2 enterprise-grade item ("SLSA L2+
+  reproducible builds + SBOM") and restores `gh attestation verify`
+  as a working verifier alongside the PEP 740 path. Adds
+  `attestations: write` to the publish-pypi job permissions.
+- **`docs/release-checklist.md` Step 9** (DOC1) — split the
+  post-release verification block into two clearly-labeled
+  verifier paths: PEP 740 (`pypi-attestations verify pypi`) for
+  per-file PyPI attestations, and SLSA L3
+  (`gh attestation verify`) for the build-provenance attestation
+  added by S3. Documents the predicate difference so future
+  reviewers know which verifier handles which path.
 - **`.github/workflows/action-smoke-test.yml`** — composite-action
   E2E smoke test (v0.7.3 P0 S2). Runs the consumer-facing
   `./.github/actions/gap-analysis` against the bundled Meridian

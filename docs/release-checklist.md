@@ -239,24 +239,35 @@ Within 30 minutes of `release.yml` reporting success:
       `https://pypi.org/project/<name>/`.
 - [ ] PyPI per-file pages show the "Provenance" / PEP 740 attestation
       section with the GitHub Actions workflow URL + commit SHA.
-- [ ] **Verify PEP 740 publish attestations** — primary verifier:
+- [ ] **Verify PEP 740 publish attestations (PyPI path)** — primary
+      verifier for the per-file Sigstore-signed PEP 740 attestation
+      that PyPA's publish action uploads alongside each wheel/sdist:
       ```bash
       uvx pypi-attestations verify pypi \
           --repository https://github.com/allenfbyrd/evidentia \
           "pypi:evidentia_core-X.Y.Z-py3-none-any.whl"
       ```
       Repeat for the other 5 wheels. Expect `OK: <wheel>`.
-      **Do NOT use `gh attestation verify` for this** — that command
-      defaults to looking for SLSA provenance v1 predicate, which
-      v0.7.0/v0.7.1/v0.7.2 PEP 740 publish attestations don't emit
-      (they use the `https://docs.pypi.org/attestations/publish/v1`
-      predicate instead). `gh attestation verify` returns HTTP 404
-      against PEP 740 publish attestations until SLSA L3 build
-      provenance is added (planned for v0.7.3 S3 — see
-      `docs/v0.7.3-plan.md`). After that, both verifiers will work
-      and the line below should be re-enabled.
-- [ ] (Re-enabled v0.7.3+) `gh attestation verify dist/evidentia_core-X.Y.Z-py3-none-any.whl -R allenfbyrd/evidentia`
-      returns valid (validates the SLSA-path attestation).
+      `gh attestation verify` does NOT validate this — it defaults
+      to the SLSA provenance v1 predicate, while PEP 740 publish
+      attestations use `https://docs.pypi.org/attestations/publish/v1`.
+      Use the SLSA-path verifier below for `gh attestation verify`.
+- [ ] **Verify SLSA L3 build provenance (GitHub path)** — secondary
+      verifier covering the build-provenance attestation that
+      `actions/attest-build-provenance` stores under the repo's
+      Attestations endpoint (added in v0.7.3 S3 per
+      [`docs/v0.7.3-plan.md`](v0.7.3-plan.md)):
+      ```bash
+      gh attestation verify dist/evidentia_core-X.Y.Z-py3-none-any.whl \
+          -R allenfbyrd/evidentia
+      ```
+      Expect `Loaded digest sha256:... ` and `OK`. The same command
+      also validates the CycloneDX SBOM's attestation
+      (`gh attestation verify evidentia-sbom.cdx.json -R allenfbyrd/evidentia`).
+      Pre-v0.7.3 releases (v0.7.0/v0.7.1/v0.7.2) return HTTP 404
+      because they emit only the PEP 740 publish predicate; only
+      v0.7.3+ releases carry the SLSA build-provenance predicate
+      that `gh attestation verify` looks for.
 - [ ] CycloneDX SBOM attached to the GitHub Release.
 - [ ] CHANGELOG entry renders correctly on GitHub.
 - [ ] `pip install evidentia==X.Y.Z` from a clean venv succeeds; CLI

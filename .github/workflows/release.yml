@@ -28,7 +28,19 @@ jobs:
       # auto-enables PEP 740 attestations: every wheel + sdist is
       # Sigstore-signed with our OIDC identity and logged to Rekor,
       # with the attestation uploaded to PyPI alongside the file.
+      # v0.7.3: same id-token: write also covers
+      # actions/attest-build-provenance for the SLSA L3 build
+      # provenance attestation step below.
       id-token: write
+      # v0.7.3 (S3): attestations: write lets
+      # actions/attest-build-provenance store the SLSA build provenance
+      # under repos/<org>/<repo>/attestations so that
+      # `gh attestation verify` can resolve it for any artifact in this
+      # release. Closes the H2 enterprise-grade item ("SLSA L2+
+      # reproducible builds + SBOM") and restores `gh attestation
+      # verify dist/<wheel>` as a working verifier alongside
+      # `pypi-attestations verify pypi` (the PEP 740 verifier path).
+      attestations: write
 
     steps:
       - name: Checkout
@@ -119,6 +131,27 @@ jobs:
           print(f\"specVersion: {sbom.get('specVersion')}\")
           print(f\"components: {len(sbom.get('components', []))}\")
           "
+
+      # v0.7.3 (S3): SLSA L3 build provenance attestation. Generated
+      # AFTER both `uv build` (the wheels + sdists in dist/) and the
+      # CycloneDX SBOM step so a single attestation covers all release
+      # artifacts. Stored under
+      # https://github.com/allenfbyrd/evidentia/attestations and
+      # verified by consumers via:
+      #   gh attestation verify dist/<wheel> -R allenfbyrd/evidentia
+      # This is the SLSA path; the PEP 740 path
+      # (`pypi-attestations verify pypi`) continues to work
+      # independently via pypa/gh-action-pypi-publish below.
+      - name: Generate SLSA build provenance attestation
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be  # v2.4.0
+        with:
+          # Subject globs cover both the published artifacts and the
+          # SBOM that travels with the GitHub Release. Newline-
+          # separated per the action's input contract.
+          subject-path: |
+            dist/*.whl
+            dist/*.tar.gz
+            evidentia-sbom.cdx.json
 
       - name: Publish to PyPI via Trusted Publisher (OIDC)
         # v0.7.0: migrated from long-lived PYPI_API_TOKEN to PyPI
