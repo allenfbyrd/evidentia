@@ -25,7 +25,12 @@ from evidentia_core.models.common import EvidentiaModel
 # dotted, upper-case form for storage/lookup so either input convention
 # resolves the same control. Added in v0.2.1 when bundling the full NIST
 # OSCAL catalog revealed the dual-convention mismatch.
-_PAREN_TO_DOT = re.compile(r"\(([^)]+)\)")
+#
+# The inner class is ``[^()]`` (excludes both parens) and is bounded to
+# 16 characters so the engine can't backtrack quadratically on
+# pathological input like ``((((((((((`` — the bound matches real-world
+# control IDs (longest enhancement is < 8 chars: ``(a)(1)(b)``).
+_PAREN_TO_DOT = re.compile(r"\(([^()]{1,16})\)")
 
 
 def _normalize_control_id(raw: str) -> str:
