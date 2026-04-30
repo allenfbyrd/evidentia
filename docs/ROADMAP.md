@@ -374,6 +374,19 @@ schema change history) to NIST 800-53 controls AC-2 / AC-3 / AC-6
 collector + ServiceNow integration + a benchmark re-run. ~6-8 week
 ship target.
 
+## v0.7.8 — Cloud data-warehouse collectors + BI integrations — PLANNED
+
+See [`docs/v0.7.8-plan.md`](v0.7.8-plan.md). Extends the v0.7.7
+relational-DB evidence layer into modern cloud data warehouses
+(Databricks, Snowflake) and adds the first BI output integrations
+(Tableau, Power BI). Each cloud-DW adapter maps to the same
+NIST 800-53 control families as the SQL adapters. The Tableau +
+Power BI integrations push compliance datasets (gap reports + risk
+register) to enterprise BI surfaces, positioning Evidentia as the
+OSS evidence-feed beneath dashboards risk officers + audit
+committees + boards already consume. Ships starter Tableau
+workbook + Power BI report templates. ~6-8 week ship target.
+
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 
 See [`docs/v0.8.0-plan.md`](v0.8.0-plan.md) for the full plan. Theme:
