@@ -7,8 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-v0.7.3 in-flight scope (composite action hardening + docs polish +
-audit cleanup) plus post-v0.7.2 hardening (operational + policy):
+## [0.7.3] - 2026-04-29
+
+**The composite action hardening + docs polish release.** Closes the
+OpenSSF Scorecard "Pinned-Dependencies" check end-to-end (28
+SHA-pinned `uses:` refs across the composite action + every workflow
+file), adds a composite-action E2E smoke test that catches future
+action.yml ↔ CLI drift, lands SLSA L3 build provenance via
+`actions/attest-build-provenance@v2.4.0` (restoring
+`gh attestation verify` as a working verifier alongside
+`pypi-attestations verify pypi`), publishes the forward
+[`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md) (the OSS-native AI
+moat) + [`docs/sigstore-quickstart.md`](docs/sigstore-quickstart.md)
+end-to-end walkthrough, lands `.pre-commit-config.yaml` +
+`.devcontainer/devcontainer.json` (closing the two outstanding
+promises in `docs/ide-setup.md`), and ships a non-publishing
+container-image build workflow + `Dockerfile` (lightweight close
+of enterprise-grade L1; full ghcr.io publishing gated to a future
+release with cosign signing).
+
+Also closes the v0.7.2-deferred frontend dev-tree CVE alerts —
+coordinated `vite`/`vitest`/`@vitejs/plugin-react` bump past the
+plugin-react peer-chain block; `npm audit` reports 0 vulnerabilities
+in both production and full trees (was 7 moderate).
+
+**965 tests passing** + 8 environmental skips on local Windows
+(GnuPG entropy + Sigstore CI-OIDC; full pass on Linux CI per
+v0.7.2 baseline); mypy strict clean (86 source files); ruff lint
+clean.
+
+This release also lands per-release follow-up items: A6 README
+version-history truncation, A10 `CITATION.cff` (Citation File Format
+1.2.0 metadata for the GitHub "Cite this repository" widget), B4
+release-checklist refresh, A3 the frontend dev-stack CVE bumps. A2
+release-note backfill for v0.7.0/v0.7.1, A4 local-only
+pre-rewrite-backup ref cleanup, A5 stale-issue closure all
+verified-complete during the v0.7.3 cycle. A1 `/security-review`
+ran clean (zero HIGH/MEDIUM findings).
+
+The DOC4 architecture-plan refresh adds a single "Updates since
+v0.7.0" callout block to
+[`Evidentia-Architecture-and-Implementation-Plan.md`](Evidentia-Architecture-and-Implementation-Plan.md)
+covering v0.7.1 AI hardening + v0.7.2 supply-chain visibility +
+v0.7.3 composite-action hardening + v0.8.0+ forward direction.
+Document body unchanged.
 
 ### Added
 

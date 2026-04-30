@@ -142,6 +142,23 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.7.3 (April 2026)** — *composite action hardening + docs
+polish*. Closes the OpenSSF Scorecard "Pinned-Dependencies" check
+end-to-end (28 SHA-pinned `uses:` refs across the composite action
++ every workflow file), adds composite-action E2E smoke testing
+that catches future action.yml ↔ CLI drift, lands SLSA L3 build
+provenance via `actions/attest-build-provenance@v2.4.0` (restoring
+`gh attestation verify` as a working verifier alongside
+`pypi-attestations verify pypi`). Publishes
+[docs/v0.8.0-plan.md](docs/v0.8.0-plan.md) (the OSS-native AI
+moat — DFAH determinism harness, PRT mode, MCP server,
+plugin-contract scaffolding) and
+[docs/sigstore-quickstart.md](docs/sigstore-quickstart.md). Lands
+pre-commit hooks + dev container, container-image build smoke
+test + Dockerfile, frontend dev-stack CVE bumps (vite + vitest +
+plugin-react). Ship summary:
+[docs/v0.7.3-plan.md](docs/v0.7.3-plan.md).
+
 **v0.7.2 (April 2026)** — *supply-chain polish + documentation
 refresh*. OpenSSF Scorecard weekly workflow publishing to
 [securityscorecards.dev](https://securityscorecards.dev/),
@@ -161,19 +178,6 @@ on every generated artifact (sibling of `CollectionContext`), 9 new
 timeout), and `run_id`-correlated audit trails so SIEM operators can
 join AI failures + retries + successes by namespace. Ship summary:
 [docs/v0.7.1-plan.md](docs/v0.7.1-plan.md).
-
-**v0.7.0 (April 2026)** — *enterprise-grade*. Closes all 10 BLOCKER
-items in [docs/enterprise-grade.md](docs/enterprise-grade.md):
-Sigstore/Rekor signing, CycloneDX SBOM on every release, PyPI Trusted
-Publishers (OIDC) with PEP 740 attestations, OSCAL Assessment Results
-schema conformance via
-[trestle](https://github.com/oscal-compass/compliance-trestle),
-AWS IAM Access Analyzer + GitHub Dependabot collectors, ECS-8.11 /
-NIST-AU-3 / OpenTelemetry structured logs, and a consolidated GitHub
-Action at `.github/actions/gap-analysis/`. The six v0.5.1
-`controlbridge-*` deprecation shims are removed per the public
-migration contract — historical context in
-[RENAMED.md](RENAMED.md).
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full version history
 (v0.1.0 through v0.7.2). For forward direction, see

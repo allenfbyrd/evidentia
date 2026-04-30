@@ -299,19 +299,36 @@ inventory.
 v0.7.1 baseline); mypy strict clean (98 source files); ruff lint
 clean.
 
-## v0.7.3 — Composite action hardening + sample-data expansion — NEXT
+## v0.7.3 — Composite action hardening + docs polish — SHIPPED
 
 See [`docs/v0.7.3-plan.md`](v0.7.3-plan.md) for the full plan. Theme:
 finishes the v0.7.1-plan-originated supply-chain items that didn't
-make v0.7.2. P0: SHA-pin composite action third-party deps + composite
-action E2E smoke test workflow + SLSA L3 build provenance via
-`actions/attest-build-provenance@v2`. P1: docs polish (release-checklist
-verifier-note for `pypi-attestations`, v0.8.0-plan draft,
-sigstore-quickstart walkthrough, conditional architecture-plan
-refresh, quarterly positioning re-sync target Q3, pre-commit hooks,
-dev container). P2: optional/community items (Okta, ServiceNow,
-Vanta/Drata, OSCAL Plugfest, multi-industry sample data) carry forward.
-2-4 week ship target.
+make v0.7.2. P0 SHIPPED: SHA-pin every third-party action across the
+composite action + every workflow file (28 pinned refs), composite
+action E2E smoke test workflow against the Meridian fixture, SLSA L3
+build provenance via `actions/attest-build-provenance@v2.4.0`. P1
+SHIPPED: release-checklist verifier-note refresh, `docs/v0.8.0-plan.md`
+forward release plan, `docs/sigstore-quickstart.md` end-to-end
+walkthrough, architecture-plan "Updates since v0.7.0" callout block,
+`.pre-commit-config.yaml` + companion `.yamllint` + `.markdownlint.yaml`,
+`.devcontainer/devcontainer.json`. DOC5 quarterly positioning re-sync
+deferred to v0.7.4+ (Q3 cadence). Audit-cleanup items A6 README
+truncation + A10 CITATION.cff + B4 release-checklist refresh + A3
+frontend dev-stack CVE bumps (vite + vitest + plugin-react) +
+B2 lightweight container image (Dockerfile + non-publishing CI smoke
+test) all landed. P2 community items (Okta, ServiceNow, Vanta/Drata,
+OSCAL Plugfest, multi-industry sample data) carry forward to v0.7.4+.
+
+## v0.7.4 — Container publish + remaining audit-cleanup carry-forward — NEXT
+
+See [`docs/v0.7.4-plan.md`](v0.7.4-plan.md) (drafted at v0.7.3 ship
+time as the forward plan). Headline candidates: full container
+image publish to `ghcr.io/allenfbyrd/evidentia` with cosign keyless
+OIDC signing + tag-triggered `release-container.yml`, DOC5 quarterly
+`docs/positioning-and-value.md` re-sync (Q3 2026 cadence target),
+pre-existing `oscal verify` UX clarity fix when invoked against an
+AR with no embedded evidence and no signature. P2 community items
+carry forward.
 
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 
