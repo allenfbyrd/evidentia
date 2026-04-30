@@ -362,6 +362,18 @@ measurement run (`docs/benchmarks.md` v1), publishes
 `docs/quickstart.md` (90-second flow), and runs a `/security-review`
 deep-pass threat-model walk. ~4-5 week ship target.
 
+## v0.7.7 — SQL family evidence collectors — PLANNED
+
+See [`docs/v0.7.7-plan.md`](v0.7.7-plan.md). First substantive
+new-collector release since v0.5.0. Adds 5 SQL-family adapters as
+`evidentia-collectors[sql-{postgres,mysql,sqlite,mssql,oracle}]`
+extras — read-only collectors mapping DB-resident compliance
+evidence (user privileges, audit-log status, encryption posture,
+schema change history) to NIST 800-53 controls AC-2 / AC-3 / AC-6
+/ AU-2 / AU-3 / SC-12 / SC-28. Plus the carried-forward Okta
+collector + ServiceNow integration + a benchmark re-run. ~6-8 week
+ship target.
+
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 
 See [`docs/v0.8.0-plan.md`](v0.8.0-plan.md) for the full plan. Theme:
