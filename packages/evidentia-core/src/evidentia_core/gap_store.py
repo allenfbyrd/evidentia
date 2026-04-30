@@ -33,10 +33,41 @@ from pathlib import Path
 from platformdirs import user_data_dir
 
 from evidentia_core.models.gap import GapAnalysisReport
+from evidentia_core.security.paths import (
+    PathTraversalError,
+    validate_within,
+)
 
 logger = logging.getLogger(__name__)
 
 GAP_STORE_ENV_VAR = "EVIDENTIA_GAP_STORE_DIR"
+
+REPORT_KEY_HEX_CHARS = frozenset("0123456789abcdef")
+REPORT_KEY_LENGTH = 16
+
+
+class InvalidReportKeyError(ValueError):
+    """Raised when a candidate report key fails the shape check.
+
+    Subclasses :class:`ValueError` so existing ``except ValueError``
+    handlers continue to work.
+    """
+
+
+def _validate_key_shape(key: str) -> None:
+    """Reject keys that don't match the ``sha256-16hex`` format.
+
+    The shape is ``[0-9a-f]{16}`` — same as the output of
+    :func:`_compute_key`. Anything else (length mismatch, uppercase
+    letters, non-hex characters, ``..`` segments, path separators)
+    raises :class:`InvalidReportKeyError`.
+    """
+    if len(key) != REPORT_KEY_LENGTH or not all(
+        c in REPORT_KEY_HEX_CHARS for c in key
+    ):
+        raise InvalidReportKeyError(
+            "Invalid report key format (expected 16 hex characters)."
+        )
 
 
 def get_gap_store_dir(override: Path | None = None) -> Path:
@@ -125,3 +156,43 @@ def list_reports(
     if not store.exists():
         return []
     return sorted(store.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+
+
+def load_report_by_key(
+    key: str,
+    gap_store_dir: Path | None = None,
+) -> GapAnalysisReport | None:
+    """Load a saved gap report by its 16-hex-char key.
+
+    Validates the key shape and confirms the resolved path lies within
+    the store directory before reading. Returns ``None`` if the
+    well-formed key does not correspond to a stored report. Raises
+    :class:`InvalidReportKeyError` on shape violation and
+    :class:`evidentia_core.security.paths.PathTraversalError` on
+    resolved-path violation (which the shape check should already have
+    rejected — the path check is belt-and-suspenders).
+
+    API + CLI callers wrap the two error types with their own
+    user-facing 4xx / non-zero-exit translation.
+    """
+    _validate_key_shape(key)
+    store = get_gap_store_dir(gap_store_dir)
+    candidate = store / f"{key}.json"
+    path = validate_within(candidate, store)
+    if not path.is_file():
+        return None
+    return GapAnalysisReport.model_validate_json(
+        path.read_text(encoding="utf-8")
+    )
+
+
+__all__ = [
+    "GAP_STORE_ENV_VAR",
+    "InvalidReportKeyError",
+    "PathTraversalError",
+    "get_gap_store_dir",
+    "list_reports",
+    "load_latest_report",
+    "load_report_by_key",
+    "save_report",
+]

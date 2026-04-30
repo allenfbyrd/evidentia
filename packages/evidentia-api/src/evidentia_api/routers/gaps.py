@@ -21,12 +21,18 @@ from evidentia_core.gap_analyzer.analyzer import GapAnalyzer
 from evidentia_core.gap_analyzer.inventory import load_inventory
 from evidentia_core.gap_diff import compute_gap_diff
 from evidentia_core.gap_store import (
+    InvalidReportKeyError,
     get_gap_store_dir,
     list_reports,
+    load_report_by_key,
     save_report,
 )
 from evidentia_core.models.gap import GapAnalysisReport
 from evidentia_core.models.gap_diff import GapDiff
+from evidentia_core.security.paths import (
+    PathTraversalError,
+    validate_within,
+)
 from fastapi import APIRouter, HTTPException
 
 from evidentia_api.schemas import GapAnalyzeRequest, GapDiffRequest
@@ -50,13 +56,18 @@ def _materialize_inventory_content(
     # A short-lived temp file handed to the caller; the caller unlinks it
     # after load_inventory() completes. A context manager would delete the
     # file on __exit__, which is the opposite of what we want.
+    tmp_root = Path(tempfile.gettempdir())
     fd = tempfile.NamedTemporaryFile(  # noqa: SIM115
-        mode="w", encoding="utf-8", suffix=suffix, delete=False
+        mode="w", encoding="utf-8", suffix=suffix, delete=False, dir=tmp_root
     )
     try:
         fd.write(content)
         fd.flush()
-        return Path(fd.name)
+        # tempfile.NamedTemporaryFile already returns a path inside the
+        # tmp dir; validate_within is the CodeQL-recognizable barrier
+        # that lets static analysis stop flagging downstream IO on this
+        # path as a path-injection sink.
+        return validate_within(Path(fd.name), tmp_root)
     finally:
         fd.close()
 
@@ -84,7 +95,18 @@ async def analyze(payload: GapAnalyzeRequest) -> GapAnalysisReport:
             inventory_source = tmp_path
         else:
             assert payload.inventory_path is not None
-            inventory_source = payload.inventory_path
+            # The inventory_path field is for CLI-adjacent use (a server
+            # invoked locally that loads from disk). For an API exposed
+            # to untrusted callers, restrict to paths inside the server's
+            # current working directory — operators who need to read
+            # inventories from elsewhere should pass inventory_content
+            # instead of inventory_path.
+            try:
+                inventory_source = validate_within(
+                    Path(payload.inventory_path), Path.cwd()
+                )
+            except PathTraversalError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         try:
             inventory = load_inventory(inventory_source)
@@ -143,19 +165,15 @@ async def get_reports() -> dict[str, object]:
 @router.get("/gap/reports/{key}", response_model=GapAnalysisReport)
 async def get_report(key: str) -> GapAnalysisReport:
     """Load a saved gap report by its storage key."""
-    # The key is ``sha256-16hex`` — validate shape defensively to prevent
-    # directory-traversal attacks via ``../`` segments.
-    if not all(c in "0123456789abcdef" for c in key) or len(key) != 16:
-        raise HTTPException(
-            status_code=422,
-            detail="Invalid report key format (expected 16 hex characters).",
-        )
-
-    path = get_gap_store_dir() / f"{key}.json"
-    if not path.is_file():
+    try:
+        report = load_report_by_key(key)
+    except InvalidReportKeyError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except PathTraversalError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if report is None:
         raise HTTPException(status_code=404, detail=f"Report {key} not found.")
-
-    return GapAnalysisReport.model_validate_json(path.read_text(encoding="utf-8"))
+    return report
 
 
 @router.post("/gap/diff", response_model=GapDiff)
@@ -166,25 +184,25 @@ async def diff(payload: GapDiffRequest) -> GapDiff:
     reports list, clicks "Compare", and the result drives the summary +
     per-entry table.
     """
-    store = get_gap_store_dir()
-
-    def valid(k: str) -> bool:
-        return all(c in "0123456789abcdef" for c in k) and len(k) == 16
-
+    loaded: dict[str, GapAnalysisReport] = {}
     for label, key in (("base", payload.base_key), ("head", payload.head_key)):
-        if not valid(key):
+        try:
+            report = load_report_by_key(key)
+        except InvalidReportKeyError as exc:
             raise HTTPException(
                 status_code=422,
-                detail=f"Invalid {label} key format (expected 16 hex characters).",
+                detail=f"Invalid {label} key: {exc}",
+            ) from exc
+        except PathTraversalError as exc:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid {label} key: {exc}",
+            ) from exc
+        if report is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"{label.capitalize()} report {key} not found.",
             )
+        loaded[label] = report
 
-    base_path = store / f"{payload.base_key}.json"
-    head_path = store / f"{payload.head_key}.json"
-    if not base_path.is_file():
-        raise HTTPException(status_code=404, detail=f"Base report {payload.base_key} not found.")
-    if not head_path.is_file():
-        raise HTTPException(status_code=404, detail=f"Head report {payload.head_key} not found.")
-
-    base = GapAnalysisReport.model_validate_json(base_path.read_text(encoding="utf-8"))
-    head = GapAnalysisReport.model_validate_json(head_path.read_text(encoding="utf-8"))
-    return compute_gap_diff(base, head)
+    return compute_gap_diff(loaded["base"], loaded["head"])

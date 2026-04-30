@@ -26,6 +26,10 @@ import logging
 import os
 from pathlib import Path
 
+from evidentia_core.security.paths import (
+    PathTraversalError,
+    validate_within,
+)
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -186,7 +190,14 @@ def _mount_spa(app: FastAPI) -> None:
             if full_path.startswith("api/"):
                 # Defensive — FastAPI routing should have caught these already.
                 return FileResponse(STATIC_DIR / "index.html", status_code=404)
-            target = STATIC_DIR / full_path
+            # full_path is user-controlled (URL path component). Validate
+            # the resolved candidate sits inside STATIC_DIR before
+            # serving — a request for ``../../etc/passwd`` resolves
+            # outside the static root and falls through to index.html.
+            try:
+                target = validate_within(STATIC_DIR / full_path, STATIC_DIR)
+            except PathTraversalError:
+                return FileResponse(STATIC_DIR / "index.html")
             if target.is_file():
                 return FileResponse(target)
             return FileResponse(STATIC_DIR / "index.html")

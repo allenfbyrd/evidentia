@@ -12,8 +12,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from evidentia_core.gap_store import get_gap_store_dir
+from evidentia_core.gap_store import (
+    InvalidReportKeyError,
+    load_report_by_key,
+)
 from evidentia_core.models.gap import GapAnalysisReport
+from evidentia_core.security.paths import PathTraversalError
 from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger(__name__)
@@ -21,17 +25,17 @@ router = APIRouter()
 
 
 def _load_report(key: str) -> GapAnalysisReport:
-    if not all(c in "0123456789abcdef" for c in key) or len(key) != 16:
+    try:
+        report = load_report_by_key(key)
+    except InvalidReportKeyError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except PathTraversalError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if report is None:
         raise HTTPException(
-            status_code=422,
-            detail="Invalid report key format (expected 16 hex characters).",
+            status_code=404, detail=f"Report {key} not found."
         )
-    path = get_gap_store_dir() / f"{key}.json"
-    if not path.is_file():
-        raise HTTPException(status_code=404, detail=f"Report {key} not found.")
-    return GapAnalysisReport.model_validate_json(
-        path.read_text(encoding="utf-8")
-    )
+    return report
 
 
 def _save_report(report: GapAnalysisReport) -> None:
