@@ -387,6 +387,36 @@ OSS evidence-feed beneath dashboards risk officers + audit
 committees + boards already consume. Ships starter Tableau
 workbook + Power BI report templates. ~6-8 week ship target.
 
+## v0.7.9 — Industry overlay (TPRM module + model risk + 7 new catalogs) — PLANNED
+
+See [`docs/v0.7.9-plan.md`](v0.7.9-plan.md). Largest single patch
+in the v0.7.x line. Brings Evidentia into the regulated
+financial-services compliance domain via two new top-level
+capability modules — `evidentia tprm` (Third-Party Risk
+Management: vendor inventory, due-diligence questionnaire
+generator with SIG/SIG-Lite/CAIQ output, concentration-risk
+reporting, vendor-risk collectors for Vanta/Drata/BitSight/
+SecurityScorecard, OSCAL TPRM model emit) and `evidentia
+model-risk` (model inventory schema, SR 11-7-aligned
+documentation generator, validation report templates, AI-feature
+linkage so every `risk generate` invocation is SR-11-7-traceable
+back to a model inventory entry). Plus 7 new bundled catalogs
+(all Tier A — public-domain regulatory publications): FFIEC IT
+Examination Handbook (Information Security, Audit, Management,
+Operations, Outsourcing booklets), OCC Bulletin 2011-12 / FRB SR
+11-7 (Model Risk Management), FFIEC Cybersecurity Assessment
+Tool. Plus audit-chain-of-custody enhancements: retention metadata
+on `CollectionContext`, WORM backend support (S3 Object Lock,
+Azure Immutable Blob, GCS Bucket Lock). Total bundled catalogs
+goes from 82 → 89. ~8-10 week ship target.
+
+## v0.7.9.x — Patches + bridge to v0.8.0 — RESERVED
+
+Reserved patch window for hot-fixes surfacing during v0.7.7-v0.7.9
+dogfooding, domain-expert walk-through scheduling for the v0.9.0
+federal-compliance theme (CONMON + POA&M), and final polish
+before the v0.8.0 AI moat work begins. ~2-4 week reservation.
+
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 
 See [`docs/v0.8.0-plan.md`](v0.8.0-plan.md) for the full plan. Theme:
