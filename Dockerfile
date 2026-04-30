@@ -22,7 +22,7 @@
 # Publishing to `ghcr.io/allenfbyrd/evidentia` is gated to a future
 # release that explicitly opts in.
 
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # System dependencies kept minimal:
 # - ca-certificates for HTTPS (PyPI, OSCAL catalog mirrors, Sigstore)
