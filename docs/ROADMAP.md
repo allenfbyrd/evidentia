@@ -351,6 +351,17 @@ Original P0 (container publish + cosign + SLSA) and P1 (R1
 quarterly resync, R2 oscal verify UX) carry forward unchanged.
 ~5-7 week ship target.
 
+## v0.7.6 — UI alpha.2 + benchmark design + quickstart polish — PLANNED
+
+See [`docs/v0.7.6-plan.md`](v0.7.6-plan.md). Closes the alpha.2
+UI completion gap that's been outstanding since v0.4.0 (Gap Analyze
+form, Gap Diff picker, Risk Generate streaming page, README
+screenshots), runs the deferred quarterly research-resync if Q3
+cadence has arrived, lands the performance benchmark design + first
+measurement run (`docs/benchmarks.md` v1), publishes
+`docs/quickstart.md` (90-second flow), and runs a `/security-review`
+deep-pass threat-model walk. ~4-5 week ship target.
+
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 
 See [`docs/v0.8.0-plan.md`](v0.8.0-plan.md) for the full plan. Theme:
