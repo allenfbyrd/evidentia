@@ -133,14 +133,12 @@ jobs:
 
       - name: Install frontend deps
         working-directory: packages/evidentia-ui
-        # Use `npm install` on first CI run before a package-lock.json is
-        # generated; falls back to `npm ci` when the lockfile exists.
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci --no-audit --no-fund
-          else
-            npm install --no-audit --no-fund
-          fi
+        # Always `npm ci` — the repo commits package-lock.json so the
+        # fallback `npm install` branch is unreachable in CI. Removing
+        # it satisfies OpenSSF Scorecard's Pinned-Dependencies signal
+        # (`npm install` resolves "latest" of every dep at run-time;
+        # `npm ci` strictly honors the committed lockfile).
+        run: npm ci --no-audit --no-fund
 
       - name: TypeScript typecheck
         working-directory: packages/evidentia-ui

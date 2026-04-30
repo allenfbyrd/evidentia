@@ -22,7 +22,7 @@
 # Publishing to `ghcr.io/allenfbyrd/evidentia` is gated to a future
 # release that explicitly opts in.
 
-FROM python:3.12-slim
+FROM python:3.12-slim@sha256:46cb7cc2877e60fbd5e21a9ae6115c30ace7a077b9f8772da879e4590c18c2e3
 
 # System dependencies kept minimal:
 # - ca-certificates for HTTPS (PyPI, OSCAL catalog mirrors, Sigstore)
@@ -53,10 +53,13 @@ WORKDIR /home/evidentia
 # `evidentia serve` works out of the box; ~50 MB extra for the
 # bundled SPA + FastAPI deps.
 #
-# `--no-cache-dir` keeps the image lean. The version pin is the
-# floating 0.7.x range so security patches roll in on rebuild;
-# pin to an exact version downstream if you need reproducibility.
-RUN pip install --no-cache-dir --user "evidentia[gui]>=0.7,<0.8"
+# `--no-cache-dir` keeps the image lean. Pinned to the exact current
+# release (no floating range) so each image build is reproducible
+# byte-for-byte for the same Dockerfile + base-image-digest pair.
+# Bumped on every release that ships a Dockerfile change; dependabot
+# tracks the upstream evidentia release via the `uv` ecosystem and
+# tracks this Dockerfile pin via the `docker` ecosystem.
+RUN pip install --no-cache-dir --user "evidentia[gui]==0.7.4"
 
 # Put the user-installed `evidentia` entrypoint on PATH.
 ENV PATH="/home/evidentia/.local/bin:${PATH}"

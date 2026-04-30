@@ -60,7 +60,11 @@ jobs:
         # source as the one actually exercised.
         run: |
           uv sync --all-packages
-          .venv/bin/python -m pip install -e packages/evidentia-core
+          # Editable install of the local source; --no-deps because
+          # uv sync already locked + installed every dep from uv.lock.
+          # No PyPI fetch happens here, so OpenSSF Scorecard's
+          # Pinned-Dependencies signal is satisfied.
+          .venv/bin/python -m pip install -e packages/evidentia-core --no-deps
           .venv/bin/evidentia version
           # Make the uv venv the default Python for downstream steps,
           # so the composite action's `python -m pip install` and

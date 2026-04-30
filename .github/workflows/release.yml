@@ -165,7 +165,7 @@ jobs:
         # `attestations: true` is the action's default since v1.11+
         # (Nov 2024) when Trusted Publisher mode is detected, so PEP 740
         # Sigstore attestations are produced automatically.
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b  # release/v1
         with:
           packages-dir: dist/
           # skip-existing: true so re-runs after partial publishes
