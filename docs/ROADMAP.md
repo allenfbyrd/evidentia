@@ -335,18 +335,21 @@ Dockerfile-touching releases catch this class of bug pre-tag.
 All v0.7.3 PyPI artifacts (wheels, SBOM, attestations) carry
 forward unchanged. See `CHANGELOG.md` `[0.7.4]` block.
 
-## v0.7.5 — Container publish + remaining audit-cleanup carry-forward — NEXT
+## v0.7.5 — Container publish + critical security batch + quick-win polish — NEXT
 
-See [`docs/v0.7.5-plan.md`](v0.7.5-plan.md) (renumbered from
-v0.7.4-plan at v0.7.4 hot-fix ship time; the originally-planned
-v0.7.4 scope is now v0.7.5 since v0.7.4 was consumed by the
-hot-fix). Headline candidates: full container image publish to
-`ghcr.io/allenfbyrd/evidentia` with cosign keyless OIDC signing +
-tag-triggered `release-container.yml`, DOC5 quarterly
-`docs/positioning-and-value.md` re-sync (Q3 2026 cadence target),
-pre-existing `oscal verify` UX clarity fix when invoked against
-an AR with no embedded evidence and no signature. P2 community
-items carry forward.
+See [`docs/v0.7.5-plan.md`](v0.7.5-plan.md). Renumbered from
+v0.7.4-plan at v0.7.4 hot-fix ship time; **augmented 2026-04-29
+post-v0.7.4** with three new buckets: P0.5 critical-security
+batch (S1-S6 closing 14 HIGH `py/path-injection` + 1 HIGH
+`py/polynomial-redos` + 3 MEDIUM stack-trace exposure + 4 MEDIUM
+missing-workflow-permissions + 5 MEDIUM Pinned-Dependencies +
+2 HIGH URL-substring-sanitization review = ~20 of the 37 open
+code-scanning alerts), P0.6 Dependabot batch merge (5 currently
+open PRs), P0.7 quick-win polish (OpenSSF Best Practices Badge
+filing, `/api/health` hardening, `docs/troubleshooting.md`).
+Original P0 (container publish + cosign + SLSA) and P1 (R1
+quarterly resync, R2 oscal verify UX) carry forward unchanged.
+~5-7 week ship target.
 
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 
