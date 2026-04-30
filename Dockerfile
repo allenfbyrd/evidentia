@@ -70,7 +70,12 @@ ENV PYTHONUNBUFFERED=1 \
 EXPOSE 8000
 
 # Validate the install at build time so a broken image fails fast.
-RUN evidentia --version
+# Note: `evidentia version` is a SUBCOMMAND (not a `--version` flag) —
+# the Typer-driven CLI registers `version` alongside `init`, `doctor`,
+# `serve`, `gap`, `catalog`, `risk`, `explain`, `integrations`,
+# `collect`, `oscal`. Using `--version` here errors with "No such
+# option: --version Did you mean --verbose?".
+RUN evidentia version
 
 # Health check: hit the FastAPI server's /health endpoint. Honors
 # both the default port (8000) and the typical CMD override pattern.

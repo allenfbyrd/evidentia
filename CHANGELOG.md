@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-04-29
+
+**Same-day hot-fix release for v0.7.3.** Same-day patch correcting
+three wrong CLI invocations that shipped in v0.7.3's container-image
+work + an additional pre-existing wrong invocation in the composite
+action's install step (latent since v0.7.0; never surfaced because
+`.github/actions/gap-analysis/` was never externally consumed in
+CI before v0.7.3 added the smoke-test workflow).
+
+The Evidentia CLI registers `version` as a SUBCOMMAND (alongside
+`init`, `doctor`, `serve`, `gap`, `catalog`, `risk`, `explain`,
+`integrations`, `collect`, `oscal`) — not as a `--version` flag.
+The Typer-driven CLI errors with "No such option: --version Did
+you mean --verbose?" exit code 2 when invoked with the flag.
+Similarly the framework-catalog subcommand is `evidentia catalog`
+(not `evidentia frameworks`).
+
+### Fixed
+
+- **`Dockerfile` line 73**: `RUN evidentia --version` →
+  `RUN evidentia version`. The image build was failing with exit
+  code 2 in the v0.7.3 container-build.yml workflow on every push
+  to main + every PR touching the Dockerfile. **Validated**:
+  ran `docker build` locally during the v0.7.4 hot-fix cycle;
+  build now produces the v0.7.4 image clean. The 3 failing
+  container-build.yml runs from v0.7.3 push (run IDs `25142392128`
+  on push-to-main + `25142414837` + `25142442386` on dependabot
+  PRs) will succeed on next-trigger after this fix lands.
+- **`.github/workflows/container-build.yml`**:
+  `docker run --rm evidentia:smoke --version` →
+  `docker run --rm evidentia:smoke version`;
+  `evidentia frameworks list | head -10` →
+  `evidentia catalog list | head -10`. Workflow comment header
+  also updated to match the fixed invocations.
+- **`.github/actions/gap-analysis/action.yml` line 107**:
+  `evidentia --version` → `evidentia version`. Pre-existing bug
+  in the composite action's install step — latent since v0.7.0
+  but never exercised by any external consumer. Captured as part
+  of the v0.7.4 sweep so future composite-action consumers don't
+  hit it.
+- **`.github/workflows/action-smoke-test.yml` line 64**:
+  `.venv/bin/evidentia --version` → `.venv/bin/evidentia version`.
+  Same root cause; same fix.
+- **`.devcontainer/devcontainer.json` `postStartCommand`**:
+  `evidentia --version` → `evidentia version`. The `|| echo ...`
+  fallback was masking the failure but the line was still wrong.
+
+### Changed
+
+- **`docs/release-checklist.md` Step 5 — Test gate**: added a new
+  "**Local Docker build**" line. Any release that touches the
+  `Dockerfile` or `.github/workflows/container-build.yml` MUST
+  build the image locally before tag (`docker build -t
+  evidentia:rc .`) — the tag-triggered `release.yml` doesn't
+  exercise the Dockerfile, and the PR-triggered
+  `container-build.yml` only fires after push-to-main with
+  Dockerfile changes. The v0.7.3 ship missed this because the
+  Dockerfile was new in that release and no prior release-checklist
+  entry covered it. v0.7.4 closes the gap.
+
+### Carry-forward (unchanged from v0.7.3)
+
+PyPI artifacts (6 wheels + 6 sdists), CycloneDX SBOM, PEP 740
+attestations, SLSA L3 build provenance attestation, Sigstore
+keyless signing, all v0.7.3 features (composite action SHA-pinning,
+SLSA L3 release path, v0.8.0-plan, sigstore-quickstart,
+pre-commit hooks, dev container, frontend dep CVE bumps) carry
+forward unchanged.
+
+**965 tests passing** + 8 environmental skips (matches v0.7.3
+baseline); mypy strict clean (86 source files); ruff lint clean.
+
 ## [0.7.3] - 2026-04-29
 
 **The composite action hardening + docs polish release.** Closes the

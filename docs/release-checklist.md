@@ -136,6 +136,24 @@ uv build --all-packages
 uvx twine check dist/*
 ```
 
+**For releases that touch `Dockerfile` or
+`.github/workflows/container-build.yml`** — also run a local
+Docker build BEFORE tag. The tag-triggered `release.yml` doesn't
+exercise the Dockerfile, and the PR-triggered
+`container-build.yml` only fires after push-to-main with
+Dockerfile changes — meaning a broken `Dockerfile` will only
+surface in CI AFTER the tag has shipped. Added to the checklist
+in v0.7.4 after the v0.7.3 ship surfaced exactly this gap (3
+wrong CLI invocations in the Dockerfile + smoke-test workflow
+that the pre-tag gates didn't catch).
+
+```bash
+docker build -t evidentia:rc .
+docker run --rm evidentia:rc version          # expect "Evidentia vX.Y.Z"
+docker run --rm evidentia:rc catalog list     # expect framework table
+docker rmi evidentia:rc
+```
+
 Acceptance:
 
 - [ ] ruff: `All checks passed!`
@@ -145,6 +163,9 @@ Acceptance:
 - [ ] `uv build --all-packages`: 6 evidentia-* wheels + sdists at the
       new version (no shim wheels)
 - [ ] `uvx twine check dist/*`: every distribution PASSED
+- [ ] (If Dockerfile / container-build.yml touched) local
+      `docker build` succeeds; in-image `evidentia version` and
+      `evidentia catalog list` return expected output
 
 ---
 

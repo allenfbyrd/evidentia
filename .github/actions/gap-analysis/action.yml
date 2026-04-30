@@ -104,7 +104,7 @@ runs:
         else
           python -m pip install "evidentia-core${{ inputs.evidentia-version }}"
         fi
-        evidentia --version
+        evidentia version
 
     - name: Prepare output directory
       shell: bash

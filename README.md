@@ -142,6 +142,18 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.7.4 (April 2026)** — *same-day Dockerfile invocation
+hot-fix*. Corrects three wrong CLI invocations shipped in v0.7.3
+(`evidentia --version` → `evidentia version`; `evidentia
+frameworks list` → `evidentia catalog list`) plus a pre-existing
+latent same-pattern bug in the composite action's install step.
+v0.7.3's container-build.yml workflow was failing on every push
++ PR touching the Dockerfile; v0.7.4 unblocks that path. Adds a
+"local Docker build" line to `docs/release-checklist.md` Step 5
+so future Dockerfile-touching releases catch this class of bug
+pre-tag. All v0.7.3 PyPI artifacts (wheels, SBOM, attestations)
+carry forward unchanged.
+
 **v0.7.3 (April 2026)** — *composite action hardening + docs
 polish*. Closes the OpenSSF Scorecard "Pinned-Dependencies" check
 end-to-end (28 SHA-pinned `uses:` refs across the composite action
@@ -167,17 +179,6 @@ testing/validation inline, catalog-drift false-positive fix
 (PyYAML word-wrap deterministic emit + workflow
 `--ignore-all-space` guard), pre-release-review refinements pass.
 Ship summary: [docs/v0.7.2-plan.md](docs/v0.7.2-plan.md).
-
-**v0.7.1 (April 2026)** — *AI features hardening*. Brings
-`evidentia-ai` (`risk_statements/` + `explain/`) up to the v0.7.0
-collector-pattern enterprise grade. Adds `GenerationContext` metadata
-on every generated artifact (sibling of `CollectionContext`), 9 new
-`AI_*` `EventAction` entries, a typed exception hierarchy in
-`evidentia_ai.exceptions`, bounded retry against the shared
-`LLM_TRANSIENT_EXCEPTIONS` set (LiteLLM rate-limit + transport +
-timeout), and `run_id`-correlated audit trails so SIEM operators can
-join AI failures + retries + successes by namespace. Ship summary:
-[docs/v0.7.1-plan.md](docs/v0.7.1-plan.md).
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full version history
 (v0.1.0 through v0.7.2). For forward direction, see

@@ -319,16 +319,34 @@ B2 lightweight container image (Dockerfile + non-publishing CI smoke
 test) all landed. P2 community items (Okta, ServiceNow, Vanta/Drata,
 OSCAL Plugfest, multi-industry sample data) carry forward to v0.7.4+.
 
-## v0.7.4 — Container publish + remaining audit-cleanup carry-forward — NEXT
+## v0.7.4 — Dockerfile invocation hot-fix — SHIPPED
 
-See [`docs/v0.7.4-plan.md`](v0.7.4-plan.md) (drafted at v0.7.3 ship
-time as the forward plan). Headline candidates: full container
-image publish to `ghcr.io/allenfbyrd/evidentia` with cosign keyless
-OIDC signing + tag-triggered `release-container.yml`, DOC5 quarterly
+Same-day patch correcting three wrong CLI invocations shipped in
+v0.7.3's container-image work + an additional pre-existing latent
+same-pattern bug in the composite action's install step (latent
+since v0.7.0; never surfaced because the composite action was
+never externally consumed in CI before v0.7.3). The Evidentia CLI
+registers `version` as a SUBCOMMAND (alongside `init`, `doctor`,
+`serve`, `gap`, `catalog`, `risk`, etc.) — not as a `--version`
+flag. Similarly the framework-catalog subcommand is `evidentia
+catalog` (not `evidentia frameworks`). Adds a "local Docker build"
+line to `docs/release-checklist.md` Step 5 so future
+Dockerfile-touching releases catch this class of bug pre-tag.
+All v0.7.3 PyPI artifacts (wheels, SBOM, attestations) carry
+forward unchanged. See `CHANGELOG.md` `[0.7.4]` block.
+
+## v0.7.5 — Container publish + remaining audit-cleanup carry-forward — NEXT
+
+See [`docs/v0.7.5-plan.md`](v0.7.5-plan.md) (renumbered from
+v0.7.4-plan at v0.7.4 hot-fix ship time; the originally-planned
+v0.7.4 scope is now v0.7.5 since v0.7.4 was consumed by the
+hot-fix). Headline candidates: full container image publish to
+`ghcr.io/allenfbyrd/evidentia` with cosign keyless OIDC signing +
+tag-triggered `release-container.yml`, DOC5 quarterly
 `docs/positioning-and-value.md` re-sync (Q3 2026 cadence target),
-pre-existing `oscal verify` UX clarity fix when invoked against an
-AR with no embedded evidence and no signature. P2 community items
-carry forward.
+pre-existing `oscal verify` UX clarity fix when invoked against
+an AR with no embedded evidence and no signature. P2 community
+items carry forward.
 
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 

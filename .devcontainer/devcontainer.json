@@ -90,7 +90,7 @@
   // After every container start, re-verify the toolchain is intact
   // (catches base-image drift between rebuilds without forcing a
   // full re-sync).
-  "postStartCommand": "uv run --no-sync python --version && uv run --no-sync evidentia --version || echo 'evidentia CLI not yet installed; run: uv sync --all-packages'",
+  "postStartCommand": "uv run --no-sync python --version && uv run --no-sync evidentia version || echo 'evidentia CLI not yet installed; run: uv sync --all-packages'",
 
   // ---------------------------------------------------------------
   // Container runtime configuration.

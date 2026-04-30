@@ -61,7 +61,7 @@ jobs:
         run: |
           uv sync --all-packages
           .venv/bin/python -m pip install -e packages/evidentia-core
-          .venv/bin/evidentia --version
+          .venv/bin/evidentia version
           # Make the uv venv the default Python for downstream steps,
           # so the composite action's `python -m pip install` and
           # `evidentia` invocations resolve to our editable install.
