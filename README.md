@@ -344,6 +344,11 @@ uv run pytest tests/ -q
 # Expected: full suite passes in ~10s on a warm checkout
 ```
 
+> Hit a snag? See [`docs/troubleshooting.md`](docs/troubleshooting.md)
+> for common first-run issues — wrong Python version, missing SPA
+> bundle, Sigstore TUF metadata fetch failures, Docker bind-mount
+> permissions.
+
 ### End-to-end walkthrough with sample data
 
 Evidentia ships with a realistic fictional fintech scenario in
