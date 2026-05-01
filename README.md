@@ -348,6 +348,10 @@ uv run pytest tests/ -q
 > for common first-run issues — wrong Python version, missing SPA
 > bundle, Sigstore TUF metadata fetch failures, Docker bind-mount
 > permissions.
+>
+> Want the absolute shortest path? See [`docs/quickstart.md`](docs/quickstart.md)
+> — five commands from `pip install` to a verified OSCAL Assessment
+> Results document.
 
 ### End-to-end walkthrough with sample data
 
