@@ -98,18 +98,24 @@ First load only (no in-process cache).
 **What's measured**: production build artifacts under
 `packages/evidentia-ui/dist/assets/` after `npm run build`.
 
-| Artifact | Size |
-|---|---|
-| `index-<hash>.js` (main bundle) | **280 KB** |
-| `index-<hash>.css` | **24 KB** |
-| `index-<hash>.js.map` (source map) | 1.1 MB (not shipped to clients) |
-| Total client-bound payload | **~310 KB** uncompressed |
+| Artifact | Size (uncompressed) | Size (gzip) |
+|---|---|---|
+| `index-<hash>.js` (main bundle) | **358 KB** | **108 KB** |
+| `index-<hash>.css` | **22 KB** | **5 KB** |
+| `index-<hash>.js.map` (source map) | 1.4 MB | n/a (not shipped) |
+| Total client-bound payload (gzipped) | — | **~113 KB** |
 
 **Takeaways**:
 
-- 280 KB JS + 24 KB CSS is well within the 350 KB budget that
-  Lighthouse scores favorably for "Time to Interactive". Gzipped
-  over the wire is closer to ~85 KB.
+- The 358 KB uncompressed JS is well within the relevant
+  performance budget when measured at the gzipped wire payload
+  (~108 KB) — modern Lighthouse "Time to Interactive" scoring
+  reads gzipped/brotli payload, not raw bytes.
+- Pre-v0.7.6 (alpha.1 only routes): 280 KB JS / 85 KB gzip. The
+  v0.7.6 P0 work that wires the alpha.2 Gap Analyze + Gap Diff +
+  Risk Generate pages adds ~+78 KB raw / ~+23 KB gzip. The
+  TanStack Table + Zod schemas + per-route mutation hooks make up
+  most of the delta.
 - Source maps ship to disk during build but are not served by the
   FastAPI static mount unless explicitly requested — they cost
   zero on the user-facing path.

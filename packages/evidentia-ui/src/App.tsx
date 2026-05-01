@@ -4,14 +4,18 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { DashboardPage } from "@/routes/DashboardPage";
 import { FrameworkDetailPage } from "@/routes/FrameworkDetailPage";
 import { FrameworksPage } from "@/routes/FrameworksPage";
+import { GapAnalyzePage } from "@/routes/GapAnalyzePage";
+import { GapDiffPage } from "@/routes/GapDiffPage";
 import { HomePage } from "@/routes/HomePage";
+import { RiskGeneratePage } from "@/routes/RiskGeneratePage";
 import { SettingsPage } from "@/routes/SettingsPage";
 
 /**
  * Evidentia web UI root.
  *
  * v0.4.0-alpha.1: Home / Dashboard / Frameworks (list + detail) / Settings.
- * v0.4.0-alpha.2 adds: Onboarding wizard, Gap Analyze, Gap Diff, Risk Generate.
+ * v0.7.6: alpha.2 routing wired — Onboarding wizard (HomePage step machine),
+ *         Gap Analyze, Gap Diff, Risk Generate.
  */
 export function App() {
   return (
@@ -21,6 +25,9 @@ export function App() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="frameworks" element={<FrameworksPage />} />
         <Route path="frameworks/:id" element={<FrameworkDetailPage />} />
+        <Route path="gap/analyze" element={<GapAnalyzePage />} />
+        <Route path="gap/diff" element={<GapDiffPage />} />
+        <Route path="risk/generate" element={<RiskGeneratePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route
           path="*"

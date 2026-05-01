@@ -106,7 +106,7 @@ export function AppLayout() {
           </nav>
           <Separator className="my-6" />
           <div className="space-y-1 px-3 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">v0.4.1</p>
+            <p className="font-medium text-foreground">v0.7.6 (alpha.2 wired)</p>
             <p>Interactive onboarding wizard</p>
             <p>Gap Analyze + Diff forms</p>
             <p>Risk Generate (SSE streamed)</p>
