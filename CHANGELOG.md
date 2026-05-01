@@ -7,6 +7,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Targeted for v0.7.5 — *"Container publish + critical security batch + quick-win polish"*
+
+#### Security (S1-S6 — 15 HIGH + 12 MEDIUM code-scanning alerts closed)
+
+- **S1 Path-injection containment helper** + refactor of all 14
+  callsites: new `evidentia_core.security.paths.validate_within(path,
+  safe_root)` resolves a path and asserts `is_relative_to(safe_root)`,
+  with explicit handling for symlink traversal, URL-encoded `..`, and
+  absolute-path-injection inputs. Refactor lands in
+  `evidentia_api/routers/{risks,integrations,gaps}.py`,
+  `evidentia_api/app.py`, and `evidentia_core/gap_analyzer/inventory.py`.
+  Closes 14 HIGH `py/path-injection` alerts.
+- **S2 ReDoS** in `evidentia_core/models/catalog.py:42`: replaced the
+  polynomial-time alternation with a bounded character class +
+  capped input length at the model-validation boundary. Closes
+  1 HIGH `py/polynomial-redos` alert.
+- **S3 API stack-trace exposure** in
+  `evidentia_api/routers/integrations.py` (`jira_status` path):
+  errors now logged internally via `evidentia_core.audit.logger` and
+  returned externally as generic 500s correlated by `request_id`.
+  Closes 3 MEDIUM `py/stack-trace-exposure` alerts.
+- **S4 Workflow permissions hygiene** in `.github/workflows/test.yml`:
+  added explicit `permissions: contents: read` declarations for the
+  test, lint, and typecheck jobs. Closes 4 MEDIUM
+  `actions/missing-workflow-permissions` alerts.
+- **S5 Pinned-Dependencies triage**: documented floating
+  `apt-get install` package versions in `Dockerfile` lines 25 + 59
+  with rationale for the floating intent (security patches +
+  base-image-rebuild cadence); added Scorecard-suppression comment to
+  `action-smoke-test.yml:63` for the intentional `pip install -e
+  packages/evidentia-core` line. Closes 5 MEDIUM `Pinned-Dependencies`
+  alerts.
+- **S6 URL-substring sanitization** in `tests/unit/test_network_guard.py`:
+  refactored test assertion from substring URL match to exact-string
+  comparison via parsed-URL hostname checks. Test code only — not a
+  runtime vuln. Closes 2 HIGH `URL-substring-sanitization` alerts in
+  test code.
+
+#### Quality wins (Q2 + Q3 + R2)
+
+- **Q2 Dockerfile HEALTHCHECK path corrected**: `/health` →
+  `/api/health`. The `/health` request silently fell through to the
+  SPA fallback handler and returned `index.html` with HTTP 200 — a
+  false-positive health pass even when the FastAPI app itself was
+  broken. Affects every Dockerfile shipped since v0.7.3. Plus three
+  new regression tests in
+  `tests/integration/test_api/test_basic_endpoints.py` covering the
+  exact response shape, content-type, and prefix path.
+- **Q3 `docs/troubleshooting.md`** (NEW, ~220 lines): common
+  first-run issues with symptom/why/fix entries — PATH issues,
+  Python version, missing `[gui]` extra, Sigstore TUF metadata
+  fetch failures, the v0.7.4 `--version` subcommand recap, Docker
+  uid 1000 bind-mount perms, port 8000 conflicts, the v0.7.4-and-
+  earlier HEALTHCHECK false-positive, and air-gap network-guard
+  semantics. Cross-linked from README §Quick start.
+- **R2 `evidentia oscal verify` UX clarity fix**: a metadata-only AR
+  with no embedded evidence + no signatures + `--require-signature`
+  unset now returns `PASS (no verification surface)` with exit 0
+  instead of the misleading `FAIL` it returned pre-v0.7.5. Bug
+  surfaced during the v0.7.3 capability matrix walk; pre-existing
+  since v0.7.0. New `has_verification_surface` property on
+  `VerifyReport` distinguishes "no-op PASS" from meaningful PASS;
+  exposed in CLI rendering + JSON output. Two new regression tests.
+
+#### Container publish (C1-C4) — pending
+
+- **C1-C3 ghcr.io container publish + cosign + SLSA L3** for image
+  digest — pending implementation; will append to `release.yml` as
+  `publish-container` job with `needs: publish-pypi`.
+- **C4 `docs/enterprise-grade.md`** L1 status flip — pending C1-C3.
+
+#### Polish (Q1, Q4, Q5) — pending
+
+- **Q1 OpenSSF Best Practices Badge** filing — Allen-driven, post-
+  ship.
+- **Q4** this CHANGELOG cleanup (this entry).
+- **Q5** memory pointer + shipped-doc bookkeeping — at tag time.
+
 ## [0.7.4] - 2026-04-29
 
 **Same-day hot-fix release for v0.7.3.** Same-day patch correcting
