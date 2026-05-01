@@ -77,32 +77,64 @@ class VerifyReport:
 
     @property
     def digests_valid(self) -> bool:
-        """True iff every embedded resource digest matches its content."""
+        """True iff every embedded resource digest matches its content.
+
+        Returns False when ``digest_checks`` is empty. Pre-v0.7.5
+        ``overall_valid`` consulted this property and conflated "no
+        embedded evidence" with "digests failed" — that was the source
+        of the FAIL-on-metadata-only-AR bug fixed by v0.7.5 R2.
+        Semantics here are retained for JSON-consumer back-compat;
+        ``overall_valid`` no longer relies on this property.
+        """
         return bool(self.digest_checks) and all(
             check.valid for check in self.digest_checks
+        )
+
+    @property
+    def has_verification_surface(self) -> bool:
+        """True if at least one verification check ran (digest, GPG, or
+        Sigstore). False means the AR is a metadata-only document with
+        nothing to verify — when ``overall_valid`` is also True, the
+        result is a "no-op PASS" rather than a meaningful trust assertion.
+        Surfaced by the CLI so users see ``PASS (no verification surface)``
+        instead of an unqualified PASS.
+        """
+        return (
+            bool(self.digest_checks)
+            or self.signature_valid is not None
+            or self.sigstore_signature_valid is not None
         )
 
     @property
     def overall_valid(self) -> bool:
         """Top-level pass/fail.
 
-        Definition: no errors, every embedded digest valid, and every
-        signature that was present (GPG and/or Sigstore) verified.
-        ``signature_valid is not False`` covers both the valid-True case
-        and the not-checked-None case in one comparison — we only flunk
-        the overall check when a signature was explicitly found and it
-        didn't verify.
+        PASS when:
+        - No errors raised during verification (the ``--require-signature``
+          failure path appends to ``errors`` before this property is
+          consulted, so missing-signature-when-required surfaces here)
+        - Every embedded digest that was present is valid; an empty
+          ``digest_checks`` list is vacuously OK ("nothing to verify,
+          nothing failed")
+        - Every signature that was checked verified (``None`` means not
+          checked, not "missing"; ``False`` means found but invalid)
+
+        v0.7.5 R2 fix: pre-v0.7.5 used ``if not self.digests_valid``
+        which returned True only when at least one digest existed AND
+        all were valid. That conflated "no verification surface" with
+        "digests failed", returning FAIL on metadata-only ARs that had
+        no signature or evidence to check. The current logic checks
+        only for explicit failures; empty surfaces are vacuously valid.
         """
         if self.errors:
             return False
-        if not self.digests_valid:
+        if any(not check.valid for check in self.digest_checks):
             return False
         if self.signature_valid is False:
             return False
-        # ``is not False`` covers both valid-True and not-checked-None in one
-        # comparison — we only flunk when a signature was found and didn't
-        # verify. Equivalent flatten of the previous ``if/return False / return True``.
-        return self.sigstore_signature_valid is not False
+        if self.sigstore_signature_valid is False:
+            return False
+        return True
 
 
 def verify_digests(ar_doc: dict[str, Any]) -> list[DigestCheck]:

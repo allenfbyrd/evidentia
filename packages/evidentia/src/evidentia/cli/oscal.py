@@ -153,9 +153,15 @@ def verify(
 
 def _render_rich(report: VerifyReport) -> None:
     """Human-readable summary of the verification outcome."""
-    status_line = (
-        "[green]PASS[/green]" if report.overall_valid else "[red]FAIL[/red]"
-    )
+    if not report.overall_valid:
+        status_line = "[red]FAIL[/red]"
+    elif not report.has_verification_surface:
+        # v0.7.5 R2 — distinguishes "no embedded evidence + no signature
+        # + --require-signature unset" from a meaningful PASS. Pre-v0.7.5
+        # this case returned an unqualified FAIL.
+        status_line = "[yellow]PASS[/yellow] (no verification surface)"
+    else:
+        status_line = "[green]PASS[/green]"
     console.print(f"[bold]{report.ar_path}[/bold] — {status_line}")
 
     if report.errors:
@@ -237,6 +243,7 @@ def _emit_json(report: VerifyReport) -> None:
     payload = {
         "ar_path": str(report.ar_path),
         "overall_valid": report.overall_valid,
+        "has_verification_surface": report.has_verification_surface,
         "digests_valid": report.digests_valid,
         "signature_valid": report.signature_valid,
         "signature_signer": report.signature_signer,

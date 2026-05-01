@@ -199,6 +199,56 @@ def test_verify_ar_file_require_signature_without_sig_fails(
     assert report.sigstore_signature_valid is False
 
 
+def test_verify_ar_file_no_evidence_no_signature_passes_with_no_surface(
+    tmp_path: Path,
+) -> None:
+    """v0.7.5 R2 regression: a metadata-only AR with no embedded
+    evidence + no signatures + ``--require-signature`` unset must
+    return overall_valid=True with has_verification_surface=False
+    (a "no-op PASS"), not the misleading FAIL it returned pre-v0.7.5.
+
+    Pre-v0.7.5 ``overall_valid`` consulted ``digests_valid`` which
+    returned False when ``digest_checks`` was empty, conflating
+    "no surface" with "failed surface". The fix decouples the two:
+    ``overall_valid`` now uses vacuous-truth semantics on empty
+    surfaces, while ``digests_valid`` retains its False-when-empty
+    behavior for JSON-consumer back-compat.
+    """
+    ar_doc = gap_report_to_oscal_ar(_make_report())  # no findings → no evidence
+    ar_path = tmp_path / "metadata-only.json"
+    ar_path.write_text(json.dumps(ar_doc), encoding="utf-8")
+
+    report = verify_ar_file(ar_path)
+    # The fix: was False pre-v0.7.5, must be True post-fix.
+    assert report.overall_valid is True
+    # New property: distinguishes "no-op PASS" from meaningful PASS.
+    assert report.has_verification_surface is False
+    # Sanity-check the surface really is empty.
+    assert report.digest_checks == []
+    assert report.signature_valid is None
+    assert report.sigstore_signature_valid is None
+    # Back-compat: digests_valid still returns False when empty so JSON
+    # consumers reading the boolean don't see an unexpected flip.
+    assert report.digests_valid is False
+
+
+def test_verify_ar_file_no_evidence_with_require_signature_still_fails(
+    tmp_path: Path,
+) -> None:
+    """v0.7.5 R2 reverse case: --require-signature on a metadata-only
+    AR must still FAIL, because signature was required and not present.
+    The R2 fix only loosens overall_valid for the no-surface + no-
+    require-signature case; the require-signature path is unchanged.
+    """
+    ar_doc = gap_report_to_oscal_ar(_make_report())  # no findings → no evidence
+    ar_path = tmp_path / "metadata-only-required.json"
+    ar_path.write_text(json.dumps(ar_doc), encoding="utf-8")
+
+    report = verify_ar_file(ar_path, require_signature=True)
+    assert report.overall_valid is False
+    assert any("Signature required" in err for err in report.errors)
+
+
 # ── Sigstore integration in verify_ar_file (v0.7.0 Step-4 fix) ──────────
 
 
