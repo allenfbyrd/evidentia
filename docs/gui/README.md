@@ -41,11 +41,23 @@ Ctrl+C to stop.
 | `--dev` | — | Permissive CORS for Vite HMR (pairs with `npm run dev` in `packages/evidentia-ui/`) |
 | `--offline` | — | Air-gapped mode (see [`../air-gapped.md`](../air-gapped.md)) |
 
-## Feature walkthrough (v0.4.0-alpha.1)
+## Feature walkthrough (v0.7.6 — alpha.2 wired)
+
+> Screenshots in `docs/gui/screenshots/` were captured 2026-05-01
+> against `evidentia serve --dev` on Windows 11 / Chromium at
+> 1440×900. Re-capture with `.local/capture_screenshots.py` after a
+> meaningful UI change.
 
 ### Home `/`
 
-Welcome screen with quick-nav cards to the three main surfaces: Frameworks, Dashboard, Settings. In `alpha.2` this page gains the three-path onboarding wizard ("Try sample data" / "Upload inventory" / "Start from scratch").
+![Home](screenshots/home.png)
+
+Welcome screen with the three-path onboarding wizard: "Try sample
+data" (preloads the bundled Meridian fintech scenario, 48 controls,
+3 frameworks), "Upload inventory" (drag-and-drop YAML / CSV / OSCAL
+JSON, auto-detects format), or "Start from scratch" (4-question
+wizard generates a starter inventory + recommended frameworks).
+Sidebar version footer reflects the v0.7.6 alpha.2 state.
 
 ### Dashboard `/dashboard`
 
@@ -58,6 +70,8 @@ Click any report in `alpha.2` to drill into a full per-gap view. For now, use `e
 
 ### Frameworks `/frameworks`
 
+![Frameworks browser](screenshots/frameworks.png)
+
 Browses all 82 bundled catalogs with three filters:
 
 - **Tier** — A (public domain), B (free-restricted), C (licensed), D (government regulation)
@@ -65,6 +79,41 @@ Browses all 82 bundled catalogs with three filters:
 - **Free-text search** — matches ID and name
 
 Click a framework card to open its detail page.
+
+### Gap Analyze `/gap/analyze` (v0.7.6 alpha.2)
+
+![Gap Analyze](screenshots/gap-analyze.png)
+
+Browser-side equivalent of `evidentia gap analyze`. Two inventory
+entry paths (file upload OR server-side path), framework
+multi-select, and per-run organization + system-name overrides.
+Results render as a `GapTable` below the form with critical / high
+/ medium / low badges + coverage % + efficiency-opportunity counts.
+Reports save to the local gap store automatically and appear on
+the Dashboard.
+
+### Gap Diff `/gap/diff` (v0.7.6 alpha.2)
+
+![Gap Diff](screenshots/gap-diff.png)
+
+Pick two saved gap reports from the gap-store list (or drag-and-drop
+external reports). Compare runs the same `evidentia gap diff`
+engine that powers the GitHub Action's PR comment. Output:
+opened / closed / severity-up / severity-down / unchanged
+classification per gap, with download-as-markdown and
+download-as-PR-comment buttons.
+
+### Risk Generate `/risk/generate` (v0.7.6 alpha.2)
+
+![Risk Generate](screenshots/risk-generate.png)
+
+Wraps the `/api/risks/generate` SSE endpoint. Pick gaps (or run
+batch over a saved report), pick a system context, pick the LLM
+provider (OpenAI / Anthropic / Google / Bedrock / Ollama via
+LiteLLM), and watch risk statements stream in live with per-gap
+progress indicators. Air-gap mode (`--offline`) refuses non-
+loopback LLM endpoints; the Settings page shows current
+network-egress posture.
 
 ### Framework detail `/frameworks/:id`
 

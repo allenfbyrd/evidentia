@@ -353,6 +353,23 @@ uv run pytest tests/ -q
 > — five commands from `pip install` to a verified OSCAL Assessment
 > Results document.
 
+### Web UI flows (v0.7.6 alpha.2)
+
+`evidentia serve` brings up a FastAPI + React SPA on
+`http://127.0.0.1:8000`. Five interactive surfaces ship today,
+mirroring the CLI 1:1:
+
+| Page | What it does |
+|---|---|
+| [Home](docs/gui/screenshots/home.png) | Three-path onboarding (sample data / upload / wizard) |
+| [Frameworks](docs/gui/screenshots/frameworks.png) | Browse all 82 bundled catalogs with tier + category filters |
+| [Gap Analyze](docs/gui/screenshots/gap-analyze.png) | Form + framework picker → TanStack Table results |
+| [Gap Diff](docs/gui/screenshots/gap-diff.png) | Two-report classification + PR-comment markdown export |
+| [Risk Generate](docs/gui/screenshots/risk-generate.png) | Streamed AI risk statements per gap |
+
+See [`docs/gui/README.md`](docs/gui/README.md) for a per-page
+walkthrough + accessibility notes + troubleshooting.
+
 ### End-to-end walkthrough with sample data
 
 Evidentia ships with a realistic fictional fintech scenario in
