@@ -98,6 +98,12 @@ Using the enterprise-grade scoring rubric:
 > sanitizer, OpenSSF Scorecard `Token-Permissions` accepts on
 > release-write permissions) are documented per-finding in
 > [`docs/enterprise-grade-accepted-findings.md`](enterprise-grade-accepted-findings.md).
+>
+> Performance benchmark numbers (gap-analysis throughput, catalog
+> load, UI bundle size, test-suite runtime) with hardware baselines
+> + reproducibility recipe live at
+> [`docs/benchmarks.md`](benchmarks.md). Closes M4. Updated each
+> release as the surface stabilizes.
 
 **v0.7.0 classification: Enterprise-ready, BLOCKER-complete (L3 on
 the research's capability-maturity scale).** This is the first
