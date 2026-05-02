@@ -118,7 +118,9 @@ def test_journal_mode_wal_full_is_resolved(tmp_path: Path) -> None:
     # configured WAL/FULL — read-only mode would coerce.
     conn = sqlite3.connect(str(db_file))
     conn.execute("PRAGMA synchronous=FULL")  # ensure session-level too
-    coll = SQLiteCollector(database_path=db_file, connection=conn)
+    # safe_root=tmp_path: v0.7.8 S1 made path-containment validation
+    # mandatory (default Path.cwd()); tmp_path is outside cwd in pytest.
+    coll = SQLiteCollector(database_path=db_file, connection=conn, safe_root=tmp_path)
     findings, _ = coll.collect_v2()
     journal_findings = [
         f for f in findings if "journal=" in f.title.lower()
@@ -201,7 +203,7 @@ def test_file_acl_findings_for_real_file(tmp_path: Path) -> None:
     db = tmp_path / "app.db"
     sqlite3.connect(str(db)).close()
 
-    coll = SQLiteCollector(database_path=db)
+    coll = SQLiteCollector(database_path=db, safe_root=tmp_path)
     findings, _ = coll.collect_v2()
     acl_findings = [f for f in findings if "file ACLs" in f.title]
     assert len(acl_findings) == 1
@@ -215,7 +217,7 @@ def test_write_privilege_finding_when_writable(tmp_path: Path) -> None:
     db = tmp_path / "writable.db"
     sqlite3.connect(str(db)).close()
 
-    coll = SQLiteCollector(database_path=db)
+    coll = SQLiteCollector(database_path=db, safe_root=tmp_path)
     findings, _ = coll.collect_v2()
     write_priv_findings = [
         f for f in findings if "writable by the calling process" in f.title

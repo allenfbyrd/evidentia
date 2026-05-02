@@ -198,21 +198,35 @@ class SQLiteCollector:
         self._database_path: Path | None = None
         if database_path is not None:
             candidate = Path(database_path)
-            # Optional path containment check — if safe_root is supplied,
-            # require the database file to sit within it. Useful in
-            # multi-tenant deployments where the collector is run
-            # against operator-supplied paths.
-            if safe_root is not None:
-                try:
-                    self._database_path = validate_within(
-                        candidate, Path(safe_root)
-                    )
-                except PathTraversalError as e:
-                    raise SQLiteCollectorError(
-                        f"database_path resolves outside safe_root: {e}"
-                    ) from e
-            else:
-                self._database_path = candidate.resolve(strict=False)
+            # Path-containment check — closes CodeQL py/path-injection
+            # alerts #82 + #83 (v0.7.8 P0.5 S1). The collector ALWAYS
+            # validates that database_path resolves inside a safe root:
+            #
+            #   - explicit safe_root= argument (highest priority)
+            #   - Path.cwd() default (matches v0.7.5 S1 pattern in
+            #     evidentia_api.routers.gaps:analyze for inventory_path)
+            #
+            # Operators in deployments that legitimately need broader
+            # access (e.g. CI scanners against /var/lib/<app>/db.sqlite)
+            # set the EVIDENTIA_SQLITE_SAFE_ROOT env var which the CLI
+            # + API readers pass through as explicit safe_root=, OR
+            # pass safe_root=Path("/") here to opt in to unbounded
+            # access. Refusing-by-default is preferable to
+            # accepting-by-default.
+            effective_safe_root = (
+                Path(safe_root) if safe_root is not None else Path.cwd()
+            )
+            try:
+                self._database_path = validate_within(
+                    candidate, effective_safe_root
+                )
+            except PathTraversalError as e:
+                raise SQLiteCollectorError(
+                    f"database_path resolves outside safe_root "
+                    f"({effective_safe_root}); pass safe_root= "
+                    f"explicitly or set EVIDENTIA_SQLITE_SAFE_ROOT to "
+                    f"widen the scope: {e}"
+                ) from e
         self._connection = connection
         self._owns_connection = connection is None
         self._cached_version: str | None = None
