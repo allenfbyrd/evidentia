@@ -42,6 +42,12 @@ jira_app = typer.Typer(
 )
 app.add_typer(jira_app, name="jira")
 
+servicenow_app = typer.Typer(
+    no_args_is_help=True,
+    help="ServiceNow integration — push gaps as records (incident / sn_grc_issue / custom).",
+)
+app.add_typer(servicenow_app, name="servicenow")
+
 console = Console()
 
 
@@ -220,6 +226,121 @@ def _render_result(result: JiraSyncResult, *, title: str) -> None:
         f"[bold]Summary:[/bold] created={result.created} "
         f"updated={result.updated} skipped={result.skipped} errored={result.errored}"
     )
+
+
+@servicenow_app.command("test")
+def servicenow_test() -> None:
+    """Verify ServiceNow credentials + table read access."""
+    try:
+        from evidentia_integrations.servicenow import (
+            ServiceNowApiError,
+            ServiceNowClient,
+            ServiceNowConfig,
+        )
+    except ImportError as e:
+        console.print(
+            "[red]Error:[/red] ServiceNow integration failed to import: "
+            + str(e)
+        )
+        raise typer.Exit(code=1) from e
+
+    try:
+        cfg = ServiceNowConfig.from_env()
+    except ValueError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from e
+
+    with ServiceNowClient(cfg) as client:
+        try:
+            info = client.test_connection()
+        except ServiceNowApiError as e:
+            console.print(f"[red]ServiceNow connection failed:[/red] {e}")
+            raise typer.Exit(code=1) from e
+
+    table = Table(title="ServiceNow connection OK", show_lines=False)
+    table.add_column("Field", style="cyan")
+    table.add_column("Value")
+    for k in ("instance_url", "user", "table_name", "result_count"):
+        table.add_row(k, info.get(k, ""))
+    console.print(table)
+
+
+@servicenow_app.command("push")
+def servicenow_push(
+    gaps: Path = typer.Option(
+        ...,
+        "--gaps",
+        "-g",
+        help="Path to a GapAnalysisReport JSON.",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help=(
+            "Create new records even if a matching correlation_id "
+            "already exists. Rarely needed; mostly for testing."
+        ),
+    ),
+) -> None:
+    """Push open gaps from a report as ServiceNow records.
+
+    Idempotent — re-running this command on the same report
+    detects existing records via correlation_id and reports them
+    as EXISTING rather than creating duplicates.
+    """
+    try:
+        from evidentia_integrations.servicenow import (
+            ServiceNowClient,
+            ServiceNowConfig,
+        )
+        from evidentia_integrations.servicenow import (
+            push_open_gaps as sn_push_open_gaps,
+        )
+    except ImportError as e:
+        console.print(
+            "[red]Error:[/red] ServiceNow integration failed to import: "
+            + str(e)
+        )
+        raise typer.Exit(code=1) from e
+
+    try:
+        cfg = ServiceNowConfig.from_env()
+    except ValueError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from e
+
+    report = _load_report(gaps)
+
+    with ServiceNowClient(cfg) as client:
+        result = sn_push_open_gaps(report, client, force=force)
+
+    table = Table(title="ServiceNow push", show_lines=False)
+    table.add_column("Gap", style="cyan")
+    table.add_column("Action")
+    table.add_column("Record")
+    table.add_column("Detail")
+    for o in result.outcomes:
+        action_color = {
+            "created": "green",
+            "existing": "yellow",
+            "skipped": "yellow",
+            "errored": "red",
+        }.get(o.action.value, "white")
+        table.add_row(
+            f"{o.framework}:{o.control_id}",
+            f"[{action_color}]{o.action.value}[/{action_color}]",
+            o.record_number or "-",
+            o.detail,
+        )
+    console.print(table)
+    console.print(
+        f"[bold]Summary:[/bold] created={result.created} "
+        f"existing={result.existing} skipped={result.skipped} "
+        f"errored={result.errored}"
+    )
+
+    if result.errored > 0:
+        raise typer.Exit(code=1)
 
 
 @jira_app.command("status-map")
