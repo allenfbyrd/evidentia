@@ -44,25 +44,98 @@ def _make_mock_pat(
     return tok
 
 
+def _make_mock_cluster(
+    *,
+    cluster_id: str,
+    cluster_name: str = "test-cluster",
+    spark_version: str = "15.4.x-lts-scala2.12",
+    node_type_id: str = "i3.xlarge",
+    init_scripts: list[Any] | None = None,
+) -> Any:
+    cl = MagicMock()
+    cl.cluster_id = cluster_id
+    cl.cluster_name = cluster_name
+    cl.spark_version = spark_version
+    cl.node_type_id = node_type_id
+    cl.autoscale = None
+    cl.init_scripts = init_scripts or []
+    return cl
+
+
+def _make_mock_sp(
+    *,
+    sp_id: str,
+    application_id: str = "00000000-0000-0000-0000-000000000000",
+    display_name: str = "test-sp",
+    active: bool = True,
+    groups: list[Any] | None = None,
+) -> Any:
+    sp = MagicMock()
+    sp.id = sp_id
+    sp.application_id = application_id
+    sp.display_name = display_name
+    sp.active = active
+    sp.groups = groups or []
+    return sp
+
+
+def _make_mock_secret_scope(
+    *,
+    name: str,
+    backend_type: str = "DATABRICKS",
+) -> Any:
+    sc = MagicMock()
+    sc.name = name
+    sc.backend_type = backend_type
+    return sc
+
+
 def _make_mock_client(
     *,
     user_name: str = "alice@example.com",
     pats: list[Any] | None = None,
     pat_list_raises: Exception | None = None,
+    clusters: list[Any] | None = None,
+    cluster_list_raises: Exception | None = None,
+    service_principals: list[Any] | None = None,
+    sp_list_raises: Exception | None = None,
+    secret_scopes: list[Any] | None = None,
+    scope_list_raises: Exception | None = None,
 ) -> Any:
     """Build a minimal WorkspaceClient stand-in.
 
-    The collector calls `client.current_user.me()` (auth probe) and
-    `client.token_management.list()` (PAT inventory). Other surfaces
-    not yet wired in v0.7.8 P0.1 first slice.
+    The collector calls `client.current_user.me()` (auth probe),
+    `client.token_management.list()` (PAT inventory),
+    `client.clusters.list()` (cluster compliance),
+    `client.service_principals.list()` (SP inventory), and
+    `client.secrets.list_scopes()` (secret scopes).
     """
     client = MagicMock()
     client.current_user.me.return_value = MagicMock(user_name=user_name)
     client.config = MagicMock(host="https://test.cloud.databricks.com")
+
     if pat_list_raises is not None:
         client.token_management.list.side_effect = pat_list_raises
     else:
         client.token_management.list.return_value = pats or []
+
+    if cluster_list_raises is not None:
+        client.clusters.list.side_effect = cluster_list_raises
+    else:
+        client.clusters.list.return_value = clusters or []
+
+    if sp_list_raises is not None:
+        client.service_principals.list.side_effect = sp_list_raises
+    else:
+        client.service_principals.list.return_value = (
+            service_principals or []
+        )
+
+    if scope_list_raises is not None:
+        client.secrets.list_scopes.side_effect = scope_list_raises
+    else:
+        client.secrets.list_scopes.return_value = secret_scopes or []
+
     return client
 
 
@@ -224,12 +297,9 @@ class TestManifest:
         assert "databricks-pat" in resource_types
 
     def test_manifest_flags_other_sub_checks_as_empty(self) -> None:
-        # v0.7.8 P0.1 first slice: only PAT inventory is implemented.
-        # The other 6 evidence sources (workspace audit log, table
-        # lineage, cluster compliance, network policy, service
-        # principal, secret scope) are listed in
-        # manifest.empty_categories so consumers know this is
-        # PARTIAL evidence.
+        # v0.7.8 P0.1 (post-3-follow-up-sources): PAT + cluster + SP +
+        # secret-scope all implemented; only audit log + lineage +
+        # network policy remain in empty_categories.
         client = _make_mock_client(pats=[])
         with DatabricksCollector(client=client) as c:
             _findings, manifest = c.collect_v2()
@@ -237,12 +307,9 @@ class TestManifest:
         expected_pending = {
             "workspace_audit_log",
             "table_lineage",
-            "cluster_compliance",
             "network_policy",
-            "service_principal",
-            "secret_scope",
         }
-        assert expected_pending <= set(manifest.empty_categories)
+        assert expected_pending == set(manifest.empty_categories)
 
 
 # ── Lifecycle tests ───────────────────────────────────────────────
@@ -276,3 +343,215 @@ class TestLifecycle:
         # Idempotent — second call doesn't re-probe (we cached).
         info2 = c.test_connection()
         assert info2["user_name"] == info["user_name"]
+
+
+# ── Cluster compliance sub-check tests ────────────────────────────
+
+
+class TestClusterCompliance:
+    def test_inventory_finding_per_cluster(self) -> None:
+        clusters = [
+            _make_mock_cluster(cluster_id="c-1"),
+            _make_mock_cluster(cluster_id="c-2"),
+        ]
+        client = _make_mock_client(clusters=clusters)
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        cluster_inventory = [
+            f
+            for f in findings
+            if f.resource_type == "Databricks::Cluster"
+            and f.title.startswith("Databricks cluster ")
+            and "outdated" not in f.title
+            and "init script" not in f.title
+        ]
+        assert len(cluster_inventory) == 2
+
+    def test_outdated_runtime_emits_active_finding(self) -> None:
+        clusters = [
+            _make_mock_cluster(
+                cluster_id="c-old",
+                spark_version="11.3.x-lts-scala2.12",  # not on allowlist
+            ),
+        ]
+        client = _make_mock_client(clusters=clusters)
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        outdated = [f for f in findings if "outdated" in f.title]
+        assert len(outdated) == 1
+        assert outdated[0].severity == Severity.MEDIUM
+        assert outdated[0].status == FindingStatus.ACTIVE
+
+    def test_current_lts_does_not_emit_outdated(self) -> None:
+        clusters = [
+            _make_mock_cluster(
+                cluster_id="c-current",
+                spark_version="15.4.x-lts-scala2.12",
+            ),
+            _make_mock_cluster(
+                cluster_id="c-also-current",
+                spark_version="16.4.x-lts-photon-scala2.12",
+            ),
+        ]
+        client = _make_mock_client(clusters=clusters)
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        assert not [f for f in findings if "outdated" in f.title]
+
+    def test_init_scripts_emit_inventory_finding(self) -> None:
+        clusters = [
+            _make_mock_cluster(
+                cluster_id="c-with-init",
+                init_scripts=[
+                    MagicMock(
+                        dbfs=MagicMock(
+                            destination="dbfs:/init/bootstrap.sh"
+                        )
+                    ),
+                    MagicMock(
+                        dbfs=MagicMock(destination="dbfs:/init/perms.sh")
+                    ),
+                ],
+            ),
+        ]
+        client = _make_mock_client(clusters=clusters)
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        init_findings = [f for f in findings if "init script" in f.title]
+        assert len(init_findings) == 1
+        assert init_findings[0].severity == Severity.LOW
+        assert init_findings[0].raw_data["init_scripts_count"] == 2
+
+
+# ── Service principal sub-check tests ─────────────────────────────
+
+
+class TestServicePrincipal:
+    def test_inventory_finding_per_sp(self) -> None:
+        sps = [
+            _make_mock_sp(sp_id="sp-1", display_name="ci-runner"),
+            _make_mock_sp(sp_id="sp-2", display_name="airflow"),
+        ]
+        client = _make_mock_client(service_principals=sps)
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        sp_inventory = [
+            f
+            for f in findings
+            if f.resource_type == "Databricks::ServicePrincipal"
+            and "Inactive" not in f.title
+        ]
+        assert len(sp_inventory) == 2
+
+    def test_inactive_sp_emits_active_finding(self) -> None:
+        sps = [
+            _make_mock_sp(sp_id="sp-inactive", active=False),
+            _make_mock_sp(sp_id="sp-active", active=True),
+        ]
+        client = _make_mock_client(service_principals=sps)
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        inactive = [f for f in findings if "Inactive" in f.title]
+        assert len(inactive) == 1
+        assert inactive[0].severity == Severity.MEDIUM
+        assert inactive[0].status == FindingStatus.ACTIVE
+
+
+# ── Secret scope sub-check tests ──────────────────────────────────
+
+
+class TestSecretScope:
+    def test_inventory_finding_per_scope(self) -> None:
+        scopes = [
+            _make_mock_secret_scope(name="prod"),
+            _make_mock_secret_scope(name="dev"),
+        ]
+        client = _make_mock_client(secret_scopes=scopes)
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        scope_inventory = [
+            f
+            for f in findings
+            if f.resource_type == "Databricks::SecretScope"
+            and "preferred" not in f.title
+            and "consider KMS-backed" not in f.title
+        ]
+        assert len(scope_inventory) == 2
+
+    def test_databricks_backed_scope_emits_advisory_finding(
+        self,
+    ) -> None:
+        scope = _make_mock_secret_scope(
+            name="prod-secrets", backend_type="DATABRICKS"
+        )
+        client = _make_mock_client(secret_scopes=[scope])
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        advisory = [
+            f for f in findings if "consider KMS-backed" in f.title
+        ]
+        assert len(advisory) == 1
+        assert advisory[0].severity == Severity.LOW
+
+    def test_key_vault_backed_scope_emits_positive_finding(
+        self,
+    ) -> None:
+        scope = _make_mock_secret_scope(
+            name="kv-prod", backend_type="AZURE_KEYVAULT"
+        )
+        client = _make_mock_client(secret_scopes=[scope])
+        with DatabricksCollector(client=client) as c:
+            findings, _manifest = c.collect_v2()
+
+        preferred = [
+            f for f in findings if "preferred SC-12 posture" in f.title
+        ]
+        assert len(preferred) == 1
+        assert preferred[0].severity == Severity.INFORMATIONAL
+
+
+# ── Manifest test (updated for 3 new evidence sources) ────────────
+
+
+class TestManifestAfterAllSubChecks:
+    def test_manifest_lists_all_4_resource_types(self) -> None:
+        client = _make_mock_client(
+            pats=[_make_mock_pat(token_id="t-1")],
+            clusters=[_make_mock_cluster(cluster_id="c-1")],
+            service_principals=[_make_mock_sp(sp_id="sp-1")],
+            secret_scopes=[_make_mock_secret_scope(name="s-1")],
+        )
+        with DatabricksCollector(client=client) as c:
+            _findings, manifest = c.collect_v2()
+
+        resource_types = {
+            cc.resource_type for cc in manifest.coverage_counts
+        }
+        # All 4 evidence sources implemented in P0.1 should appear.
+        assert resource_types >= {
+            "databricks-pat",
+            "databricks-cluster",
+            "databricks-service-principal",
+            "databricks-secret-scope",
+        }
+
+    def test_manifest_only_lists_remaining_3_as_empty(self) -> None:
+        client = _make_mock_client()
+        with DatabricksCollector(client=client) as c:
+            _findings, manifest = c.collect_v2()
+
+        # After the 3 follow-up commits land, only audit logs +
+        # lineage + network_policy remain in empty_categories.
+        assert set(manifest.empty_categories) == {
+            "workspace_audit_log",
+            "table_lineage",
+            "network_policy",
+        }

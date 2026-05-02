@@ -51,9 +51,17 @@ from evidentia_core.models.common import (
 from evidentia_core.models.finding import FindingStatus, SecurityFinding
 
 from evidentia_collectors.databricks.mapping import (
+    CLUSTER_INIT_SCRIPT_MAPPINGS,
+    CLUSTER_INVENTORY_MAPPINGS,
+    CLUSTER_OUTDATED_RUNTIME_MAPPINGS,
     PAT_INVENTORY_MAPPINGS,
     PAT_LONG_LIVED_MAPPINGS,
     PAT_NEVER_EXPIRES_MAPPINGS,
+    SECRET_SCOPE_DATABRICKS_BACKED_MAPPINGS,
+    SECRET_SCOPE_INVENTORY_MAPPINGS,
+    SECRET_SCOPE_KEY_VAULT_BACKED_MAPPINGS,
+    SERVICE_PRINCIPAL_INACTIVE_MAPPINGS,
+    SERVICE_PRINCIPAL_INVENTORY_MAPPINGS,
 )
 
 if TYPE_CHECKING:
@@ -203,6 +211,32 @@ BLIND_SPOTS: list[dict[str, str]] = [
 # OWASP / NIST AC-2(11) recommendation for credential rotation
 # cadence.
 _LONG_LIVED_THRESHOLD_DAYS = 90
+
+
+# Cluster runtime versions. The "current" set is updated periodically
+# as Databricks releases new LTS images. Runtimes outside this set
+# are flagged as outdated. The list captures the LTS series shipped
+# during the v0.7.8 cycle (May 2026); operators on a newer LTS than
+# what's listed here will see "unknown_runtime" findings, which is
+# the safe default — they should update the BLIND_SPOT or extend
+# this list locally rather than silently passing.
+_CURRENT_LTS_RUNTIMES = frozenset(
+    {
+        "14.3.x-lts",  # Databricks Runtime 14.3 LTS
+        "15.4.x-lts",  # Databricks Runtime 15.4 LTS
+        "16.4.x-lts",  # Databricks Runtime 16.4 LTS
+        # Photon-enabled variants ship suffixed with -photon-scala<v>
+        # — match handled by prefix check in _is_current_lts().
+    }
+)
+
+
+def _is_current_lts(runtime_version: str | None) -> bool:
+    """Return True if runtime is on the current-LTS allowlist."""
+    if not runtime_version:
+        return False
+    rv = runtime_version.lower()
+    return any(rv.startswith(lts) for lts in _CURRENT_LTS_RUNTIMES)
 
 
 # ── Main collector class ────────────────────────────────────────────
@@ -481,6 +515,386 @@ class DatabricksCollector:
 
         return findings
 
+    # ── Sub-check: cluster compliance ───────────────────────────────
+
+    def _cluster_compliance_findings(
+        self, client: Any, context: CollectionContext
+    ) -> list[SecurityFinding]:
+        """List workspace clusters and emit configuration-management findings.
+
+        Emits:
+
+        - Per-cluster inventory finding (RESOLVED, INFORMATIONAL) — captures
+          cluster_id, name, runtime_version, node_type, autoscale config.
+          Maps to CM-8 + CM-2.
+        - Per-cluster outdated-runtime finding (ACTIVE, MEDIUM) — fires when
+          the runtime is not on the current-LTS allowlist. Maps to SI-2 +
+          CM-2(2).
+        - Per-cluster init-script-present finding (RESOLVED, LOW) —
+          informational; init scripts are inventoried for CM-3 even though
+          their content can't be collected from this surface (see
+          EVIDENTIA-DATABRICKS-CLUSTER-INIT-SCRIPT-CONTENT BLIND_SPOT).
+        """
+        findings: list[SecurityFinding] = []
+        try:
+            clusters = list(client.clusters.list())
+        except Exception as e:
+            msg = str(e).lower()
+            if "permission" in msg or "not authorized" in msg:
+                raise DatabricksPermissionError(
+                    f"Cluster inventory denied: {e}"
+                ) from e
+            raise DatabricksCollectorError(
+                f"Cluster inventory call failed: {e}"
+            ) from e
+
+        for cl in clusters:
+            cluster_id = getattr(cl, "cluster_id", "unknown")
+            name = getattr(cl, "cluster_name", "unknown")
+            runtime = getattr(cl, "spark_version", None)
+            node_type = getattr(cl, "node_type_id", None)
+            autoscale = getattr(cl, "autoscale", None)
+            init_scripts = getattr(cl, "init_scripts", None) or []
+
+            findings.append(
+                SecurityFinding(
+                    title=f"Databricks cluster {name}",
+                    description=(
+                        f"Cluster {cluster_id} (name={name!r}) runs "
+                        f"runtime={runtime!r} on node_type={node_type!r}. "
+                        f"autoscale={autoscale!r}. "
+                        f"init_scripts_count={len(init_scripts)}."
+                    ),
+                    severity=Severity.INFORMATIONAL,
+                    status=FindingStatus.RESOLVED,
+                    source_system="databricks",
+                    source_finding_id=f"databricks-cluster:{cluster_id}",
+                    resource_id=str(cluster_id),
+                    resource_type="Databricks::Cluster",
+                    raw_data={
+                        "cluster_id": str(cluster_id),
+                        "cluster_name": str(name),
+                        "spark_version": runtime,
+                        "node_type_id": node_type,
+                        "init_scripts_count": len(init_scripts),
+                    },
+                    control_mappings=CLUSTER_INVENTORY_MAPPINGS,
+                    collection_context=context,
+                )
+            )
+
+            if not _is_current_lts(runtime):
+                findings.append(
+                    SecurityFinding(
+                        title=(
+                            f"Databricks cluster {name} runtime "
+                            f"is outdated"
+                        ),
+                        description=(
+                            f"Cluster {cluster_id} runs runtime "
+                            f"{runtime!r} which is not on the "
+                            f"current-LTS allowlist "
+                            f"({sorted(_CURRENT_LTS_RUNTIMES)}). "
+                            "Outdated runtimes accumulate Spark + JVM "
+                            "+ Databricks platform CVEs over time. "
+                            "Plan an upgrade to the current LTS."
+                        ),
+                        severity=Severity.MEDIUM,
+                        status=FindingStatus.ACTIVE,
+                        source_system="databricks",
+                        source_finding_id=(
+                            f"databricks-cluster-outdated-runtime"
+                            f":{cluster_id}"
+                        ),
+                        resource_id=str(cluster_id),
+                        resource_type="Databricks::Cluster",
+                        raw_data={
+                            "cluster_id": str(cluster_id),
+                            "spark_version": runtime,
+                            "current_lts_allowlist": sorted(
+                                _CURRENT_LTS_RUNTIMES
+                            ),
+                        },
+                        control_mappings=(
+                            CLUSTER_OUTDATED_RUNTIME_MAPPINGS
+                        ),
+                        collection_context=context,
+                    )
+                )
+
+            if init_scripts:
+                # Init-script REFERENCES are present. Content is not
+                # collectible from this surface (see BLIND_SPOT). Emit
+                # as RESOLVED, LOW — informational evidence.
+                findings.append(
+                    SecurityFinding(
+                        title=(
+                            f"Databricks cluster {name} has "
+                            f"{len(init_scripts)} init script"
+                            f"{'s' if len(init_scripts) != 1 else ''}"
+                        ),
+                        description=(
+                            f"Cluster {cluster_id} has init-script "
+                            f"references inventoried "
+                            f"({len(init_scripts)} entries). Content "
+                            "review is operator-driven via DBFS / UC "
+                            "Volumes (see "
+                            "EVIDENTIA-DATABRICKS-CLUSTER-INIT-SCRIPT-"
+                            "CONTENT BLIND_SPOT)."
+                        ),
+                        severity=Severity.LOW,
+                        status=FindingStatus.RESOLVED,
+                        source_system="databricks",
+                        source_finding_id=(
+                            f"databricks-cluster-init-scripts"
+                            f":{cluster_id}"
+                        ),
+                        resource_id=str(cluster_id),
+                        resource_type="Databricks::Cluster",
+                        raw_data={
+                            "cluster_id": str(cluster_id),
+                            "init_scripts_count": len(init_scripts),
+                        },
+                        control_mappings=CLUSTER_INIT_SCRIPT_MAPPINGS,
+                        collection_context=context,
+                    )
+                )
+
+        return findings
+
+    # ── Sub-check: service principals ───────────────────────────────
+
+    def _service_principal_findings(
+        self, client: Any, context: CollectionContext
+    ) -> list[SecurityFinding]:
+        """List workspace service principals and emit AC-2 + AC-3 findings.
+
+        Emits:
+
+        - Per-SP inventory finding (RESOLVED, INFORMATIONAL) — captures
+          application_id, display_name, active state, group memberships.
+          Maps to AC-2 + AC-3.
+        - Inactive-SP finding (ACTIVE, MEDIUM) — fires when active=false.
+          Maps to AC-2(3) Disable Inactive Accounts.
+        """
+        findings: list[SecurityFinding] = []
+        try:
+            principals = list(client.service_principals.list())
+        except Exception as e:
+            msg = str(e).lower()
+            if "permission" in msg or "not authorized" in msg:
+                raise DatabricksPermissionError(
+                    f"Service principal inventory denied: {e}"
+                ) from e
+            raise DatabricksCollectorError(
+                f"Service principal inventory call failed: {e}"
+            ) from e
+
+        for sp in principals:
+            sp_id = getattr(sp, "id", "unknown")
+            app_id = getattr(sp, "application_id", "unknown")
+            display_name = getattr(sp, "display_name", "unknown")
+            active = getattr(sp, "active", True)
+            groups = getattr(sp, "groups", None) or []
+
+            findings.append(
+                SecurityFinding(
+                    title=(
+                        f"Databricks service principal {display_name}"
+                    ),
+                    description=(
+                        f"Service principal {sp_id} "
+                        f"(application_id={app_id}, "
+                        f"display_name={display_name!r}) is "
+                        f"active={active}. "
+                        f"group_memberships_count={len(groups)}."
+                    ),
+                    severity=Severity.INFORMATIONAL,
+                    status=FindingStatus.RESOLVED,
+                    source_system="databricks",
+                    source_finding_id=f"databricks-sp:{sp_id}",
+                    resource_id=str(sp_id),
+                    resource_type="Databricks::ServicePrincipal",
+                    raw_data={
+                        "id": str(sp_id),
+                        "application_id": str(app_id),
+                        "display_name": str(display_name),
+                        "active": bool(active),
+                        "group_memberships_count": len(groups),
+                    },
+                    control_mappings=(
+                        SERVICE_PRINCIPAL_INVENTORY_MAPPINGS
+                    ),
+                    collection_context=context,
+                )
+            )
+
+            if not active:
+                findings.append(
+                    SecurityFinding(
+                        title=(
+                            f"Inactive service principal "
+                            f"{display_name} still enabled"
+                        ),
+                        description=(
+                            "Service principal is marked inactive in "
+                            "the workspace identity graph but remains "
+                            "enabled. Inactive non-interactive "
+                            "accounts that aren't disabled are an "
+                            "attack surface — disable + revoke "
+                            "associated tokens."
+                        ),
+                        severity=Severity.MEDIUM,
+                        status=FindingStatus.ACTIVE,
+                        source_system="databricks",
+                        source_finding_id=(
+                            f"databricks-sp-inactive:{sp_id}"
+                        ),
+                        resource_id=str(sp_id),
+                        resource_type="Databricks::ServicePrincipal",
+                        raw_data={
+                            "id": str(sp_id),
+                            "application_id": str(app_id),
+                            "active": False,
+                        },
+                        control_mappings=(
+                            SERVICE_PRINCIPAL_INACTIVE_MAPPINGS
+                        ),
+                        collection_context=context,
+                    )
+                )
+
+        return findings
+
+    # ── Sub-check: secret scopes ────────────────────────────────────
+
+    def _secret_scope_findings(
+        self, client: Any, context: CollectionContext
+    ) -> list[SecurityFinding]:
+        """List workspace secret scopes and emit SC-12 findings.
+
+        Emits:
+
+        - Per-scope inventory finding (RESOLVED, INFORMATIONAL) — captures
+          name, backend_type. Maps to SC-12 + IA-5.
+        - Databricks-backed scope finding (RESOLVED, LOW) — informational;
+          recommends Key Vault / Secrets Manager backing for higher-
+          assurance deployments.
+        - Key-Vault-backed scope finding (RESOLVED, INFORMATIONAL) —
+          positive finding; documents the preferred SC-12 posture.
+        """
+        findings: list[SecurityFinding] = []
+        try:
+            scopes = list(client.secrets.list_scopes())
+        except Exception as e:
+            msg = str(e).lower()
+            if "permission" in msg or "not authorized" in msg:
+                raise DatabricksPermissionError(
+                    f"Secret scope inventory denied: {e}"
+                ) from e
+            raise DatabricksCollectorError(
+                f"Secret scope inventory call failed: {e}"
+            ) from e
+
+        for sc in scopes:
+            name = getattr(sc, "name", "unknown")
+            backend_type = getattr(sc, "backend_type", None)
+            backend_str = (
+                str(backend_type) if backend_type is not None else "unknown"
+            )
+
+            findings.append(
+                SecurityFinding(
+                    title=f"Databricks secret scope {name}",
+                    description=(
+                        f"Secret scope {name!r} uses backend_type="
+                        f"{backend_str}."
+                    ),
+                    severity=Severity.INFORMATIONAL,
+                    status=FindingStatus.RESOLVED,
+                    source_system="databricks",
+                    source_finding_id=f"databricks-secret-scope:{name}",
+                    resource_id=str(name),
+                    resource_type="Databricks::SecretScope",
+                    raw_data={
+                        "name": str(name),
+                        "backend_type": backend_str,
+                    },
+                    control_mappings=SECRET_SCOPE_INVENTORY_MAPPINGS,
+                    collection_context=context,
+                )
+            )
+
+            backend_lower = backend_str.lower()
+            if "azure_keyvault" in backend_lower or "keyvault" in backend_lower:
+                findings.append(
+                    SecurityFinding(
+                        title=(
+                            f"Secret scope {name} uses Azure Key Vault "
+                            f"backing (preferred SC-12 posture)"
+                        ),
+                        description=(
+                            "Azure Key Vault-backed scope delegates "
+                            "secret encryption to a cloud-provider "
+                            "KMS. This is the preferred posture for "
+                            "SC-12 in regulated environments."
+                        ),
+                        severity=Severity.INFORMATIONAL,
+                        status=FindingStatus.RESOLVED,
+                        source_system="databricks",
+                        source_finding_id=(
+                            f"databricks-secret-scope-keyvault:{name}"
+                        ),
+                        resource_id=str(name),
+                        resource_type="Databricks::SecretScope",
+                        raw_data={
+                            "name": str(name),
+                            "backend_type": backend_str,
+                        },
+                        control_mappings=(
+                            SECRET_SCOPE_KEY_VAULT_BACKED_MAPPINGS
+                        ),
+                        collection_context=context,
+                    )
+                )
+            elif "databricks" in backend_lower:
+                findings.append(
+                    SecurityFinding(
+                        title=(
+                            f"Secret scope {name} uses Databricks-"
+                            f"backed storage (consider KMS-backed)"
+                        ),
+                        description=(
+                            "Databricks-backed scope encrypts secrets "
+                            "with a workspace-controlled key. For "
+                            "higher-assurance deployments (FedRAMP, "
+                            "financial), Azure Key Vault-backed or "
+                            "AWS Secrets Manager-backed scopes are "
+                            "preferred — they delegate key management "
+                            "to the cloud provider's hardened KMS."
+                        ),
+                        severity=Severity.LOW,
+                        status=FindingStatus.RESOLVED,
+                        source_system="databricks",
+                        source_finding_id=(
+                            f"databricks-secret-scope-databricks-"
+                            f"backed:{name}"
+                        ),
+                        resource_id=str(name),
+                        resource_type="Databricks::SecretScope",
+                        raw_data={
+                            "name": str(name),
+                            "backend_type": backend_str,
+                        },
+                        control_mappings=(
+                            SECRET_SCOPE_DATABRICKS_BACKED_MAPPINGS
+                        ),
+                        collection_context=context,
+                    )
+                )
+
+        return findings
+
     # ── High-level orchestration ────────────────────────────────────
 
     def collect(self, *, dry_run: bool = False) -> list[SecurityFinding]:
@@ -554,13 +968,15 @@ class DatabricksCollector:
 
             for sub_check in (
                 self._pat_inventory_findings,
-                # v0.7.8 P0.1 follow-up commits land:
+                self._cluster_compliance_findings,
+                self._service_principal_findings,
+                self._secret_scope_findings,
+                # v0.7.8 P0.1 follow-up commits land (need additional
+                # plumbing — SQL Warehouse for system tables, Account
+                # API auth for network configurations):
                 # self._workspace_audit_log_findings,
                 # self._table_lineage_findings,
-                # self._cluster_compliance_findings,
                 # self._network_policy_findings,
-                # self._service_principal_findings,
-                # self._secret_scope_findings,
             ):
                 try:
                     findings.extend(sub_check(client, context))
@@ -631,9 +1047,81 @@ class DatabricksCollector:
             coverage_counts=[
                 CoverageCount(
                     resource_type="databricks-pat",
-                    scanned=len(findings),
-                    matched_filter=len(findings),
-                    collected=len(findings),
+                    scanned=sum(
+                        1
+                        for f in findings
+                        if f.resource_type == "Databricks::PAT"
+                    ),
+                    matched_filter=sum(
+                        1
+                        for f in findings
+                        if f.resource_type == "Databricks::PAT"
+                    ),
+                    collected=sum(
+                        1
+                        for f in findings
+                        if f.resource_type == "Databricks::PAT"
+                    ),
+                ),
+                CoverageCount(
+                    resource_type="databricks-cluster",
+                    scanned=sum(
+                        1
+                        for f in findings
+                        if f.resource_type == "Databricks::Cluster"
+                    ),
+                    matched_filter=sum(
+                        1
+                        for f in findings
+                        if f.resource_type == "Databricks::Cluster"
+                    ),
+                    collected=sum(
+                        1
+                        for f in findings
+                        if f.resource_type == "Databricks::Cluster"
+                    ),
+                ),
+                CoverageCount(
+                    resource_type="databricks-service-principal",
+                    scanned=sum(
+                        1
+                        for f in findings
+                        if f.resource_type
+                        == "Databricks::ServicePrincipal"
+                    ),
+                    matched_filter=sum(
+                        1
+                        for f in findings
+                        if f.resource_type
+                        == "Databricks::ServicePrincipal"
+                    ),
+                    collected=sum(
+                        1
+                        for f in findings
+                        if f.resource_type
+                        == "Databricks::ServicePrincipal"
+                    ),
+                ),
+                CoverageCount(
+                    resource_type="databricks-secret-scope",
+                    scanned=sum(
+                        1
+                        for f in findings
+                        if f.resource_type
+                        == "Databricks::SecretScope"
+                    ),
+                    matched_filter=sum(
+                        1
+                        for f in findings
+                        if f.resource_type
+                        == "Databricks::SecretScope"
+                    ),
+                    collected=sum(
+                        1
+                        for f in findings
+                        if f.resource_type
+                        == "Databricks::SecretScope"
+                    ),
                 ),
             ],
             total_findings=len(findings),
@@ -642,16 +1130,12 @@ class DatabricksCollector:
                 "; ".join(errors) if errors else None
             ),
             empty_categories=[
-                # Sub-checks not yet implemented in v0.7.8 P0.1 first
-                # slice — flagged so consumers know this manifest is
-                # PARTIAL evidence (PAT-only) until the follow-up
-                # commits land the remaining 6 sub-checks.
-                "workspace_audit_log",
-                "table_lineage",
-                "cluster_compliance",
-                "network_policy",
-                "service_principal",
-                "secret_scope",
+                # Sub-checks not yet implemented in v0.7.8 P0.1 —
+                # flagged so consumers know this manifest is PARTIAL
+                # evidence until the follow-up commits land them:
+                "workspace_audit_log",      # needs SQL Warehouse plumbing
+                "table_lineage",            # needs SQL Warehouse plumbing
+                "network_policy",           # needs Account API auth path
             ],
             errors=errors,
         )
