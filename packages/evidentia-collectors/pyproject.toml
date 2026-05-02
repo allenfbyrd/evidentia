@@ -49,6 +49,12 @@ sql = [
     "pyodbc>=5.0",
     "oracledb>=2.0",
 ]
+# v0.7.8 P0.1: Databricks Unity Catalog + Workspace API collector.
+# The databricks-sdk wraps both the workspace + account REST APIs
+# and the SQL-statement-execution API for system-table queries.
+# Auth handled by the SDK's unified config layer — supports
+# DATABRICKS_TOKEN env (PAT), Azure AD, AWS IAM, OAuth M2M.
+databricks = ["databricks-sdk>=0.30"]
 all = [
     "boto3>=1.35",
     "azure-identity>=1.19",
@@ -60,6 +66,7 @@ all = [
     "PyMySQL>=1.1",
     "pyodbc>=5.0",
     "oracledb>=2.0",
+    "databricks-sdk>=0.30",
 ]
 
 [project.urls]
