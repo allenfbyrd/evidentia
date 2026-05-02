@@ -158,7 +158,7 @@ def collect_sql(
         ...,
         "--adapter",
         "-a",
-        help="SQL adapter: postgres, mysql, sqlite, mssql (oracle lands in v0.7.7 P0.5).",
+        help="SQL adapter: postgres, mysql, sqlite, mssql, oracle.",
     ),
     connection_uri: str = typer.Option(
         ...,
@@ -340,11 +340,48 @@ def collect_sql(
         _write_findings(findings, output, title=f"MSSQL findings ({connection_uri})")
         return
 
+    if adapter == "oracle":
+        try:
+            from evidentia_collectors.sql.oracle import (
+                OracleCollector,
+                OracleCollectorError,
+            )
+        except ImportError as e:
+            console.print(
+                "[red]Error:[/red] Oracle collector is not installed. "
+                "Run [cyan]pip install 'evidentia-collectors[sql-oracle]'[/cyan]."
+            )
+            raise typer.Exit(code=1) from e
+
+        effective_env = (
+            "EVIDENTIA_ORACLE_PASSWORD"
+            if password_env == "EVIDENTIA_POSTGRES_PASSWORD"
+            else password_env
+        )
+        password = os.environ.get(effective_env)
+        if password is None:
+            console.print(
+                f"[red]Error:[/red] {effective_env} env var not set. "
+                "Set it to the DB password before running this command."
+            )
+            raise typer.Exit(code=1)
+
+        try:
+            with OracleCollector(
+                connection_uri=connection_uri, password=password
+            ) as collector:
+                findings = collector.collect()
+        except OracleCollectorError as e:
+            console.print(f"[red]Oracle collection failed:[/red] {e}")
+            raise typer.Exit(code=1) from e
+
+        _write_findings(findings, output, title=f"Oracle findings ({connection_uri})")
+        return
+
     console.print(
         f"[red]Error:[/red] Unknown adapter {adapter!r}. "
-        "Supported: postgres, mysql, sqlite, mssql "
-        "(v0.7.7 P0.1+P0.2+P0.3+P0.4). "
-        "Coming next: oracle."
+        "Supported: postgres, mysql, sqlite, mssql, oracle "
+        "(v0.7.7 P0.1+P0.2+P0.3+P0.4+P0.5)."
     )
     raise typer.Exit(code=1)
 

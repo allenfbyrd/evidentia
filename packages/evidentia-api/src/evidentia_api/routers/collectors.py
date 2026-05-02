@@ -321,6 +321,72 @@ async def mssql_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
 
 
 @router.post(
+    "/collectors/sql/oracle/collect", response_model=list[SecurityFinding]
+)
+async def oracle_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
+    """Run the Oracle Database collector (v0.7.7 P0.5).
+
+    Request body (required):
+
+    - ``connection_uri``: ``oracle://user@host:1521/service_name``
+      WITHOUT embedded password.
+    - ``password_env``: env-var name to read the password from.
+      Default: ``EVIDENTIA_ORACLE_PASSWORD``.
+
+    Read-only by design — DBA / SYSDBA / ANY-table grant detection
+    fires EVIDENTIA-WRITE-PRIV-DETECTED finding mapped to NIST AC-6.
+    """
+    try:
+        from evidentia_collectors.sql.oracle import (
+            OracleCollector,
+            OracleCollectorError,
+        )
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Oracle collector not installed. Run "
+                "`pip install 'evidentia-collectors[sql-oracle]'`."
+            ),
+        ) from e
+
+    connection_uri = str(payload.get("connection_uri") or "").strip()
+    if not connection_uri:
+        raise HTTPException(
+            status_code=422,
+            detail="Request body must include 'connection_uri'.",
+        )
+    password_env = (
+        str(payload.get("password_env") or "EVIDENTIA_ORACLE_PASSWORD").strip()
+        or "EVIDENTIA_ORACLE_PASSWORD"
+    )
+    password = os.environ.get(password_env)
+    if password is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"Environment variable {password_env!r} not set on the "
+                "server."
+            ),
+        )
+
+    try:
+        with OracleCollector(
+            connection_uri=connection_uri, password=password
+        ) as collector:
+            findings = collector.collect()
+    except OracleCollectorError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    except Exception as e:
+        logger.exception("Oracle collector failed")
+        raise HTTPException(
+            status_code=500, detail=f"Oracle collector failed: {e}"
+        ) from e
+
+    return findings
+
+
+@router.post(
     "/collectors/sql/sqlite/collect", response_model=list[SecurityFinding]
 )
 async def sqlite_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
@@ -382,6 +448,7 @@ async def collectors_status() -> dict[str, Any]:
     mysql_installed = False
     sqlite_installed = False
     mssql_installed = False
+    oracle_installed = False
     try:
         import evidentia_collectors.aws
 
@@ -429,7 +496,7 @@ async def collectors_status() -> dict[str, Any]:
     except ImportError:
         pass
     try:
-        import evidentia_collectors.sql.mssql  # noqa: F401
+        import evidentia_collectors.sql.mssql
 
         try:
             import pyodbc  # noqa: F401
@@ -437,6 +504,17 @@ async def collectors_status() -> dict[str, Any]:
             mssql_installed = True
         except ImportError:
             mssql_installed = False
+    except ImportError:
+        pass
+    try:
+        import evidentia_collectors.sql.oracle  # noqa: F401
+
+        try:
+            import oracledb  # noqa: F401
+
+            oracle_installed = True
+        except ImportError:
+            oracle_installed = False
     except ImportError:
         pass
 
@@ -492,6 +570,18 @@ async def collectors_status() -> dict[str, Any]:
             ),
             "default_password_env_configured": bool(
                 os.environ.get("EVIDENTIA_MSSQL_PASSWORD")
+            ),
+        },
+        "oracle": {
+            "installed": oracle_installed,
+            "credentials_hint": (
+                "Connection URI (oracle://user@host:1521/service_name) "
+                "WITHOUT embedded password; pass password via "
+                "EVIDENTIA_ORACLE_PASSWORD env var. Uses oracledb thin "
+                "mode (no Oracle Client install required)."
+            ),
+            "default_password_env_configured": bool(
+                os.environ.get("EVIDENTIA_ORACLE_PASSWORD")
             ),
         },
     }

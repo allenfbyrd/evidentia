@@ -40,11 +40,14 @@ sql-sqlite = []
 # install it separately (see the [sql-mssql] section in
 # packages/evidentia-collectors/src/evidentia_collectors/sql/mssql/__init__.py).
 sql-mssql = ["pyodbc>=5.0"]
-# sql-oracle lands in v0.7.7 P0.5.
+# Oracle's modern thin driver (oracledb 1.4+); pure-Python — no
+# Oracle Client install needed for the default thin mode.
+sql-oracle = ["oracledb>=2.0"]
 sql = [
     "psycopg[binary]>=3.1",
     "PyMySQL>=1.1",
     "pyodbc>=5.0",
+    "oracledb>=2.0",
 ]
 all = [
     "boto3>=1.35",
@@ -56,6 +59,7 @@ all = [
     "psycopg[binary]>=3.1",
     "PyMySQL>=1.1",
     "pyodbc>=5.0",
+    "oracledb>=2.0",
 ]
 
 [project.urls]
