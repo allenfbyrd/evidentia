@@ -32,7 +32,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-VERSION_RE = re.compile(r"\d+\.\d+\.\d+")
+# Matches X.Y.Z and X.Y.Z.W (hot-fix versions per the v0.7.4 / v0.7.7.1
+# precedent: same-day patches that need to ride atop a tagged minor +
+# don't earn a fresh patch number).
+VERSION_RE = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?")
 
 
 def tracked_files() -> list[Path]:
@@ -62,9 +65,12 @@ def bump_pin_range(current: str, target: str) -> tuple[str, str]:
     """Return (current-range, next-range) for inter-package pin updates.
 
     Pin convention is `>={M}.{m}.0,<{M}.{m+1}.0` (next minor as upper bound).
+    Hot-fix versions (X.Y.Z.W) collapse to X.Y for range purposes.
     """
-    cur_maj, cur_min, _ = current.split(".")
-    tgt_maj, tgt_min, _ = target.split(".")
+    cur_parts = current.split(".")
+    tgt_parts = target.split(".")
+    cur_maj, cur_min = cur_parts[0], cur_parts[1]
+    tgt_maj, tgt_min = tgt_parts[0], tgt_parts[1]
     cur_range = f">={cur_maj}.{cur_min}.0,<{cur_maj}.{int(cur_min)+1}.0"
     tgt_range = f">={tgt_maj}.{tgt_min}.0,<{tgt_maj}.{int(tgt_min)+1}.0"
     return cur_range, tgt_range
@@ -93,10 +99,22 @@ def main() -> int:
         return 0
 
     cur_pin, tgt_pin = bump_pin_range(current, args.to)
-    replacements = [
-        (f'version = "{current}"', f'version = "{args.to}"'),
-        (f'"version": "{current}"', f'"version": "{args.to}"'),
-        (cur_pin, tgt_pin),
+    # Replacements are (regex_pattern, replacement_text). Using regex
+    # with negative-lookaheads avoids substring traps like "0.7.7"
+    # matching inside "0.7.7.1" when bumping a hot-fix.
+    cur_re = re.escape(current)
+    cur_pin_re = re.escape(cur_pin)
+    nla = r"(?!\.\d)"  # negative-lookahead: not followed by .digit
+    replacements: list[tuple[str, str]] = [
+        (rf'version = "{cur_re}"{nla}', f'version = "{args.to}"'),
+        (rf'"version": "{cur_re}"{nla}', f'"version": "{args.to}"'),
+        (cur_pin_re, tgt_pin),
+        # v0.7.7.1 trap: Dockerfile pinned to the current release as a
+        # hardcoded literal. Without this replacement, the published
+        # ghcr.io image installs the previous version inside even
+        # though the image is tagged with the new version. Surfaced
+        # by the v0.7.7 pre-release-review Step 7.5 container smoke.
+        (rf'evidentia\[gui\]=={cur_re}{nla}', f'evidentia[gui]=={args.to}'),
     ]
 
     print(f"Bump plan: {current} -> {args.to}")
@@ -105,8 +123,13 @@ def main() -> int:
 
     files_changed = 0
     total_subs = 0
+    # File-type allowlist: text-based config files that may carry
+    # version literals or pin ranges. Includes Dockerfile (no
+    # extension) per the v0.7.7.1 hot-fix precedent.
+    text_suffixes = {".toml", ".json"}
+    text_names = {"Dockerfile"}
     for p in tracked_files():
-        if p.suffix.lower() not in {".toml", ".json"}:
+        if not (p.suffix.lower() in text_suffixes or p.name in text_names):
             continue
         if p.name in {"uv.lock", "package-lock.json"}:
             continue
@@ -116,11 +139,9 @@ def main() -> int:
             continue
         new_text = text
         file_subs = 0
-        for old, new in replacements:
-            n = new_text.count(old)
-            if n:
-                new_text = new_text.replace(old, new)
-                file_subs += n
+        for pattern, new in replacements:
+            new_text, n = re.subn(pattern, new, new_text)
+            file_subs += n
         if file_subs:
             print(f"  {p}: {file_subs} substitution(s)")
             if not args.dry_run:

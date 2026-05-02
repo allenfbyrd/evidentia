@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.7.1] - 2026-05-02
+
+**Same-day Dockerfile-pin hot-fix for v0.7.7.** The `release.yml`
+`publish-container` job ships an image tagged `:v0.7.7` that is
+correctly built but installs `evidentia[gui]==0.7.6` inside —
+because the Dockerfile pin is a hardcoded literal that
+`bump_version.py` did not include in its sweep until this
+release. Surfaced by the v0.7.7 pre-release-review Step 7.5
+post-tag container smoke test.
+
+Mirrors the v0.7.4 same-day Dockerfile-invocation hot-fix
+pattern (different bug; same shape: ship → post-tag verify →
+hot-fix → re-tag).
+
+### Fixed
+
+- **Dockerfile pin**: `evidentia[gui]==0.7.6` → `0.7.7.1`. Users
+  who pulled `ghcr.io/allenfbyrd/evidentia:v0.7.7` got 0.7.6
+  internally — no SQL collectors, no Okta, no ServiceNow, no
+  Step 5.A security fixes. The `:v0.7.7.1` and `:latest` tags
+  ship the correct binary.
+- **`scripts/bump_version.py`** hardened to:
+  - support 4-digit hot-fix versions (`X.Y.Z.W`) per the v0.7.4 +
+    v0.7.7.1 precedent
+  - sweep `Dockerfile` (in addition to `*.toml` + `*.json`) for
+    the `evidentia[gui]==X.Y.Z` pin literal
+  - use regex with negative-lookaheads instead of `str.replace`
+    so the prefix-substring trap (`0.7.7` matching inside
+    `0.7.7.1`) cannot recur
+
+PyPI users on `pip install evidentia==0.7.7` are unaffected —
+that wheel was correct. Only the container surface needed
+remediation.
+
 ## [0.7.7] - 2026-05-02
 
 **SQL family evidence collectors + Okta + ServiceNow + carry-forward
