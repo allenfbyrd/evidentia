@@ -30,7 +30,7 @@ from evidentia_integrations.tableau.extract import (
 
 
 def _gap(**overrides: object) -> ControlGap:
-    defaults = {
+    defaults: dict[str, object] = {
         "framework": "nist-800-53-rev5-moderate",
         "control_id": "AC-2",
         "control_title": "Account Management",
@@ -63,7 +63,7 @@ def _report(gaps: list[ControlGap]) -> GapAnalysisReport:
 
 
 def _risk(**overrides: object) -> RiskStatement:
-    defaults = {
+    defaults: dict[str, object] = {
         "asset": "PHI database",
         "threat_source": "External attacker",
         "threat_event": "SQL injection extraction of PHI",
