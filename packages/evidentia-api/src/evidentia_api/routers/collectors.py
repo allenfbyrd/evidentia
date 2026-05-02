@@ -252,6 +252,55 @@ async def mysql_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     return findings
 
 
+@router.post(
+    "/collectors/sql/sqlite/collect", response_model=list[SecurityFinding]
+)
+async def sqlite_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
+    """Run the SQLite collector (v0.7.7 P0.3).
+
+    Request body (required):
+
+    - ``database_path``: Absolute path to the SQLite database file
+      on the SERVER's filesystem. Must already exist + be readable
+      by the API process. SQLite has no built-in user system, so
+      no password is required or accepted.
+
+    Read-only by design — the collector opens the file via
+    ``file:?mode=ro`` URI. If the underlying filesystem still
+    permits write, EVIDENTIA-WRITE-PRIV-DETECTED fires (AC-6).
+    """
+    try:
+        from evidentia_collectors.sql.sqlite import (
+            SQLiteCollector,
+            SQLiteCollectorError,
+        )
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"SQLite collector failed to import: {e}",
+        ) from e
+
+    database_path = str(payload.get("database_path") or "").strip()
+    if not database_path:
+        raise HTTPException(
+            status_code=422,
+            detail="Request body must include 'database_path'.",
+        )
+
+    try:
+        with SQLiteCollector(database_path=database_path) as collector:
+            findings = collector.collect()
+    except SQLiteCollectorError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    except Exception as e:
+        logger.exception("SQLite collector failed")
+        raise HTTPException(
+            status_code=500, detail=f"SQLite collector failed: {e}"
+        ) from e
+
+    return findings
+
+
 @router.get("/collectors/status")
 async def collectors_status() -> dict[str, Any]:
     """Report which collectors are installed + which credentials are set.
@@ -263,6 +312,7 @@ async def collectors_status() -> dict[str, Any]:
     github_installed = False
     postgres_installed = False
     mysql_installed = False
+    sqlite_installed = False
     try:
         import evidentia_collectors.aws
 
@@ -291,7 +341,7 @@ async def collectors_status() -> dict[str, Any]:
         # the actual driver-import happens lazily on first connect.
         # Detect the driver presence separately so the status surface
         # reflects ready-to-use vs adapter-imported-but-driver-missing.
-        import evidentia_collectors.sql.postgres  # noqa: F401
+        import evidentia_collectors.sql.postgres
 
         try:
             import psycopg  # noqa: F401
@@ -299,6 +349,14 @@ async def collectors_status() -> dict[str, Any]:
             postgres_installed = True
         except ImportError:
             postgres_installed = False
+    except ImportError:
+        pass
+    try:
+        # SQLite uses stdlib sqlite3 — no extra dependency to detect.
+        # The adapter's installed status mirrors module importability.
+        import evidentia_collectors.sql.sqlite  # noqa: F401
+
+        sqlite_installed = True
     except ImportError:
         pass
 
@@ -334,6 +392,14 @@ async def collectors_status() -> dict[str, Any]:
             ),
             "default_password_env_configured": bool(
                 os.environ.get("EVIDENTIA_MYSQL_PASSWORD")
+            ),
+        },
+        "sqlite": {
+            "installed": sqlite_installed,
+            "credentials_hint": (
+                "No password — SQLite has no built-in user system. "
+                "Pass database_path in the request body; the API process "
+                "must already be able to read the file."
             ),
         },
     }

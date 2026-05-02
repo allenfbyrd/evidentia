@@ -158,7 +158,7 @@ def collect_sql(
         ...,
         "--adapter",
         "-a",
-        help="SQL adapter: postgres (more land in v0.7.7 P0.x).",
+        help="SQL adapter: postgres, mysql, sqlite (more land in v0.7.7 P0.x).",
     ),
     connection_uri: str = typer.Option(
         ...,
@@ -189,13 +189,16 @@ def collect_sql(
 ) -> None:
     """Collect compliance evidence from a SQL database (read-only).
 
-    v0.7.7 P0.1 ships --adapter postgres. P0.2 (mysql) / P0.3 (sqlite)
-    / P0.4 (mssql) / P0.5 (oracle) follow in subsequent commits.
+    v0.7.7 ships --adapter postgres / mysql / sqlite (P0.1+P0.2+P0.3).
+    P0.4 (mssql) / P0.5 (oracle) follow in subsequent commits.
 
     Each adapter is read-only by design and runs a write-privilege
     verification probe on first connect. Detected write privilege
     emits an EVIDENTIA-WRITE-PRIV-DETECTED finding mapped to NIST
     AC-6 (least privilege violation).
+
+    SQLite is special: no auth, no password env var. Pass the database
+    file path via --connection-uri (e.g., --connection-uri /var/lib/app/data.db).
     """
     if adapter == "postgres":
         try:
@@ -274,10 +277,34 @@ def collect_sql(
         _write_findings(findings, output, title=f"MySQL findings ({connection_uri})")
         return
 
+    if adapter == "sqlite":
+        try:
+            from evidentia_collectors.sql.sqlite import (
+                SQLiteCollector,
+                SQLiteCollectorError,
+            )
+        except ImportError as e:
+            console.print(
+                "[red]Error:[/red] SQLite collector failed to import: " + str(e)
+            )
+            raise typer.Exit(code=1) from e
+
+        # SQLite has no auth — the connection_uri is treated as the
+        # database file path. No password env var is required or read.
+        try:
+            with SQLiteCollector(database_path=connection_uri) as collector:
+                findings = collector.collect()
+        except SQLiteCollectorError as e:
+            console.print(f"[red]SQLite collection failed:[/red] {e}")
+            raise typer.Exit(code=1) from e
+
+        _write_findings(findings, output, title=f"SQLite findings ({connection_uri})")
+        return
+
     console.print(
         f"[red]Error:[/red] Unknown adapter {adapter!r}. "
-        "Supported: postgres, mysql (v0.7.7 P0.1+P0.2). "
-        "Coming next: sqlite, mssql, oracle."
+        "Supported: postgres, mysql, sqlite (v0.7.7 P0.1+P0.2+P0.3). "
+        "Coming next: mssql, oracle."
     )
     raise typer.Exit(code=1)
 

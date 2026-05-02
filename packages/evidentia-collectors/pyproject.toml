@@ -32,7 +32,11 @@ okta = ["okta>=2.9"]
 # extra pulls in all of them.
 sql-postgres = ["psycopg[binary]>=3.1"]
 sql-mysql = ["PyMySQL>=1.1"]
-# sql-sqlite, sql-mssql, sql-oracle land in subsequent v0.7.7 P0.x commits.
+# sqlite uses the stdlib sqlite3 module — no extra dep needed; the
+# [sql-sqlite] extra is empty so users can declare intent
+# consistently across the SQL family without surprises.
+sql-sqlite = []
+# sql-mssql, sql-oracle land in subsequent v0.7.7 P0.x commits.
 sql = [
     "psycopg[binary]>=3.1",
     "PyMySQL>=1.1",

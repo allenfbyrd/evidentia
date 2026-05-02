@@ -965,7 +965,7 @@ requires-dist = [
     { name = "pymysql", marker = "extra == 'sql'", specifier = ">=1.1" },
     { name = "pymysql", marker = "extra == 'sql-mysql'", specifier = ">=1.1" },
 ]
-provides-extras = ["aws", "azure", "gcp", "github", "okta", "sql-postgres", "sql-mysql", "sql", "all"]
+provides-extras = ["aws", "azure", "gcp", "github", "okta", "sql-postgres", "sql-mysql", "sql-sqlite", "sql", "all"]
 
 [[package]]
 name = "evidentia-core"
