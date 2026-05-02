@@ -152,6 +152,76 @@ def collect_github(
     _write_findings(findings, output, title=f"GitHub findings ({repo})")
 
 
+@app.command("okta")
+def collect_okta(
+    org_url: str = typer.Option(
+        ...,
+        "--org-url",
+        "-u",
+        help="Okta org URL (e.g., https://your-org.okta.com).",
+    ),
+    inactive_threshold_days: int = typer.Option(
+        90,
+        "--inactive-threshold-days",
+        help=(
+            "Days since last login that mark an ACTIVE user as "
+            "inactive. Default: 90 (per AC-2(3))."
+        ),
+    ),
+    max_users: int = typer.Option(
+        10_000,
+        "--max-users",
+        help=(
+            "Hard cap on user enumeration. Default: 10000. "
+            "Increase only if your org is genuinely larger."
+        ),
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Where to write the findings JSON. Default: stdout.",
+    ),
+) -> None:
+    """Collect evidence from an Okta org (read-only).
+
+    The API token is sourced from the OKTA_API_TOKEN env var per
+    the secret-handling protocol — refused via CLI flag.
+    """
+    try:
+        from evidentia_collectors.okta import (
+            OktaCollector,
+            OktaCollectorError,
+        )
+    except ImportError as e:
+        console.print(
+            "[red]Error:[/red] Okta collector failed to import: " + str(e)
+        )
+        raise typer.Exit(code=1) from e
+
+    api_token = os.environ.get("OKTA_API_TOKEN")
+    if api_token is None:
+        console.print(
+            "[red]Error:[/red] OKTA_API_TOKEN env var not set. "
+            "Set it to a read-only Okta API token."
+        )
+        raise typer.Exit(code=1)
+
+    try:
+        with OktaCollector(
+            org_url=org_url,
+            api_token=api_token,
+            inactive_threshold_days=inactive_threshold_days,
+            max_users=max_users,
+        ) as collector:
+            findings = collector.collect()
+    except OktaCollectorError as e:
+        console.print(f"[red]Okta collection failed:[/red] {e}")
+        raise typer.Exit(code=1) from e
+
+    _write_findings(findings, output, title=f"Okta findings ({org_url})")
+
+
 @app.command("sql")
 def collect_sql(
     adapter: str = typer.Option(

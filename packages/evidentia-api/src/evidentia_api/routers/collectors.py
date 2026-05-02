@@ -114,6 +114,69 @@ async def github_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     return findings
 
 
+@router.post("/collectors/okta/collect", response_model=list[SecurityFinding])
+async def okta_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
+    """Run the Okta collector (v0.7.7 C1).
+
+    Request body (required):
+
+    - ``org_url``: ``https://your-org.okta.com``
+
+    Optional:
+
+    - ``inactive_threshold_days``: int, default 90
+    - ``max_users``: int, default 10000
+
+    Credentials are sourced from the server's ``$OKTA_API_TOKEN``
+    env var. The token MUST be read-only; the request body never
+    accepts a token value.
+    """
+    try:
+        from evidentia_collectors.okta import (
+            OktaCollector,
+            OktaCollectorError,
+        )
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Okta collector import failed: {e}",
+        ) from e
+
+    org_url = str(payload.get("org_url") or "").strip()
+    if not org_url:
+        raise HTTPException(
+            status_code=422,
+            detail="Request body must include 'org_url'.",
+        )
+    inactive_threshold_days = int(payload.get("inactive_threshold_days") or 90)
+    max_users = int(payload.get("max_users") or 10_000)
+
+    api_token = os.environ.get("OKTA_API_TOKEN")
+    if api_token is None:
+        raise HTTPException(
+            status_code=503,
+            detail="OKTA_API_TOKEN env var not set on the server.",
+        )
+
+    try:
+        with OktaCollector(
+            org_url=org_url,
+            api_token=api_token,
+            inactive_threshold_days=inactive_threshold_days,
+            max_users=max_users,
+        ) as collector:
+            findings = collector.collect()
+    except OktaCollectorError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    except Exception as e:
+        logger.exception("Okta collector failed")
+        raise HTTPException(
+            status_code=500, detail=f"Okta collector failed: {e}"
+        ) from e
+
+    return findings
+
+
 @router.post(
     "/collectors/sql/postgres/collect", response_model=list[SecurityFinding]
 )
@@ -444,6 +507,7 @@ async def collectors_status() -> dict[str, Any]:
     """
     aws_installed = False
     github_installed = False
+    okta_installed = False
     postgres_installed = False
     mysql_installed = False
     sqlite_installed = False
@@ -459,6 +523,12 @@ async def collectors_status() -> dict[str, Any]:
         import evidentia_collectors.github
 
         github_installed = True
+    except ImportError:
+        pass
+    try:
+        import evidentia_collectors.okta
+
+        okta_installed = True
     except ImportError:
         pass
     try:
@@ -529,6 +599,15 @@ async def collectors_status() -> dict[str, Any]:
             "installed": github_installed,
             "token_configured": bool(os.environ.get("GITHUB_TOKEN")),
             "token_source": "env:GITHUB_TOKEN" if os.environ.get("GITHUB_TOKEN") else None,
+        },
+        "okta": {
+            "installed": okta_installed,
+            "token_configured": bool(os.environ.get("OKTA_API_TOKEN")),
+            "token_source": (
+                "env:OKTA_API_TOKEN"
+                if os.environ.get("OKTA_API_TOKEN")
+                else None
+            ),
         },
         "postgres": {
             "installed": postgres_installed,
