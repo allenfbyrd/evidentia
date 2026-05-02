@@ -5,6 +5,16 @@ on:
     tags:
       - "v*"
 
+# Workflow-level least-privilege default. The publish-pypi job below
+# elevates to `contents: write` (Release attachment) +
+# `id-token: write` (PyPI OIDC) + `attestations: write` (SLSA L3)
+# locally. Closes OpenSSF Scorecard alert #30 (no top-level
+# permission defined) — top-level read-only narrows the blast
+# radius if any third-party action is compromised in a future job
+# we add to this workflow.
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
