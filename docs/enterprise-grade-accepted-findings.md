@@ -55,11 +55,11 @@ risk, recommending zero-write or step-level grants. Evidentia's
 release jobs need write permissions for legitimate reasons that
 can't be reduced without losing functionality.
 
-| Alert | Workflow | Permission | Why it's needed |
-|---|---|---|---|
-| **#75** | `.github/workflows/release.yml:211` | `contents: write` on `publish-container` job | The job's final step uses `softprops/action-gh-release` to **append** the container-image section (digest + cosign verify one-liner + SLSA verify one-liner) to the GitHub Release notes that `publish-pypi` created. Append requires write access to the Release. Same pattern as #29/#30 below. |
-| **#30** | `.github/workflows/release.yml` | `contents: write` on `publish-pypi` job | Attaches the CycloneDX SBOM + (v0.7.5+) appends container section. Same `softprops/action-gh-release` flow. |
-| **#29** | `.github/workflows/release.yml:22` | `contents: write` (workflow-level) | Identical rationale. |
+| Alert | Workflow | Permission | Status | Why it's needed |
+|---|---|---|---|---|
+| **#75** | `.github/workflows/release.yml:211` | `contents: write` on `publish-container` job | open / accepted | The job's final step uses `softprops/action-gh-release` to **append** the container-image section (digest + cosign verify one-liner + SLSA verify one-liner) to the GitHub Release notes that `publish-pypi` created. Append requires write access to the Release. Same pattern as #29 below. |
+| **#29** | `.github/workflows/release.yml:32` | `contents: write` on `publish-pypi` job | open / accepted | Attaches the CycloneDX SBOM + appends container section to the GitHub Release. Same `softprops/action-gh-release` flow. v0.7.8 P0.5 deferred the split-into-separate-job refactor — accepted-finding path taken instead since the existing scoping is bounded (only fires on tag pushes; only Allen has tag-push capability) and a multi-job refactor would add operational complexity (4 jobs vs 2) without changing the actual blast radius. |
+| **#30** | `.github/workflows/release.yml` (workflow-level) | top-level permissions block missing | **CLOSED v0.7.8 P0.5 S4** (commit `1c3bba5`) | Workflow-level `permissions: contents: read` default added; job-level `contents: write` retained at `publish-pypi` + `publish-container` jobs as documented above. |
 
 **Mitigations in place** (so the permission isn't a security
 weakening):
@@ -82,12 +82,13 @@ listed in the dismissal comment.
 | Alert | File:Line | Pin form | Why Scorecard flags it | Why it's accepted |
 |---|---|---|---|---|
 | **#74** | `Dockerfile:62` (`pip install evidentia[gui]==0.7.5`) | Exact-version pin (`==X.Y.Z`) | Scorecard wants `--hash=sha256:<digest>` style cryptographic pin | The `evidentia==X.Y.Z` wheel on PyPI is signed with PEP 740 attestations + SLSA L3 build provenance; verification runs in the docker build's pre-PyPI propagation wait step (`pip index versions`) and again post-image via `pypi-attestations verify pypi`. The end-to-end chain is more rigorous than `--hash=sha256:` alone. |
+| **#84** | `Dockerfile:62` (`pip install evidentia[gui]==0.7.7.1`) | Exact-version pin (`==X.Y.Z`) | Same as #74 (Scorecard re-flags on each Dockerfile pin update) | Same rationale as #74. v0.7.8 P0.5 S5 considered switching to `pip install --require-hashes -r Dockerfile.requirements.txt` but deferred — generating + maintaining a hash-pinned requirements.txt for evidentia[gui]'s ~80-element transitive dep graph adds CI complexity (regenerate-on-each-release-bump) without changing the security posture in a meaningful way given the PEP 740 + SLSA L3 chain already enforced. |
 
 Other `apt-get install` floating-version pins in the Dockerfile are
 intentional and already documented in-line per the v0.7.5 S5
 work — those alerts have already been suppressed in code-scanning.
 
-**Action**: dismiss #74 as `won't_fix` with the above rationale.
+**Action**: dismiss #74 + #84 as `won't_fix` with the above rationale.
 
 ---
 
@@ -102,8 +103,11 @@ this doc with rationale, or dismissed via the GitHub UI.
 
 ---
 
-*Last reviewed: v0.7.6 cycle. Created in v0.7.6 to capture the 5
-NEW HIGH alerts that surfaced post-v0.7.5 push (3 CodeQL false
-positives on `validate_within` + 1 Scorecard `contents: write`
-finding on the new `publish-container` job + 1 Scorecard `==X.Y.Z`
-pin finding on the Dockerfile).*
+*Last reviewed: v0.7.8 P0.5 cycle. Created in v0.7.6 to capture
+the 5 NEW HIGH alerts that surfaced post-v0.7.5 push (3 CodeQL
+false positives on `validate_within` + 1 Scorecard `contents:
+write` finding on the new `publish-container` job + 1 Scorecard
+`==X.Y.Z` pin finding on the Dockerfile). v0.7.8 P0.5 review:
+- closed #30 in v0.7.8 P0.5 S4 (workflow-level permissions block)
+- accepted #29 (was-#30 follow-up) and #84 (Dockerfile pin bumped
+  to ==0.7.7.1) per existing rationale templates.*
