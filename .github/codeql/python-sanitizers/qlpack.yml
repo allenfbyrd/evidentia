@@ -1,26 +1,20 @@
-# Custom CodeQL pack declaring Evidentia-specific sanitizers
-# (v0.7.7 CF3).
+# Custom CodeQL pack with Evidentia-specific QL sanitizers
+# (v0.7.7 CF3 iteration #2 — proper QL after the data-extension
+# YAML approach didn't fire on the v0.7.7 first attempt).
 #
-# The pack uses CodeQL's data-extension mechanism to declare
-# `evidentia_core.security.paths.validate_within` as a sanitizer
-# for the `py/path-injection` query without writing custom QL.
-# Data extensions are declarative YAML that the CodeQL engine
-# consumes at analysis time; they're more maintainable than
-# writing custom .ql files.
+# Ships .qll library files that subclass the standard CodeQL
+# Python sanitizer / barrier-guard abstract classes. The standard
+# `py/path-injection` query picks up the sanitizer subclass
+# automatically when this pack is in the analysis path (per the
+# `packs:` declaration in `.github/codeql/codeql-config.yml`).
 #
 # References:
-# - https://docs.github.com/en/code-security/code-scanning/managing-your-code-scanning-configuration/managing-codeql-with-data-extensions
+# - https://codeql.github.com/docs/codeql-language-guides/customizing-library-models-for-python/
 # - https://github.com/github/codeql/blob/main/python/ql/lib/semmle/python/security/dataflow/PathInjectionCustomizations.qll
 
 name: allenfbyrd/evidentia-python-sanitizers
-version: 0.0.1
+version: 0.0.2
 library: true
 
-# Extend the standard codeql/python-all pack with Evidentia-
-# specific sanitizer models. All YAML files under models/ are
-# loaded as data extensions.
-extensionTargets:
-  codeql/python-all: '*'
-
-dataExtensions:
-  - models/**/*.yml
+dependencies:
+  codeql/python-all: "*"
