@@ -36,10 +36,15 @@ sql-mysql = ["PyMySQL>=1.1"]
 # [sql-sqlite] extra is empty so users can declare intent
 # consistently across the SQL family without surprises.
 sql-sqlite = []
-# sql-mssql, sql-oracle land in subsequent v0.7.7 P0.x commits.
+# pyodbc requires the OS-level Microsoft ODBC Driver 18; users must
+# install it separately (see the [sql-mssql] section in
+# packages/evidentia-collectors/src/evidentia_collectors/sql/mssql/__init__.py).
+sql-mssql = ["pyodbc>=5.0"]
+# sql-oracle lands in v0.7.7 P0.5.
 sql = [
     "psycopg[binary]>=3.1",
     "PyMySQL>=1.1",
+    "pyodbc>=5.0",
 ]
 all = [
     "boto3>=1.35",
@@ -50,6 +55,7 @@ all = [
     "okta>=2.9",
     "psycopg[binary]>=3.1",
     "PyMySQL>=1.1",
+    "pyodbc>=5.0",
 ]
 
 [project.urls]

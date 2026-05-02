@@ -253,6 +253,74 @@ async def mysql_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
 
 
 @router.post(
+    "/collectors/sql/mssql/collect", response_model=list[SecurityFinding]
+)
+async def mssql_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
+    """Run the MS SQL Server collector (v0.7.7 P0.4).
+
+    Request body (required):
+
+    - ``connection_uri``: ``mssql://user@host:1433/dbname`` WITHOUT
+      embedded password.
+    - ``password_env``: env-var name to read the password from.
+      Default: ``EVIDENTIA_MSSQL_PASSWORD``.
+
+    Read-only by design — sysadmin / db_owner / db_datawriter
+    membership detection fires EVIDENTIA-WRITE-PRIV-DETECTED
+    finding mapped to NIST AC-6.
+    """
+    try:
+        from evidentia_collectors.sql.mssql import (
+            MSSQLCollector,
+            MSSQLCollectorError,
+        )
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "MSSQL collector not installed. Run "
+                "`pip install 'evidentia-collectors[sql-mssql]'`. "
+                "Note: also requires Microsoft ODBC Driver 18 at OS level."
+            ),
+        ) from e
+
+    connection_uri = str(payload.get("connection_uri") or "").strip()
+    if not connection_uri:
+        raise HTTPException(
+            status_code=422,
+            detail="Request body must include 'connection_uri'.",
+        )
+    password_env = (
+        str(payload.get("password_env") or "EVIDENTIA_MSSQL_PASSWORD").strip()
+        or "EVIDENTIA_MSSQL_PASSWORD"
+    )
+    password = os.environ.get(password_env)
+    if password is None:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"Environment variable {password_env!r} not set on the "
+                "server."
+            ),
+        )
+
+    try:
+        with MSSQLCollector(
+            connection_uri=connection_uri, password=password
+        ) as collector:
+            findings = collector.collect()
+    except MSSQLCollectorError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    except Exception as e:
+        logger.exception("MSSQL collector failed")
+        raise HTTPException(
+            status_code=500, detail=f"MSSQL collector failed: {e}"
+        ) from e
+
+    return findings
+
+
+@router.post(
     "/collectors/sql/sqlite/collect", response_model=list[SecurityFinding]
 )
 async def sqlite_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
@@ -313,6 +381,7 @@ async def collectors_status() -> dict[str, Any]:
     postgres_installed = False
     mysql_installed = False
     sqlite_installed = False
+    mssql_installed = False
     try:
         import evidentia_collectors.aws
 
@@ -354,9 +423,20 @@ async def collectors_status() -> dict[str, Any]:
     try:
         # SQLite uses stdlib sqlite3 — no extra dependency to detect.
         # The adapter's installed status mirrors module importability.
-        import evidentia_collectors.sql.sqlite  # noqa: F401
+        import evidentia_collectors.sql.sqlite
 
         sqlite_installed = True
+    except ImportError:
+        pass
+    try:
+        import evidentia_collectors.sql.mssql  # noqa: F401
+
+        try:
+            import pyodbc  # noqa: F401
+
+            mssql_installed = True
+        except ImportError:
+            mssql_installed = False
     except ImportError:
         pass
 
@@ -400,6 +480,18 @@ async def collectors_status() -> dict[str, Any]:
                 "No password — SQLite has no built-in user system. "
                 "Pass database_path in the request body; the API process "
                 "must already be able to read the file."
+            ),
+        },
+        "mssql": {
+            "installed": mssql_installed,
+            "credentials_hint": (
+                "Connection URI WITHOUT embedded password; pass password via "
+                "EVIDENTIA_MSSQL_PASSWORD env var (or override with "
+                "password_env in the request body). Requires Microsoft "
+                "ODBC Driver 18 at OS level."
+            ),
+            "default_password_env_configured": bool(
+                os.environ.get("EVIDENTIA_MSSQL_PASSWORD")
             ),
         },
     }
