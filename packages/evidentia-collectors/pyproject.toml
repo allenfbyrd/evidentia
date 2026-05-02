@@ -55,6 +55,13 @@ sql = [
 # Auth handled by the SDK's unified config layer — supports
 # DATABRICKS_TOKEN env (PAT), Azure AD, AWS IAM, OAuth M2M.
 databricks = ["databricks-sdk>=0.30"]
+# v0.7.8 P0.2: Snowflake account_usage + INFORMATION_SCHEMA collector.
+# The snowflake-connector-python driver supports password (env var),
+# key-pair, OAuth, and SSO auth modes. Password auth is being
+# deprecated by Snowflake — production deployments should prefer
+# key-pair auth (private key on disk, public key in
+# `ALTER USER ... SET RSA_PUBLIC_KEY = ...`).
+snowflake = ["snowflake-connector-python>=3.10"]
 all = [
     "boto3>=1.35",
     "azure-identity>=1.19",
@@ -67,6 +74,7 @@ all = [
     "pyodbc>=5.0",
     "oracledb>=2.0",
     "databricks-sdk>=0.30",
+    "snowflake-connector-python>=3.10",
 ]
 
 [project.urls]
