@@ -226,7 +226,7 @@ class TestRESTHelpers:
     ) -> None:
         client = self._signed_in(monkeypatch)
         response = MagicMock()
-        response.raise_for_status = MagicMock()
+        response.status_code = 200  # Power BI returns 200 OK on success
         with patch.object(
             client._http, "delete", return_value=response
         ) as mock_delete:
@@ -234,6 +234,41 @@ class TestRESTHelpers:
                 dataset_id="ds-x", table_name="gaps"
             )
             mock_delete.assert_called_once()
+
+    def test_clear_table_swallows_404_on_fresh_dataset(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """F-V08-CR-H3 — first-publish flow on a brand-new Push
+        Dataset can return 404 because the table has no rows the
+        endpoint can identify. clear_table must swallow this so
+        the subsequent push_rows call proceeds."""
+        client = self._signed_in(monkeypatch)
+        response = MagicMock()
+        response.status_code = 404
+        response.reason_phrase = "Not Found"
+        with patch.object(
+            client._http, "delete", return_value=response
+        ):
+            # Should NOT raise PowerBIPublishError
+            client.clear_table(
+                dataset_id="ds-fresh", table_name="gaps"
+            )
+
+    def test_clear_table_raises_on_5xx(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """5xx is a real backend failure; surface to caller."""
+        client = self._signed_in(monkeypatch)
+        response = MagicMock()
+        response.status_code = 503
+        response.reason_phrase = "Service Unavailable"
+        with patch.object(
+            client._http, "delete", return_value=response
+        ):
+            with pytest.raises(PowerBIPublishError):
+                client.clear_table(
+                    dataset_id="ds-x", table_name="gaps"
+                )
 
     def test_push_rows_chunks_at_10k(
         self, monkeypatch: pytest.MonkeyPatch

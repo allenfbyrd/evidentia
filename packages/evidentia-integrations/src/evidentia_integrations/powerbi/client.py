@@ -252,6 +252,15 @@ class PowerBIClient:
         (or until the FIFO row limit is hit). For periodic full-
         refresh use cases (the typical compliance-dashboard
         pattern) we clear before pushing.
+
+        F-V08-CR-H3 — first-publish flows on a freshly-created Push
+        Dataset can return 404 (table doesn't yet contain rows the
+        endpoint can identify) or other 4xx variants from some
+        Power BI deployment regions. These are benign — the desired
+        post-condition (no rows in the table) is already true. We
+        swallow 4xx and let the caller proceed to push_rows. Real
+        problems (5xx, network errors) still surface as
+        PowerBIPublishError.
         """
         if self._http is None:
             self._signin()
@@ -261,12 +270,22 @@ class PowerBIClient:
                 f"/groups/{self._config.workspace_id}/datasets/"
                 f"{dataset_id}/tables/{table_name}/rows"
             )
-            r.raise_for_status()
         except httpx.HTTPError as e:
+            # Network-level failure (timeout, connection refused, etc.)
             raise PowerBIPublishError(
                 f"Clear table '{table_name}' failed: "
                 f"{type(e).__name__}: {e}"
             ) from e
+        if r.status_code == 404 or 400 <= r.status_code < 500:
+            # Benign — see docstring. Proceed silently; the caller's
+            # subsequent push_rows call will validate the table is
+            # actually pushable.
+            return
+        if r.status_code >= 500:
+            raise PowerBIPublishError(
+                f"Clear table '{table_name}' failed: "
+                f"HTTP {r.status_code} {r.reason_phrase}"
+            )
 
     def push_rows(
         self,

@@ -30,12 +30,22 @@ from evidentia_core.models.finding import FindingStatus
 class _MockCursor:
     """Minimal snowflake-cursor stand-in. Routes by substring-match
     against the last query string seen via execute(); fetchone() /
-    fetchall() return pre-canned rows."""
+    fetchall() return pre-canned rows. Supports the context-manager
+    protocol (`with conn.cursor() as cur:`) used by the policy
+    inventory loop after F-V08-CR-H2."""
 
     def __init__(self, responses: dict[str, Any]) -> None:
         self._responses = responses
         self._last_query = ""
         self.executed: list[tuple[str, Any]] = []
+
+    def __enter__(self) -> "_MockCursor":
+        return self
+
+    def __exit__(self, *exc: Any) -> None:
+        # Mirror snowflake-connector-python semantics — exiting the
+        # context closes the cursor; closing twice is a no-op.
+        self.close()
 
     def execute(self, query: str, params: Any = None) -> None:
         self._last_query = query

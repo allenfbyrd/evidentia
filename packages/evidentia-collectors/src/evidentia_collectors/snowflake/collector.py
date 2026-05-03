@@ -201,6 +201,15 @@ BLIND_SPOTS: list[dict[str, str]] = [
 # default LOGIN_HISTORY filter widget.
 _LOGIN_HISTORY_DEFAULT_WINDOW_DAYS = 90
 
+# Defensive cap for the LOGIN_HISTORY query — a noisy 90-day window on
+# a busy Snowflake account can return >10K rows, each of which the
+# pre-v0.7.8 collector emitted as a separate SecurityFinding. 10000 is
+# a balance between actionable evidence (operators reviewing AC-7
+# enforcement want individual-row visibility) and report bloat.
+# Operators can shrink the window or raise the cap via the constructor
+# argument when their environment warrants it. Closes F-V08-CR-H1.
+_LOGIN_HISTORY_DEFAULT_MAX_ROWS = 10000
+
 
 # Snowflake's reserved built-in role names. Inventoried separately
 # from custom roles because grant-to-built-in-role is structurally
@@ -257,6 +266,13 @@ class SnowflakeCollector:
             user's default role.
         login_history_window_days: How many days back to scan in
             LOGIN_HISTORY. Defaults to 90.
+        login_history_max_rows: Defensive row cap on the LOGIN_HISTORY
+            query. Defaults to 10000 — sufficient for AC-7 enforcement
+            review on most accounts; raise it if your environment
+            routinely exceeds the cap and per-row finding emission is
+            still desired. The cap is enforced at the SQL layer
+            (``LIMIT``), not in Python, so it bounds memory + report
+            size predictably. Closes F-V08-CR-H1.
 
     Raises:
         SnowflakeCollectorError: if `snowflake-connector-python` is
@@ -273,6 +289,7 @@ class SnowflakeCollector:
         warehouse: str | None = None,
         role: str | None = None,
         login_history_window_days: int = _LOGIN_HISTORY_DEFAULT_WINDOW_DAYS,
+        login_history_max_rows: int = _LOGIN_HISTORY_DEFAULT_MAX_ROWS,
     ) -> None:
         self._account = account
         self._user = user
@@ -281,6 +298,7 @@ class SnowflakeCollector:
         self._warehouse = warehouse
         self._role = role
         self._login_history_window_days = login_history_window_days
+        self._login_history_max_rows = login_history_max_rows
         self._connection: Any | None = None
         self._cached_account_id: str | None = None
         self._cached_role: str | None = None
@@ -406,6 +424,9 @@ class SnowflakeCollector:
             window_start = datetime.now(UTC) - timedelta(
                 days=self._login_history_window_days
             )
+            # Defensive LIMIT — closes F-V08-CR-H1. The cap is enforced
+            # at the SQL layer (not via Python truncation) so it bounds
+            # both query memory + the SecurityFinding emission count.
             cur.execute(
                 """
                 SELECT
@@ -422,8 +443,9 @@ class SnowflakeCollector:
                 FROM SNOWFLAKE.ACCOUNT_USAGE.LOGIN_HISTORY
                 WHERE EVENT_TIMESTAMP >= %s
                 ORDER BY EVENT_TIMESTAMP DESC
+                LIMIT %s
                 """,
-                (window_start,),
+                (window_start, self._login_history_max_rows),
             )
             rows = cur.fetchall()
             scanned = len(rows)
@@ -1012,12 +1034,18 @@ class SnowflakeCollector:
         INFORMATION_SCHEMA for masking + row-access policies.
         """
         conn = self._ensure_connected()
-        cur = conn.cursor()
         findings: list[SecurityFinding] = []
         scanned = 0
         try:
-            cur.execute("SHOW DATABASES")
-            db_rows = cur.fetchall()
+            # F-V08-CR-H2 — open a dedicated cursor for SHOW DATABASES,
+            # then open fresh per-db cursors for the inner per-database
+            # queries below. Reusing one cursor across N database queries
+            # was leaving cursor state poisoned on most drivers if any
+            # per-DB query failed (e.g., permission denied), causing the
+            # subsequent DB's query to silently break.
+            with conn.cursor() as outer_cur:
+                outer_cur.execute("SHOW DATABASES")
+                db_rows = outer_cur.fetchall()
             db_names: list[str] = []
             for row in db_rows:
                 # SHOW DATABASES columns: created_on, name, ...
@@ -1027,12 +1055,13 @@ class SnowflakeCollector:
             for db in db_names:
                 # Masking policies.
                 try:
-                    cur.execute(
-                        f'SELECT POLICY_NAME, POLICY_SCHEMA, '
-                        f'POLICY_OWNER FROM '
-                        f'"{db}".INFORMATION_SCHEMA.MASKING_POLICIES'
-                    )
-                    pol_rows = cur.fetchall()
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            f'SELECT POLICY_NAME, POLICY_SCHEMA, '
+                            f'POLICY_OWNER FROM '
+                            f'"{db}".INFORMATION_SCHEMA.MASKING_POLICIES'
+                        )
+                        pol_rows = cur.fetchall()
                     scanned += len(pol_rows)
                     for prow in pol_rows:
                         policy_name = (
@@ -1085,14 +1114,15 @@ class SnowflakeCollector:
                         },
                     )
 
-                # Row-access policies.
+                # Row-access policies — fresh cursor per-DB (F-V08-CR-H2).
                 try:
-                    cur.execute(
-                        f'SELECT POLICY_NAME, POLICY_SCHEMA, '
-                        f'POLICY_OWNER FROM '
-                        f'"{db}".INFORMATION_SCHEMA.ROW_ACCESS_POLICIES'
-                    )
-                    pol_rows = cur.fetchall()
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            f'SELECT POLICY_NAME, POLICY_SCHEMA, '
+                            f'POLICY_OWNER FROM '
+                            f'"{db}".INFORMATION_SCHEMA.ROW_ACCESS_POLICIES'
+                        )
+                        pol_rows = cur.fetchall()
                     scanned += len(pol_rows)
                     for prow in pol_rows:
                         policy_name = (
@@ -1156,8 +1186,8 @@ class SnowflakeCollector:
             raise SnowflakeQueryError(
                 f"Policy inventory query failed: {type(e).__name__}"
             ) from e
-        finally:
-            cur.close()
+        # Cursors are context-managed (F-V08-CR-H2); no top-level
+        # finally cur.close() needed.
 
         return findings, CoverageCount(
             resource_type="snowflake-policy",
