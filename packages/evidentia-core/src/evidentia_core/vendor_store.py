@@ -109,13 +109,21 @@ def save_vendor(
     vendor: Vendor,
     vendor_store_dir: Path | None = None,
 ) -> Path:
-    """Persist a vendor record to the user-dir store.
+    """Persist a vendor record to the user-dir store atomically.
 
     Refreshes ``vendor.updated_at`` to the current UTC time before
     writing. Returns the absolute path of the written JSON file.
     The file is a plain ``model_dump_json(indent=2)`` of the vendor
     — no special framing, so an operator can edit it by hand if
     needed (and reload via :func:`load_vendor_by_id`).
+
+    Atomic-write semantics (closes v0.7.9 P0.1 Continuous-review
+    M-1): writes to ``<id>.json.tmp`` first then ``os.replace`` to
+    the canonical name. ``os.replace`` is atomic on both POSIX and
+    Windows per the Python docs. A crash mid-write leaves either
+    the prior valid JSON intact OR the new valid JSON in place —
+    never a half-written file that :func:`list_vendors` would have
+    to silently skip.
     """
     _validate_id_shape(vendor.id)
     store = get_vendor_store_dir(vendor_store_dir)
@@ -123,8 +131,10 @@ def save_vendor(
 
     vendor.updated_at = utc_now()
     out_path = store / f"{vendor.id}.json"
-    out_path.write_text(vendor.model_dump_json(indent=2), encoding="utf-8")
-    logger.debug("Saved vendor record: %s", out_path)
+    tmp_path = store / f"{vendor.id}.json.tmp"
+    tmp_path.write_text(vendor.model_dump_json(indent=2), encoding="utf-8")
+    os.replace(tmp_path, out_path)
+    logger.debug("Saved vendor record (atomic): %s", out_path)
     return out_path
 
 

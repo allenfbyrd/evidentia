@@ -241,6 +241,33 @@ class TestEvidenceRef:
                 notes="a" * 1025,
             )
 
+    def test_neither_artifact_id_nor_file_path_rejected(self) -> None:
+        """H-1 (v0.7.9 P0.1 Continuous review): the docstring claims
+        at least one of (artifact_id, file_path) must be set; this test
+        pins the model_validator that enforces it."""
+        with pytest.raises(ValidationError) as exc_info:
+            EvidenceRef(title="Bare title only")
+        assert "artifact_id" in str(exc_info.value) or "file_path" in str(
+            exc_info.value
+        )
+
+    def test_file_path_without_sha256_rejected(self) -> None:
+        """H-1 follow-up: file_path requires a paired sha256 digest
+        for tamper detection per the docstring contract."""
+        with pytest.raises(ValidationError) as exc_info:
+            EvidenceRef(title="X", file_path="/var/evidentia/x.pdf")
+        assert "sha256" in str(exc_info.value)
+
+    def test_file_path_with_sha256_accepted(self) -> None:
+        """Sanity: the H-1 validator doesn't break the documented
+        external-reference happy path."""
+        ref = EvidenceRef(
+            title="X",
+            file_path="/var/evidentia/x.pdf",
+            sha256="a" * 64,
+        )
+        assert ref.file_path == "/var/evidentia/x.pdf"
+
 
 # ── Integration: Vendor with embedded sub-models ───────────────────
 

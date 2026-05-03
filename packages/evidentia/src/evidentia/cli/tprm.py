@@ -414,7 +414,18 @@ def vendor_list(
         help="Emit JSON array instead of a rich table.",
     ),
 ) -> None:
-    """List vendors in the inventory, sorted by criticality then name."""
+    """List vendors in the inventory, sorted by criticality then name.
+
+    Note: ``--json`` output is a **bare array** of vendor records,
+    suitable for ``jq``-style CLI scripting
+    (``evidentia tprm vendor list --json | jq '.[].name'``). The
+    REST equivalent ``GET /api/tprm/vendors`` returns a
+    pagination envelope ``{total, skip, limit, vendors}`` instead;
+    the shape divergence is **intentional** — CLI is unpaginated +
+    optimized for shell pipes; REST carries pagination metadata
+    that consumers need to know exist on the wire. Closes v0.7.9
+    P0.1 Continuous-review H-2 by documenting the contract.
+    """
     if criticality_tier and criticality_tier not in {
         e.value for e in CriticalityTier
     }:

@@ -145,6 +145,20 @@ class TestSaveAndLoad:
         assert loaded is not None
         assert loaded.name == "Updated Name"
 
+    def test_save_atomic_no_tmp_file_remains_after_success(
+        self, tmp_path: Path
+    ) -> None:
+        """M-1 (v0.7.9 P0.1 Continuous review): save uses os.replace
+        for atomic-write semantics. Post-success, no .tmp sibling
+        should remain — the rename consumes it. Verifies the new
+        write-tmp-then-replace path works end-to-end."""
+        v = _make_vendor()
+        save_vendor(v, vendor_store_dir=tmp_path)
+        # Canonical file present
+        assert (tmp_path / f"{v.id}.json").is_file()
+        # No leftover .tmp file
+        assert not (tmp_path / f"{v.id}.json.tmp").exists()
+
 
 # ── ID-shape validation ────────────────────────────────────────────
 

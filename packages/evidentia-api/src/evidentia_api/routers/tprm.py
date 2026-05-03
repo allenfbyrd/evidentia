@@ -138,11 +138,20 @@ async def create_vendor(payload: Vendor) -> Vendor:
     client omits them. ``next_review_due`` is auto-computed from
     ``last_due_diligence_review`` + criticality cadence when the
     client provides the former and omits the latter.
+
+    Operates on a `model_copy` of the FastAPI-parsed request body
+    rather than mutating the body directly — closes v0.7.9 P0.1
+    Continuous-review H-3 (FastAPI anti-pattern; matches the
+    convention used in the rest of `evidentia-api`).
     """
     if payload.last_due_diligence_review and payload.next_review_due is None:
-        payload.next_review_due = payload.compute_next_review_due()
-    save_vendor(payload)
-    return payload
+        vendor = payload.model_copy(
+            update={"next_review_due": payload.compute_next_review_due()}
+        )
+    else:
+        vendor = payload.model_copy()
+    save_vendor(vendor)
+    return vendor
 
 
 @router.get("/tprm/vendors/{vendor_id}", response_model=Vendor)
@@ -188,14 +197,22 @@ async def replace_vendor(vendor_id: str, payload: Vendor) -> Vendor:
             status_code=404,
             detail=f"Vendor {vendor_id!r} not found.",
         )
-    # Authoritatively pin id + created_at; refresh
-    # next_review_due if the anchor changed.
-    payload.id = existing.id
-    payload.created_at = existing.created_at
+    # Authoritatively pin id + created_at via `model_copy` rather
+    # than mutating the FastAPI-parsed `payload` directly — closes
+    # v0.7.9 P0.1 Continuous-review H-3. Refresh `next_review_due`
+    # if the anchor changed (uses the about-to-be-saved values, not
+    # the existing record's, so a client update to either
+    # `criticality_tier` or `last_due_diligence_review` recomputes
+    # correctly).
+    update: dict[str, object] = {
+        "id": existing.id,
+        "created_at": existing.created_at,
+    }
     if payload.last_due_diligence_review:
-        payload.next_review_due = payload.compute_next_review_due()
-    save_vendor(payload)
-    return payload
+        update["next_review_due"] = payload.compute_next_review_due()
+    vendor = payload.model_copy(update=update)
+    save_vendor(vendor)
+    return vendor
 
 
 @router.delete("/tprm/vendors/{vendor_id}", status_code=204)

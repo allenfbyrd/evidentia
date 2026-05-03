@@ -40,7 +40,7 @@ import calendar
 from datetime import date, datetime
 from enum import Enum
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from evidentia_core.models.common import (
     EvidentiaModel,
@@ -248,6 +248,28 @@ class EvidenceRef(EvidentiaModel):
             "risk-impact notes."
         ),
     )
+
+    @model_validator(mode="after")
+    def _enforce_reference_invariants(self) -> EvidenceRef:
+        """Enforce the two-mode contract documented in the class docstring.
+
+        Catches the "neither artifact_id nor file_path" + "file_path
+        without sha256" cases at construction time. Closes the v0.7.9
+        Continuous-review H-1 finding (the docstring claimed this
+        validator existed but the implementation was missing).
+        """
+        if self.artifact_id is None and self.file_path is None:
+            raise ValueError(
+                "EvidenceRef requires at least one of `artifact_id` "
+                "(internal-store reference) or `file_path` (external "
+                "evidence file). Both are None."
+            )
+        if self.file_path is not None and self.sha256 is None:
+            raise ValueError(
+                "EvidenceRef.file_path requires a paired `sha256` digest "
+                "for tamper detection."
+            )
+        return self
 
 
 class Vendor(EvidentiaModel):
