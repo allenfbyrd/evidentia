@@ -1,0 +1,150 @@
+{
+  "format": "evidentia-generic",
+  "version": "1.0",
+  "title_template": "Evidentia Generic Vendor Due-Diligence Questionnaire — {vendor_name}",
+  "license": "Apache-2.0",
+  "licensing_attribution": null,
+  "description": "Evidentia-original baseline DD questionnaire. ~20 questions across FFIEC vendor-management domains. Apache 2.0 / no third-party licensing constraints. Use when no specific industry framework is mandated.",
+  "questions": [
+    {
+      "id": "EVG-GOV-01",
+      "domain": "Governance",
+      "question_text": "Provide a copy of your most recent Information Security Policy or attestation that one is in place + reviewed within the last 12 months.",
+      "response_options": [],
+      "notes": "Acceptable evidence: policy PDF; auditor attestation letter; SOC 2 Type II Section IV control reference."
+    },
+    {
+      "id": "EVG-GOV-02",
+      "domain": "Governance",
+      "question_text": "Identify your Chief Information Security Officer (or equivalent role) and confirm whether the role reports directly to executive leadership.",
+      "response_options": [],
+      "notes": null
+    },
+    {
+      "id": "EVG-GOV-03",
+      "domain": "Governance",
+      "question_text": "Has your organization undergone an independent third-party security audit (SOC 2 Type II, ISO 27001, FedRAMP, or equivalent) in the last 12 months?",
+      "response_options": ["Yes", "No", "Not Applicable"],
+      "notes": "If Yes, provide the report or attestation letter and indicate the audit period covered."
+    },
+    {
+      "id": "EVG-AC-01",
+      "domain": "Access Control",
+      "question_text": "Is multi-factor authentication enforced for all administrative + privileged accounts that access systems handling our data?",
+      "response_options": ["Yes — all admin accounts", "Partial — describe scope", "No"],
+      "notes": null
+    },
+    {
+      "id": "EVG-AC-02",
+      "domain": "Access Control",
+      "question_text": "Describe your access-review cadence for privileged accounts (frequency + reviewer + revocation SLA).",
+      "response_options": [],
+      "notes": null
+    },
+    {
+      "id": "EVG-AC-03",
+      "domain": "Access Control",
+      "question_text": "Are role-based access controls (RBAC) or attribute-based access controls (ABAC) enforced on systems handling customer data?",
+      "response_options": ["Yes — RBAC", "Yes — ABAC", "Yes — both", "No"],
+      "notes": null
+    },
+    {
+      "id": "EVG-DH-01",
+      "domain": "Data Handling",
+      "question_text": "What categories of our data does your organization process, store, or transmit? (Personal Identifiable Information / Payment Card Industry / Protected Health Information / Confidential Business / Other)",
+      "response_options": ["PII", "PCI", "PHI", "Confidential Business", "Other (describe)", "None"],
+      "notes": "Multi-select — list all that apply."
+    },
+    {
+      "id": "EVG-DH-02",
+      "domain": "Data Handling",
+      "question_text": "Is data encrypted at rest using AES-256 (or stronger) and in transit using TLS 1.2 (or stronger)?",
+      "response_options": ["Yes — both", "Encryption at rest only", "Encryption in transit only", "No"],
+      "notes": null
+    },
+    {
+      "id": "EVG-DH-03",
+      "domain": "Data Handling",
+      "question_text": "Describe your data retention + secure-disposal policy. State the maximum retention period for our data + the disposal method (cryptographic erasure / NIST 800-88 sanitization / physical destruction).",
+      "response_options": [],
+      "notes": null
+    },
+    {
+      "id": "EVG-DH-04",
+      "domain": "Data Handling",
+      "question_text": "In which geographic regions is our data stored or processed? Provide region identifiers (e.g., AWS us-east-1, Azure North Europe) for each.",
+      "response_options": [],
+      "notes": "Drives regulator-facing data-residency analysis. Critical for cross-border-transfer compliance."
+    },
+    {
+      "id": "EVG-IR-01",
+      "domain": "Incident Response",
+      "question_text": "Do you maintain a documented Incident Response Plan and test it at least annually?",
+      "response_options": ["Yes — tested in last 12 months", "Yes — older than 12 months", "Documented but not tested", "No"],
+      "notes": null
+    },
+    {
+      "id": "EVG-IR-02",
+      "domain": "Incident Response",
+      "question_text": "What is your contractual notification SLA for security incidents materially affecting our data? (Provide hours or business days.)",
+      "response_options": [],
+      "notes": "Many regulated industries require ≤72-hour notification (GDPR Art. 33 + variants)."
+    },
+    {
+      "id": "EVG-IR-03",
+      "domain": "Incident Response",
+      "question_text": "Have you experienced a security incident in the last 24 months that required notification to customers or regulators? If yes, summarize remediation + lessons learned.",
+      "response_options": [],
+      "notes": "Recent-incident disclosure; not disqualifying — operators want to see organizational learning."
+    },
+    {
+      "id": "EVG-BC-01",
+      "domain": "Business Continuity",
+      "question_text": "What is your Recovery Time Objective (RTO) and Recovery Point Objective (RPO) for the systems handling our data?",
+      "response_options": [],
+      "notes": null
+    },
+    {
+      "id": "EVG-BC-02",
+      "domain": "Business Continuity",
+      "question_text": "Do you maintain a documented Business Continuity Plan + Disaster Recovery Plan, and how often are they exercised?",
+      "response_options": ["Yes — exercised in last 12 months", "Yes — older than 12 months", "Documented but not exercised", "No"],
+      "notes": null
+    },
+    {
+      "id": "EVG-FP-01",
+      "domain": "4th-Party Risk",
+      "question_text": "List all subcontractors / sub-processors / cloud providers that have access to or process our data, with their service category + geographic location.",
+      "response_options": [],
+      "notes": "Required for FFIEC + OCC 2013-29 vendor-of-vendor concentration-risk analysis. Operator will reconcile with their internal disclosure expectations."
+    },
+    {
+      "id": "EVG-FP-02",
+      "domain": "4th-Party Risk",
+      "question_text": "Do you flow down equivalent data-protection contractual terms to your sub-processors that we have with you?",
+      "response_options": ["Yes — flow-down clauses in standard contract", "Partial — describe", "No"],
+      "notes": null
+    },
+    {
+      "id": "EVG-PERS-01",
+      "domain": "Personnel Security",
+      "question_text": "Do all employees + contractors with access to our data undergo background checks before onboarding + receive annual security awareness training?",
+      "response_options": ["Yes — both", "Background checks only", "Training only", "Neither"],
+      "notes": null
+    },
+    {
+      "id": "EVG-INS-01",
+      "domain": "Insurance + Liability",
+      "question_text": "What is the coverage limit of your cyber-liability insurance policy + does the policy cover incidents affecting customer data?",
+      "response_options": [],
+      "notes": "Provide policy summary or attestation; full policy text NOT required."
+    },
+    {
+      "id": "EVG-COMP-01",
+      "domain": "Compliance",
+      "question_text": "Identify all regulatory + industry frameworks your organization complies with that are relevant to the services you provide us (e.g., SOC 2, ISO 27001, HIPAA, PCI DSS, GDPR, FFIEC, NYDFS 500).",
+      "response_options": [],
+      "notes": null
+    }
+  ]
+}

@@ -386,3 +386,84 @@ class TestConcentrationEndpoint:
             "region",
             "service-category",
         ]
+
+
+# ── DD-questionnaire generation (v0.7.9 P0.2) ─────────────────────
+
+
+class TestDDQuestionnaireEndpoint:
+    def _add_vendor(self, api_client: TestClient) -> str:
+        r = api_client.post(
+            "/api/tprm/vendors", json=_make_payload()
+        )
+        assert r.status_code == 201
+        return str(r.json()["id"])
+
+    def test_generic_returns_201_with_pre_fill(
+        self, api_client: TestClient
+    ) -> None:
+        vid = self._add_vendor(api_client)
+        r = api_client.post(
+            f"/api/tprm/vendors/{vid}/dd-questionnaire"
+            "?format=evidentia-generic"
+        )
+        assert r.status_code == 201
+        body = r.json()
+        assert body["format"] == "evidentia-generic"
+        assert body["vendor"]["vendor_id"] == vid
+        assert len(body["questions"]) >= 15
+
+    def test_caiq_lite_includes_attribution(
+        self, api_client: TestClient
+    ) -> None:
+        vid = self._add_vendor(api_client)
+        r = api_client.post(
+            f"/api/tprm/vendors/{vid}/dd-questionnaire?format=caiq-lite"
+        )
+        assert r.status_code == 201
+        body = r.json()
+        assert body["licensing_attribution"]
+        assert "CC BY 4.0" in body["licensing_attribution"]
+
+    def test_unknown_format_returns_400(
+        self, api_client: TestClient
+    ) -> None:
+        vid = self._add_vendor(api_client)
+        r = api_client.post(
+            f"/api/tprm/vendors/{vid}/dd-questionnaire?format=not-a-format"
+        )
+        assert r.status_code == 400
+        # F-V08-DAST-3 invariant: detail is a string, not array
+        assert isinstance(r.json()["detail"], str)
+
+    def test_sig_format_returns_501(
+        self, api_client: TestClient
+    ) -> None:
+        # SIG / SIG-Lite stubs — reachable via the enum (so format
+        # validation passes) but generate_questionnaire raises
+        # NotImplementedError → router translates to 501.
+        vid = self._add_vendor(api_client)
+        r = api_client.post(
+            f"/api/tprm/vendors/{vid}/dd-questionnaire?format=sig"
+        )
+        assert r.status_code == 501
+        # Message references the BYO-template path
+        assert "Shared Assessments" in r.json()["detail"]
+
+    def test_unknown_vendor_returns_404(
+        self, api_client: TestClient
+    ) -> None:
+        r = api_client.post(
+            "/api/tprm/vendors/00000000-0000-0000-0000-000000000000"
+            "/dd-questionnaire?format=evidentia-generic"
+        )
+        assert r.status_code == 404
+
+    def test_malformed_vendor_id_returns_404(
+        self, api_client: TestClient
+    ) -> None:
+        r = api_client.post(
+            "/api/tprm/vendors/not-a-uuid/dd-questionnaire"
+            "?format=evidentia-generic"
+        )
+        assert r.status_code == 404

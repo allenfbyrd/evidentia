@@ -20,13 +20,29 @@ from evidentia_core.tprm.concentration import (
     render_csv_report,
     render_html_report,
 )
+from evidentia_core.tprm.questionnaire import (
+    Question,
+    Questionnaire,
+    QuestionnaireFormat,
+    VendorPreFill,
+    generate_questionnaire,
+    render_csv_questionnaire,
+    shipped_formats,
+)
 
 __all__ = [
     "SUPPORTED_DIMENSIONS",
     "ConcentrationReport",
     "DimensionAnalysis",
+    "Question",
+    "Questionnaire",
+    "QuestionnaireFormat",
     "ValueCount",
+    "VendorPreFill",
     "compute_concentration",
+    "generate_questionnaire",
+    "render_csv_questionnaire",
     "render_csv_report",
     "render_html_report",
+    "shipped_formats",
 ]

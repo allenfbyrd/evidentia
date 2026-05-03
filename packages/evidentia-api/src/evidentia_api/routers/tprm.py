@@ -37,6 +37,11 @@ from evidentia_core.tprm.concentration import (
     ConcentrationReport,
     compute_concentration,
 )
+from evidentia_core.tprm.questionnaire import (
+    Questionnaire,
+    QuestionnaireFormat,
+    generate_questionnaire,
+)
 from evidentia_core.vendor_store import (
     InvalidVendorIdError,
     delete_vendor,
@@ -322,3 +327,66 @@ async def concentration(
         )
     vendors = list_vendors()
     return compute_concentration(vendors, dimensions, threshold=threshold)
+
+
+# ── DD-questionnaire generation (v0.7.9 P0.2) ─────────────────────
+
+
+@router.post(
+    "/tprm/vendors/{vendor_id}/dd-questionnaire",
+    response_model=Questionnaire,
+    status_code=201,
+)
+async def generate_dd_questionnaire(
+    vendor_id: str,
+    format: str = Query(
+        "evidentia-generic",
+        description=(
+            "Questionnaire framework: 'evidentia-generic' (FFIEC-aligned "
+            "Apache-2.0 baseline; ~20 questions) or 'caiq-lite' (CSA "
+            "CAIQ v4.0.3 CC BY 4.0 representative subset; ~25 "
+            "questions). 'sig' / 'sig-lite' are stubs that 501 today "
+            "— Shared Assessments paywalls the question content."
+        ),
+    ),
+) -> Questionnaire:
+    """Generate a pre-filled DD questionnaire for a vendor.
+
+    Pre-fills vendor metadata (name / type / criticality tier /
+    contract dates / region / regulatory classification / 4th-party
+    disclosures) so the receiving party only sees control questions.
+    Response shape is the full :class:`Questionnaire` Pydantic model.
+    For CSV rendering, use the
+    `evidentia tprm dd-questionnaire generate --output-format csv`
+    CLI surface — REST is JSON-only by design.
+    """
+    try:
+        fmt = QuestionnaireFormat(format)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Unknown questionnaire format {format!r}; valid: "
+                f"{[f.value for f in QuestionnaireFormat]}"
+            ),
+        ) from exc
+
+    try:
+        vendor = load_vendor_by_id(vendor_id)
+    except InvalidVendorIdError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Vendor {vendor_id!r} not found.",
+        ) from exc
+    if vendor is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Vendor {vendor_id!r} not found.",
+        )
+
+    try:
+        return generate_questionnaire(vendor, fmt)
+    except NotImplementedError as exc:
+        # SIG / SIG-Lite stubs — clear 501 with the BYO-template
+        # narrative in the detail.
+        raise HTTPException(status_code=501, detail=str(exc)) from exc

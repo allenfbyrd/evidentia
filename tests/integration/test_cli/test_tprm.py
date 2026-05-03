@@ -682,3 +682,145 @@ contract_start_date: '2025-01-01'
             "service-category",
             "criticality-tier",
         ]
+
+
+# ── dd-questionnaire generate ─────────────────────────────────────
+
+
+class TestDDQuestionnaireGenerate:
+    def _add_vendor(self, runner: CliRunner) -> str:
+        runner.invoke(
+            app,
+            [
+                "tprm", "vendor", "add",
+                "--name", "Test Vendor",
+                "--type", "saas",
+                "--criticality-tier", "high",
+                "--owner", "x@x.com",
+                "--contract-start-date", "2025-01-01",
+            ],
+        )
+        return str(
+            json.loads(
+                runner.invoke(
+                    app, ["tprm", "vendor", "list", "--json"]
+                ).output
+            )[0]["id"]
+        )
+
+    def test_generic_json_to_stdout(self, runner: CliRunner) -> None:
+        vid = self._add_vendor(runner)
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "dd-questionnaire", "generate",
+                "--vendor-id", vid,
+                "--format", "evidentia-generic",
+                "--output-format", "json",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output)
+        assert data["format"] == "evidentia-generic"
+        assert data["vendor"]["vendor_name"] == "Test Vendor"
+        assert len(data["questions"]) >= 15
+
+    def test_caiq_lite_json_to_file(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        vid = self._add_vendor(runner)
+        out_path = tmp_path / "q.json"
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "dd-questionnaire", "generate",
+                "--vendor-id", vid,
+                "--format", "caiq-lite",
+                "--output-format", "json",
+                "--output", str(out_path),
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert "Wrote JSON questionnaire" in result.output
+        data = json.loads(out_path.read_text(encoding="utf-8"))
+        assert data["format"] == "caiq-lite"
+        assert data["licensing_attribution"]
+        assert "CSA" in data["licensing_attribution"]
+
+    def test_csv_output(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        vid = self._add_vendor(runner)
+        out_path = tmp_path / "q.csv"
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "dd-questionnaire", "generate",
+                "--vendor-id", vid,
+                "--format", "evidentia-generic",
+                "--output-format", "csv",
+                "--output", str(out_path),
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        content = out_path.read_text(encoding="utf-8")
+        assert "# Vendor DD Questionnaire" in content
+        assert "# Vendor name,Test Vendor" in content
+        assert "id,domain,question_text" in content
+
+    def test_unknown_format_errors(self, runner: CliRunner) -> None:
+        vid = self._add_vendor(runner)
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "dd-questionnaire", "generate",
+                "--vendor-id", vid,
+                "--format", "not-a-format",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "Unknown questionnaire format" in result.output
+
+    def test_sig_format_errors_with_byo_template_message(
+        self, runner: CliRunner
+    ) -> None:
+        vid = self._add_vendor(runner)
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "dd-questionnaire", "generate",
+                "--vendor-id", vid,
+                "--format", "sig",
+            ],
+        )
+        assert result.exit_code == 1
+        # Message should clearly state SIG isn't shipped + reference BYO
+        assert "Shared Assessments" in result.output
+
+    def test_invalid_output_format_errors(
+        self, runner: CliRunner
+    ) -> None:
+        vid = self._add_vendor(runner)
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "dd-questionnaire", "generate",
+                "--vendor-id", vid,
+                "--output-format", "xlsx",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "json/csv" in result.output
+
+    def test_unknown_vendor_id_errors(
+        self, runner: CliRunner
+    ) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "dd-questionnaire", "generate",
+                "--vendor-id", "00000000-0000-0000-0000-000000000000",
+                "--format", "evidentia-generic",
+            ],
+        )
+        assert result.exit_code == 1

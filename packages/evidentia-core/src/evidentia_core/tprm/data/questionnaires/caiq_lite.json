@@ -1,0 +1,185 @@
+{
+  "format": "caiq-lite",
+  "version": "0.1",
+  "title_template": "CAIQ-Lite Vendor Due-Diligence Questionnaire — {vendor_name}",
+  "license": "CC-BY-4.0",
+  "licensing_attribution": "CAIQ question content adapted from the Cloud Security Alliance (CSA) Consensus Assessments Initiative Questionnaire (CAIQ) v4.0.3, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Original publication: https://cloudsecurityalliance.org/research/cloud-controls-matrix/. The Evidentia caiq-lite template is a representative subset (~25 questions across the 17 CAIQ control domains); operators wanting the full 245-question CAIQ should download from CSA + use the planned `--from-template` BYO ingestion path.",
+  "description": "Representative subset of the CSA Consensus Assessments Initiative Questionnaire v4.0.3. ~25 questions across the 17 CAIQ control domains. Use for cloud-provider + SaaS vendor DD where the full 245-question CAIQ would be excessive but CCM-aligned questions are valuable.",
+  "questions": [
+    {
+      "id": "CAIQ-AAC-01",
+      "domain": "Audit Assurance & Compliance",
+      "question_text": "Do you provide independent third-party audit reports (SOC 2 Type II, ISO 27001, PCI DSS, FedRAMP, or equivalent) covering the services you provide?",
+      "response_options": ["Yes", "No", "Partial"],
+      "notes": "Adapted from CAIQ AAC-01."
+    },
+    {
+      "id": "CAIQ-AAC-02",
+      "domain": "Audit Assurance & Compliance",
+      "question_text": "Do you map your security controls to industry frameworks (NIST 800-53, ISO 27001, CSA CCM)?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ AAC-02."
+    },
+    {
+      "id": "CAIQ-BCR-01",
+      "domain": "Business Continuity & Resilience",
+      "question_text": "Do you have a documented Business Continuity / Disaster Recovery plan that is tested at least annually?",
+      "response_options": ["Yes — tested in last 12 months", "Yes — older than 12 months", "Documented but not tested", "No"],
+      "notes": "Adapted from CAIQ BCR-01 + BCR-09."
+    },
+    {
+      "id": "CAIQ-BCR-02",
+      "domain": "Business Continuity & Resilience",
+      "question_text": "Do you maintain off-site backups of customer data and is restoration tested?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ BCR-11."
+    },
+    {
+      "id": "CAIQ-CCC-01",
+      "domain": "Change Control & Configuration",
+      "question_text": "Are configuration changes to production systems formally reviewed + approved before implementation?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ CCC-03."
+    },
+    {
+      "id": "CAIQ-DSP-01",
+      "domain": "Data Security & Privacy",
+      "question_text": "Is customer data encrypted at rest and in transit using industry-standard cryptographic algorithms?",
+      "response_options": ["Yes — both", "At rest only", "In transit only", "No"],
+      "notes": "Adapted from CAIQ DSI-02 / DCS-04."
+    },
+    {
+      "id": "CAIQ-DSP-02",
+      "domain": "Data Security & Privacy",
+      "question_text": "Do you have a documented data classification scheme + apply it consistently to customer data?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ DSI-01."
+    },
+    {
+      "id": "CAIQ-DSP-03",
+      "domain": "Data Security & Privacy",
+      "question_text": "Do you have a documented data-retention + secure-disposal policy that is applied to customer data on contract termination?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ DSI-07."
+    },
+    {
+      "id": "CAIQ-DCS-01",
+      "domain": "Datacenter Security",
+      "question_text": "Are physical access controls (badge access, video surveillance, security personnel) maintained at all datacenters that store customer data?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ DCS-01."
+    },
+    {
+      "id": "CAIQ-EKM-01",
+      "domain": "Encryption & Key Management",
+      "question_text": "Are encryption keys protected using a key-management service or hardware security module (HSM)?",
+      "response_options": ["Yes — HSM", "Yes — KMS", "No"],
+      "notes": "Adapted from CAIQ EKM-02."
+    },
+    {
+      "id": "CAIQ-EKM-02",
+      "domain": "Encryption & Key Management",
+      "question_text": "Are encryption keys rotated on a documented cadence?",
+      "response_options": ["Yes — annually or more frequently", "Yes — less frequently", "No"],
+      "notes": "Adapted from CAIQ EKM-04."
+    },
+    {
+      "id": "CAIQ-GRM-01",
+      "domain": "Governance & Risk Management",
+      "question_text": "Is a formal Information Security Management System (ISMS) in place + maintained?",
+      "response_options": ["Yes — ISO 27001 certified", "Yes — non-certified", "No"],
+      "notes": "Adapted from CAIQ GRM-02."
+    },
+    {
+      "id": "CAIQ-HRS-01",
+      "domain": "Human Resources Security",
+      "question_text": "Are background checks performed on employees with access to customer data?",
+      "response_options": ["Yes — all employees", "Partial", "No"],
+      "notes": "Adapted from CAIQ HRS-04."
+    },
+    {
+      "id": "CAIQ-HRS-02",
+      "domain": "Human Resources Security",
+      "question_text": "Is annual security awareness training mandatory for all employees + contractors?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ HRS-09."
+    },
+    {
+      "id": "CAIQ-IAM-01",
+      "domain": "Identity & Access Management",
+      "question_text": "Is multi-factor authentication enforced for all privileged accounts that can access customer data?",
+      "response_options": ["Yes — all admin accounts", "Partial", "No"],
+      "notes": "Adapted from CAIQ IAM-02."
+    },
+    {
+      "id": "CAIQ-IAM-02",
+      "domain": "Identity & Access Management",
+      "question_text": "Are user access reviews performed at least quarterly?",
+      "response_options": ["Yes", "Less frequently", "No"],
+      "notes": "Adapted from CAIQ IAM-10."
+    },
+    {
+      "id": "CAIQ-IAM-03",
+      "domain": "Identity & Access Management",
+      "question_text": "Is access promptly revoked on employee termination or role change (specify SLA)?",
+      "response_options": [],
+      "notes": "Adapted from CAIQ IAM-11."
+    },
+    {
+      "id": "CAIQ-IVS-01",
+      "domain": "Infrastructure & Virtualization Security",
+      "question_text": "Are network segmentation controls in place to isolate customer data from other tenants + management traffic?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ IVS-06 / IVS-09."
+    },
+    {
+      "id": "CAIQ-IVS-02",
+      "domain": "Infrastructure & Virtualization Security",
+      "question_text": "Are vulnerability scans performed on production systems at least monthly + critical findings remediated within a documented SLA?",
+      "response_options": [],
+      "notes": "Adapted from CAIQ TVM-02."
+    },
+    {
+      "id": "CAIQ-SEF-01",
+      "domain": "Security Incident & Forensics",
+      "question_text": "Do you have a documented incident-response plan + a contractual notification SLA for security incidents affecting customer data?",
+      "response_options": [],
+      "notes": "Adapted from CAIQ SEF-02 / SEF-03."
+    },
+    {
+      "id": "CAIQ-STA-01",
+      "domain": "Supply Chain Management & Transparency",
+      "question_text": "Do you flow down equivalent data-protection contractual terms to your sub-processors?",
+      "response_options": ["Yes", "Partial", "No"],
+      "notes": "Adapted from CAIQ STA-09."
+    },
+    {
+      "id": "CAIQ-STA-02",
+      "domain": "Supply Chain Management & Transparency",
+      "question_text": "Are sub-processors who handle customer data disclosed to customers + reviewed at least annually for security posture?",
+      "response_options": [],
+      "notes": "Adapted from CAIQ STA-04."
+    },
+    {
+      "id": "CAIQ-TVM-01",
+      "domain": "Threat & Vulnerability Management",
+      "question_text": "Are antivirus / endpoint-detection-and-response controls deployed on systems with access to customer data?",
+      "response_options": ["Yes", "No"],
+      "notes": "Adapted from CAIQ TVM-01."
+    },
+    {
+      "id": "CAIQ-MOS-01",
+      "domain": "Mobile Security",
+      "question_text": "Are mobile-device management controls enforced on devices that access customer data?",
+      "response_options": ["Yes — MDM enforced", "Conditional access only", "No"],
+      "notes": "Adapted from CAIQ MOS-15."
+    },
+    {
+      "id": "CAIQ-AIS-01",
+      "domain": "Application & Interface Security",
+      "question_text": "Are application security testing practices (SAST + DAST + SCA) integrated into your development lifecycle?",
+      "response_options": ["Yes — all three", "Yes — partial", "No"],
+      "notes": "Adapted from CAIQ AIS-02."
+    }
+  ]
+}

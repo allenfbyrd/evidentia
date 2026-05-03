@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **TPRM due-diligence questionnaire generator** (v0.7.9 P0.2).
+  New `evidentia tprm dd-questionnaire generate --vendor-id <id>
+  --format ... --output-format json|csv --output <path>` CLI +
+  `POST /api/tprm/vendors/{id}/dd-questionnaire?format=...` REST
+  endpoint. Pre-fills vendor metadata (name / type / criticality
+  tier / contract dates / region / regulatory classification /
+  4th-party disclosures) so the receiving vendor sees only
+  control questions, not blank metadata templates. Two formats
+  ship with packaged content: **`evidentia-generic`** (Apache-2.0
+  Evidentia-original ~20-question baseline across FFIEC vendor-
+  management domains: governance, access control, data handling,
+  incident response, business continuity, 4th-party risk,
+  personnel, insurance, compliance) and **`caiq-lite`**
+  (representative ~25-question subset of the CSA Consensus
+  Assessments Initiative Questionnaire v4.0.3, CC BY 4.0 with
+  required attribution; covers all 17 CAIQ control domains).
+  **`sig` / `sig-lite` are stubs** — Shared Assessments paywalls
+  the question content; future versions will support
+  `--from-template <licensed-xlsx>` BYO ingestion. Output
+  formats: **JSON** (full Pydantic model dump) + **CSV** (flat;
+  vendor-prefill header section + question rows + blank
+  vendor_response column). XLSX deferred (would require
+  openpyxl extra; CSV covers spreadsheet-pivot use case). Engine
+  + types live in the new module
+  `evidentia_core.tprm.questionnaire`. 24 unit tests + 7 CLI
+  integration + 6 REST integration. The vendor `ingest`
+  command (responses flow back into Evidentia for tracking) is
+  deferred to a follow-up sub-slice.
+
 - **TPRM concentration-risk reporting** (v0.7.9 P0.3). New
   `evidentia tprm concentration-report` CLI + `GET /api/tprm/
   concentration` REST endpoint aggregate the v0.7.9 P0.1 vendor

@@ -47,6 +47,12 @@ from evidentia_core.tprm.concentration import (
     render_csv_report,
     render_html_report,
 )
+from evidentia_core.tprm.questionnaire import (
+    QuestionnaireFormat,
+    generate_questionnaire,
+    render_csv_questionnaire,
+    shipped_formats,
+)
 from evidentia_core.vendor_store import (
     InvalidVendorIdError,
     delete_vendor,
@@ -60,6 +66,8 @@ from rich.table import Table
 app = typer.Typer(help="Third-Party Risk Management commands.")
 vendor_app = typer.Typer(help="Vendor inventory commands.")
 app.add_typer(vendor_app, name="vendor")
+dd_app = typer.Typer(help="Due-diligence questionnaire commands.")
+app.add_typer(dd_app, name="dd-questionnaire")
 
 console = Console()
 
@@ -813,6 +821,114 @@ def concentration_report(
         # plain print).
         # Use sys.stdout.write to avoid any Rich-markup parsing on
         # the rendered HTML.
+        sys.stdout.write(rendered)
+        if not rendered.endswith("\n"):
+            sys.stdout.write("\n")
+
+
+# ── dd-questionnaire generate ──────────────────────────────────────
+
+
+@dd_app.command("generate")
+def dd_questionnaire_generate(
+    vendor_id: str = typer.Option(
+        ...,
+        "--vendor-id",
+        help="Vendor ID (UUID) to generate the questionnaire for.",
+    ),
+    format_: str = typer.Option(
+        "evidentia-generic",
+        "--format",
+        help=(
+            "Questionnaire framework. Choices: "
+            f"{', '.join(f.value for f in shipped_formats())} "
+            "(also accepts 'sig' / 'sig-lite' but those error today — "
+            "Shared Assessments paywalled content; future versions "
+            "will support `--from-template <licensed-xlsx>`)."
+        ),
+    ),
+    output_format: str = typer.Option(
+        "json",
+        "--output-format",
+        help="Output format: json / csv. (xlsx deferred to a follow-up slice.)",
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help=(
+            "Write to file path. If omitted, writes to stdout — useful "
+            "for pipe / shell-redirect patterns."
+        ),
+    ),
+) -> None:
+    """Generate a due-diligence questionnaire pre-filled with vendor metadata.
+
+    Pre-fills vendor name + type + criticality tier + contract dates +
+    region + regulatory classification + 4th-party disclosures so the
+    receiving vendor only sees control questions (not blank metadata
+    forms). The vendor returns the completed file; a future
+    `evidentia tprm dd-questionnaire ingest` command will load
+    responses back into Evidentia for tracking.
+
+    Examples:
+
+        # Generic FFIEC-aligned baseline as JSON
+        evidentia tprm dd-questionnaire generate \\
+          --vendor-id 12345678-1234-... \\
+          --format evidentia-generic \\
+          --output-format json \\
+          --output q.json
+
+        # CAIQ-lite as CSV for spreadsheet workflow
+        evidentia tprm dd-questionnaire generate \\
+          --vendor-id 12345678-1234-... \\
+          --format caiq-lite \\
+          --output-format csv \\
+          --output q.csv
+    """
+    if output_format not in {"json", "csv"}:
+        console.print(
+            f"[red]Error:[/red] --output-format must be one of "
+            f"json/csv; got {output_format!r}. (xlsx deferred to a "
+            "follow-up slice.)"
+        )
+        raise typer.Exit(code=1)
+
+    try:
+        fmt = QuestionnaireFormat(format_)
+    except ValueError:
+        console.print(
+            f"[red]Error:[/red] Unknown questionnaire format "
+            f"{format_!r}. Choices: "
+            f"{', '.join(f.value for f in QuestionnaireFormat)}."
+        )
+        raise typer.Exit(code=1) from None
+
+    vendor = _load_vendor_or_exit(vendor_id)
+    try:
+        questionnaire = generate_questionnaire(vendor, fmt)
+    except NotImplementedError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from e
+
+    if output_format == "json":
+        rendered = json.dumps(
+            questionnaire.model_dump(mode="json"), indent=2
+        )
+    else:
+        rendered = render_csv_questionnaire(questionnaire)
+
+    if output:
+        output.write_text(rendered, encoding="utf-8")
+        console.print(
+            f"[green]✓[/green] Wrote {output_format.upper()} "
+            f"questionnaire to [bold]{output}[/bold]  "
+            f"([dim]{len(questionnaire.questions)} question(s); "
+            f"format={fmt.value}; "
+            f"vendor={questionnaire.vendor.vendor_name}[/dim])"
+        )
+    else:
         sys.stdout.write(rendered)
         if not rendered.endswith("\n"):
             sys.stdout.write("\n")
