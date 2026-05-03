@@ -1,12 +1,12 @@
 [project]
 name = "evidentia-collectors"
 version = "0.7.8"
-description = "Evidence collection agents for AWS, Azure, GCP, GitHub, and Okta"
+description = "Evidence collection agents for AWS, Databricks, GitHub, Okta, Snowflake, and SQL databases"
 readme = "README.md"
 authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
 license = "Apache-2.0"
 requires-python = ">=3.12"
-keywords = ["grc", "compliance", "evidence-collection", "aws", "azure", "gcp", "github", "okta"]
+keywords = ["grc", "compliance", "evidence-collection", "aws", "databricks", "github", "okta", "snowflake", "sql"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Information Technology",
@@ -23,8 +23,6 @@ dependencies = [
 
 [project.optional-dependencies]
 aws = ["boto3>=1.35"]
-azure = ["azure-identity>=1.19", "azure-mgmt-resource>=23.0"]
-gcp = ["google-cloud-asset>=3.27"]
 github = ["pygithub>=2.4"]
 okta = ["okta>=2.9"]
 # v0.7.7 P0: SQL family adapters. Each adapter is its own optional
@@ -64,9 +62,6 @@ databricks = ["databricks-sdk>=0.30"]
 snowflake = ["snowflake-connector-python>=3.10"]
 all = [
     "boto3>=1.35",
-    "azure-identity>=1.19",
-    "azure-mgmt-resource>=23.0",
-    "google-cloud-asset>=3.27",
     "pygithub>=2.4",
     "okta>=2.9",
     "psycopg[binary]>=3.1",

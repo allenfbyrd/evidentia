@@ -209,15 +209,15 @@ import so the package loads without the optional driver, explicit
 - **Databricks** (v0.7.8; `[databricks]` extra) — PAT inventory + lifecycle (long-lived, never-expires findings); cluster compliance (runtime version + libraries + init scripts) → CM-2 / CM-3 / CM-8 / SI-2; service principal inventory + active/inactive → AC-2 / AC-2(3) / AC-3; secret scope inventory (Databricks-backed vs Azure Key Vault-backed) → SC-12 / IA-5. Auth via `databricks-sdk>=0.30` unified resolver (PAT, OAuth M2M, Azure AD, AWS IAM, `.databrickscfg`). 7 documented BLIND_SPOTS. **DEFERRED to v0.7.9+**: Unity Catalog audit logs + table/column lineage (need SQL Warehouse plumbing); workspace network policies (need Account API auth path).
 - **Snowflake** (v0.7.8; `[snowflake]` extra) — LOGIN_HISTORY (per-user inventory + per-failed-login row over 90-day window) → AC-7 / AU-2 / AU-3 / IR-4; USERS inventory + MFA enforcement + disabled-account + never-logged-in findings → AC-2 / AC-2(3) / IA-2(1)/(2); GRANTS_TO_USERS inventory + privileged-role grants (ACCOUNTADMIN / SECURITYADMIN / ORGADMIN) → AC-3 / AC-6 / AC-6(7); network-policy inventory + account-level baseline → SC-7 / SC-7(5); masking + row-access policy inventory per database → AC-3 / AC-3(7) / SC-28; operator-attested key-rotation status → SC-12. Auth via `snowflake-connector-python>=3.10` (password env var or key-pair preferred for production — Snowflake is deprecating password auth). 7 documented BLIND_SPOTS. **DEFERRED to v0.7.9+**: ACCESS_HISTORY lineage; failed-login spike detection.
 
-**Honest note**: `[azure]` and `[gcp]` extras are declared in
-`packages/evidentia-collectors/pyproject.toml` (`azure-identity`,
-`azure-mgmt-resource`, `google-cloud-asset`) but no implementing
-collector modules exist as of v0.7.8 (no `evidentia_collectors/azure/`
-or `evidentia_collectors/gcp/` directory). This is a documentation-
-accuracy gap surfaced during the v0.7.8 pre-release-review and queued
-for batch fix in v0.7.9 (either remove the extras until impls land,
-or stub modules with NotImplementedError + clear deferred-feature
-message).
+**Honest note**: `[azure]` and `[gcp]` extras were declared in
+`packages/evidentia-collectors/pyproject.toml` from v0.5.0 through
+v0.7.7 without backing implementations. The v0.7.8 pre-release-review
+(Step 5.A batch fix) removed the unbacked extras + their entries from
+the umbrella `[all]` extra + the package `keywords` list. Azure + GCP
+remain on the forward roadmap (architectural sketches in
+`Evidentia-Architecture-and-Implementation-Plan.md`); when those
+collectors ship, the extras will be re-introduced alongside the
+implementing modules.
 
 ### 3.5 Output integrations (Jira / ServiceNow / Tableau / Power BI)
 
