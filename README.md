@@ -13,6 +13,7 @@ reporting — all usable from a Python library, a CLI, or a REST API.
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)
 [![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12724/badge)](https://www.bestpractices.dev/projects/12724)
 
 ---
 
