@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.7.8] - 2026-05-02
+## [0.7.8] - 2026-05-03
 
 **The cloud data-warehouse + BI integrations release.** Brings
 two long-anticipated capability areas into Evidentia: read-only
@@ -103,8 +103,8 @@ dashboards.
 - **`evidentia-collectors`**: new `[databricks]` extra (pulls in
   `databricks-sdk>=0.30`) and `[snowflake]` extra (pulls in
   `snowflake-connector-python>=3.10`). Both included in the
-  umbrella `[all]` extra alongside the existing AWS/Azure/GCP/
-  GitHub/Okta/SQL adapters.
+  umbrella `[all]` extra alongside the existing AWS / GitHub /
+  Okta / SQL family adapters.
 - **`evidentia-integrations`**: new `[tableau]` extra
   (`tableauserverclient>=0.30` — pure-Python; no native deps)
   and `[powerbi]` extra (`msal>=1.31`; httpx is already a base
@@ -119,6 +119,61 @@ dashboards.
   Typer subcommand groups alongside the existing `jira` and
   `servicenow` groups.
 
+### Fixed
+
+Pre-tag review batch fixes (v0.7.8 Step 5.A — see
+`docs/security-review-v0.7.8.md` for the canonical 5th deliverable
+with CVSS / CWE / EPSS columns):
+
+- **Removed unbacked `[azure]` + `[gcp]` extras** from
+  `evidentia-collectors`. These were declared from v0.5.0 onward
+  without any implementing collector module — running
+  `pip install 'evidentia-collectors[azure]'` would install Azure
+  SDKs but no functional collector to import. The package
+  description, keywords, and umbrella `[all]` extra are aligned
+  with what actually ships. Azure + GCP remain on the forward
+  architectural roadmap; the extras will return alongside the
+  implementing modules. (F-V08-1)
+- **DFAH + DSE arXiv expansions corrected** in
+  `docs/v0.8.0-plan.md`: arXiv 2601.15322 is *Determinism-
+  Faithfulness Assurance Harness* (not "Decision-Faithfulness
+  Assessment"); arXiv 2406.11251 is *Document Screenshot
+  Embedding* (not "Document Structure Embeddings"). Both papers
+  verified to exist; substantive content unchanged. (F-V08-2)
+- **`GET /api/frameworks/{framework_id}/controls/{control_id}`**
+  now returns 404 (was 500) when the framework_id is unknown.
+  The route handler's exception catch widened to include
+  `ValueError` so manifest-resolution failures normalize to a
+  client-friendly 404. Regression test added. (F-V08-DAST-1)
+- **17 manual `HTTPException(status_code=422, detail="...")`
+  sites converted to 400** across gaps + collectors + integrations
+  + init_wizard + risks routers. 422 in OpenAPI declares
+  `detail: array<ValidationError>` (the FastAPI auto-validation
+  shape); manual 422s with `detail: string` violated the schema.
+  18 corresponding tests updated. (F-V08-DAST-3)
+- **Snowflake LOGIN_HISTORY query gains a defensive `LIMIT`**
+  (default 10,000; new `login_history_max_rows` constructor
+  argument). On a busy 90-day window the unbounded query could
+  return 10K+ rows + emit a SecurityFinding per failed-login,
+  bloating reports. (F-V08-CR-H1)
+- **Snowflake `_policy_inventory_findings` opens a fresh cursor
+  per per-DB query** (was reusing one cursor across SHOW
+  DATABASES + every per-DB MASKING_POLICIES + every per-DB
+  ROW_ACCESS_POLICIES query — cursor-state poisoning on
+  permission-denied was making subsequent per-DB queries
+  silently fail on most drivers). (F-V08-CR-H2)
+- **Power BI `clear_table` now swallows 4xx + raises only on
+  5xx**. First-publish flow on a freshly-created Push Dataset
+  could return 404 from the rows-delete endpoint before
+  v0.7.8's first publish; the pre-fix path raised
+  `PowerBIPublishError` even though the post-condition
+  ("no rows in the table") was already satisfied. (F-V08-CR-H3)
+- **Databricks coverage construction O(4N) → O(N)** with
+  single-pass dict accumulator; renamed misnamed
+  `_cached_workspace_id` (held a URL, not an ID) to
+  `_cached_workspace_url`; removed dead `active_finding_count`
+  computation. (F-V08-CR-MEDIUM batch)
+
 ### Notes
 
 - **CSV-only Tableau publish in v0.7.8**. `.hyper` extract
@@ -129,7 +184,7 @@ dashboards.
   Premium / Fabric capacity (full Tabular Model storage) is
   documented as a future enhancement; Push Datasets fits the
   compliance-dashboard use case cleanly and works on the
-  standard Power BI Pro license.
+  standard Power BI Pro license (no Premium add-on required).
 - **Some Databricks + Snowflake evidence sources DEFERRED to
   v0.7.9+**: Databricks workspace audit logs + table/column
   lineage (need SQL Warehouse plumbing); Databricks workspace
@@ -140,10 +195,10 @@ dashboards.
   documented in `docs/v0.7.8-plan.md` and surfaced as explicit
   BLIND_SPOTS in each adapter.
 
-**1256 tests passing** + 12 environmental skips (was 1100 at
-v0.7.7 ship; +156 new tests covering Databricks + Snowflake +
-Tableau + Power BI + new API surfaces); mypy strict clean across
-139 source files; ruff lint clean.
+**1259 tests passing** + 12 environmental skips (was 1100 at
+v0.7.7 ship; +159 new tests covering Databricks + Snowflake +
+Tableau + Power BI + new API surfaces + Step 5.A regression tests);
+mypy strict clean across 138 source files; ruff lint clean.
 
 ### Carry-forward (unchanged from v0.7.7)
 

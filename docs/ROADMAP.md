@@ -393,8 +393,16 @@ Power BI Push Datasets via Azure AD service-principal OAuth. CLI
 + REST + status-endpoint wiring for all four. Comprehensive
 walkthrough docs (`docs/cloud-dw-collectors.md`,
 `docs/bi-integrations.md`) + Meridian-with-BI demo scenario
-(`examples/meridian-fintech-v2-with-bi/`). 1256 tests passing
-(+156 new); mypy strict clean across 139 source files. Some
+(`examples/meridian-fintech-v2-with-bi/`). Step 5.A pre-tag batch
+landed 8 fixes (F-V08-1 unbacked azure/gcp extras removal;
+F-V08-2 DFAH/DSE arXiv expansion corrections; F-V08-DAST-1
+frameworks 500→404 + regression test; F-V08-DAST-3 17 manual
+HTTPException(422) sites converted to 400 to match OpenAPI
+schema; F-V08-CR-H1 Snowflake LOGIN_HISTORY LIMIT; F-V08-CR-H2
+Snowflake cursor-reuse refactor; F-V08-CR-H3 Power BI clear_table
+404 swallow; F-V08-CR-MEDIUM Databricks workspace_url rename +
+O(N) coverage + dead-code removal). 1259 tests passing
+(+159 new); mypy strict clean across 138 source files. Some
 evidence sources DEFERRED to v0.7.9+ (Databricks audit logs +
 lineage need SQL Warehouse plumbing; Snowflake ACCESS_HISTORY
 needs pagination design; Databricks network policies need
