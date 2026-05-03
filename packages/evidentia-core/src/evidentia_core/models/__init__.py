@@ -64,6 +64,14 @@ from evidentia_core.models.threat import (
     Vulnerability,
     VulnerabilityCatalog,
 )
+from evidentia_core.models.tprm import (
+    CriticalityTier,
+    EvidenceRef,
+    FourthParty,
+    RegulatoryClassification,
+    Vendor,
+    VendorType,
+)
 
 # v0.3.0: ``FrameworkId`` removed (was deprecated in v0.2.0; the module-level
 # ``__getattr__`` that emitted the DeprecationWarning is gone, and no
@@ -79,13 +87,16 @@ __all__ = [
     "ControlInventory",
     "ControlMapping",
     "ControlStatus",
+    "CriticalityTier",
     "CrosswalkDefinition",
     "EfficiencyOpportunity",
     "EvidenceArtifact",
     "EvidenceBundle",
+    "EvidenceRef",
     "EvidenceSufficiency",
     "EvidenceType",
     "EvidentiaModel",
+    "FourthParty",
     "FrameworkMapping",
     "GapAnalysisReport",
     "GapSeverity",
@@ -94,11 +105,14 @@ __all__ = [
     "ObligationCatalog",
     "PrivacyObligation",
     "PrivacyRegime",
+    "RegulatoryClassification",
     "RelationshipType",
     "Severity",
     "SubjectRight",
     "TechniqueCatalog",
     "ThreatCategory",
+    "Vendor",
+    "VendorType",
     "Vulnerability",
     "VulnerabilityCatalog",
     "current_version",
