@@ -306,3 +306,83 @@ class TestPreviewNextReviewDue:
             "/next-review-due"
         )
         assert r.status_code == 404
+
+
+# ── concentration-risk reporting (v0.7.9 P0.3) ─────────────────────
+
+
+class TestConcentrationEndpoint:
+    def _seed(self, api_client: TestClient) -> None:
+        for name, region in [
+            ("US-A", "us-east-1"),
+            ("US-B", "us-east-1"),
+            ("EU-A", "eu-west-1"),
+        ]:
+            payload = _make_payload(name=name)
+            payload["region"] = region
+            r = api_client.post("/api/tprm/vendors", json=payload)
+            assert r.status_code == 201, r.text
+
+    def test_default_dimensions_returns_200(
+        self, api_client: TestClient
+    ) -> None:
+        self._seed(api_client)
+        r = api_client.get("/api/tprm/concentration?by=region")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["total_vendors"] == 3
+        assert body["dimensions"][0]["dimension"] == "region"
+
+    def test_threshold_flags_in_json(
+        self, api_client: TestClient
+    ) -> None:
+        self._seed(api_client)
+        # 2 of 3 in us-east-1 = 66.7%; threshold=50 → flag us-east-1
+        r = api_client.get(
+            "/api/tprm/concentration?by=region&threshold=50"
+        )
+        body = r.json()
+        flagged = [
+            v for v in body["dimensions"][0]["distribution"]
+            if v["exceeds_threshold"]
+        ]
+        assert len(flagged) == 1
+        assert flagged[0]["value"] == "us-east-1"
+
+    def test_unsupported_dimension_returns_400(
+        self, api_client: TestClient
+    ) -> None:
+        r = api_client.get("/api/tprm/concentration?by=not-a-dim")
+        assert r.status_code == 400
+        # F-V08-DAST-3 invariant: detail is a string, not array
+        assert isinstance(r.json()["detail"], str)
+
+    def test_empty_by_returns_400(
+        self, api_client: TestClient
+    ) -> None:
+        r = api_client.get("/api/tprm/concentration?by=")
+        assert r.status_code == 400
+
+    def test_threshold_out_of_range_returns_422(
+        self, api_client: TestClient
+    ) -> None:
+        # FastAPI Query(ge=0, le=100) — out-of-range hits Pydantic
+        # auto-validation 422 with array-shape detail
+        r = api_client.get(
+            "/api/tprm/concentration?by=region&threshold=200"
+        )
+        assert r.status_code == 422
+        assert isinstance(r.json()["detail"], list)
+
+    def test_multiple_dimensions(
+        self, api_client: TestClient
+    ) -> None:
+        self._seed(api_client)
+        r = api_client.get(
+            "/api/tprm/concentration?by=region,service-category"
+        )
+        body = r.json()
+        assert [d["dimension"] for d in body["dimensions"]] == [
+            "region",
+            "service-category",
+        ]

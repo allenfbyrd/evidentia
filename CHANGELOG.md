@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **TPRM concentration-risk reporting** (v0.7.9 P0.3). New
+  `evidentia tprm concentration-report` CLI + `GET /api/tprm/
+  concentration` REST endpoint aggregate the v0.7.9 P0.1 vendor
+  inventory across configurable dimensions to surface
+  concentration risk per FFIEC + OCC Bulletin 2013-29 + FRB SR
+  13-19 expectations. Six supported dimensions: `region`,
+  `cloud-provider` (combines direct cloud-provider vendors AND
+  4th-party cloud-provider disclosures), `4th-party`,
+  `service-category`, `criticality-tier`,
+  `regulatory-classification`. Optional `--threshold <pct>` flag
+  flags any per-value share meeting-or-exceeding the threshold
+  (e.g., 30% to surface "9 of 12 vendors run on AWS"). Three
+  output formats: HTML (single-file with sortable tables; no
+  external deps), JSON (REST + scripted), CSV (spreadsheet
+  pivot). Adds `region` field to the `Vendor` model
+  (free-text geo / cloud-region label; nullable for legacy
+  imports). Engine + types live in
+  `evidentia_core.tprm.concentration` (new sub-namespace
+  `evidentia_core.tprm` per the v0.7.9-plan). 20 unit tests +
+  6 CLI integration + 6 REST integration.
+
 - **Defense-in-depth security headers** on the FastAPI server via
   the new `SecurityHeadersMiddleware`
   (`evidentia_api.security_headers`). When enabled, every response

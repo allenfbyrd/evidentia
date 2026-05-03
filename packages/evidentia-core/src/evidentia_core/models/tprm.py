@@ -306,6 +306,20 @@ class Vendor(EvidentiaModel):
             "ongoing monitoring + the next due-diligence review."
         ),
     )
+    region: str | None = Field(
+        default=None,
+        description=(
+            "Geographic region the vendor operates in (e.g., "
+            "``us-east-1``, ``EU``, ``US-West``, ``APAC``). Free-text "
+            "because region semantics vary by vendor type — AWS-style "
+            "region IDs for cloud providers, ISO-3166 country codes for "
+            "data processors, business-region designations for "
+            "consultancies. Drives the v0.7.9 P0.3 concentration-risk "
+            "reporting `--by region` aggregation. Nullable for legacy "
+            "imports + vendors whose region is genuinely indeterminate."
+        ),
+        max_length=128,
+    )
     contract_start_date: date = Field(
         description="Contract effective date.",
     )

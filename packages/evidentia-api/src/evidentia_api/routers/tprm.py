@@ -32,6 +32,11 @@ from evidentia_core.models.tprm import (
     Vendor,
     VendorType,
 )
+from evidentia_core.tprm.concentration import (
+    SUPPORTED_DIMENSIONS,
+    ConcentrationReport,
+    compute_concentration,
+)
 from evidentia_core.vendor_store import (
     InvalidVendorIdError,
     delete_vendor,
@@ -266,3 +271,54 @@ async def preview_next_review_due(vendor_id: str) -> dict[str, str | None]:
     return {
         "next_review_due": computed.isoformat() if computed else None,
     }
+
+
+# ── concentration-risk reporting (v0.7.9 P0.3) ─────────────────────
+
+
+@router.get("/tprm/concentration", response_model=ConcentrationReport)
+async def concentration(
+    by: str = Query(
+        "region,cloud-provider",
+        description=(
+            "Comma-separated dimensions to aggregate by. Valid: "
+            f"{', '.join(sorted(SUPPORTED_DIMENSIONS))}."
+        ),
+    ),
+    threshold: float | None = Query(
+        None,
+        ge=0.0,
+        le=100.0,
+        description=(
+            "Concentration percentage (0.0-100.0). Per-value rows whose "
+            "vendor share meets-or-exceeds this get flagged. Omit for "
+            "unflagged distribution."
+        ),
+    ),
+) -> ConcentrationReport:
+    """Concentration-risk report across the vendor inventory.
+
+    Aggregates the v0.7.9 P0.1 vendor inventory across configurable
+    dimensions to surface concentration risk per FFIEC + OCC Bulletin
+    2013-29 + FRB SR 13-19 expectations. Returns a JSON
+    :class:`ConcentrationReport`. For HTML / CSV rendering, use the
+    `evidentia tprm concentration-report --format html|csv` CLI
+    surface — REST is JSON-only by design.
+    """
+    dimensions = [d.strip() for d in by.split(",") if d.strip()]
+    if not dimensions:
+        raise HTTPException(
+            status_code=400,
+            detail="`by` must list at least one dimension.",
+        )
+    bad = [d for d in dimensions if d not in SUPPORTED_DIMENSIONS]
+    if bad:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Unsupported dimension(s) {bad!r}; "
+                f"valid: {sorted(SUPPORTED_DIMENSIONS)}"
+            ),
+        )
+    vendors = list_vendors()
+    return compute_concentration(vendors, dimensions, threshold=threshold)

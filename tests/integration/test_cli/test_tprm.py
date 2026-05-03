@@ -507,3 +507,178 @@ class TestVendorDelete:
              "--yes"],
         )
         assert result.exit_code == 1
+
+
+# ── concentration-report ───────────────────────────────────────────
+
+
+class TestConcentrationReport:
+    def _seed_vendors_with_regions(self, runner: CliRunner) -> None:
+        """Seed 4 vendors: 2 in us-east-1, 1 in eu-west-1, 1 with no region."""
+        for name, region in [
+            ("US-A", "us-east-1"),
+            ("US-B", "us-east-1"),
+            ("EU-A", "eu-west-1"),
+            ("Unknown", None),
+        ]:
+            cmd = [
+                "tprm", "vendor", "add",
+                "--name", name,
+                "--type", "saas",
+                "--criticality-tier", "high",
+                "--owner", "x@x.com",
+                "--contract-start-date", "2025-01-01",
+            ]
+            if region:
+                # Region is only on the model, not on the CLI add flags
+                # (the CLI doesn't expose --region in add yet — that's
+                # a P0.3 follow-up). For now, set region via --from-yaml.
+                pass
+            runner.invoke(app, cmd)
+
+    def _seed_via_yaml(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        """Seed vendors via --from-yaml so we can set the region field."""
+        for name, region in [
+            ("US-A", "us-east-1"),
+            ("US-B", "us-east-1"),
+            ("EU-A", "eu-west-1"),
+            ("Unknown", None),
+        ]:
+            yaml_text = f"""
+name: {name}
+type: saas
+criticality_tier: high
+relationship_owner: x@x.com
+contract_start_date: '2025-01-01'
+"""
+            if region:
+                yaml_text += f"region: {region}\n"
+            yaml_path = tmp_path / f"{name}.yaml"
+            yaml_path.write_text(yaml_text, encoding="utf-8")
+            runner.invoke(
+                app,
+                ["tprm", "vendor", "add", "--from-yaml", str(yaml_path)],
+            )
+
+    def test_json_output_default_dimensions(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        self._seed_via_yaml(runner, tmp_path)
+        result = runner.invoke(
+            app,
+            ["tprm", "concentration-report", "--by", "region",
+             "--format", "json"],
+        )
+        assert result.exit_code == 0, result.output
+        # The output's stdout has the JSON dump
+        data = json.loads(result.output)
+        assert data["total_vendors"] == 4
+        # 1 dimension requested
+        assert len(data["dimensions"]) == 1
+        assert data["dimensions"][0]["dimension"] == "region"
+
+    def test_unsupported_dimension_errors(
+        self, runner: CliRunner
+    ) -> None:
+        result = runner.invoke(
+            app,
+            ["tprm", "concentration-report", "--by", "not-a-dim",
+             "--format", "json"],
+        )
+        assert result.exit_code == 1
+        assert "Unsupported dimension" in result.output
+
+    def test_invalid_format_errors(self, runner: CliRunner) -> None:
+        result = runner.invoke(
+            app,
+            ["tprm", "concentration-report", "--format", "xml"],
+        )
+        assert result.exit_code == 1
+        assert "html/json/csv" in result.output
+
+    def test_threshold_flag_applies(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        self._seed_via_yaml(runner, tmp_path)
+        # 2 of 4 vendors in us-east-1 = 50% — threshold=50 should flag
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "concentration-report",
+                "--by", "region",
+                "--threshold", "50",
+                "--format", "json",
+            ],
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        flagged = [
+            v for v in data["dimensions"][0]["distribution"]
+            if v["exceeds_threshold"]
+        ]
+        assert len(flagged) == 1
+        assert flagged[0]["value"] == "us-east-1"
+
+    def test_html_output_to_file(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        self._seed_via_yaml(runner, tmp_path)
+        out_path = tmp_path / "report.html"
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "concentration-report",
+                "--by", "region",
+                "--format", "html",
+                "--output", str(out_path),
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert "Wrote HTML report" in result.output
+        assert out_path.is_file()
+        content = out_path.read_text(encoding="utf-8")
+        assert "<!DOCTYPE html>" in content
+        assert "us-east-1" in content
+
+    def test_csv_output_to_file(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        self._seed_via_yaml(runner, tmp_path)
+        out_path = tmp_path / "report.csv"
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "concentration-report",
+                "--by", "region",
+                "--format", "csv",
+                "--output", str(out_path),
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        content = out_path.read_text(encoding="utf-8")
+        # Header
+        assert content.startswith(
+            "dimension,value,count,percentage,exceeds_threshold"
+        )
+
+    def test_multiple_dimensions(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        self._seed_via_yaml(runner, tmp_path)
+        result = runner.invoke(
+            app,
+            [
+                "tprm", "concentration-report",
+                "--by", "region,service-category,criticality-tier",
+                "--format", "json",
+            ],
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert [d["dimension"] for d in data["dimensions"]] == [
+            "region",
+            "service-category",
+            "criticality-tier",
+        ]

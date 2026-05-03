@@ -41,6 +41,12 @@ from evidentia_core.models.tprm import (
     Vendor,
     VendorType,
 )
+from evidentia_core.tprm.concentration import (
+    SUPPORTED_DIMENSIONS,
+    compute_concentration,
+    render_csv_report,
+    render_html_report,
+)
 from evidentia_core.vendor_store import (
     InvalidVendorIdError,
     delete_vendor,
@@ -697,3 +703,116 @@ def vendor_delete(
             "removed by another process."
         )
         sys.exit(1)
+
+
+# ── concentration-report ───────────────────────────────────────────
+
+
+@app.command("concentration-report")
+def concentration_report(
+    by: str = typer.Option(
+        "region,cloud-provider",
+        "--by",
+        help=(
+            "Comma-separated dimensions to aggregate by. Choices: "
+            f"{', '.join(sorted(SUPPORTED_DIMENSIONS))}."
+        ),
+    ),
+    threshold: float | None = typer.Option(
+        None,
+        "--threshold",
+        min=0.0,
+        max=100.0,
+        help=(
+            "Concentration percentage (0.0-100.0). Per-value rows whose "
+            "vendor share meets-or-exceeds this get flagged in the "
+            "output. Omit for unflagged distribution view."
+        ),
+    ),
+    format_: str = typer.Option(
+        "html",
+        "--format",
+        "-f",
+        help="Output format: html / json / csv.",
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help=(
+            "Write to file path. If omitted: html dumps to stdout (use "
+            "shell redirect); json + csv print to stdout."
+        ),
+    ),
+) -> None:
+    """Concentration-risk report across the vendor inventory.
+
+    Aggregates the v0.7.9 P0.1 vendor inventory across configurable
+    dimensions to surface concentration risk per FFIEC + OCC Bulletin
+    2013-29 + FRB SR 13-19 expectations. Example uses:
+
+        # 30% concentration threshold across region + cloud-provider
+        evidentia tprm concentration-report --by region,cloud-provider \\
+          --threshold 30 --output report.html
+
+        # Service-category distribution as JSON for downstream processing
+        evidentia tprm concentration-report --by service-category \\
+          --format json --output dist.json
+
+        # 4th-party concentration at 15% threshold (FFIEC critical
+        # third-party scrutiny territory)
+        evidentia tprm concentration-report --by 4th-party --threshold 15
+    """
+    if format_ not in {"html", "json", "csv"}:
+        console.print(
+            f"[red]Error:[/red] --format must be one of html/json/csv; "
+            f"got {format_!r}."
+        )
+        raise typer.Exit(code=1)
+
+    dimensions = [d.strip() for d in by.split(",") if d.strip()]
+    if not dimensions:
+        console.print(
+            "[red]Error:[/red] --by must list at least one dimension."
+        )
+        raise typer.Exit(code=1)
+    bad = [d for d in dimensions if d not in SUPPORTED_DIMENSIONS]
+    if bad:
+        console.print(
+            f"[red]Error:[/red] Unsupported dimension(s) {bad!r}; "
+            f"valid: {sorted(SUPPORTED_DIMENSIONS)}"
+        )
+        raise typer.Exit(code=1)
+
+    vendors = list_vendors()
+    report = compute_concentration(
+        vendors, dimensions, threshold=threshold
+    )
+
+    if format_ == "json":
+        rendered = json.dumps(
+            report.model_dump(mode="json"), indent=2
+        )
+    elif format_ == "csv":
+        rendered = render_csv_report(report)
+    else:
+        rendered = render_html_report(report)
+
+    if output:
+        output.write_text(rendered, encoding="utf-8")
+        console.print(
+            f"[green]✓[/green] Wrote {format_.upper()} report to "
+            f"[bold]{output}[/bold]  "
+            f"([dim]{len(vendors)} vendor(s); "
+            f"{len(dimensions)} dimension(s)[/dim])"
+        )
+    else:
+        # JSON + CSV are dumb-pipe friendly via console.print;
+        # html through console.print also works (no Rich markup
+        # interpretation since we set no_wrap-style behavior via
+        # plain print).
+        # Use sys.stdout.write to avoid any Rich-markup parsing on
+        # the rendered HTML.
+        sys.stdout.write(rendered)
+        if not rendered.endswith("\n"):
+            sys.stdout.write("\n")
