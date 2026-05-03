@@ -22,12 +22,16 @@ class TestRiskGenerateValidation:
         # before starting the stream).
         assert r.status_code == 404
 
-    def test_invalid_key_returns_422(self, api_client: TestClient) -> None:
+    def test_invalid_key_returns_400(self, api_client: TestClient) -> None:
         r = api_client.post(
             "/api/risk/generate",
             json={"report_key": "not-hex", "top_n": 1},
         )
-        assert r.status_code == 422
+        # 400 (not 422) — runtime body-content validation (the Pydantic
+        # parser accepts the string, then the report-key validator
+        # rejects it). Matches OpenAPI `{detail: string}` shape.
+        # F-V08-DAST-3.
+        assert r.status_code == 400
 
     def test_top_n_out_of_range(self, api_client: TestClient) -> None:
         r = api_client.post(

@@ -82,7 +82,7 @@ async def analyze(payload: GapAnalyzeRequest) -> GapAnalysisReport:
     """
     if not payload.inventory_path and not payload.inventory_content:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Either inventory_path or inventory_content must be provided.",
         )
 
@@ -111,7 +111,12 @@ async def analyze(payload: GapAnalyzeRequest) -> GapAnalysisReport:
         try:
             inventory = load_inventory(inventory_source)
         except (FileNotFoundError, ValueError) as e:
-            raise HTTPException(status_code=422, detail=str(e)) from e
+            # Use 400 (not 422) for runtime body-content validation errors
+            # so the response shape (`{detail: string}`) matches the
+            # OpenAPI declaration. 422 is reserved for Pydantic
+            # auto-validation responses, which use `{detail: array}`.
+            # Closes F-V08-DAST-3 schema-fidelity finding cluster.
+            raise HTTPException(status_code=400, detail=str(e)) from e
 
         # CLI-style overrides
         if payload.organization:
@@ -167,9 +172,11 @@ async def get_report(key: str) -> GapAnalysisReport:
     """Load a saved gap report by its storage key."""
     try:
         report = load_report_by_key(key)
-    except InvalidReportKeyError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except PathTraversalError as exc:
+    except (InvalidReportKeyError, PathTraversalError) as exc:
+        # Both InvalidReportKeyError + PathTraversalError reflect
+        # client-supplied bad keys; both normalize to 400 with a
+        # `{detail: string}` shape (matches OpenAPI declaration —
+        # closes F-V08-DAST-3 schema-fidelity finding cluster).
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if report is None:
         raise HTTPException(status_code=404, detail=f"Report {key} not found.")
@@ -190,7 +197,7 @@ async def diff(payload: GapDiffRequest) -> GapDiff:
             report = load_report_by_key(key)
         except InvalidReportKeyError as exc:
             raise HTTPException(
-                status_code=422,
+                status_code=400,
                 detail=f"Invalid {label} key: {exc}",
             ) from exc
         except PathTraversalError as exc:

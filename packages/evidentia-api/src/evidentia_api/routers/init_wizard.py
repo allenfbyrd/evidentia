@@ -49,7 +49,10 @@ async def init_wizard(payload: InitWizardRequest) -> InitWizardResponse:
             organization=payload.organization,
         )
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+        # 400 (not 422) — runtime input-validation error after Pydantic
+        # body parsing succeeded. Detail shape `{detail: string}`
+        # matches the OpenAPI declaration (closes F-V08-DAST-3).
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     sys_ctx_yaml = generate_system_context_yaml(
         organization=payload.organization,

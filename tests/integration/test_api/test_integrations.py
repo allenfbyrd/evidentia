@@ -142,9 +142,9 @@ class TestJiraStatusMap:
 
 
 class TestJiraPushSyncValidation:
-    def test_push_invalid_key_returns_422(self, api_client: TestClient) -> None:
+    def test_push_invalid_key_returns_400(self, api_client: TestClient) -> None:
         r = api_client.post("/api/integrations/jira/push/not-a-hex-key")
-        assert r.status_code == 422
+        assert r.status_code == 400
 
     def test_push_missing_report_returns_404(
         self, api_client: TestClient, monkeypatch: pytest.MonkeyPatch
@@ -153,9 +153,9 @@ class TestJiraPushSyncValidation:
         r = api_client.post("/api/integrations/jira/push/0123456789abcdef")
         assert r.status_code == 404
 
-    def test_sync_invalid_key_returns_422(self, api_client: TestClient) -> None:
+    def test_sync_invalid_key_returns_400(self, api_client: TestClient) -> None:
         r = api_client.post("/api/integrations/jira/sync/xxxxxxxxxxxxxxxx")
-        assert r.status_code == 422
+        assert r.status_code == 400
 
     def test_push_returns_503_when_jira_unconfigured_but_report_exists(
         self, api_client: TestClient, monkeypatch: pytest.MonkeyPatch
@@ -188,26 +188,26 @@ class TestJiraPushSyncValidation:
 
 
 class TestTableauPublishEndpoint:
-    def test_invalid_key_returns_422(
+    def test_invalid_key_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
             "/api/integrations/tableau/publish/not-a-hex-key",
             json={"server_url": "https://example.tableau"},
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
 
-    def test_missing_server_url_returns_422(
+    def test_missing_server_url_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
             "/api/integrations/tableau/publish/0123456789abcdef",
             json={},
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
         assert "server_url" in r.json()["detail"]
 
-    def test_invalid_risks_array_returns_422(
+    def test_invalid_risks_array_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
@@ -217,14 +217,14 @@ class TestTableauPublishEndpoint:
                 "risks": "not-a-list",
             },
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
 
 
 # ── Power BI publish endpoint (v0.7.8 P1.2) ───────────────────────
 
 
 class TestPowerBIPublishEndpoint:
-    def test_invalid_key_returns_422(
+    def test_invalid_key_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
@@ -235,34 +235,34 @@ class TestPowerBIPublishEndpoint:
                 "client_id": "c-1",
             },
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
 
-    def test_missing_workspace_returns_422(
+    def test_missing_workspace_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
             "/api/integrations/powerbi/publish/0123456789abcdef",
             json={"tenant_id": "t-1", "client_id": "c-1"},
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
         assert "workspace_id" in r.json()["detail"]
 
-    def test_missing_tenant_returns_422(
+    def test_missing_tenant_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
             "/api/integrations/powerbi/publish/0123456789abcdef",
             json={"workspace_id": "ws-1", "client_id": "c-1"},
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
         assert "tenant_id" in r.json()["detail"]
 
-    def test_missing_client_returns_422(
+    def test_missing_client_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
             "/api/integrations/powerbi/publish/0123456789abcdef",
             json={"workspace_id": "ws-1", "tenant_id": "t-1"},
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
         assert "client_id" in r.json()["detail"]

@@ -43,9 +43,10 @@ router = APIRouter()
 def _load_report(key: str) -> GapAnalysisReport:
     try:
         report = load_report_by_key(key)
-    except InvalidReportKeyError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except PathTraversalError as exc:
+    except (InvalidReportKeyError, PathTraversalError) as exc:
+        # Both errors reflect client-supplied bad keys; normalize to
+        # 400 with `{detail: string}` shape (matches OpenAPI
+        # declaration — closes F-V08-DAST-3).
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if report is None:
         raise HTTPException(

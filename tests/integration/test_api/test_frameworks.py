@@ -66,3 +66,18 @@ class TestGetControl:
         r = api_client.get("/api/frameworks/nist-800-53-mod/controls/NOPE-999")
         assert r.status_code == 404
         assert "not found" in r.json()["detail"].lower()
+
+    def test_unknown_framework_id_returns_404_not_500(
+        self, api_client: TestClient
+    ) -> None:
+        """Regression for F-V08-DAST-1 — Schemathesis fuzz hit
+        ``/api/frameworks/0/controls/0`` and got 500 because the route
+        handler caught only (FileNotFoundError, KeyError) but
+        ``resolve_catalog_path`` raises ValueError when the framework_id
+        isn't in either the user-imported or bundled manifest. v0.7.8
+        Step 5.A widened the catch to include ValueError so the path
+        normalizes to a 404 from the client's perspective.
+        """
+        r = api_client.get("/api/frameworks/0/controls/0")
+        assert r.status_code == 404
+        assert "not found" in r.json()["detail"].lower()

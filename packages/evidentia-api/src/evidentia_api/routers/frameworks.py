@@ -74,7 +74,12 @@ async def get_control(
     """
     try:
         catalog = registry.get_catalog(framework_id)
-    except (FileNotFoundError, KeyError) as e:
+    except (FileNotFoundError, KeyError, ValueError) as e:
+        # ValueError fires when ``resolve_catalog_path`` cannot find the
+        # framework_id in either the user-imported or bundled manifest;
+        # FileNotFoundError + KeyError cover late-stage failures during
+        # catalog file resolution. All three normalize to 404 from the
+        # client's perspective.
         raise HTTPException(
             status_code=404,
             detail=f"Framework '{framework_id}' not found.",

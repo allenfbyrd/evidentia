@@ -39,12 +39,14 @@ class TestCollectorsStatus:
 class TestGithubCollectEndpoint:
     def test_rejects_malformed_repo(self, api_client: TestClient) -> None:
         r = api_client.post("/api/collectors/github/collect", json={"repo": "notaformat"})
-        assert r.status_code == 422
+        # 400 (not 422) — runtime body-content validation; matches
+        # OpenAPI `{detail: string}` shape (F-V08-DAST-3).
+        assert r.status_code == 400
         assert "owner/repo" in r.json()["detail"]
 
-    def test_missing_repo_returns_422(self, api_client: TestClient) -> None:
+    def test_missing_repo_returns_400(self, api_client: TestClient) -> None:
         r = api_client.post("/api/collectors/github/collect", json={})
-        assert r.status_code == 422
+        assert r.status_code == 400
 
 
 class TestSQLiteCollectEndpointSafeRoot:
@@ -130,27 +132,28 @@ class TestSnowflakeCollectEndpoint:
     handling guarantees.
     """
 
-    def test_missing_account_returns_422(
+    def test_missing_account_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
             "/api/collectors/snowflake/collect",
             json={"user": "EVIDENTIA_AUDIT_RO"},
         )
-        assert r.status_code == 422
+        # 400 (not 422) — body-content validation. F-V08-DAST-3.
+        assert r.status_code == 400
         assert "account" in r.json()["detail"]
 
-    def test_missing_user_returns_422(
+    def test_missing_user_returns_400(
         self, api_client: TestClient
     ) -> None:
         r = api_client.post(
             "/api/collectors/snowflake/collect",
             json={"account": "acme-prod"},
         )
-        assert r.status_code == 422
+        assert r.status_code == 400
         assert "user" in r.json()["detail"]
 
-    def test_missing_password_env_returns_422(
+    def test_missing_password_env_returns_400(
         self,
         api_client: TestClient,
         monkeypatch: pytest.MonkeyPatch,
@@ -164,8 +167,8 @@ class TestSnowflakeCollectEndpoint:
                 "user": "EVIDENTIA_AUDIT_RO",
             },
         )
-        # 422 because the password env var resolves to nothing.
-        assert r.status_code == 422
+        # 400 because the password env var resolves to nothing.
+        assert r.status_code == 400
         assert "SNOWFLAKE_PASSWORD" in r.json()["detail"]
 
     def test_status_endpoint_includes_snowflake_entry(

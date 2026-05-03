@@ -88,8 +88,9 @@ class TestInitWizard:
         assert "Wizard Test Co" in payload["my_controls_yaml"]
 
     def test_rejects_unknown_preset(self, api_client: TestClient) -> None:
-        # The wizard should 500 or 422; the preset is typed in schemas.py
-        # as str but the generator validates the value.
+        # The wizard validates the preset value at runtime; the
+        # generator raises ValueError which the route normalizes to
+        # 400 with `{detail: string}` shape (F-V08-DAST-3).
         r = api_client.post(
             "/api/init/wizard",
             json={
@@ -98,5 +99,4 @@ class TestInitWizard:
                 "preset": "bogus-preset",
             },
         )
-        # Either 422 (pydantic) or 500 (generator ValueError via uncaught).
-        assert r.status_code in (422, 500)
+        assert r.status_code == 400

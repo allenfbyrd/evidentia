@@ -40,9 +40,10 @@ def _new_request_id() -> str:
 def _load_report(key: str) -> GapAnalysisReport:
     try:
         report = load_report_by_key(key)
-    except InvalidReportKeyError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except PathTraversalError as exc:
+    except (InvalidReportKeyError, PathTraversalError) as exc:
+        # Both errors reflect client-supplied bad keys; normalize to
+        # 400 with `{detail: string}` shape (matches OpenAPI
+        # declaration — closes F-V08-DAST-3).
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if report is None:
         raise HTTPException(
@@ -285,11 +286,11 @@ async def tableau_publish(
     server_url = str(payload.get("server_url") or "").strip()
     if not server_url:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'server_url'.",
         )
 
-    # Validate body shape (risks list) BEFORE report lookup so 422
+    # Validate body shape (risks list) BEFORE report lookup so 400
     # is returned for malformed bodies instead of 404 for missing
     # reports.
     risks_input = payload.get("risks")
@@ -299,7 +300,7 @@ async def tableau_publish(
 
         if not isinstance(risks_input, list):
             raise HTTPException(
-                status_code=422,
+                status_code=400,
                 detail="'risks' must be a JSON array.",
             )
         try:
@@ -309,7 +310,7 @@ async def tableau_publish(
             ]
         except Exception as exc:
             raise HTTPException(
-                status_code=422,
+                status_code=400,
                 detail=f"Invalid risk payload: {exc}",
             ) from exc
 
@@ -407,17 +408,17 @@ async def powerbi_publish(
     client_id = str(payload.get("client_id") or "").strip()
     if not workspace_id:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'workspace_id'.",
         )
     if not tenant_id:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'tenant_id'.",
         )
     if not client_id:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'client_id'.",
         )
 
@@ -429,7 +430,7 @@ async def powerbi_publish(
 
         if not isinstance(risks_input, list):
             raise HTTPException(
-                status_code=422,
+                status_code=400,
                 detail="'risks' must be a JSON array.",
             )
         try:
@@ -439,7 +440,7 @@ async def powerbi_publish(
             ]
         except Exception as exc:
             raise HTTPException(
-                status_code=422,
+                status_code=400,
                 detail=f"Invalid risk payload: {exc}",
             ) from exc
 

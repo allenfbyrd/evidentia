@@ -95,7 +95,7 @@ async def github_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     repo = str(payload.get("repo") or "").strip()
     if "/" not in repo:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'repo' in 'owner/repo' format.",
         )
     owner, repo_name = repo.split("/", 1)
@@ -145,7 +145,7 @@ async def okta_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     org_url = str(payload.get("org_url") or "").strip()
     if not org_url:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'org_url'.",
         )
     inactive_threshold_days = int(payload.get("inactive_threshold_days") or 90)
@@ -213,7 +213,7 @@ async def postgres_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     connection_uri = str(payload.get("connection_uri") or "").strip()
     if not connection_uri:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'connection_uri'.",
         )
     password_env = (
@@ -282,7 +282,7 @@ async def mysql_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     connection_uri = str(payload.get("connection_uri") or "").strip()
     if not connection_uri:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'connection_uri'.",
         )
     password_env = (
@@ -350,7 +350,7 @@ async def mssql_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     connection_uri = str(payload.get("connection_uri") or "").strip()
     if not connection_uri:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'connection_uri'.",
         )
     password_env = (
@@ -416,7 +416,7 @@ async def oracle_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     connection_uri = str(payload.get("connection_uri") or "").strip()
     if not connection_uri:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'connection_uri'.",
         )
     password_env = (
@@ -486,7 +486,7 @@ async def sqlite_collect(payload: dict[str, Any]) -> list[SecurityFinding]:
     database_path = str(payload.get("database_path") or "").strip()
     if not database_path:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'database_path'.",
         )
 
@@ -556,7 +556,7 @@ async def databricks_collect(
     workspace_url = str(payload.get("workspace_url") or "").strip()
     if not workspace_url:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'workspace_url'.",
         )
 
@@ -636,12 +636,12 @@ async def snowflake_collect(
     user = str(payload.get("user") or "").strip()
     if not account:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'account'.",
         )
     if not user:
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Request body must include 'user'.",
         )
 
@@ -660,7 +660,7 @@ async def snowflake_collect(
         password = os.environ.get(password_env)
         if not password:
             raise HTTPException(
-                status_code=422,
+                status_code=400,
                 detail=(
                     f"Env var '{password_env}' is not set or is "
                     f"empty. Either set it server-side OR pass "

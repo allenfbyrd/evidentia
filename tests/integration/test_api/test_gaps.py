@@ -31,7 +31,9 @@ class TestGapAnalyze:
             "/api/gap/analyze",
             json={"frameworks": ["soc2-tsc"]},
         )
-        assert r.status_code == 422
+        # 400 (not 422) — runtime body-content validation; matches
+        # OpenAPI `{detail: string}` shape (F-V08-DAST-3).
+        assert r.status_code == 400
 
     def test_runs_with_inline_content(
         self, api_client: TestClient, meridian_inventory: str
@@ -105,7 +107,9 @@ class TestGapDiff:
             "/api/gap/diff",
             json={"base_key": "not-a-hex-key", "head_key": "also-bad"},
         )
-        assert r.status_code == 422
+        # 400 (not 422) — runtime body-content validation; matches
+        # OpenAPI `{detail: string}` shape (F-V08-DAST-3).
+        assert r.status_code == 400
 
     def test_missing_report_returns_404(
         self, api_client: TestClient
