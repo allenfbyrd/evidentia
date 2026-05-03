@@ -117,6 +117,12 @@ For every release (patch / minor / major):
       counts and command lists in:
   - `README.md` §3.4 (REST endpoint count) + §"Typer + Rich CLI"
   - `docs/capability-matrix.md` §Surface tier 7 / 8
+- [ ] If the OpenSSF Best Practices badge tier changed in this
+      release cycle (Passing → Silver, Silver → Gold), verify the
+      [README badge embed](../README.md) renders the correct tier
+      and add a CHANGELOG entry under "Added" or "Changed"
+      referencing the new tier. Roadmap:
+      [`docs/openssf-best-practices-badge.md`](openssf-best-practices-badge.md).
 
 ---
 

@@ -43,13 +43,26 @@ places to contribute right now:
 git clone https://github.com/allenfbyrd/evidentia.git
 cd evidentia
 uv sync --all-packages
-uv run pytest tests/ -q          # expected: 22 passed
+uv run pytest tests/ -q          # expected: full test suite passes (1259+ tests as of v0.7.8)
 uv run ruff check .              # expected: All checks passed!
 ```
 
 Python 3.12+ and [uv](https://docs.astral.sh/uv/) 0.4+ are required.
 
 ## Coding conventions
+
+Evidentia follows established style guides, mechanically enforced in CI:
+
+- **Python**: PEP 8 (style), PEP 257 (docstrings), PEP 484 / PEP 604 (type
+  hints). Enforced by `ruff` (rule groups E/W/F/I/B/UP/RUF/SIM) + `mypy
+  --strict` with the Pydantic plugin. Configuration: [`pyproject.toml`](pyproject.toml).
+- **TypeScript** (`packages/evidentia-ui/`): ESLint with the
+  `@typescript-eslint/recommended` ruleset + Prettier formatting.
+  Configuration: `packages/evidentia-ui/eslint.config.js`.
+- **Pre-commit hooks** ([`.pre-commit-config.yaml`](.pre-commit-config.yaml))
+  catch most issues before commit-time. Install with `pre-commit install`.
+
+Beyond the style guides:
 
 - **Python 3.12 syntax.** Use `str | None` not `Optional[str]`,
   `list[str]` not `List[str]`, `from datetime import UTC` not
