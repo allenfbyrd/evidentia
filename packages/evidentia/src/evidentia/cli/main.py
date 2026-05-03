@@ -392,6 +392,20 @@ def serve(
         "--reload",
         help="Enable uvicorn --reload for backend development.",
     ),
+    security_headers: bool | None = typer.Option(
+        None,
+        "--security-headers/--no-security-headers",
+        help=(
+            "Inject defense-in-depth response headers (CSP, X-Frame-Options, "
+            "X-Content-Type-Options, Referrer-Policy, Strict-Transport-Security, "
+            "Permissions-Policy) on every response. Default: auto — enabled "
+            "when --host is non-loopback (operator opted into network "
+            "exposure); disabled for localhost-bound dev binds. Pass "
+            "--security-headers to force ON; --no-security-headers to force "
+            "OFF (e.g., when a TLS-terminating reverse proxy already injects "
+            "these headers and you don't want duplicates)."
+        ),
+    ),
 ) -> None:
     """Start the Evidentia web UI (REST API + React SPA).
 
@@ -423,6 +437,7 @@ def serve(
         dev=dev,
         open_browser=not no_browser,
         reload=reload,
+        security_headers=security_headers,
     )
     if exit_code != 0:
         raise typer.Exit(code=exit_code)

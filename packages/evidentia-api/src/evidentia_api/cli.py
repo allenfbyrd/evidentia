@@ -32,12 +32,19 @@ def serve(
     dev: bool = False,
     open_browser: bool = True,
     reload: bool = False,
+    security_headers: bool | None = None,
 ) -> int:
     """Spawn uvicorn serving the Evidentia API + web UI.
 
     Returns the child process exit code. Errors raised before spawn (e.g.
     missing uvicorn install) surface as ``ImportError`` for the caller to
     translate into a friendly message.
+
+    The ``security_headers`` argument controls whether the FastAPI
+    application attaches :class:`SecurityHeadersMiddleware` (v0.7.9
+    F-V08-DAST-2 carry-over). ``None`` (default) auto-detects from
+    the bind host: enabled when binding to non-loopback, disabled
+    when binding to loopback. Pass ``True`` / ``False`` to override.
     """
     # Verify uvicorn is importable before spawning — otherwise the
     # subprocess error message is opaque on Windows.
@@ -60,14 +67,30 @@ def serve(
             host,
         )
 
-    # Environment plumbing: offline flag + dev mode are read by
-    # evidentia_api.app.create_app via module-level env vars so they
-    # survive the subprocess boundary.
+    # Auto-detect security_headers when not explicitly set: on for
+    # non-loopback binds, off for loopback. Operator can override with
+    # `--security-headers` / `--no-security-headers`.
+    if security_headers is None:
+        from evidentia_api.security_headers import should_enable_for_host
+
+        security_headers = should_enable_for_host(host)
+        if security_headers:
+            logger.info(
+                "SECURITY: non-loopback bind detected; "
+                "auto-enabling defense-in-depth security headers "
+                "(--no-security-headers to suppress)."
+            )
+
+    # Environment plumbing: offline flag + dev mode + security-headers
+    # flag are read by evidentia_api.app.create_app via module-level
+    # env vars so they survive the subprocess boundary.
     env = os.environ.copy()
     if offline:
         env["EVIDENTIA_API_OFFLINE"] = "1"
     if dev:
         env["EVIDENTIA_API_DEV"] = "1"
+    if security_headers:
+        env["EVIDENTIA_API_SECURITY_HEADERS"] = "1"
 
     cmd = [
         sys.executable,

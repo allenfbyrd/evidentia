@@ -48,6 +48,7 @@ def create_app(
     offline: bool = False,
     dev_mode: bool = False,
     cors_origins: list[str] | None = None,
+    security_headers: bool | None = None,
 ) -> FastAPI:
     """Build and return a FastAPI application.
 
@@ -61,11 +62,25 @@ def create_app(
         (http://127.0.0.1:5173) without a proxy.
     cors_origins
         Explicit allow-list override. Default: restrictive localhost-only.
+    security_headers
+        When True, attach :class:`SecurityHeadersMiddleware` so every
+        response carries CSP / X-Frame-Options / X-Content-Type-Options
+        / Referrer-Policy / Strict-Transport-Security / Permissions-
+        Policy headers. When None (default), reads the
+        ``EVIDENTIA_API_SECURITY_HEADERS`` env var (``"1"`` → on; any
+        other value → off). The CLI ``evidentia serve`` flag wires the
+        env var on the operator's behalf with auto-detection per
+        bind-host. Closes v0.7.8 F-V08-DAST-2 LOW finding (CWE-693).
     """
     if offline:
         from evidentia_core.network_guard import set_offline
 
         set_offline(True)
+
+    if security_headers is None:
+        security_headers = (
+            os.environ.get("EVIDENTIA_API_SECURITY_HEADERS") == "1"
+        )
 
     app = FastAPI(
         title="Evidentia API",
@@ -100,9 +115,18 @@ def create_app(
         allow_headers=["*"],
     )
 
+    # Defense-in-depth security headers (v0.7.9 F-V08-DAST-2 carry-over).
+    # Off by default; on when host is non-loopback or when explicitly
+    # enabled via --security-headers / EVIDENTIA_API_SECURITY_HEADERS=1.
+    if security_headers:
+        from evidentia_api.security_headers import SecurityHeadersMiddleware
+
+        app.add_middleware(SecurityHeadersMiddleware)
+
     # Attach flags to app state so every router dep can consult them.
     app.state.offline = offline
     app.state.dev_mode = dev_mode
+    app.state.security_headers = security_headers
 
     # Register routers. Each router is a focused module — see routers/*.py.
     # Imports are deferred so module-load errors in one router don't take

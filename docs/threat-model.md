@@ -242,9 +242,43 @@ These categories are **not** addressed by this threat model:
 
 ---
 
+## v0.7.9 attack-surface delta (in flight)
+
+The v0.7.9 P0.1 first-slice (shipped 2026-05-03 to `origin/main`;
+no tag yet) added the TPRM vendor inventory module: 4 new REST
+endpoints under `/api/tprm/vendors` (CRUD + cadence preview),
+5 new CLI verbs (`evidentia tprm vendor add/list/show/edit/
+delete`), and JSON-file persistence under user-dir. Surfaces
+inherit the same `validate_within` + UUID-shape-validation
+defenses as `gap_store`; manual `HTTPException` calls preserve
+the v0.7.8 F-V08-DAST-3 invariant (400 not 422 for runtime
+body-content errors). REST `create_vendor`/`replace_vendor`
+operate on `model_copy(update=...)` of the request DTO rather
+than mutating it directly (closes Continuous-review H-3).
+`save_vendor` now writes atomically via tmp-file + `os.replace`
+(closes Continuous-review M-1). `EvidenceRef` enforces its
+two-mode contract (artifact_id OR file_path+sha256) via
+`@model_validator` (closes Continuous-review H-1).
+
+A defense-in-depth response-headers middleware
+(`evidentia_api.security_headers.SecurityHeadersMiddleware`)
+landed in this same cycle, closing the v0.7.8 Step 5.A
+deferred F-V08-DAST-2 LOW finding (CWE-693). When enabled, every
+response carries Content-Security-Policy (locks loads to
+same-origin; `frame-ancestors 'none'`), X-Frame-Options DENY,
+X-Content-Type-Options nosniff, Referrer-Policy
+strict-origin-when-cross-origin, Strict-Transport-Security one
+year + subdomains, and Permissions-Policy denying
+camera/microphone/geolocation/payment/USB/FLoC. The new
+`--security-headers / --no-security-headers` flag on `evidentia
+serve` defaults to auto — ON for non-loopback binds, OFF for
+localhost. Operators behind a TLS-terminating reverse proxy that
+already injects these headers can suppress duplicates via
+`--no-security-headers`.
+
 ## Hardening backlog
 
-### v0.7.7 (in motion)
+### v0.7.7 (shipped)
 
 - **CF3** — CodeQL custom sanitizer pack: contribute a `.qll`
   declaring `validate_within` as a `BarrierGuard` to close the
@@ -254,6 +288,23 @@ These categories are **not** addressed by this threat model:
 - **C1 partial** — character-set regex allowlist for `COLLECTOR_*`
   env vars (optional; depends on cycle headroom alongside the
   5 SQL adapters).
+
+### v0.7.9 (in motion)
+
+- **F-V08-DAST-2** — defense-in-depth response headers via
+  `SecurityHeadersMiddleware`. ✅ (this doc + CHANGELOG entry).
+- **TPRM data-layer hardening** — atomic write semantics in
+  `vendor_store.save_vendor`; UUID-shape ID validation +
+  `validate_within` belt-and-suspenders; FastAPI `model_copy`
+  semantic in REST handlers; `@model_validator` enforcement on
+  `EvidenceRef` two-mode reference contract. ✅ (P0.1 first
+  slice + Continuous-review fixes).
+- **F-V08-CR-MEDIUM Snowflake quoted-identifier hardening** —
+  carry-over from v0.7.8 deferred list; theoretical
+  (Snowflake doesn't allow `"` in db names by convention) but
+  defensive. Lands alongside any P1 Snowflake catalog work.
+- **F-V08-CR-MEDIUM Power BI 1MB-per-batch byte guard** —
+  carry-over from v0.7.8 deferred list. Lands during P3 docs.
 
 ### v0.8.0 (queued)
 

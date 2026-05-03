@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Defense-in-depth security headers** on the FastAPI server via
+  the new `SecurityHeadersMiddleware`
+  (`evidentia_api.security_headers`). When enabled, every response
+  carries `Content-Security-Policy` (locks resource loads to same-
+  origin; `frame-ancestors 'none'`), `X-Frame-Options: DENY`,
+  `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`,
+  `Strict-Transport-Security: max-age=31536000; includeSubDomains`,
+  and `Permissions-Policy` denying camera / microphone /
+  geolocation / payment / USB / FLoC. New `--security-headers /
+  --no-security-headers` flag on `evidentia serve`; default is
+  auto — ON when binding to non-loopback (operator opted into
+  network exposure), OFF when binding to `127.0.0.1` /
+  `localhost` / `::1` (dev-loop parity). Operators behind a
+  TLS-terminating reverse proxy that already injects these
+  headers can pass `--no-security-headers` to suppress
+  duplicates. Closes v0.7.8 Step 5.A deferred F-V08-DAST-2 LOW
+  finding (CWE-693 Protection Mechanism Failure).
+
 Foundation for the v0.7.9 industry-overlay release. The first
 slice of `evidentia tprm` lands the data + storage + CLI + REST
 primitives that subsequent v0.7.9 sub-slices (DD-questionnaire
