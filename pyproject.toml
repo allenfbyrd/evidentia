@@ -42,7 +42,7 @@ dev = [
     # [aws] extra); having it in dev deps means collector tests run
     # without an extra install step.
     "boto3>=1.43.2",
-    "moto[all]>=5.0",
+    "moto[all]>=5.2.0",
     # v0.7.0: BLOCKER B7 (docs/enterprise-grade.md). Validates that our
     # OSCAL Assessment Results output round-trips through the NIST
     # OSCAL-Compass reference impl. Trestle is on pydantic.v1 internally

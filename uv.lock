@@ -1055,7 +1055,7 @@ dev = [
 dev = [
     { name = "boto3", specifier = ">=1.43.2" },
     { name = "compliance-trestle", specifier = ">=4.0,<5.0" },
-    { name = "moto", extras = ["all"], specifier = ">=5.0" },
+    { name = "moto", extras = ["all"], specifier = ">=5.2.0" },
     { name = "mypy", specifier = ">=1.20.2" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pytest", specifier = ">=8.3" },
@@ -1877,22 +1877,20 @@ wheels = [
 
 [[package]]
 name = "moto"
-version = "5.1.18"
+version = "5.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boto3" },
     { name = "botocore" },
     { name = "cryptography" },
-    { name = "jinja2" },
-    { name = "python-dateutil" },
     { name = "requests" },
     { name = "responses" },
     { name = "werkzeug" },
     { name = "xmltodict" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e3/6a/a73bef67261bfab55714390f07c7df97531d00cea730b7c0ace4d0ad7669/moto-5.1.18.tar.gz", hash = "sha256:45298ef7b88561b839f6fe3e9da2a6e2ecd10283c7bf3daf43a07a97465885f9", size = 8271655, upload-time = "2025-11-30T22:03:59.58Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a1/25/6aab597cc8ad992b6052e544130e8065d9639825b5a78728573b4f408750/moto-5.2.0.tar.gz", hash = "sha256:be592dd93cc016a94afe2e2cae5de59c2df1cdd9d017c497d9a81e507ebe7fc8", size = 8632930, upload-time = "2026-05-02T09:32:09.945Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/d4/6991df072b34741a0c115e8d21dc2fe142e4b497319d762e957f6677f001/moto-5.1.18-py3-none-any.whl", hash = "sha256:b65aa8fc9032c5c574415451e14fd7da4e43fd50b8bdcb5f10289ad382c25bcf", size = 6357278, upload-time = "2025-11-30T22:03:56.831Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/6b/613c9d9ee4ea7ee2d03199ee45b235326043e94d2149126a6951b5037846/moto-5.2.0-py3-none-any.whl", hash = "sha256:d728d5c9c431e0f1043d907bebd663b09a9105c62380991068598a3799373a85", size = 6671253, upload-time = "2026-05-02T09:32:06.312Z" },
 ]
 
 [package.optional-dependencies]
