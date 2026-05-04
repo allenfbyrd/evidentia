@@ -1,0 +1,176 @@
+{
+  "framework_id": "ffiec-management",
+  "framework_name": "FFIEC IT Examination Handbook — Management booklet",
+  "version": "November 2015",
+  "source": "https://ithandbook.ffiec.gov/it-booklets/management.aspx",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "1. IT Governance",
+    "2. Strategic Planning",
+    "3. Organization + Staffing",
+    "4. Project + Change Management",
+    "5. Risk Management Integration",
+    "6. Performance + Capacity Management",
+    "7. Audit + Independent Review"
+  ],
+  "controls": [
+    {
+      "id": "1.1",
+      "title": "Board Oversight of IT",
+      "description": "The board (or designated committee) understands the institution's IT environment + provides documented oversight of IT strategy, risk, + investment decisions.",
+      "family": "1. IT Governance"
+    },
+    {
+      "id": "1.2",
+      "title": "IT Strategic Plan",
+      "description": "An IT strategic plan aligned with the institution's business strategy is documented, board-approved, + refreshed at least every 3 years.",
+      "family": "1. IT Governance"
+    },
+    {
+      "id": "1.3",
+      "title": "IT Steering / Governance Committee",
+      "description": "An IT steering committee (or equivalent) provides ongoing tactical governance: project prioritization, resource allocation, + risk-acceptance decisions.",
+      "family": "1. IT Governance"
+    },
+    {
+      "id": "1.4",
+      "title": "IT Policies + Standards Framework",
+      "description": "Documented IT policies + standards cover information security, change management, BC/DR, vendor management, + acceptable use, with annual or change-driven review.",
+      "family": "1. IT Governance"
+    },
+    {
+      "id": "2.1",
+      "title": "IT Investment Prioritization",
+      "description": "IT investments are prioritized via a documented process considering: business value, regulatory requirement, risk reduction, + technical-debt burden.",
+      "family": "2. Strategic Planning"
+    },
+    {
+      "id": "2.2",
+      "title": "Technology Roadmap",
+      "description": "A documented technology roadmap shows in-flight + planned initiatives across a 1-3 year horizon, refreshed at least annually.",
+      "family": "2. Strategic Planning"
+    },
+    {
+      "id": "2.3",
+      "title": "Innovation + Emerging-Tech Posture",
+      "description": "The institution maintains a documented posture on emerging technologies (AI / ML / cloud / blockchain) including evaluation criteria + risk-tolerance thresholds.",
+      "family": "2. Strategic Planning"
+    },
+    {
+      "id": "3.1",
+      "title": "IT Organizational Structure",
+      "description": "IT roles + reporting relationships are documented with clear segregation of duties between development, operations, + security functions.",
+      "family": "3. Organization + Staffing"
+    },
+    {
+      "id": "3.2",
+      "title": "Information Security Officer Independence",
+      "description": "The CISO / Information Security Officer reports independently of IT operations management to ensure objective security posture decisions.",
+      "family": "3. Organization + Staffing"
+    },
+    {
+      "id": "3.3",
+      "title": "Staffing Levels + Skill Coverage",
+      "description": "IT staffing levels are sized to support the institution's operations + risk profile; key-person dependencies are documented + mitigated.",
+      "family": "3. Organization + Staffing"
+    },
+    {
+      "id": "3.4",
+      "title": "Background Screening for IT Personnel",
+      "description": "IT personnel + privileged-access role holders undergo documented pre-employment background screening + periodic re-screening for sensitive roles.",
+      "family": "3. Organization + Staffing"
+    },
+    {
+      "id": "3.5",
+      "title": "Training + Awareness Program",
+      "description": "All staff receive at-least-annual security awareness training; IT + IS staff receive role-appropriate technical training.",
+      "family": "3. Organization + Staffing"
+    },
+    {
+      "id": "4.1",
+      "title": "Project Management Methodology",
+      "description": "Material IT projects follow a documented project-management methodology with defined gates: initiation, design, build, test, deploy, post-implementation review.",
+      "family": "4. Project + Change Management"
+    },
+    {
+      "id": "4.2",
+      "title": "Project Risk Assessment",
+      "description": "Each material project receives a documented risk assessment covering business, operational, + security dimensions.",
+      "family": "4. Project + Change Management"
+    },
+    {
+      "id": "4.3",
+      "title": "Change Management Process",
+      "description": "Production changes follow a documented change-management process: request, risk-assessed approval, scheduled deployment, post-implementation review.",
+      "family": "4. Project + Change Management"
+    },
+    {
+      "id": "4.4",
+      "title": "Emergency Change Procedures",
+      "description": "Emergency change procedures (out-of-band production changes) are documented with retrospective approval + post-implementation review requirements.",
+      "family": "4. Project + Change Management"
+    },
+    {
+      "id": "4.5",
+      "title": "Configuration Management",
+      "description": "Production system configurations are documented + maintained in a configuration management database (CMDB) or equivalent.",
+      "family": "4. Project + Change Management"
+    },
+    {
+      "id": "5.1",
+      "title": "Enterprise Risk Management Integration",
+      "description": "IT risk management integrates with enterprise risk management framework: shared taxonomy, escalation thresholds, reporting cadence.",
+      "family": "5. Risk Management Integration"
+    },
+    {
+      "id": "5.2",
+      "title": "Risk Appetite + Tolerance Statements",
+      "description": "Documented risk appetite + tolerance statements cover IT risk categories: cybersecurity, operational, third-party, model.",
+      "family": "5. Risk Management Integration"
+    },
+    {
+      "id": "5.3",
+      "title": "Risk Acceptance + Exception Process",
+      "description": "Risk acceptance decisions follow a documented process with appropriate approval levels + periodic re-evaluation requirements.",
+      "family": "5. Risk Management Integration"
+    },
+    {
+      "id": "6.1",
+      "title": "Service-Level Management",
+      "description": "IT services have documented service-level objectives + agreements with internal customers + are monitored against them.",
+      "family": "6. Performance + Capacity Management"
+    },
+    {
+      "id": "6.2",
+      "title": "Capacity + Performance Planning",
+      "description": "Documented capacity-planning processes monitor system utilization + forecast capacity needs to avoid degradation.",
+      "family": "6. Performance + Capacity Management"
+    },
+    {
+      "id": "6.3",
+      "title": "Performance Reporting to Management",
+      "description": "IT performance metrics (uptime, MTTR, project delivery, incidents) are reported to management on a documented cadence.",
+      "family": "6. Performance + Capacity Management"
+    },
+    {
+      "id": "7.1",
+      "title": "Coordination with Internal Audit",
+      "description": "IT management coordinates with internal audit to support audit coverage + ensure timely remediation of findings.",
+      "family": "7. Audit + Independent Review"
+    },
+    {
+      "id": "7.2",
+      "title": "Self-Assessment + Continuous-Improvement",
+      "description": "IT functions perform documented self-assessments to identify control gaps + opportunities for process improvement.",
+      "family": "7. Audit + Independent Review"
+    },
+    {
+      "id": "7.3",
+      "title": "Regulatory Examination Readiness",
+      "description": "IT management maintains documentation, control evidence, + personnel availability for regulatory examination on demand.",
+      "family": "7. Audit + Independent Review"
+    }
+  ]
+}

@@ -57,23 +57,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   honors operator overrides via `--next-validation-due`. 23 CLI
   integration tests covering every verb + atomic + YAML +
   validation contract.
-- **FFIEC IT Examination Handbook — Outsourcing Technology
-  Services booklet catalog** (v0.7.10 P1 first slice). New
-  bundled Tier A control catalog covering the 30 examination-
-  guidance items across 7 categories (Roles + Responsibilities,
-  Risk Management, Outsourcing Decision, Vendor Selection,
-  Contract Issues, Ongoing Monitoring, Related Topics) per the
-  FFIEC IT Handbook published at
-  https://ithandbook.ffiec.gov/. Public domain (US federal
-  inter-agency examination guidance per 17 USC §105).
-  Generator script `scripts/catalogs/gen_ffiec.py` documents
-  the authoring path for the remaining 6 P1 catalogs (Information
-  Security / Audit / Management / Operations booklets; OCC
-  Bulletin 2026-13a + FRB SR 26-02 model-risk; FFIEC Cybersecurity
-  Assessment Tool) which will land in subsequent v0.7.10 P1
-  sub-batches. Total bundled catalogs: 82 → 83 (target 89 once
-  the full P1 batch ships). README + status sections refreshed.
-  All 169 catalog tests pass with the new manifest.
+- **Financial-sector overlay catalogs (full P1 batch — 7 new
+  bundled Tier A catalogs)** (v0.7.10 P1). All 7 catalogs that
+  the v0.7.10 plan called for now ship with Evidentia. Total
+  bundled catalogs: 82 → 89 (matches plan target). Tier A: 37 → 44.
+  - **`ffiec-outsourcing`** — FFIEC IT Examination Handbook
+    Outsourcing Technology Services booklet (June 2004 + 2008/
+    2010 supplements; 30 controls, 7 categories).
+  - **`ffiec-audit`** — FFIEC IT Examination Handbook Audit
+    booklet (April 2012; 31 controls, 7 categories).
+  - **`ffiec-management`** — FFIEC IT Examination Handbook
+    Management booklet (November 2015; 25 controls, 7 categories).
+  - **`ffiec-operations`** — FFIEC IT Examination Handbook
+    Operations booklet (July 2004; 27 controls, 8 categories).
+  - **`ffiec-information-security`** — FFIEC IT Examination
+    Handbook Information Security booklet (September 2016; 41
+    controls, 10 categories).
+  - **`ffiec-cat`** — FFIEC Cybersecurity Assessment Tool (2017
+    representative subset; 32 controls, 5 domains spanning
+    Baseline / Evolving / Intermediate / Advanced maturity tiers).
+  - **`occ-sr-26-02`** — OCC Bulletin 2026-13a / FRB SR 26-02
+    Supervisory Guidance on Model Risk Management (April 17, 2026
+    supersession of OCC 2011-12 / SR 11-7; 35 controls, 9
+    categories, includes the explicit GenAI-out-of-scope narrative
+    that motivates Evidentia's GenerationContext + AI-feature-
+    linkage positioning).
+  All catalogs are public domain (US federal inter-agency
+  examination guidance per 17 USC §105). Authoring infrastructure
+  ships under `scripts/catalogs/gen_ffiec.py` + `scripts/catalogs/
+  gen_occ_sr.py`. Tests via `evidentia_core.catalogs.loader`
+  exercise every bundled catalog automatically; 1730 tests pass
+  total.
 - **v0.7.9-deferred-finding closures** (v0.7.10 P3 first batch).
   Closes 4 of the 17 MEDIUM/LOW findings deferred from v0.7.9
   with explicit ship-velocity rationale:

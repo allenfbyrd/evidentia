@@ -1,0 +1,183 @@
+{
+  "framework_id": "ffiec-operations",
+  "framework_name": "FFIEC IT Examination Handbook — Operations booklet",
+  "version": "July 2004",
+  "source": "https://ithandbook.ffiec.gov/it-booklets/operations.aspx",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "1. Operations Governance",
+    "2. Production Processing",
+    "3. Infrastructure Management",
+    "4. Backup + Recovery",
+    "5. Incident + Problem Management",
+    "6. Capacity + Performance Management",
+    "7. Service Continuity",
+    "8. Operations Reporting"
+  ],
+  "controls": [
+    {
+      "id": "1.1",
+      "title": "Operations Function Documentation",
+      "description": "The IT operations function operates under documented procedures covering daily processing, monitoring, + escalation responsibilities.",
+      "family": "1. Operations Governance"
+    },
+    {
+      "id": "1.2",
+      "title": "Operations Run Books",
+      "description": "Critical-system run books document startup, shutdown, recovery, + routine-maintenance procedures with sufficient detail for operations staff to follow without designer involvement.",
+      "family": "1. Operations Governance"
+    },
+    {
+      "id": "1.3",
+      "title": "Shift Handoff + Communication",
+      "description": "Shift transitions follow documented handoff procedures ensuring continuity of issue tracking + situational awareness.",
+      "family": "1. Operations Governance"
+    },
+    {
+      "id": "2.1",
+      "title": "Job Scheduling + Monitoring",
+      "description": "Production batch jobs are scheduled, monitored, + alerted through documented automation; job failures trigger documented escalation paths.",
+      "family": "2. Production Processing"
+    },
+    {
+      "id": "2.2",
+      "title": "Real-Time Transaction Monitoring",
+      "description": "Real-time payment + transaction processing systems have documented monitoring + alerting on volume, latency, + error rates.",
+      "family": "2. Production Processing"
+    },
+    {
+      "id": "2.3",
+      "title": "Batch Cycle Management",
+      "description": "Daily / monthly / quarterly batch cycles have documented schedules + completion criteria; cycle failures escalate to management on documented timelines.",
+      "family": "2. Production Processing"
+    },
+    {
+      "id": "3.1",
+      "title": "Server + Storage Provisioning",
+      "description": "Server + storage capacity is provisioned through a documented process aligned with capacity-planning forecasts.",
+      "family": "3. Infrastructure Management"
+    },
+    {
+      "id": "3.2",
+      "title": "Network Operations + Monitoring",
+      "description": "Network infrastructure is monitored 24x7 with documented performance + availability thresholds + alerting.",
+      "family": "3. Infrastructure Management"
+    },
+    {
+      "id": "3.3",
+      "title": "Data Center Physical Operations",
+      "description": "Data centers (owned or co-located) operate under documented environmental controls (power, cooling, fire, physical access).",
+      "family": "3. Infrastructure Management"
+    },
+    {
+      "id": "3.4",
+      "title": "Cloud Infrastructure Operations",
+      "description": "Cloud-hosted infrastructure operates under shared-responsibility documentation with provider; operations team maintains visibility into provider service-level + incident posture.",
+      "family": "3. Infrastructure Management"
+    },
+    {
+      "id": "4.1",
+      "title": "Backup Schedule + Retention",
+      "description": "Backup schedules + retention periods are documented + aligned with the institution's RPO commitments + retention requirements.",
+      "family": "4. Backup + Recovery"
+    },
+    {
+      "id": "4.2",
+      "title": "Backup Restoration Testing",
+      "description": "Backup restoration is tested on a documented cadence (typically at least annually for critical systems) to confirm restorability.",
+      "family": "4. Backup + Recovery"
+    },
+    {
+      "id": "4.3",
+      "title": "Off-Site Backup Storage",
+      "description": "Backup media (or replication targets) are stored off-site at sufficient geographic distance to survive regional disasters.",
+      "family": "4. Backup + Recovery"
+    },
+    {
+      "id": "4.4",
+      "title": "Backup Encryption + Integrity",
+      "description": "Backups are encrypted at rest + during transmission; integrity-verification (hash check) confirms backup validity before relying on it for recovery.",
+      "family": "4. Backup + Recovery"
+    },
+    {
+      "id": "5.1",
+      "title": "Incident Management Process",
+      "description": "IT incidents are logged, classified, + tracked through a documented incident-management process with defined SLAs by severity.",
+      "family": "5. Incident + Problem Management"
+    },
+    {
+      "id": "5.2",
+      "title": "Major Incident Communication",
+      "description": "Major incidents trigger documented stakeholder communication (business management, customer service, regulators where applicable) on documented timelines.",
+      "family": "5. Incident + Problem Management"
+    },
+    {
+      "id": "5.3",
+      "title": "Problem Management + Root-Cause Analysis",
+      "description": "Recurring incidents trigger problem-management investigations with documented root-cause analysis + permanent-fix tracking.",
+      "family": "5. Incident + Problem Management"
+    },
+    {
+      "id": "5.4",
+      "title": "Post-Incident Review",
+      "description": "Major incidents undergo documented post-incident review covering: timeline, root cause, response effectiveness, + improvement actions.",
+      "family": "5. Incident + Problem Management"
+    },
+    {
+      "id": "6.1",
+      "title": "Capacity Monitoring",
+      "description": "Production system capacity (CPU, memory, storage, network, I/O) is monitored against documented thresholds with alerting on saturation risk.",
+      "family": "6. Capacity + Performance Management"
+    },
+    {
+      "id": "6.2",
+      "title": "Performance Tuning + Optimization",
+      "description": "Performance issues identified through monitoring trigger documented tuning + optimization activities; persistent issues escalate to capacity-planning review.",
+      "family": "6. Capacity + Performance Management"
+    },
+    {
+      "id": "6.3",
+      "title": "Capacity Forecasting",
+      "description": "Capacity forecasting uses historical-trend analysis + planned-growth assumptions to project capacity needs over a documented horizon (typically 12-24 months).",
+      "family": "6. Capacity + Performance Management"
+    },
+    {
+      "id": "7.1",
+      "title": "BC/DR Plan Maintenance",
+      "description": "Business continuity + disaster recovery plans are documented + refreshed on a documented cadence (typically annually) + after material changes.",
+      "family": "7. Service Continuity"
+    },
+    {
+      "id": "7.2",
+      "title": "BC/DR Testing",
+      "description": "BC/DR plans are tested on a documented cadence; test scope + results are documented with identified gaps + remediation tracking.",
+      "family": "7. Service Continuity"
+    },
+    {
+      "id": "7.3",
+      "title": "Recovery Time + Point Objectives",
+      "description": "Documented RTO + RPO commitments per critical system are consistent with backup schedules + recovery infrastructure capability.",
+      "family": "7. Service Continuity"
+    },
+    {
+      "id": "7.4",
+      "title": "Pandemic + Workforce Continuity",
+      "description": "Pandemic / workforce-continuity scenarios (mass remote work, key-person illness) are addressed in BC plans with documented mitigations.",
+      "family": "7. Service Continuity"
+    },
+    {
+      "id": "8.1",
+      "title": "Operations Performance Dashboards",
+      "description": "Operational performance is reported via dashboards covering uptime, incidents, change success rate, capacity utilization.",
+      "family": "8. Operations Reporting"
+    },
+    {
+      "id": "8.2",
+      "title": "Periodic Operations Review with Management",
+      "description": "Operations leadership reviews performance + risk indicators with senior management on a documented cadence.",
+      "family": "8. Operations Reporting"
+    }
+  ]
+}

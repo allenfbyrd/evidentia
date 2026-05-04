@@ -1,0 +1,244 @@
+{
+  "framework_id": "occ-sr-26-02",
+  "framework_name": "OCC Bulletin 2026-13a / FRB SR 26-02 — Supervisory Guidance on Model Risk Management",
+  "version": "April 17, 2026 (supersedes OCC 2011-12 / SR 11-7)",
+  "source": "https://www.federalreserve.gov/supervisionreg/srletters/sr2602.htm (parallel: OCC Bulletin 2026-13a)",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "I. Scope + Definitions",
+    "II. Materiality + Tiering",
+    "III. Conceptual Soundness",
+    "III. Outcomes Analysis",
+    "III. Ongoing Monitoring",
+    "III. Validation",
+    "IV. Vendor Models",
+    "V. Governance",
+    "VI. AI / ML Specific Considerations"
+  ],
+  "controls": [
+    {
+      "id": "I.1",
+      "title": "Model Definition",
+      "description": "Quantitative method, system, or approach that applies statistical, economic, financial, or mathematical theories, techniques, + assumptions to process input data into quantitative estimates. Excludes generative AI + agentic AI per the April 2026 supersession.",
+      "family": "I. Scope + Definitions"
+    },
+    {
+      "id": "I.2",
+      "title": "Model Risk Definition",
+      "description": "Potential for adverse consequences from decisions based on incorrect or misused model outputs + reports — includes fundamental errors, applied outside intended environment, + inappropriate management application.",
+      "family": "I. Scope + Definitions"
+    },
+    {
+      "id": "I.3",
+      "title": "GenAI / Agentic AI Out of Scope",
+      "description": "Generative AI + agentic AI models are explicitly excluded from the SR 26-02 / OCC 2026-13a framework as 'novel + rapidly evolving'; future RFI promised. Operators should apply self-imposed discipline pending regulatory clarification.",
+      "family": "I. Scope + Definitions"
+    },
+    {
+      "id": "II.1",
+      "title": "Materiality Assessment",
+      "description": "Each model's potential impact on the institution is assessed against quantitative + qualitative criteria (size of exposure, decision criticality, regulatory significance).",
+      "family": "II. Materiality + Tiering"
+    },
+    {
+      "id": "II.2",
+      "title": "Tier-Driven Risk Management",
+      "description": "High-materiality models receive enhanced controls; medium + low receive proportionally-reduced controls. Tier classification is documented + refreshed at material model changes.",
+      "family": "II. Materiality + Tiering"
+    },
+    {
+      "id": "II.3",
+      "title": "Aggregate Model Risk View",
+      "description": "Senior management + the board receive periodic aggregate reporting on the model inventory's risk posture.",
+      "family": "II. Materiality + Tiering"
+    },
+    {
+      "id": "III.A.1",
+      "title": "Theory + Design",
+      "description": "Each model's theoretical foundation + design rationale is documented including: business purpose, key assumptions, selection of variables, + alternative-approach consideration.",
+      "family": "III. Conceptual Soundness"
+    },
+    {
+      "id": "III.A.2",
+      "title": "Data Quality + Source Documentation",
+      "description": "Model input data sources are documented; data quality is evaluated for relevance, accuracy, + completeness; data limitations are documented as model assumptions.",
+      "family": "III. Conceptual Soundness"
+    },
+    {
+      "id": "III.A.3",
+      "title": "Implementation Documentation",
+      "description": "Model implementation (code + computational logic) is documented to support reproduction + independent review.",
+      "family": "III. Conceptual Soundness"
+    },
+    {
+      "id": "III.A.4",
+      "title": "Assumptions + Limitations",
+      "description": "Model assumptions + limitations are documented; limitations drive caveats on appropriate model use.",
+      "family": "III. Conceptual Soundness"
+    },
+    {
+      "id": "III.A.5",
+      "title": "Sensitivity + Stress Testing",
+      "description": "Model sensitivity to key inputs + assumptions is documented; stress scenarios test model behavior under extreme conditions.",
+      "family": "III. Conceptual Soundness"
+    },
+    {
+      "id": "III.B.1",
+      "title": "Outcomes Analysis (Backtesting)",
+      "description": "Documented backtesting compares model predictions to realized outcomes; persistent drift triggers model recalibration or retirement.",
+      "family": "III. Outcomes Analysis"
+    },
+    {
+      "id": "III.B.2",
+      "title": "Benchmarking",
+      "description": "Where feasible, model outputs are benchmarked against alternative models or industry standards.",
+      "family": "III. Outcomes Analysis"
+    },
+    {
+      "id": "III.B.3",
+      "title": "Override + Adjustment Tracking",
+      "description": "Manual overrides + adjustments to model output are tracked + reviewed; persistent overrides indicate model deficiency.",
+      "family": "III. Outcomes Analysis"
+    },
+    {
+      "id": "III.C.1",
+      "title": "Ongoing Performance Monitoring",
+      "description": "Documented monitoring tracks model performance metrics on a model-appropriate cadence (continuous, daily, monthly, etc.).",
+      "family": "III. Ongoing Monitoring"
+    },
+    {
+      "id": "III.C.2",
+      "title": "Model Retirement Planning",
+      "description": "Each material model has a documented retirement / replacement plan or rationale for indefinite use.",
+      "family": "III. Ongoing Monitoring"
+    },
+    {
+      "id": "III.C.3",
+      "title": "Process + Change Controls",
+      "description": "Material model changes (re-calibration, re-training, scope change) follow documented change-management process with appropriate approval levels.",
+      "family": "III. Ongoing Monitoring"
+    },
+    {
+      "id": "III.D.1",
+      "title": "Validation Independence",
+      "description": "Validation is performed by parties independent of model development. For Tier-1 models, validation independence extends to organizational independence (separate reporting line).",
+      "family": "III. Validation"
+    },
+    {
+      "id": "III.D.2",
+      "title": "Validation Cadence",
+      "description": "Tier-driven validation cadence: Tier 1 typically annual; Tier 2 biennial; Tier 3 triennial. Material model changes trigger out-of-cycle validation.",
+      "family": "III. Validation"
+    },
+    {
+      "id": "III.D.3",
+      "title": "Validation Scope",
+      "description": "Validation covers conceptual soundness, ongoing monitoring, + outcomes analysis dimensions per SR 26-02 §III.D.",
+      "family": "III. Validation"
+    },
+    {
+      "id": "III.D.4",
+      "title": "Validation Findings + Disposition",
+      "description": "Validation findings are classified by severity + tracked to disposition (remediated, accepted, deferred) with documented rationale.",
+      "family": "III. Validation"
+    },
+    {
+      "id": "III.D.5",
+      "title": "HIGH Findings Block Production Use",
+      "description": "HIGH-severity validation findings block the model from production use until remediated, unless senior-management risk-acceptance with documented compensating controls.",
+      "family": "III. Validation"
+    },
+    {
+      "id": "III.D.6",
+      "title": "Effective Challenge",
+      "description": "Validators must apply effective challenge — substantive questioning of model assumptions, methodology, results — documented in validation reports.",
+      "family": "III. Validation"
+    },
+    {
+      "id": "IV.1",
+      "title": "Vendor Model Inventory",
+      "description": "Vendor-supplied models are inventoried with explicit cross-reference to the institution's TPRM vendor record.",
+      "family": "IV. Vendor Models"
+    },
+    {
+      "id": "IV.2",
+      "title": "Vendor Model Documentation Sufficiency",
+      "description": "Vendor-provided model documentation is reviewed for SR-26-02 sufficiency; gaps are addressed via institution-side supplemental documentation.",
+      "family": "IV. Vendor Models"
+    },
+    {
+      "id": "IV.3",
+      "title": "Vendor Model Validation Approach",
+      "description": "Vendor models are validated using the same standards as internal models; validators may use vendor-provided validation evidence + supplement with institution-side testing.",
+      "family": "IV. Vendor Models"
+    },
+    {
+      "id": "IV.4",
+      "title": "Vendor Model Change Notification",
+      "description": "Vendor contracts require notification of material model changes (algorithm change, retraining, scope expansion).",
+      "family": "IV. Vendor Models"
+    },
+    {
+      "id": "V.1",
+      "title": "Board + Senior Management Oversight",
+      "description": "The board (or designated committee) is responsible for establishing risk-management framework + receives periodic model risk posture reporting.",
+      "family": "V. Governance"
+    },
+    {
+      "id": "V.2",
+      "title": "Model Risk Management Policy",
+      "description": "Documented model-risk-management policy covers: scope, roles + responsibilities, materiality framework, validation requirements, issue management, + reporting.",
+      "family": "V. Governance"
+    },
+    {
+      "id": "V.3",
+      "title": "Roles + Responsibilities",
+      "description": "Clear roles for: model owner (1st line), model validator (2nd line), internal audit (3rd line) per Three Lines of Defense.",
+      "family": "V. Governance"
+    },
+    {
+      "id": "V.4",
+      "title": "Issue + Limitation Tracking System",
+      "description": "Validation findings, model limitations, + remediation status are tracked centrally + reported to appropriate management levels.",
+      "family": "V. Governance"
+    },
+    {
+      "id": "V.5",
+      "title": "Model Risk Reporting",
+      "description": "Aggregate model-risk reporting to board / committee covers: inventory size + tier distribution, validation status, open findings by severity, recent material model changes.",
+      "family": "V. Governance"
+    },
+    {
+      "id": "V.6",
+      "title": "Internal Audit Coverage",
+      "description": "Internal audit covers the model-risk-management framework + individual high-tier model validations as part of its risk-based plan.",
+      "family": "V. Governance"
+    },
+    {
+      "id": "VI.1",
+      "title": "ML Model Drift Monitoring",
+      "description": "ML models receive enhanced ongoing-monitoring for distributional drift in inputs + outputs; drift thresholds trigger re-validation.",
+      "family": "VI. AI / ML Specific Considerations"
+    },
+    {
+      "id": "VI.2",
+      "title": "ML Fairness + Bias Assessment",
+      "description": "ML models used in consumer-impact decisions undergo documented fairness + bias assessment; protected-class disparate-impact analysis where applicable.",
+      "family": "VI. AI / ML Specific Considerations"
+    },
+    {
+      "id": "VI.3",
+      "title": "ML Explainability",
+      "description": "ML model decisions are explainable to a degree appropriate to the use case; high-stakes decisions require feature-attribution or counterfactual explanation capability.",
+      "family": "VI. AI / ML Specific Considerations"
+    },
+    {
+      "id": "VI.4",
+      "title": "GenAI / LLM Self-Imposed Discipline",
+      "description": "Generative AI + agentic AI deployments — outside SR 26-02 scope — operate under documented self-imposed discipline: model inventory entries, prompt-hash provenance, run-id audit correlation, validation + effective-challenge regardless of regulatory mandate. See Evidentia's GenerationContext + RiskStatement.model_inventory_ref features.",
+      "family": "VI. AI / ML Specific Considerations"
+    }
+  ]
+}

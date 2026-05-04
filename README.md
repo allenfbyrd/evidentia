@@ -38,13 +38,16 @@ It's the only OSS tool today that combines **all** of the following in one packa
   released wheel + sdist, and a CycloneDX SBOM attached to every GitHub
   Release. **No other OSS GRC tool puts cryptographic provenance on the
   evidence itself.**
-- **83 framework catalogs bundled** — NIST 800-53 Rev 5 (full 1,196
+- **89 framework catalogs bundled** — NIST 800-53 Rev 5 (full 1,196
   controls + Low/Moderate/High/Privacy baselines), CSF 2.0, FedRAMP,
   CMMC 2.0, EU AI Act, DORA, NIS2, GDPR, all 15 comprehensive US state
-  privacy laws, FFIEC IT Examination Handbook (Outsourcing booklet),
-  plus 20 Tier-C licensed-stub frameworks with
-  `evidentia catalog import` for your licensed copies. More than any
-  commercial vendor (Vanta: 35+, Drata: 20+, RegScale: 60+).
+  privacy laws, the full FFIEC IT Examination Handbook stack (5
+  booklets: Information Security / Audit / Management / Operations
+  / Outsourcing), FFIEC Cybersecurity Assessment Tool, OCC Bulletin
+  2026-13a / FRB SR 26-02 (Model Risk Management), plus 20 Tier-C
+  licensed-stub frameworks with `evidentia catalog import` for your
+  licensed copies. More than any commercial vendor (Vanta: 35+,
+  Drata: 20+, RegScale: 60+).
 - **Apache 2.0 license** — embeddable in commercial products without
   AGPL friction. The OSS GRC alternatives (CISO Assistant, Eramba,
   Comp AI) are AGPL with paid commercial tiers.
@@ -141,7 +144,7 @@ Evidentia is built on four principles:
 
 ---
 
-## Current status: 83 frameworks bundled, full suite passing
+## Current status: 89 frameworks bundled, full suite passing
 
 ### Recent releases
 

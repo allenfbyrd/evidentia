@@ -1,0 +1,212 @@
+{
+  "framework_id": "ffiec-audit",
+  "framework_name": "FFIEC IT Examination Handbook — Audit booklet",
+  "version": "April 2012",
+  "source": "https://ithandbook.ffiec.gov/it-booklets/audit.aspx",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "1. Audit Function and Independence",
+    "2. IT Audit Planning",
+    "3. Audit Execution",
+    "4. Audit Reporting",
+    "5. Issue Tracking + Follow-Up",
+    "6. Specialized Audit Topics",
+    "7. Audit Function Maturity"
+  ],
+  "controls": [
+    {
+      "id": "1.1",
+      "title": "Audit Charter and Independence",
+      "description": "The internal audit function operates under a board-approved charter establishing organizational independence + reporting to the board / audit committee.",
+      "family": "1. Audit Function and Independence"
+    },
+    {
+      "id": "1.2",
+      "title": "Audit Committee Oversight",
+      "description": "The audit committee (or equivalent) approves the audit plan, reviews findings, and oversees remediation of identified issues.",
+      "family": "1. Audit Function and Independence"
+    },
+    {
+      "id": "1.3",
+      "title": "Auditor Qualifications + Continuing Education",
+      "description": "Audit staff possess appropriate IT + financial-services qualifications + complete annual continuing education to maintain competency.",
+      "family": "1. Audit Function and Independence"
+    },
+    {
+      "id": "1.4",
+      "title": "External Audit Coordination",
+      "description": "Internal audit coordinates with external auditors + regulatory examiners to avoid duplication + maximize coverage efficiency.",
+      "family": "1. Audit Function and Independence"
+    },
+    {
+      "id": "2.1",
+      "title": "Risk-Based Audit Planning",
+      "description": "The audit plan is built on a risk assessment covering all significant IT processes + systems, prioritized by business criticality + risk magnitude.",
+      "family": "2. IT Audit Planning"
+    },
+    {
+      "id": "2.2",
+      "title": "Annual Audit Plan Coverage",
+      "description": "The annual audit plan covers IT governance, infrastructure, applications, information security, business continuity, third-party relationships, + IT operations on a documented cadence.",
+      "family": "2. IT Audit Planning"
+    },
+    {
+      "id": "2.3",
+      "title": "Audit Universe Maintenance",
+      "description": "The audit universe (the population of auditable units) is documented + refreshed at least annually to reflect new systems, processes, + third-party relationships.",
+      "family": "2. IT Audit Planning"
+    },
+    {
+      "id": "2.4",
+      "title": "Resource Allocation + Budget",
+      "description": "Audit resources (headcount, budget, tooling) are sized to deliver the approved audit plan within the planned cycle.",
+      "family": "2. IT Audit Planning"
+    },
+    {
+      "id": "2.5",
+      "title": "Multi-Year Coverage Strategy",
+      "description": "High-risk areas receive at-least-annual coverage; medium-risk every 2-3 years; low-risk on a longer cycle. Coverage gaps are documented with rationale.",
+      "family": "2. IT Audit Planning"
+    },
+    {
+      "id": "3.1",
+      "title": "Audit Programs + Procedures",
+      "description": "Engagement-specific audit programs document scope, objectives, test procedures, + sample-selection methodology.",
+      "family": "3. Audit Execution"
+    },
+    {
+      "id": "3.2",
+      "title": "Workpaper Documentation",
+      "description": "Audit workpapers document the procedures performed, evidence obtained, + conclusions reached, with sufficient detail for an independent reviewer to replicate the work.",
+      "family": "3. Audit Execution"
+    },
+    {
+      "id": "3.3",
+      "title": "Use of CAATs (Computer-Assisted Audit Techniques)",
+      "description": "Auditors use data-analytic + sampling tooling to test transaction-level controls + identify anomalies at scale.",
+      "family": "3. Audit Execution"
+    },
+    {
+      "id": "3.4",
+      "title": "Quality-Assurance + Peer Review",
+      "description": "Audit work undergoes documented supervisory + peer review before issuance of the final report.",
+      "family": "3. Audit Execution"
+    },
+    {
+      "id": "3.5",
+      "title": "Audit Sampling Methodology",
+      "description": "Statistical or judgmental sampling methods are documented + applied consistently; sample sizes are justified relative to control population + assurance objective.",
+      "family": "3. Audit Execution"
+    },
+    {
+      "id": "4.1",
+      "title": "Findings Classification + Severity",
+      "description": "Audit findings are classified by severity (high / moderate / low) using documented criteria + reported to appropriate management levels.",
+      "family": "4. Audit Reporting"
+    },
+    {
+      "id": "4.2",
+      "title": "Management Response + Remediation Commitments",
+      "description": "Each finding receives a documented management response with remediation owner, target date, + commitment to closure.",
+      "family": "4. Audit Reporting"
+    },
+    {
+      "id": "4.3",
+      "title": "Audit Report Distribution",
+      "description": "Audit reports are distributed to appropriate levels: high-severity findings to the audit committee + senior management; lower findings to relevant operating management.",
+      "family": "4. Audit Reporting"
+    },
+    {
+      "id": "4.4",
+      "title": "Trend Analysis + Periodic Reporting",
+      "description": "Aggregate audit results + trends are reported to the audit committee on at least an annual basis.",
+      "family": "4. Audit Reporting"
+    },
+    {
+      "id": "5.1",
+      "title": "Issue Management System",
+      "description": "All audit findings are tracked in a documented system showing status, target date, owner, + evidence of closure.",
+      "family": "5. Issue Tracking + Follow-Up"
+    },
+    {
+      "id": "5.2",
+      "title": "Validation of Remediation",
+      "description": "Audit independently validates that management's remediation actions effectively address the underlying control gap before closing the finding.",
+      "family": "5. Issue Tracking + Follow-Up"
+    },
+    {
+      "id": "5.3",
+      "title": "Aging + Escalation",
+      "description": "Past-due findings escalate through documented thresholds; findings that age substantially past target receive board / audit committee attention.",
+      "family": "5. Issue Tracking + Follow-Up"
+    },
+    {
+      "id": "5.4",
+      "title": "Repeat Findings Analysis",
+      "description": "Repeat findings (same control gap re-emerging) are tracked + analyzed for systemic root cause; chronic repeats trigger management-level remediation.",
+      "family": "5. Issue Tracking + Follow-Up"
+    },
+    {
+      "id": "6.1",
+      "title": "Information Security Audit",
+      "description": "IS audits cover access control, encryption, vulnerability + patch management, incident response, + security monitoring controls.",
+      "family": "6. Specialized Audit Topics"
+    },
+    {
+      "id": "6.2",
+      "title": "Business Continuity + DR Audit",
+      "description": "BC/DR audits cover plan documentation, BIA accuracy, recovery testing, + alignment with the institution's RTO + RPO commitments.",
+      "family": "6. Specialized Audit Topics"
+    },
+    {
+      "id": "6.3",
+      "title": "Third-Party / Vendor Audit",
+      "description": "Critical vendors receive periodic audit coverage via on-site visits, SOC report review, or right-to-audit exercises.",
+      "family": "6. Specialized Audit Topics"
+    },
+    {
+      "id": "6.4",
+      "title": "IT Project Audit",
+      "description": "Material IT projects (e.g., core-banking conversions, M&A system integrations) receive audit coverage at key project milestones.",
+      "family": "6. Specialized Audit Topics"
+    },
+    {
+      "id": "6.5",
+      "title": "Cloud + SaaS Audit",
+      "description": "Cloud + SaaS arrangements are audited for shared-responsibility model clarity, vendor SOC report sufficiency, + data-residency compliance.",
+      "family": "6. Specialized Audit Topics"
+    },
+    {
+      "id": "6.6",
+      "title": "Application + Change Management Audit",
+      "description": "Application development + change management processes are audited for SDLC adherence, segregation-of-duties, + production-change controls.",
+      "family": "6. Specialized Audit Topics"
+    },
+    {
+      "id": "6.7",
+      "title": "Data Governance + Privacy Audit",
+      "description": "Data governance (classification, retention, access) + privacy (GLBA, state laws) processes receive audit coverage on a documented cadence.",
+      "family": "6. Specialized Audit Topics"
+    },
+    {
+      "id": "7.1",
+      "title": "Use of Continuous Auditing Techniques",
+      "description": "Where appropriate, the audit function deploys continuous-auditing tooling to detect control failures in near-real-time rather than periodic-only review.",
+      "family": "7. Audit Function Maturity"
+    },
+    {
+      "id": "7.2",
+      "title": "Audit Skill + Tooling Investment",
+      "description": "The audit function invests in skills (cloud / cyber / data analytics) + tooling (CAATs, GRC platforms) to keep pace with the institution's technology + risk profile.",
+      "family": "7. Audit Function Maturity"
+    },
+    {
+      "id": "7.3",
+      "title": "External Quality Assessment",
+      "description": "The audit function obtains an external quality assessment (typically every 5 years per IIA standards) confirming conformance with applicable professional standards.",
+      "family": "7. Audit Function Maturity"
+    }
+  ]
+}

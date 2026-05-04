@@ -1,0 +1,281 @@
+{
+  "framework_id": "ffiec-information-security",
+  "framework_name": "FFIEC IT Examination Handbook — Information Security booklet",
+  "version": "September 2016",
+  "source": "https://ithandbook.ffiec.gov/it-booklets/information-security.aspx",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "1. IS Program Governance",
+    "2. Risk Assessment",
+    "3. Access Control",
+    "4. Data Protection",
+    "5. Network Security",
+    "6. Vulnerability + Patch Management",
+    "7. Logging + Monitoring",
+    "8. Incident Response",
+    "9. Third-Party + Cloud Security",
+    "10. Workforce Security"
+  ],
+  "controls": [
+    {
+      "id": "1.1",
+      "title": "Board-Approved Information Security Program",
+      "description": "A documented, board-approved information security program covers the institution's IT risk profile + customer-information protection obligations under GLBA + state privacy laws.",
+      "family": "1. IS Program Governance"
+    },
+    {
+      "id": "1.2",
+      "title": "CISO / ISO Designation + Authority",
+      "description": "A designated Chief Information Security Officer (or equivalent) has documented authority + reporting line appropriate for the institution's complexity.",
+      "family": "1. IS Program Governance"
+    },
+    {
+      "id": "1.3",
+      "title": "Annual Board Reporting",
+      "description": "The board (or designated committee) receives at-least-annual information-security program status reports covering risk, incidents, + program effectiveness.",
+      "family": "1. IS Program Governance"
+    },
+    {
+      "id": "1.4",
+      "title": "Information Security Policies + Standards",
+      "description": "Documented IS policies + supporting technical standards cover the institution's IS control environment + are reviewed at least annually.",
+      "family": "1. IS Program Governance"
+    },
+    {
+      "id": "2.1",
+      "title": "Information Asset Inventory",
+      "description": "An information asset inventory documents systems + data stores, with classification by sensitivity + criticality.",
+      "family": "2. Risk Assessment"
+    },
+    {
+      "id": "2.2",
+      "title": "Threat + Vulnerability Identification",
+      "description": "Documented processes identify threats (insider, external, environmental) + vulnerabilities (technical + procedural) applicable to the institution's environment.",
+      "family": "2. Risk Assessment"
+    },
+    {
+      "id": "2.3",
+      "title": "Risk Assessment Methodology",
+      "description": "A documented risk-assessment methodology produces qualitative or quantitative risk ratings used to prioritize control investments.",
+      "family": "2. Risk Assessment"
+    },
+    {
+      "id": "2.4",
+      "title": "Periodic Risk Reassessment",
+      "description": "Risk assessments are refreshed on a documented cadence (typically annual) + after material environment changes.",
+      "family": "2. Risk Assessment"
+    },
+    {
+      "id": "3.1",
+      "title": "Access Provisioning + Deprovisioning",
+      "description": "User access is provisioned via documented approval workflow + deprovisioned promptly upon role change or termination.",
+      "family": "3. Access Control"
+    },
+    {
+      "id": "3.2",
+      "title": "Least-Privilege + Need-to-Know",
+      "description": "Access rights follow least-privilege + need-to-know principles; deviations are exception-tracked.",
+      "family": "3. Access Control"
+    },
+    {
+      "id": "3.3",
+      "title": "Privileged Access Management",
+      "description": "Privileged accounts are inventoried, time-limited where feasible, monitored, + subject to enhanced authentication requirements.",
+      "family": "3. Access Control"
+    },
+    {
+      "id": "3.4",
+      "title": "Multi-Factor Authentication",
+      "description": "Multi-factor authentication is required for: customer-facing remote access, internal privileged access, + administrative access to sensitive systems.",
+      "family": "3. Access Control"
+    },
+    {
+      "id": "3.5",
+      "title": "Periodic Access Recertification",
+      "description": "User + privileged access is recertified on a documented cadence (typically annual for general; more frequent for privileged) by appropriate management.",
+      "family": "3. Access Control"
+    },
+    {
+      "id": "3.6",
+      "title": "Segregation of Duties",
+      "description": "Critical processes (payment authorization, change deployment, log review) are split across roles to prevent single-actor compromise.",
+      "family": "3. Access Control"
+    },
+    {
+      "id": "4.1",
+      "title": "Data Classification",
+      "description": "Data is classified by sensitivity using a documented schema; classification drives handling + retention requirements.",
+      "family": "4. Data Protection"
+    },
+    {
+      "id": "4.2",
+      "title": "Encryption at Rest",
+      "description": "Sensitive data is encrypted at rest using documented + industry-accepted algorithms + key-management practices.",
+      "family": "4. Data Protection"
+    },
+    {
+      "id": "4.3",
+      "title": "Encryption in Transit",
+      "description": "Sensitive data is encrypted in transit; deprecated protocols (SSLv2/v3, TLS 1.0/1.1) are documented as deprecated + phased out.",
+      "family": "4. Data Protection"
+    },
+    {
+      "id": "4.4",
+      "title": "Cryptographic Key Management",
+      "description": "Cryptographic keys are managed under a documented key-management lifecycle (generation, distribution, storage, rotation, retirement).",
+      "family": "4. Data Protection"
+    },
+    {
+      "id": "4.5",
+      "title": "Data Loss Prevention",
+      "description": "Documented DLP controls (technical + procedural) prevent + detect unauthorized exfiltration of sensitive data.",
+      "family": "4. Data Protection"
+    },
+    {
+      "id": "4.6",
+      "title": "Secure Disposal",
+      "description": "Documented secure-disposal procedures cover end-of-life IT assets + storage media to prevent residual-data exposure.",
+      "family": "4. Data Protection"
+    },
+    {
+      "id": "5.1",
+      "title": "Network Segmentation",
+      "description": "Network is segmented by trust zone (public, DMZ, internal, PCI, OT) with documented inter-zone traffic-control rules.",
+      "family": "5. Network Security"
+    },
+    {
+      "id": "5.2",
+      "title": "Firewall + Boundary Protection",
+      "description": "Firewalls + network access controls enforce the documented segmentation model with periodic rule-base reviews.",
+      "family": "5. Network Security"
+    },
+    {
+      "id": "5.3",
+      "title": "Intrusion Detection + Prevention",
+      "description": "Network IDS / IPS + endpoint detection are deployed on appropriate boundaries + monitored + tuned on a documented cadence.",
+      "family": "5. Network Security"
+    },
+    {
+      "id": "5.4",
+      "title": "Wireless Network Security",
+      "description": "Wireless networks use strong authentication + encryption; guest networks are segregated from production environments.",
+      "family": "5. Network Security"
+    },
+    {
+      "id": "5.5",
+      "title": "Remote Access Security",
+      "description": "Remote access uses MFA + encrypted tunnels; remote-access session recording / monitoring is in place for privileged use.",
+      "family": "5. Network Security"
+    },
+    {
+      "id": "6.1",
+      "title": "Vulnerability Scanning",
+      "description": "Production environments receive periodic vulnerability scans (typically monthly internal + quarterly external) with documented remediation SLAs.",
+      "family": "6. Vulnerability + Patch Management"
+    },
+    {
+      "id": "6.2",
+      "title": "Patch Management Process",
+      "description": "Documented patch management process covers identification, risk-assessed prioritization, testing, + deployment with severity-driven SLAs.",
+      "family": "6. Vulnerability + Patch Management"
+    },
+    {
+      "id": "6.3",
+      "title": "Penetration Testing",
+      "description": "Independent penetration testing is performed periodically (typically annual) covering external + internal attack surfaces; findings are remediated.",
+      "family": "6. Vulnerability + Patch Management"
+    },
+    {
+      "id": "7.1",
+      "title": "Centralized Logging",
+      "description": "Security-relevant events from network, system, + application layers are aggregated to a central logging platform.",
+      "family": "7. Logging + Monitoring"
+    },
+    {
+      "id": "7.2",
+      "title": "Log Retention",
+      "description": "Logs are retained per documented schedule meeting regulatory + investigative requirements (typically 1 year online; longer for regulated data).",
+      "family": "7. Logging + Monitoring"
+    },
+    {
+      "id": "7.3",
+      "title": "SIEM + Correlation",
+      "description": "Security events are correlated via SIEM (or equivalent) + monitored 24x7 in-house or via MSSP, with documented escalation.",
+      "family": "7. Logging + Monitoring"
+    },
+    {
+      "id": "7.4",
+      "title": "Privileged Activity Monitoring",
+      "description": "Privileged-user actions are logged in tamper-resistant form + reviewed on a documented cadence by independent reviewers.",
+      "family": "7. Logging + Monitoring"
+    },
+    {
+      "id": "8.1",
+      "title": "Incident Response Plan",
+      "description": "A documented incident response plan covers detection, containment, eradication, recovery, + post-incident review.",
+      "family": "8. Incident Response"
+    },
+    {
+      "id": "8.2",
+      "title": "Incident Response Team + Authority",
+      "description": "An incident response team has documented authority, escalation paths, + cross-functional representation (IT, IS, legal, compliance, communications).",
+      "family": "8. Incident Response"
+    },
+    {
+      "id": "8.3",
+      "title": "Incident Response Testing",
+      "description": "Incident response capabilities are exercised through periodic tabletop or live-fire scenarios with documented improvement actions.",
+      "family": "8. Incident Response"
+    },
+    {
+      "id": "8.4",
+      "title": "Customer-Notification Procedures",
+      "description": "Documented procedures cover customer notification under applicable laws (state breach laws, GLBA Interagency Guidance) including content + timing requirements.",
+      "family": "8. Incident Response"
+    },
+    {
+      "id": "8.5",
+      "title": "Regulatory Notification",
+      "description": "Documented procedures cover regulatory incident notification per primary regulator's requirements (e.g., 36-hour rule under FFIEC Interagency Computer-Security Incident Notification).",
+      "family": "8. Incident Response"
+    },
+    {
+      "id": "9.1",
+      "title": "Vendor Information-Security Due Diligence",
+      "description": "Third-party security posture is evaluated via documented due-diligence process before contract + on ongoing basis.",
+      "family": "9. Third-Party + Cloud Security"
+    },
+    {
+      "id": "9.2",
+      "title": "Cloud Service Provider Security",
+      "description": "Cloud provider security posture is evaluated via SOC reports, industry attestations, + provider-specific configuration reviews.",
+      "family": "9. Third-Party + Cloud Security"
+    },
+    {
+      "id": "9.3",
+      "title": "Vendor + Cloud Concentration Risk",
+      "description": "Concentration of critical functions with single vendors / providers is assessed + mitigated where appropriate.",
+      "family": "9. Third-Party + Cloud Security"
+    },
+    {
+      "id": "10.1",
+      "title": "Security Awareness Training",
+      "description": "All workforce members receive at-least-annual security awareness training covering current threat landscape.",
+      "family": "10. Workforce Security"
+    },
+    {
+      "id": "10.2",
+      "title": "Phishing Resistance Program",
+      "description": "Documented phishing simulation + training program; click-rate trends are tracked + addressed via targeted training.",
+      "family": "10. Workforce Security"
+    },
+    {
+      "id": "10.3",
+      "title": "Insider-Threat Program",
+      "description": "Documented insider-threat program addresses unusual privileged-user activity, departing-employee risk, + role-based monitoring.",
+      "family": "10. Workforce Security"
+    }
+  ]
+}

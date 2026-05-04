@@ -109,6 +109,46 @@ frameworks:
   path: us-federal/fedramp-rev5-moderate.json
   source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
   refresh: monthly
+- id: ffiec-audit
+  name: FFIEC IT Examination Handbook — Audit booklet
+  version: April 2012
+  tier: A
+  category: control
+  path: us-federal/ffiec-audit.json
+  source_url: https://ithandbook.ffiec.gov/it-booklets/audit.aspx
+  refresh: monthly
+- id: ffiec-cat
+  name: FFIEC Cybersecurity Assessment Tool
+  version: 2017 (representative subset)
+  tier: A
+  category: control
+  path: us-federal/ffiec-cat.json
+  source_url: https://www.ffiec.gov/cyberassessmenttool.htm
+  refresh: monthly
+- id: ffiec-information-security
+  name: FFIEC IT Examination Handbook — Information Security booklet
+  version: September 2016
+  tier: A
+  category: control
+  path: us-federal/ffiec-information-security.json
+  source_url: https://ithandbook.ffiec.gov/it-booklets/information-security.aspx
+  refresh: monthly
+- id: ffiec-management
+  name: FFIEC IT Examination Handbook — Management booklet
+  version: November 2015
+  tier: A
+  category: control
+  path: us-federal/ffiec-management.json
+  source_url: https://ithandbook.ffiec.gov/it-booklets/management.aspx
+  refresh: monthly
+- id: ffiec-operations
+  name: FFIEC IT Examination Handbook — Operations booklet
+  version: July 2004
+  tier: A
+  category: control
+  path: us-federal/ffiec-operations.json
+  source_url: https://ithandbook.ffiec.gov/it-booklets/operations.aspx
+  refresh: monthly
 - id: ffiec-outsourcing
   name: FFIEC IT Examination Handbook — Outsourcing Technology Services booklet
   version: June 2004 + 2008/2010 supplements
@@ -277,6 +317,14 @@ frameworks:
   category: control
   path: us-federal/ny-dfs-500.json
   source_url: NYS Department of Financial Services — 23 NYCRR 500 (state regulation)
+  refresh: monthly
+- id: occ-sr-26-02
+  name: OCC Bulletin 2026-13a / FRB SR 26-02 — Supervisory Guidance on Model Risk Management
+  version: April 17, 2026 (supersedes OCC 2011-12 / SR 11-7)
+  tier: A
+  category: control
+  path: us-federal/occ-sr-26-02.json
+  source_url: 'https://www.federalreserve.gov/supervisionreg/srletters/sr2602.htm (parallel: OCC Bulletin 2026-13a)'
   refresh: monthly
 - id: au-essential-8
   name: Australian Essential Eight
