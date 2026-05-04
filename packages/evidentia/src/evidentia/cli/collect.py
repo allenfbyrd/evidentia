@@ -919,6 +919,115 @@ def collect_drata(
     )
 
 
+@app.command("bitsight")
+def collect_bitsight(
+    token_env: str = typer.Option(
+        "BITSIGHT_API_TOKEN",
+        "--token-env",
+        help=(
+            "Name of the env var holding the BitSight API token. "
+            "Defaults to BITSIGHT_API_TOKEN. The collector wraps "
+            "the token in HTTP Basic auth (token:empty-password) "
+            "internally; the token never appears in URLs."
+        ),
+    ),
+    base_url: str = typer.Option(
+        "https://api.bitsighttech.com",
+        "--base-url",
+        help="BitSight API base URL.",
+    ),
+    max_companies: int = typer.Option(
+        2000,
+        "--max-companies",
+        min=1,
+        max=100_000,
+        help=(
+            "Hard cap on portfolio enumeration. Default 2000 — "
+            "covers typical portfolios."
+        ),
+    ),
+    rating_threshold: int = typer.Option(
+        700,
+        "--rating-threshold",
+        min=250,
+        max=900,
+        help=(
+            "BitSight rating below which to emit a low-rating "
+            "finding. Default 700 (BitSight's 'Basic' boundary "
+            "between B and C grades). Range 250-900."
+        ),
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Where to write the findings JSON. Default: stdout.",
+    ),
+) -> None:
+    """Collect compliance evidence from a BitSight portfolio (read-only).
+
+    v0.7.9 P0.4 third slice ships portfolio inventory + per-company
+    low-rating flag detection.
+
+    BitSight is a continuous-rating provider; ratings are on a
+    250-900 scale (A: 740-900, B: 670-739, C: 600-669, D: 530-599,
+    F: <530). The collector emits an INFORMATIONAL finding per
+    portfolio company (NIST SR-2 / SR-3 / SR-6 + OCC 2013-29 §III.A
+    + FRB SR 13-19 §II + FFIEC IT Handbook Outsourcing booklet §II)
+    plus a MEDIUM ACTIVE finding when the rating falls below the
+    operator-configured threshold (default 700; RA-3 + CA-7 + OCC
+    §III.A.4 + SR 13-19 §II.D).
+
+    Auth: pass the API token via env var (default
+    ``BITSIGHT_API_TOKEN``). BitSight uses HTTP Basic with token
+    as username and empty password — the collector handles this
+    internally.
+
+    Deferred to subsequent v0.7.9 P0.4 slices:
+
+    - Per-company factor scores (Botnet Infections, Spam,
+      Patching Cadence, etc.)
+    - Historical rating trends (90-day window)
+    """
+    try:
+        from evidentia_collectors.bitsight import (
+            BitSightCollector,
+            BitSightCollectorError,
+        )
+    except ImportError as e:
+        console.print(
+            "[red]Error:[/red] BitSight collector module not "
+            "importable. Run [cyan]pip install evidentia-collectors[/cyan]."
+        )
+        raise typer.Exit(code=1) from e
+
+    api_token = os.environ.get(token_env)
+    if not api_token:
+        console.print(
+            f"[red]Error:[/red] env var [cyan]{token_env}[/cyan] "
+            "is not set or is empty. Set it to your BitSight API token."
+        )
+        raise typer.Exit(code=1)
+
+    try:
+        with BitSightCollector(
+            api_token=api_token,
+            base_url=base_url,
+            max_companies=max_companies,
+            low_rating_threshold=rating_threshold,
+        ) as collector:
+            findings = collector.collect()
+    except BitSightCollectorError as e:
+        console.print(f"[red]BitSight collection failed:[/red] {e}")
+        raise typer.Exit(code=1) from e
+
+    _write_findings(
+        findings,
+        output,
+        title=f"BitSight findings ({base_url})",
+    )
+
+
 # ── rendering ────────────────────────────────────────────────────────────
 
 

@@ -885,6 +885,97 @@ async def drata_collect(
     return findings
 
 
+@router.post(
+    "/collectors/bitsight/collect",
+    response_model=list[SecurityFinding],
+)
+async def bitsight_collect(
+    payload: dict[str, Any] | None = None,
+) -> list[SecurityFinding]:
+    """Run the BitSight portfolio collector (v0.7.9 P0.4 third slice).
+
+    Request body (optional):
+
+    - ``base_url``: override the BitSight API base URL.
+    - ``max_companies``: pagination ceiling (default 2000).
+    - ``rating_threshold``: integer 250-900; ratings below this
+      emit a MEDIUM-severity finding (default 700).
+    - ``token_env``: env var name (default ``BITSIGHT_API_TOKEN``).
+
+    Auth: BitSight Personal API token. The collector wraps the
+    token in HTTP Basic auth (token:empty-password) internally.
+    Per CLAUDE.md secret-handling protocol, the token MUST come
+    from a server-side env var.
+
+    Response: list of SecurityFinding objects covering BitSight
+    portfolio inventory + per-company low-rating flag.
+
+    Mappings: NIST 800-53 SR-2 / SR-3 / SR-6 + RA-3 / CA-7 (low
+    rating); OCC Bulletin 2013-29 §III.A + §III.A.4; FRB SR 13-19
+    §II + §II.D; FFIEC IT Examination Handbook Outsourcing §II.
+    """
+    try:
+        from evidentia_collectors.bitsight import (
+            BitSightCollector,
+            BitSightCollectorError,
+        )
+    except ImportError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "BitSight collector not installed. The collector "
+                "is part of the base evidentia-collectors install."
+            ),
+        ) from e
+
+    body = payload or {}
+    base_url = (
+        str(body.get("base_url") or "https://api.bitsighttech.com").strip()
+        or "https://api.bitsighttech.com"
+    )
+    max_companies = int(body.get("max_companies") or 2000)
+    rating_threshold = int(body.get("rating_threshold") or 700)
+    if not 250 <= rating_threshold <= 900:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "rating_threshold must be in BitSight's 250-900 range."
+            ),
+        )
+    token_env = (
+        str(body.get("token_env") or "BITSIGHT_API_TOKEN").strip()
+        or "BITSIGHT_API_TOKEN"
+    )
+    api_token = os.environ.get(token_env)
+    if not api_token:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"Env var '{token_env}' is not set or is empty. "
+                "Set it server-side before invoking this endpoint."
+            ),
+        )
+
+    try:
+        with BitSightCollector(
+            api_token=api_token,
+            base_url=base_url,
+            max_companies=max_companies,
+            low_rating_threshold=rating_threshold,
+        ) as collector:
+            findings = collector.collect()
+    except BitSightCollectorError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
+    except Exception as e:
+        logger.exception("BitSight collector failed")
+        raise HTTPException(
+            status_code=500,
+            detail=f"BitSight collector failed: {e}",
+        ) from e
+
+    return findings
+
+
 @router.get("/collectors/status")
 async def collectors_status() -> dict[str, Any]:
     """Report which collectors are installed + which credentials are set.
@@ -904,6 +995,7 @@ async def collectors_status() -> dict[str, Any]:
     snowflake_installed = False
     vanta_installed = False
     drata_installed = False
+    bitsight_installed = False
     try:
         import evidentia_collectors.aws
 
@@ -1016,9 +1108,16 @@ async def collectors_status() -> dict[str, Any]:
         pass
     try:
         # Drata uses httpx (already a base dep) — same pattern as Vanta.
-        import evidentia_collectors.drata  # noqa: F401
+        import evidentia_collectors.drata
 
         drata_installed = True
+    except ImportError:
+        pass
+    try:
+        # BitSight uses httpx (already a base dep) — same pattern.
+        import evidentia_collectors.bitsight  # noqa: F401
+
+        bitsight_installed = True
     except ImportError:
         pass
 
@@ -1153,6 +1252,20 @@ async def collectors_status() -> dict[str, Any]:
             ),
             "default_token_env_configured": bool(
                 os.environ.get("DRATA_API_TOKEN")
+            ),
+        },
+        "bitsight": {
+            "installed": bitsight_installed,
+            "credentials_hint": (
+                "BitSight API token (Enterprise subscription "
+                "required). The collector wraps the token in HTTP "
+                "Basic auth (token:empty-password) internally. "
+                "Set the token via the BITSIGHT_API_TOKEN env var. "
+                "The collector NEVER accepts a token via the "
+                "request body."
+            ),
+            "default_token_env_configured": bool(
+                os.environ.get("BITSIGHT_API_TOKEN")
             ),
         },
     }

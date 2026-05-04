@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **BitSight portfolio collector** (v0.7.9 P0.4 third slice).
+  New `evidentia collect bitsight` CLI command + `POST
+  /api/collectors/bitsight/collect` REST endpoint. Read-only adapter
+  pulling the operator's BitSight Security Ratings portfolio via
+  the BitSight API (`/portfolio`), surfacing each portfolio company
+  as an INFORMATIONAL `company-inventory` SecurityFinding (NIST
+  800-53 SR-2 / SR-3 / SR-6 + OCC Bulletin 2013-29 §III.A + FRB
+  SR 13-19 §II + FFIEC IT Examination Handbook Outsourcing booklet
+  §II) plus an additional MEDIUM-severity `company-low-rating`
+  finding when the company's BitSight rating falls below the
+  operator-configured threshold (default 700, BitSight's "Basic"
+  boundary; range 250-900). Low-rating mappings: RA-3 + CA-7 +
+  OCC §III.A.4 + SR 13-19 §II.D. Auth: `BITSIGHT_API_TOKEN` env
+  var; the collector wraps the token in HTTP Basic auth
+  (token:empty-password) internally — the token never appears in
+  URLs. Defensive cross-host pagination guard: refuses to follow
+  `next` URLs pointing off-host. 13 unit tests with mocked httpx
+  covering happy path, low-rating threshold emission (configurable),
+  unrated companies, pagination via absolute `next` URLs, cross-host
+  refusal, max-companies ceiling, 401/403 → BitSightAuthError,
+  network failure. First-slice scope is portfolio inventory + summary
+  rating; subsequent slices add per-factor scores + historical
+  rating trends.
 - **Drata vendor-inventory collector** (v0.7.9 P0.4 second slice).
   New `evidentia collect drata` CLI command + `POST
   /api/collectors/drata/collect` REST endpoint. Read-only adapter
