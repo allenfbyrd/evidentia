@@ -189,6 +189,9 @@ class DrataCollector:
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         client: httpx.Client | None = None,
     ) -> None:
+        # v0.7.10 P3 closure of v0.7.9 M-1: whitespace-only tokens.
+        if api_token is not None:
+            api_token = api_token.strip() or None
         if not api_token and client is None:
             raise DrataAuthError(
                 "DrataCollector requires either an api_token or a "

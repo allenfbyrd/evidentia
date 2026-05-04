@@ -548,11 +548,16 @@ def render_xlsx_questionnaire(q: Questionnaire) -> bytes:
     return out.getvalue()
 
 
-# Excel sheet-name constraints:
+# Excel sheet-name constraints (OOXML spec + legacy quirks):
 # - Max 31 characters
 # - Cannot contain: : \ / ? * [ ]
 # - Cannot start or end with a single quote
-_EXCEL_SHEET_BAD_CHARS = ":\\/?*[]"
+# - v0.7.10 P3 closure of v0.7.9 L-3: tilde (~) added for
+#   defense-in-depth — OOXML doesn't reserve it but legacy
+#   Excel-on-Mac variants flag it as a workbook-name conflict
+#   character; cheaper to strip than to debug an auditor's
+#   "Excel doesn't open this" report.
+_EXCEL_SHEET_BAD_CHARS = ":\\/?*[]~"
 
 
 def _sanitize_sheet_name(name: str) -> str:

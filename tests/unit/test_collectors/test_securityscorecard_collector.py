@@ -344,3 +344,26 @@ def test_collect_empty_portfolio_yields_no_findings() -> None:
     findings = collector.collect()
 
     assert findings == []
+
+
+# ── v0.7.10 P3 closures ────────────────────────────────────────────
+
+
+def test_whitespace_only_token_rejected() -> None:
+    """v0.7.9 M-1 closure: whitespace-only api_token rejected."""
+    with pytest.raises(SecurityScorecardAuthError):
+        SecurityScorecardCollector(api_token="   ")
+    with pytest.raises(SecurityScorecardAuthError):
+        SecurityScorecardCollector(api_token="\n\t")
+
+
+def test_re_export_blind_spots_and_collector_id() -> None:
+    """v0.7.9 L-7 closure."""
+    from evidentia_collectors.securityscorecard import (
+        BLIND_SPOTS,
+        COLLECTOR_ID,
+    )
+
+    assert COLLECTOR_ID == "securityscorecard-scan"
+    assert isinstance(BLIND_SPOTS, list)
+    assert len(BLIND_SPOTS) > 0

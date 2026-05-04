@@ -57,6 +57,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   honors operator overrides via `--next-validation-due`. 23 CLI
   integration tests covering every verb + atomic + YAML +
   validation contract.
+- **v0.7.9-deferred-finding closures** (v0.7.10 P3 first batch).
+  Closes 4 of the 17 MEDIUM/LOW findings deferred from v0.7.9
+  with explicit ship-velocity rationale:
+  - **M-1** Whitespace-only token validation across all 4
+    vendor-risk SaaS collectors (Vanta + Drata + BitSight +
+    SecurityScorecard). Pre-fix `not "  "` is `False` so a
+    whitespace-only env var bypassed the auth check, leading to
+    silent `Authorization: Bearer    ` headers + opaque 401s on
+    first request. Post-fix: `api_token.strip() or None` runs
+    pre-check; whitespace tokens raise the typed *AuthError
+    immediately with a clear message.
+  - **M-2** `int(rating)` → `round(rating)` for BitSight ratings
+    + `int(score)` → `round(score)` for SecurityScorecard scores.
+    Pre-fix a float rating of 749.6 truncated to 749 and
+    silently slipped under the 750 low-rating threshold;
+    post-fix it rounds to 750 and triggers the finding.
+  - **L-3** `_EXCEL_SHEET_BAD_CHARS` adds tilde (~) for defense
+    against legacy Excel-on-Mac workbook-name conflict quirks
+    (OOXML doesn't reserve tilde but defensive strip is cheaper
+    than debugging an auditor's "Excel doesn't open this" report).
+  - **L-7** Re-export `BLIND_SPOTS` + `COLLECTOR_ID` at the
+    package level for all 4 vendor-risk SaaS collectors. Callers
+    can now do `from evidentia_collectors.vanta import
+    BLIND_SPOTS` instead of reaching into the module path.
+  9 new tests (token-validation rejection × 4 collectors +
+  re-export verification × 4 + BitSight rating-rounding edge
+  case).
 - **Codecov + statement-coverage80 closure** (v0.7.10 P2). Closes
   the **last remaining OpenSSF Best Practices Silver-tier MUST**
   (`test_statement_coverage80`) — Evidentia now publishes

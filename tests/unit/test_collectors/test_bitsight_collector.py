@@ -285,3 +285,59 @@ def test_collect_empty_portfolio_yields_no_findings() -> None:
     findings = collector.collect()
 
     assert findings == []
+
+
+# ── v0.7.10 P3 closures ────────────────────────────────────────────
+
+
+def test_whitespace_only_token_rejected() -> None:
+    """v0.7.9 M-1 closure: whitespace-only api_token rejected."""
+    with pytest.raises(BitSightAuthError):
+        BitSightCollector(api_token="   ")
+    with pytest.raises(BitSightAuthError):
+        BitSightCollector(api_token="\n\t")
+
+
+def test_re_export_blind_spots_and_collector_id() -> None:
+    """v0.7.9 L-7 closure."""
+    from evidentia_collectors.bitsight import BLIND_SPOTS, COLLECTOR_ID
+
+    assert COLLECTOR_ID == "bitsight-scan"
+    assert isinstance(BLIND_SPOTS, list)
+    assert len(BLIND_SPOTS) > 0
+
+
+def test_rating_uses_round_not_trunc() -> None:
+    """v0.7.9 M-2 closure: float ratings should round, not trunc.
+    A rating of 749.6 must become 750 (not 749) so it doesn't
+    silently fall under the 750 low-rating threshold."""
+    response = MagicMock(spec=httpx.Response)
+    response.status_code = 200
+    response.json.return_value = {
+        "results": [
+            {
+                "guid": "co-1",
+                "name": "Co A",
+                "primary_domain": "co-a.com",
+                "rating": 749.6,  # rounds to 750 (not trunc to 749)
+            }
+        ],
+        "next": None,
+    }
+    response.raise_for_status = MagicMock()
+    mock_client = _make_client([response])
+    collector = BitSightCollector(
+        api_token="bs_test",
+        client=mock_client,
+        low_rating_threshold=750,
+    )
+    findings = collector.collect()
+    # Rating now reads as 750 — at-threshold (>=) so still triggers
+    # the low-rating finding under inclusive comparison; key check
+    # is that "749" never appears in the formatted output.
+    serialized = " ".join(
+        " ".join(str(v) for v in (f.title, f.description or ""))
+        for f in findings
+    )
+    assert "749" not in serialized
+    assert "750" in serialized

@@ -180,6 +180,9 @@ class SecurityScorecardCollector:
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         client: httpx.Client | None = None,
     ) -> None:
+        # v0.7.10 P3 closure of v0.7.9 M-1: whitespace-only tokens.
+        if api_token is not None:
+            api_token = api_token.strip() or None
         if not api_token and client is None:
             raise SecurityScorecardAuthError(
                 "SecurityScorecardCollector requires either an "
@@ -483,8 +486,11 @@ class SecurityScorecardCollector:
             or domain
         )
         score = company.get("score")
+        # v0.7.10 P3 closure of v0.7.9 M-2: round() not int() so a
+        # floating-point score like 69.6 doesn't trunc to 69 and
+        # silently slip under a 70 low-score threshold.
         score_int = (
-            int(score) if isinstance(score, (int, float)) else None
+            round(score) if isinstance(score, (int, float)) else None
         )
         grade = company.get("grade")
         grade_str = str(grade) if grade else "ungraded"

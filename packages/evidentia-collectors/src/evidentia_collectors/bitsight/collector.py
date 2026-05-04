@@ -188,6 +188,9 @@ class BitSightCollector:
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         client: httpx.Client | None = None,
     ) -> None:
+        # v0.7.10 P3 closure of v0.7.9 M-1: whitespace-only tokens.
+        if api_token is not None:
+            api_token = api_token.strip() or None
         if not api_token and client is None:
             raise BitSightAuthError(
                 "BitSightCollector requires either an api_token or a "
@@ -469,8 +472,11 @@ class BitSightCollector:
             or "unknown"
         )
         rating = company.get("rating")
+        # v0.7.10 P3 closure of v0.7.9 M-2: round() not int() so a
+        # floating-point rating like 749.6 doesn't trunc to 749 and
+        # silently fall under a 750 low-rating threshold.
         rating_int = (
-            int(rating) if isinstance(rating, (int, float)) else None
+            round(rating) if isinstance(rating, (int, float)) else None
         )
         rating_str = (
             str(rating_int) if rating_int is not None else "unrated"

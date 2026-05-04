@@ -52,6 +52,8 @@ Typed exceptions:
 from __future__ import annotations
 
 from evidentia_collectors.securityscorecard.collector import (
+    BLIND_SPOTS,
+    COLLECTOR_ID,
     SecurityScorecardAuthError,
     SecurityScorecardCollector,
     SecurityScorecardCollectorError,
@@ -59,7 +61,11 @@ from evidentia_collectors.securityscorecard.collector import (
     SecurityScorecardQueryError,
 )
 
+# v0.7.10 P3 closure of v0.7.9 L-7: re-export BLIND_SPOTS +
+# COLLECTOR_ID at the package level.
 __all__ = [
+    "BLIND_SPOTS",
+    "COLLECTOR_ID",
     "SecurityScorecardAuthError",
     "SecurityScorecardCollector",
     "SecurityScorecardCollectorError",

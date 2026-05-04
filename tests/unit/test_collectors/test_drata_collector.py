@@ -319,3 +319,23 @@ def test_inventory_finding_carries_vendor_metadata() -> None:
     )
     text = " ".join(filter(None, [inv.title, inv.description or ""]))
     assert "Vendor A" in text or "vendor-a" in text
+
+
+# ── v0.7.10 P3 closures ────────────────────────────────────────────
+
+
+def test_whitespace_only_token_rejected() -> None:
+    """v0.7.9 M-1 closure: whitespace-only api_token rejected."""
+    with pytest.raises(DrataAuthError):
+        DrataCollector(api_token="   ")
+    with pytest.raises(DrataAuthError):
+        DrataCollector(api_token="\n\t")
+
+
+def test_re_export_blind_spots_and_collector_id() -> None:
+    """v0.7.9 L-7 closure."""
+    from evidentia_collectors.drata import BLIND_SPOTS, COLLECTOR_ID
+
+    assert COLLECTOR_ID == "drata-scan"
+    assert isinstance(BLIND_SPOTS, list)
+    assert len(BLIND_SPOTS) > 0

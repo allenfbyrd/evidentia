@@ -219,6 +219,12 @@ class VantaCollector:
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         client: httpx.Client | None = None,
     ) -> None:
+        # v0.7.10 P3 closure of v0.7.9 M-1: whitespace-only tokens
+        # bypass the truthiness check (`not " "` is False); strip
+        # before validating so accidental "  " or "\n" envs surface
+        # as a clear error rather than later opaque 401s.
+        if api_token is not None:
+            api_token = api_token.strip() or None
         if not api_token and client is None:
             raise VantaAuthError(
                 "VantaCollector requires either an api_token or a "
