@@ -61,18 +61,42 @@ def detect_current_version() -> str:
     sys.exit("Cannot find version field in evidentia-core/pyproject.toml")
 
 
-def bump_pin_range(current: str, target: str) -> tuple[str, str]:
-    """Return (current-range, next-range) for inter-package pin updates.
+def cur_parts_str(version: str) -> str:
+    """Return `major.minor` slice of a version for display purposes."""
+    parts = version.split(".")
+    return f"{parts[0]}.{parts[1]}"
 
-    Pin convention is `>={M}.{m}.0,<{M}.{m+1}.0` (next minor as upper bound).
-    Hot-fix versions (X.Y.Z.W) collapse to X.Y for range purposes.
+
+def bump_pin_range(current: str, target: str) -> tuple[str, str]:
+    """Return (current-range-regex, next-range-replacement) for inter-package pin updates.
+
+    Pin convention (v0.7.12+): `>={target},<{M}.{m+1}.0` — tightens
+    the LOWER bound to the current release version, not the minor's
+    `.0`. This closes the v0.7.11 propagation foot-gun where pip
+    could resolve a cached `evidentia-core==0.7.10` against a
+    freshly-published `evidentia==0.7.11` because the loose
+    `>=0.7.0,<0.8.0` pin permitted ANY patch.
+
+    The regex pattern matches any prior pin in the current
+    major.minor range — `>=0.7.\\d+(?:\\.\\d+)?,<0.8.0` — so the
+    fix also rewrites legacy `>=0.7.0,<0.8.0` pins on the first
+    post-fix bump.
+
+    Hot-fix versions (X.Y.Z.W per the v0.7.4 / v0.7.7.1
+    precedent) ride the major.minor of their parent release.
     """
     cur_parts = current.split(".")
     tgt_parts = target.split(".")
     cur_maj, cur_min = cur_parts[0], cur_parts[1]
     tgt_maj, tgt_min = tgt_parts[0], tgt_parts[1]
-    cur_range = f">={cur_maj}.{cur_min}.0,<{cur_maj}.{int(cur_min)+1}.0"
-    tgt_range = f">={tgt_maj}.{tgt_min}.0,<{tgt_maj}.{int(tgt_min)+1}.0"
+    # Cross-minor bump: match anything in the OLD minor range. Same-minor
+    # bump: also match anything in the current minor (catches both
+    # already-tightened pins and legacy loose ones).
+    cur_range = (
+        rf">={cur_maj}\.{cur_min}\.\d+(?:\.\d+)?,"
+        rf"<{cur_maj}\.{int(cur_min)+1}\.0"
+    )
+    tgt_range = f">={target},<{tgt_maj}.{int(tgt_min)+1}.0"
     return cur_range, tgt_range
 
 
@@ -98,17 +122,22 @@ def main() -> int:
         print(f"Already at {args.to} - nothing to do.")
         return 0
 
-    cur_pin, tgt_pin = bump_pin_range(current, args.to)
+    cur_pin_pattern, tgt_pin = bump_pin_range(current, args.to)
     # Replacements are (regex_pattern, replacement_text). Using regex
     # with negative-lookaheads avoids substring traps like "0.7.7"
     # matching inside "0.7.7.1" when bumping a hot-fix.
     cur_re = re.escape(current)
-    cur_pin_re = re.escape(cur_pin)
     nla = r"(?!\.\d)"  # negative-lookahead: not followed by .digit
     replacements: list[tuple[str, str]] = [
         (rf'version = "{cur_re}"{nla}', f'version = "{args.to}"'),
         (rf'"version": "{cur_re}"{nla}', f'"version": "{args.to}"'),
-        (cur_pin_re, tgt_pin),
+        # v0.7.12 P0.5 closure: tighten inter-package pin lower bound
+        # to the current release version (not just the minor's .0).
+        # Closes the v0.7.11 PyPI propagation foot-gun where pip
+        # could resolve a cached `evidentia-core==<previous-patch>`
+        # against a freshly-published `evidentia==<this-patch>`
+        # because the loose `>=0.7.0,<0.8.0` pin permitted ANY patch.
+        (cur_pin_pattern, tgt_pin),
         # v0.7.7.1 trap: Dockerfile pinned to the current release as a
         # hardcoded literal. Without this replacement, the published
         # ghcr.io image installs the previous version inside even
@@ -118,7 +147,7 @@ def main() -> int:
     ]
 
     print(f"Bump plan: {current} -> {args.to}")
-    print(f"  Inter-package pins: {cur_pin} -> {tgt_pin}")
+    print(f"  Inter-package pins: <prior-range-in-{cur_parts_str(current)}> -> {tgt_pin}")
     print()
 
     files_changed = 0
