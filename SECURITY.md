@@ -47,12 +47,13 @@ a vulnerability in Evidentia's own code.
 
 | Version | Status | Reason |
 |---------|--------|--------|
-| **`0.7.8`** | ✅ **Supported** | Latest patch. Cloud DW collectors (Databricks + Snowflake) + BI publish integrations (Tableau + Power BI). 0 CVEs at ship per `docs/security-review-v0.7.8.md`. |
-| `0.7.7.1` | ❌ Deprecated | Same-day Dockerfile-pin hot-fix to `0.7.7`. Superseded by `0.7.8`. Upgrade to `0.7.8`. |
-| `0.7.7` | ❌ Deprecated | Container image pinned a stale `evidentia[gui]` version inside (CRITICAL F-007); upgrade to `0.7.7.1` or, preferably, `0.7.8`. |
-| `0.7.6` and earlier | ❌ Deprecated | Predates the v0.7.7 SQL collectors + v0.7.8 cloud DW + BI integrations. Patches in this range may carry pin floors that allow installation of upstream-vulnerable transitive versions disclosed since their ship date. Upgrade to `0.7.8`. |
-| `0.6.x` | ❌ Deprecated | Predates the `enterprise-grade` supply-chain hardening (Sigstore signing, PEP 740 attestations, OIDC publisher) that landed in `0.7.0`. Upgrade to `0.7.8`. |
-| `0.5.x` and earlier | ❌ Unsupported | Pre-rename codebase + missing AI-features hardening + missing supply-chain hardening. Upgrade to `0.7.8`. |
+| **`0.7.9`** | ✅ **Supported** | Latest patch. TPRM module (vendor inventory + DD-questionnaire + concentration-report + OSCAL TPRM emit) + 4 vendor-risk-API collectors (Vanta + Drata + BitSight + SecurityScorecard). 0 CVEs at ship per `docs/security-review-v0.7.9.md`. |
+| `0.7.8` | ❌ Deprecated | Cloud DW collectors + BI publish integrations. Superseded by `0.7.9`. Upgrade to `0.7.9`. |
+| `0.7.7.1` | ❌ Deprecated | Same-day Dockerfile-pin hot-fix to `0.7.7`. Superseded by `0.7.9`. Upgrade to `0.7.9`. |
+| `0.7.7` | ❌ Deprecated | Container image pinned a stale `evidentia[gui]` version inside (CRITICAL F-007); upgrade to `0.7.9`. |
+| `0.7.6` and earlier | ❌ Deprecated | Predates the v0.7.7 SQL collectors + v0.7.8 cloud DW + BI + v0.7.9 TPRM. Patches in this range may carry pin floors that allow installation of upstream-vulnerable transitive versions disclosed since their ship date. Upgrade to `0.7.9`. |
+| `0.6.x` | ❌ Deprecated | Predates the `enterprise-grade` supply-chain hardening (Sigstore signing, PEP 740 attestations, OIDC publisher) that landed in `0.7.0`. Upgrade to `0.7.9`. |
+| `0.5.x` and earlier | ❌ Unsupported | Pre-rename codebase + missing AI-features hardening + missing supply-chain hardening. Upgrade to `0.7.9`. |
 | Legacy `controlbridge*` packages | ❌ Yanked from PyPI | Every version of every legacy package was yanked at the v0.6.0 rename. Upgrade path documented in [`RENAMED.md`](RENAMED.md). |
 
 **Read this strictly**: an older patch — even `0.7.1` shipped less
@@ -62,7 +63,7 @@ dependency tree exploitable. Pre-1.0, there are no backports. The
 single supported patch is always the answer.
 
 When `v0.8.0` ships, the same single-supported-patch policy applies
-to `0.8.x`. `v0.7.8` will move to a brief maintenance window
+to `0.8.x`. `v0.7.9` will move to a brief maintenance window
 (security-only patches for the period documented in the v0.8.0
 release notes), then deprecation.
 
@@ -158,7 +159,7 @@ Verify a release wheel:
 pip install pypi-attestations
 pypi-attestations verify pypi \
   --repository https://github.com/allenfbyrd/evidentia \
-  "pypi:evidentia-0.7.8-py3-none-any.whl"
+  "pypi:evidentia-0.7.9-py3-none-any.whl"
 ```
 
 If verification fails, **stop and report immediately** via the
