@@ -509,9 +509,21 @@ class BitSightCollector:
         # v0.7.10 P3 closure of v0.7.9 M-2: round() not int() so a
         # floating-point rating like 749.6 doesn't trunc to 749 and
         # silently fall under a 750 low-rating threshold.
-        rating_int = (
-            round(rating) if isinstance(rating, (int, float)) else None
-        )
+        # v0.7.12 P3 closure of v0.7.9 L-8: BitSight occasionally
+        # returns rating as a JSON-string (e.g., ``"750"``) rather
+        # than a number. Without coercion that gets treated as
+        # unrated, silently dropping a low-rating finding. Try
+        # int(str)/float(str) coercion before declaring unrated.
+        rating_int: int | None
+        if isinstance(rating, (int, float)):
+            rating_int = round(rating)
+        elif isinstance(rating, str) and rating.strip():
+            try:
+                rating_int = round(float(rating.strip()))
+            except (ValueError, TypeError):
+                rating_int = None
+        else:
+            rating_int = None
         rating_str = (
             str(rating_int) if rating_int is not None else "unrated"
         )

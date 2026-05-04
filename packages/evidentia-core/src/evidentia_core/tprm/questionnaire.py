@@ -560,15 +560,29 @@ def render_xlsx_questionnaire(q: Questionnaire) -> bytes:
 _EXCEL_SHEET_BAD_CHARS = ":\\/?*[]~"
 
 
-def _sanitize_sheet_name(name: str) -> str:
-    """Sanitize a domain string into a valid Excel sheet name."""
+def _sanitize_sheet_name(name: str, *, reserve: int = 4) -> str:
+    """Sanitize a domain string into a valid Excel sheet name.
+
+    Excel's hard limit is 31 characters per sheet name. Callers that
+    apply collision-suffixes to deduplicate sheet names (e.g.,
+    ``" (2)"``, ``" (3)"``, ``" (10)"``) need to reserve room for the
+    suffix. The default ``reserve=4`` covers up to ``" (99)"`` —
+    sufficient for the typical TPRM portfolio sizes.
+
+    v0.7.12 P3 closure of v0.7.9 M-7: previously truncated to 31
+    chars unconditionally, leaving callers no room for collision
+    suffixes. The new contract truncates to ``31 - reserve``,
+    preserving the canonical 31-char ceiling AFTER suffix
+    application.
+    """
     cleaned = "".join(
         c for c in name if c not in _EXCEL_SHEET_BAD_CHARS
     )
     cleaned = cleaned.strip().strip("'")
     if not cleaned:
         cleaned = "Questions"
-    return cleaned[:31]
+    max_base = max(1, 31 - max(0, reserve))
+    return cleaned[:max_base]
 
 
 # ── v0.7.9 P0.2 second slice: SIG BYO template ────────────────────
@@ -944,15 +958,36 @@ def _parse_completed_csv(path: Any) -> CompletedQuestionnaire:
     )
 
 
+_METADATA_SHEET_CANDIDATES = (
+    "Vendor metadata",
+    "Vendor Metadata",
+    "Metadata",
+    "Vendor Information",
+    "Cover",
+)
+
+
 def _parse_completed_xlsx(path: Any) -> CompletedQuestionnaire:
-    """Parse XLSX workbooks emitted by render_xlsx_questionnaire."""
+    """Parse XLSX workbooks emitted by render_xlsx_questionnaire.
+
+    v0.7.12 P3 closure of v0.7.9 M-8: previously hard-coded the
+    metadata sheet name as ``"Vendor metadata"``. The new contract
+    accepts the canonical name plus 4 common variants (case + word
+    order + cover-style aliases) so an operator who manually
+    renames the sheet during their review pass doesn't silently lose
+    metadata round-trip.
+    """
     openpyxl = _require_openpyxl()
     wb = openpyxl.load_workbook(filename=str(path), data_only=True)
     questionnaire_id: str | None = None
     vendor_id: str | None = None
     fmt: QuestionnaireFormat | None = None
-    if "Vendor metadata" in wb.sheetnames:
-        ws = wb["Vendor metadata"]
+    metadata_sheet_name: str | None = next(
+        (name for name in _METADATA_SHEET_CANDIDATES if name in wb.sheetnames),
+        None,
+    )
+    if metadata_sheet_name is not None:
+        ws = wb[metadata_sheet_name]
         for row in ws.iter_rows(values_only=True):
             if not row or row[0] is None:
                 continue
@@ -969,7 +1004,7 @@ def _parse_completed_xlsx(path: Any) -> CompletedQuestionnaire:
                     fmt = None
     responses: dict[str, str] = {}
     for sheet_name in wb.sheetnames:
-        if sheet_name == "Vendor metadata":
+        if sheet_name == metadata_sheet_name:
             continue
         ws = wb[sheet_name]
         rows_iter = ws.iter_rows(values_only=True)
