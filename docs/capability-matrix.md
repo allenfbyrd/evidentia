@@ -13,6 +13,86 @@
 
 ---
 
+## Re-validation snapshot — 2026-05-04 (v0.7.12 in-progress — pre-pre-tag)
+
+v0.7.12 (in progress on `main`; not yet tagged) ships the **3
+concrete cloud-WORM backends** (S3 Object Lock + Azure Immutable
+Blob + GCS Bucket Lock), **GDPR Article 17 `purge_immediately`
+flow** (closes the v0.7.11 functional gap surfaced by Step-4
+/security-review), **FAIR Monte Carlo simulation** (P1.5 G4.1
+canonical Beta-PERT path; the v0.7.11 deterministic PERT-mean
+shipped first), **CodeQL CRITICAL #92 closure** (`py/partial-
+ssrf` in `securityscorecard/collector.py` — 3-layer
+`_validate_portfolio_id_shape` defense), **Codecov 0% bug fix**
+(P0.7), **PyPI inter-package pin propagation foot-gun closure**
+(P0.5), **P3 partial deferral closures** (M-3 + cosmetic
+6-store `Path(env).expanduser().resolve()` harmonization), plus
+**3 new operator runbooks** + **doc-consistency pass** +
+**release-checklist Steps 5.5 + 9.5** + **threat-model v0.7.12
+delta**.
+
+### Existing tiers — regression check (v0.7.12)
+
+| Tier | v0.7.12 status | Evidence |
+|---|---|---|
+| 1 — AI features | ✅ unchanged | No `evidentia-ai` files touched |
+| 2 — OSCAL signing + verify | ✅ unchanged | OSCAL exporter surface untouched |
+| 3 — Air-gap enforcement | ✅ unchanged | network_guard.py untouched |
+| 4 — Secret scrubber | ✅ unchanged | No secret-scrubber files touched; SSC #92 fix is input-shape validation, not scrubbing |
+| 5 — Collectors | ✅ hardened | SSC `_validate_portfolio_id_shape` 3-layer defense; M-3 dropped over-defensive contextlib.suppress on _log.info across 4 collectors (vanta/drata/bitsight/securityscorecard) |
+| 6 — OSCAL exporter + output formats | ✅ unchanged | gap_report_to_oscal_ar surface untouched |
+| 7 — CLI commands | ✅ extended (1 new flag) | `evidentia risk quantify --method fair-mc --iterations N --seed N --csv path` (Monte Carlo path); `--method open-fair` continues as the deterministic path |
+| 8 — REST API | ✅ extended (SSC #92) | `/api/collectors/securityscorecard/collect` early-fails with 400 on unsafe `portfolio_id`; matches v0.7.8 F-V08-DAST-3 invariant |
+| 9 — Web UI | ✅ unchanged | No evidentia-ui files touched |
+| 10 — Configuration precedence | ✅ unchanged | No new env vars added (cloud SDKs use their canonical auth chains) |
+| 11 — JSON-file persistence | ✅ harmonized (6-store completion) | All 6 stores now apply `Path(env).expanduser().resolve()` consistently (was: 2 of 6 prior to this cycle) |
+| 12 — Bundled regulatory catalogs | ✅ unchanged (89) | No catalog changes |
+
+### New v0.7.12 surfaces
+
+| # | New surface | Status | Evidence |
+|---|---|---|---|
+| N1 | `S3ObjectLockWORM` (`evidentia[worm-s3]` extra) — boto3 + S3 Object Lock COMPLIANCE/GOVERNANCE modes; legal-hold; backward-extension rejection; multi-tenant prefix isolation; Object-Lock-enabled bucket required at creation | ✅ | 19 tests via moto's mock_aws + Object-Lock-enabled bucket. Cross-cloud parity smoke vs LocalFilesystemWORM passes. |
+| N2 | `AzureImmutableBlobWORM` (`evidentia[worm-azure]` extra) — azure-storage-blob `ImmutabilityPolicy(expiry_time, policy_mode)` Locked/Unlocked; per-blob `set_legal_hold`; DefaultAzureCredential auth chain | ✅ | 17 tests via stateful in-memory BlobServiceClient stub (azurite emulator avoided for build-time slimness; stub mirrors the surface the backend uses). |
+| N3 | `GCSBucketLockWORM` (`evidentia[worm-gcs]` extra) — bucket-wide retention policy + per-blob `temporary_hold` for legal-hold semantics; ADC auth | ✅ | 17 tests via stateful in-memory storage.Client stub. |
+| N4 | `WORMBackend.purge_immediately(record_id, *, gdpr_request_ref, operator_id)` — GDPR Article 17 operator workflow; pre-conditions: GDPR-shaped record (retention_period_days=0) + no legal_hold + populated audit fields; default impl in ABC delegates to `_update_metadata` (override per backend) + `delete()` after lifecycle transition | ✅ | 6 tests on LocalFilesystemWORM happy path + non-GDPR rejection + legal-hold rejection + empty-audit-field rejection + audit-trail snapshot fidelity; 1 test on S3 via moto. |
+| N5 | `transition_lifecycle(force_gdpr_purge: bool = False)` — scoped override permitting ACTIVE→EXPIRED for GDPR records (lock_until=None) when retention_period_days==0 AND no legal hold; closes the v0.7.11 functional gap | ✅ | 3 tests covering GDPR happy path + non-GDPR override-does-not-apply + legal-hold-trumps-override. |
+| N6 | `evidentia risk quantify --method fair-mc --iterations N [--seed N] [--csv path]` — Monte Carlo simulation form; Beta-PERT sampling via `random.Random.betavariate`; SimulationResult Pydantic model with P10/P50/P90 + mean + stddev + box-and-whisker Markdown + CSV export | ✅ | 24 unit tests + 2 CLI integration tests. Stdlib only — no numpy/scipy dep added. Seed determinism verified golden-file style. |
+| N7 | `_validate_portfolio_id_shape` SSC allow-list + `SecurityScorecardInvalidPortfolioIdError` typed exception — closes CodeQL CRITICAL #92 (py/partial-ssrf, CWE-918, CVSS 7.6) | ✅ | 29 unit tests (parametrized 7 safe + 19 unsafe values + non-string rejection + collector __init__ rejection + defense-in-depth on API responses) + 9 REST endpoint integration tests. |
+| N8 | Codecov 0% fix (`[tool.coverage.run] relative_files = true` + dropped inverted `fixes:` mapping) | ✅ | Verified locally: coverage.xml emits `filename="packages/evidentia-core/src/evidentia_core/__init__.py"` (was bare `filename="__init__.py"`). On next CI run, Codecov will register actual coverage % against the GitHub tree. |
+| N9 | `bump_version.py` pin-trap fix — tightens inter-package range pin LOWER bounds atomically on every release | ✅ | 13 unit tests on `bump_pin_range`. Dry-run verified: v0.7.11→v0.7.12 produces 19 substitutions across 9 files, including 10 inter-package pin tightenings. |
+
+### Adversarial probing summary (v0.7.12 surfaces)
+
+Coverage: **7 of 7 vectors** (cloud-WORM SDKs introduce real network surface for the first time in retention/).
+
+- **Bad input**: SSC portfolio_id allow-list catches 19 distinct unsafe shapes; PERT range validator catches `low > most_likely > high`; Monte Carlo iterations < 1 rejected; cloud bucket name required non-empty
+- **Missing dependency**: lazy imports + clear ImportError messages directing to `evidentia[worm-s3]` / `[worm-azure]` / `[worm-gcs]`
+- **Network failure**: cloud SDK errors (`HttpResponseError` / `ClientError` / `GoogleAPIError`) surface as `WORMBackendError` preserving the cloud-side message
+- **Expired credential**: cloud SDK auth chains handle this canonically; tests via mocked clients
+- **Malformed config**: bucket-name + lock-mode validation at backend `__init__`; rejected before any HTTP call
+- **Concurrent request / race**: GCS uses `if_generation_match=0` for atomic create; S3 + Azure check `head_object` / `exists()` first (acceptable race window since WORM forbids overwrite anyway)
+- **Large-input DoS**: cloud SDKs handle their own request-size limits; FastAPI default body-size limits cover REST surface
+
+### F-V12 findings disposition
+
+**0 findings at this point in cycle.** Phase 7 pre-release-review
+v4 Pre-tag run will produce `docs/security-review-v0.7.12.md`
+which captures the formal review.
+
+### Step 4 verification gate (v0.7.12 in-progress)
+
+| Check | Status |
+|---|---|
+| pytest count | ✅ 2074 (was 1929 at v0.7.11; +145) |
+| mypy --strict | ✅ 0/0 across 188 files (was 184; +4) |
+| ruff | ✅ clean |
+| Standing-rule keyword sweep | ✅ clean across 12 commits |
+| Cross-cloud WORM parity (RetentionMetadata round-trip) | ✅ S3 + Azure + GCS + LocalFilesystem produce equivalent metadata |
+| Codecov path emission | ✅ verified locally (re-runs coverage.xml inspection) |
+
+---
+
 ## Re-validation snapshot — 2026-05-04 (v0.7.11 ship — pre-tag)
 
 v0.7.11 ships the **P0 audit chain-of-custody** (RetentionMetadata

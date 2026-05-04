@@ -7,6 +7,125 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+**The cloud-WORM trifecta + GDPR Article 17 + FAIR Monte Carlo
+ship target.** v0.7.12 carries the v0.7.11 P0 audit chain-of-
+custody from operator-side-metadata-only to regulator-grade
+hardware-WORM enforcement across S3 / Azure / GCS, closes the
+v0.7.11 GDPR functional gap surfaced by Step-4 /security-review,
+and adds the canonical Monte Carlo simulation form for FAIR risk
+quantification (the v0.7.11 P1.5 G4 deterministic PERT-mean
+shipped first, simulation here). Plus the v0.7.11 fresh-venv
+install propagation foot-gun closure, Codecov 0% bug fix, and
+CodeQL CRITICAL #92 (`py/partial-ssrf` in
+`securityscorecard/collector.py`) closure.
+
+### Added
+
+- **3 cloud-WORM backends** with regulator-grade enforcement:
+  `S3ObjectLockWORM` (`evidentia[worm-s3]` extra; boto3 + S3
+  Object Lock), `AzureImmutableBlobWORM` (`evidentia[worm-azure]`;
+  azure-storage-blob immutable policies), `GCSBucketLockWORM`
+  (`evidentia[worm-gcs]`; google-cloud-storage Bucket Lock). All
+  three implement the same `WORMBackend` ABC contract; switching
+  clouds is a constructor swap. 53 new tests covering put / get /
+  3-layer delete defense / extend_retention / legal_hold workflow
+  / multi-tenant prefix isolation / GDPR purpose-limited records.
+- **GDPR Article 17 `purge_immediately` flow**:
+  `WORMBackend.purge_immediately(record_id, *, gdpr_request_ref,
+  operator_id)` operator workflow. Pre-conditions enforced
+  (GDPR-shaped record, no legal hold, populated audit fields).
+  `transition_lifecycle()` gains `force_gdpr_purge: bool = False`
+  parameter that scopes the override to GDPR records only. Closes
+  the v0.7.11 functional gap surfaced by Step-4 /security-review.
+  11 new tests covering the full workflow.
+- **FAIR Monte Carlo simulation** (P1.5 G4.1):
+  `evidentia risk quantify --method fair-mc --iterations N
+  [--seed N] [--csv path]`. Stdlib-only Beta-PERT sampling (no
+  numpy dep). `SimulationResult` Pydantic model with P10/P50/P90
+  percentiles, mean, stddev, ASCII box-and-whisker, CSV export.
+  Aggregate `generate_monte_carlo_report` sorted by P50
+  descending. 24 new tests + 2 new CLI integration tests.
+- **CodeQL custom sanitizer for SSC `portfolio_id`**:
+  `_validate_portfolio_id_shape` allow-list (`^[A-Za-z0-9_-]
+  {1,128}$`) applied at 3 layers (REST router early-fail with
+  400; collector __init__ pre-construction reject;
+  `_resolve_portfolio_id` defense-in-depth on API responses).
+  Closes CodeQL CRITICAL #92 (`py/partial-ssrf`, CWE-918,
+  CVSS 7.6). 29 new validation tests + 9 REST endpoint tests.
+- **3 new operator runbooks**:
+  - `docs/worm-backends.md` (~290 lines): S3 + Azure + GCS
+    setup, IAM/auth, Compliance vs Governance modes,
+    cross-cloud comparison, troubleshooting
+  - `docs/fair-monte-carlo.md` (~205 lines): Beta-PERT
+    methodology, iteration tuning, percentile interpretation,
+    worked example
+  - `docs/gdpr-purge-flow.md` (~260 lines): Article 17 rationale,
+    operator 5-step workflow, cloud-specific considerations,
+    legal-counsel-defensible audit-trail expectations
+- **release-checklist.md Steps 5.5 + 9.5** — codifies the
+  per-release doc-consistency sweep + release-notes audit
+  practices (per Allen 2026-05-04 directive).
+- **threat-model.md v0.7.12 attack-surface delta** — full STRIDE
+  coverage for the 3 cloud-WORM backends, GDPR purge workflow,
+  Monte Carlo, and SSC #92 closure.
+
+### Fixed
+
+- **Codecov 0% bug** (P0.7): `[tool.coverage.run]
+  relative_files = true` in `pyproject.toml` + removed inverted
+  `fixes:` mapping in `codecov.yml`. Coverage XML now emits
+  literal repo-relative paths (`packages/evidentia-core/src/
+  evidentia_core/foo.py`) which Codecov's path matcher resolves
+  directly against the GitHub tree. Pre-fix: every commit
+  registered `state: error` with `totals: {0,0,0,0.0}` despite
+  v0.7.11 reporting 81.87% statement coverage internally.
+- **PyPI inter-package pin propagation foot-gun** (P0.5):
+  `scripts/bump_version.py` now tightens the LOWER bound of
+  inter-package range pins to the current release version on
+  every bump (during v0.7.12 ship: pins become `>=0.7.12,<0.8.0`
+  not `>=0.7.0,<0.8.0`). Closes the v0.7.11 ship-time issue
+  where `pip install evidentia==0.7.11` could resolve a cached
+  `evidentia-core==0.7.10` from the loose pin during the PyPI
+  propagation window. 13 new tests on `bump_pin_range`.
+
+### Changed
+
+- **v0.7.12 P3 carry-over batch (M-3 + cosmetic harmonization)**:
+  Dropped over-defensive `contextlib.suppress(Exception)`
+  wrapping on `_log.info` audit-logger calls in 4 collectors
+  (vanta / drata / bitsight / securityscorecard). The audit
+  logger should never raise; if it does, that's a real bug worth
+  surfacing. Plus harmonized `Path(env).expanduser().resolve()`
+  pattern across all 6 secure stores (vendor / model_risk /
+  effective_challenge / metric / workflow / retention_metadata).
+- **Doc consistency pass**: canonical 89 bundled catalogs
+  applied across README / CHANGELOG / docs/positioning-and-
+  value.md / docs/gui/* / docs/ide-setup.md / packages/
+  evidentia-api/README.md (was inconsistently "82" / "88" / "77"
+  in different places). README "Recent releases" refreshed with
+  v0.7.9 / v0.7.10 / v0.7.11. ROADMAP.md "Last updated" line
+  bumped to v0.7.11.
+
+### Quality gates at this point in cycle
+
+- 2074 tests passing (was 1929 at v0.7.11 ship; +145 new this
+  cycle including 53 WORM-backend tests + 24 Monte Carlo +
+  29 SSC validation + 9 REST SSRF + 13 bump_version + 11 GDPR
+  + 6 CLI integration)
+- mypy --strict 0/0 across 188 source files (was 184)
+- ruff clean
+- Standing-rule keyword sweep clean across all 12 v0.7.12
+  commits
+
+### v0.7.12 carry-overs (deferred to v0.7.13 or v0.8.0)
+
+- Remaining P3 deferrals (M-4 base-class refactor / M-7 sheet-
+  name overflow / M-8 hard-coded sheet name / M-9 OSCAL UUID
+  trestle-conformance check / L-2 / L-4 / L-5 / L-8 + 9 v0.7.8
+  LOWs)
+- CodeQL custom sanitizer pack (deferred to v0.8.0; v0.7.12
+  used inline regex validation + per-alert dismissal pattern)
+
 ## [0.7.11] - 2026-05-04
 
 **The audit chain-of-custody + governance-trio + Open FAIR ship.**
