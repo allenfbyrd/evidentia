@@ -167,6 +167,7 @@ class RiskStatementGenerator:
         model: str | None = None,
         temperature: float | None = None,
         max_retries: int = 3,
+        model_inventory_id: str | None = None,
     ) -> None:
         self.model = model or get_default_model()
         self.temperature = (
@@ -174,6 +175,13 @@ class RiskStatementGenerator:
         )
         self.max_retries = max_retries
         self.client = get_instructor_client()
+        # v0.7.10 P0.6.4 — model risk inventory linkage. When set,
+        # every produced RiskStatement carries `model_inventory_ref`
+        # pointing to a `ModelInventory.id` so SR 11-7 / SR 26-02 /
+        # OCC Bulletin 2011-12 / OCC Bulletin 2026-13a auditors can
+        # trace back from the risk statement to the model-risk
+        # documentation, validation history, and tier classification.
+        self.model_inventory_id = model_inventory_id
 
     # ── LLM invocation helpers ────────────────────────────────────────
     #
@@ -296,6 +304,12 @@ class RiskStatementGenerator:
             *gap.cross_framework_value,
         ]
         risk.generation_context = gen_ctx
+        # v0.7.10 P0.6.4 — propagate the SR 11-7 / SR 26-02 model-risk
+        # inventory linkage when the operator configured it on the
+        # generator. Empty by default (backward-compatible with all
+        # pre-v0.7.10 consumers).
+        if self.model_inventory_id is not None:
+            risk.model_inventory_ref = self.model_inventory_id
         return risk
 
     # ── Public API ────────────────────────────────────────────────────

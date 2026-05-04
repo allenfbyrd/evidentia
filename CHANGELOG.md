@@ -57,6 +57,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   honors operator overrides via `--next-validation-due`. 23 CLI
   integration tests covering every verb + atomic + YAML +
   validation contract.
+- **`RiskStatement.model_inventory_ref` AI-feature linkage**
+  (v0.7.10 P0.6.4). New optional UUID field on
+  `evidentia_core.models.risk.RiskStatement` pointing to a
+  `evidentia_core.models.model_risk.ModelInventory.id`. Wired
+  through the AI generator: `RiskStatementGenerator` accepts a
+  new `model_inventory_id: str | None = None` constructor
+  parameter; when set, `_enrich()` propagates the linkage onto
+  every produced RiskStatement. Closes the SR 11-7 / SR 26-02 /
+  OCC Bulletin 2011-12 / OCC Bulletin 2026-13a audit-traceability
+  loop — federally-regulated model-risk-management programs can
+  now trace back from a generated risk statement to the model
+  inventory entry that documents its tier classification,
+  validation history, and approval chain. Backward-compatible
+  (default None preserves all pre-v0.7.10 behaviour). 6 new tests
+  covering field optionality, JSON round-trip, backward-compat
+  deserialization, and generator-path propagation.
 - **`/api/model-risk/models` REST CRUD** (v0.7.10 P0.6 third
   slice). 6 endpoints mirroring the v0.7.9 P0.1.4 TPRM router
   pattern: `GET /api/model-risk/models` (list with skip/limit

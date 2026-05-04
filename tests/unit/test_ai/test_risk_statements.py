@@ -243,6 +243,34 @@ def test_generate_with_explicit_run_id_threads_through(
     assert result.generation_context.run_id == "01HXAAAAAAAAAAAAAAAAAAAAAA"
 
 
+def test_generate_propagates_model_inventory_ref_when_configured(
+    system_context: SystemContext,
+) -> None:
+    """v0.7.10 P0.6.4 — RiskStatementGenerator(model_inventory_id=...)
+    propagates the linkage onto every produced RiskStatement so SR 11-7
+    / SR 26-02 / OCC Bulletin 2011-12 / OCC Bulletin 2026-13a auditors
+    can trace back from a risk statement to its model inventory entry."""
+    gap = _make_gap()
+    inv_id = "aaaa1111-2222-3333-4444-555566667777"
+    with _patched_sync_create(side_effect=[_fake_risk_statement()]):
+        gen = RiskStatementGenerator(model_inventory_id=inv_id)
+        result = gen.generate(gap, system_context)
+    assert result.model_inventory_ref == inv_id
+
+
+def test_generate_leaves_model_inventory_ref_none_when_not_configured(
+    system_context: SystemContext,
+) -> None:
+    """Backward-compat: callers that don't set `model_inventory_id`
+    on the generator continue to produce RiskStatements with
+    model_inventory_ref=None (matches all pre-v0.7.10 behavior)."""
+    gap = _make_gap()
+    with _patched_sync_create(side_effect=[_fake_risk_statement()]):
+        gen = RiskStatementGenerator()
+        result = gen.generate(gap, system_context)
+    assert result.model_inventory_ref is None
+
+
 def test_generate_prompt_hash_is_deterministic_for_same_inputs(
     system_context: SystemContext,
 ) -> None:

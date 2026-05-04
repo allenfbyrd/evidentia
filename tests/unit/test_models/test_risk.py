@@ -151,3 +151,61 @@ def test_extra_fields_on_risk_statement_still_rejected() -> None:
             **_minimal_kwargs(),
             bogus_field="should fail",
         )
+
+
+# -----------------------------------------------------------------------------
+# v0.7.10 P0.6.4 model_inventory_ref — SR 11-7 / SR 26-02 linkage
+# -----------------------------------------------------------------------------
+
+
+def test_risk_statement_constructs_without_model_inventory_ref() -> None:
+    """Field is optional with default None — backward compat with all
+    pre-v0.7.10 callers that don't supply a model-risk-management
+    inventory linkage."""
+    risk = RiskStatement(**_minimal_kwargs())
+    assert risk.model_inventory_ref is None
+
+
+def test_risk_statement_accepts_model_inventory_ref() -> None:
+    """SR 11-7 / SR 26-02 model-inventory linkage round-trips."""
+    inv_id = "aaaa1111-2222-3333-4444-555566667777"
+    risk = RiskStatement(
+        **_minimal_kwargs(),
+        model_inventory_ref=inv_id,
+    )
+    assert risk.model_inventory_ref == inv_id
+
+
+def test_v079_json_deserializes_into_v0710_model() -> None:
+    """A v0.7.9 RiskStatement dump (no model_inventory_ref key) must
+    round-trip through the v0.7.10 model with model_inventory_ref=None.
+    Mirrors the v0.7.0→v0.7.1 generation_context backward-compat test."""
+    v079_payload: dict[str, object] = {
+        "asset": "X",
+        "threat_source": "Y",
+        "threat_event": "Z",
+        "vulnerability": "W",
+        "likelihood": "high",
+        "likelihood_rationale": "..",
+        "impact": "high",
+        "impact_rationale": "..",
+        "risk_level": "high",
+        "risk_description": "..",
+        "recommended_controls": ["AC-2"],
+        "remediation_priority": 2,
+    }
+    risk = RiskStatement.model_validate(v079_payload)
+    assert risk.model_inventory_ref is None
+
+
+def test_risk_statement_with_model_inventory_ref_round_trips_through_json() -> None:
+    """JSON round-trip preserves model_inventory_ref."""
+    inv_id = "aaaa1111-2222-3333-4444-555566667777"
+    original = RiskStatement(
+        **_minimal_kwargs(),
+        model_inventory_ref=inv_id,
+    )
+    dumped = original.model_dump(mode="json")
+    assert dumped["model_inventory_ref"] == inv_id
+    restored = RiskStatement.model_validate(dumped)
+    assert restored.model_inventory_ref == inv_id

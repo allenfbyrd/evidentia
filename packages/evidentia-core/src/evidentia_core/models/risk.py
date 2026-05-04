@@ -166,6 +166,21 @@ class RiskStatement(EvidentiaModel):
         default_factory=list,
         description="Framework control IDs this risk maps to",
     )
+    model_inventory_ref: str | None = Field(
+        default=None,
+        description=(
+            "v0.7.10+ SR 11-7 / SR 26-02 / OCC Bulletin 2011-12 / OCC "
+            "Bulletin 2026-13a model risk management linkage — UUID of "
+            "the `evidentia_core.models.model_risk.ModelInventory` "
+            "record describing the model that produced this risk "
+            "statement. Optional in v0.7.x to preserve deserialization "
+            "compat with pre-v0.7.10 RiskStatement payloads. Required "
+            "for any risk statement consumed by federally-regulated "
+            "model-risk-management programs (banks, insurers, "
+            "broker-dealers). Operators wire the linkage via "
+            "`RiskStatementGenerator(model_inventory_id=...)`."
+        ),
+    )
     tags: list[str] = Field(default_factory=list)
 
 
