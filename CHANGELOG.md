@@ -57,6 +57,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   honors operator overrides via `--next-validation-due`. 23 CLI
   integration tests covering every verb + atomic + YAML +
   validation contract.
+- **`docs/financial-sector-overlay.md` narrative composition**
+  (v0.7.10 P4). Ties the v0.7.9 TPRM + v0.7.10 Model Risk +
+  v0.7.10 Governance modules into one coherent financial-services
+  regulatory overlay story. Maps the regulatory stack (OCC + FRB
+  + FDIC + NCUA + FFIEC + Shared Assessments + IIA Three Lines
+  Model + SR 11-7 + SR 26-02) to Evidentia's capability surface,
+  walks an end-to-end 8-step example showing vendor + model +
+  3LOD + effective-challenge + AI-linkage + OSCAL emit composition
+  for a regional bank ML-driven credit-scoring deployment, and
+  positions Evidentia as the SR-replacement-grade audit-evidence
+  framework for the SR 26-02 / OCC 2026-13a GenAI-exclusion
+  regulator-vacuum gap.
 - **`docs/model-risk.md` comprehensive walkthrough** (v0.7.10
   P4). Full module-walk: regulatory rationale (SR 11-7 / SR 26-02
   / OCC 2011-12 / OCC 2026-13a + the GenAI-exclusion vacuum),
