@@ -67,7 +67,7 @@ def _add_minimal_model(
     # Extract ID from "(id: <uuid>)"
     import re
 
-    match = re.search(r"id: ([0-9a-f-]{36})", result.output)
+    match = re.search(r"id:\s+([0-9a-f-]{36})", result.output)
     assert match, f"Could not parse ID from: {result.output}"
     return match.group(1)
 
@@ -191,7 +191,7 @@ class TestModelAdd:
         assert result.exit_code == 0
         import re
 
-        mid = re.search(r"id: ([0-9a-f-]{36})", result.output).group(1)
+        mid = re.search(r"id:\s+([0-9a-f-]{36})", result.output).group(1)
         show = runner.invoke(
             app, ["model-risk", "model", "show", mid, "--json"]
         )

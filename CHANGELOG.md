@@ -57,6 +57,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   honors operator overrides via `--next-validation-due`. 23 CLI
   integration tests covering every verb + atomic + YAML +
   validation contract.
+- **`evidentia governance challenge` — Effective Challenge log**
+  (v0.7.10 P1.5 G2). New `EffectiveChallenge` Pydantic schema +
+  `ChallengeOutcome` enum (accepted/rejected/modify/pending) +
+  `evidentia_core.effective_challenge_store` JSON-file persistence
+  module mirroring the v0.7.10 P0.6.1 model_risk_store pattern.
+  Fields capture the SR 11-7 §III.D + SR 26-02 effective-challenge
+  documentation requirements: subject_model_id (cross-link to
+  ModelInventory.id), challenger_email + challenger_role
+  (substantiates independence), challenge_date, challenge_topic,
+  challenge_substance, optional response, outcome + rationale,
+  optional resolved_at. CLI: `evidentia governance challenge add`
+  (atomic per-field flags), `... list` (filter by
+  `--subject-model-id` / `--outcome` + `--json` bare-array mode),
+  `... show <id>` (formatted text + `--json` mode). Records
+  sorted newest-first by `challenge_date`. Atomic
+  `os.replace(tmp, out_path)` save semantics. `EVIDENTIA_CHALLENGE_STORE_DIR`
+  env-var override. UUID-shape ID validation rejects path-
+  traversal. 28 new tests covering enum coverage / schema
+  construction (minimal + with-outcome) / extra-fields rejection
+  / store-dir resolution precedence / save+load round-trip /
+  atomic-tmp cleanup / updated_at refresh / unknown-id None /
+  invalid-id-shape raise / list sort order / delete True/False/
+  invalid + 9 CLI verb tests.
 - **`evidentia governance lines-report` — Three Lines of Defense
   capability** (v0.7.10 P1.5 G1). New foundation module
   `evidentia_core.governance` ships `LineOfDefense` enum

@@ -22,6 +22,10 @@ metric schemas (P1.5 G3+).
 
 from __future__ import annotations
 
+from evidentia_core.governance.effective_challenge import (
+    ChallengeOutcome,
+    EffectiveChallenge,
+)
 from evidentia_core.governance.lines_of_defense import (
     LineOfDefense,
     Owner,
@@ -29,6 +33,8 @@ from evidentia_core.governance.lines_of_defense import (
 )
 
 __all__ = [
+    "ChallengeOutcome",
+    "EffectiveChallenge",
     "LineOfDefense",
     "Owner",
     "generate_lines_report",
