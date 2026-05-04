@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **v0.7.9 P0.4 Continuous-review HIGH findings** (5 inline-fixes
+  + 2 added tests). Surfaced by the first /pre-release-review
+  Continuous-variant pass on the v0.7.9 cycle, mid-flight after
+  the P0.4 quartet + P0.5 OSCAL TPRM emit + P0.2 second slice
+  landed.
+  - **H-1 stuck-cursor guard** in Vanta + Drata `_paginate`. If the
+    upstream API returns `hasNextPage: true` with the same
+    `endCursor`/`nextPageToken` twice consecutively, the loop now
+    breaks instead of running to the `max_vendors=2000` hard cap.
+  - **H-2 explicit-key payload-priority** in Drata + SecurityScorecard
+    pagination. The previous `data.get("data") or data.get("results")
+    or []` chain mis-handled a legitimate `{"data": []}` empty-page
+    response by falling through to other keys (because `[]` is
+    falsy). Switched to explicit `if "data" in data and isinstance(
+    data["data"], list)` precedence so an empty page is treated
+    as a real response.
+  - **H-3 monotonic-increase guard** in SecurityScorecard
+    `_paginate_portfolio`. When the API reports more pages but our
+    running output didn't grow this iteration, the loop stops
+    instead of relying solely on the hard cap.
+  - **H-5 column-write order** in `generate_from_byo_template` for
+    SIG / SIG-Lite. Real-world Shared Assessments templates often
+    put instruction text in column B and intend column C as the
+    vendor response cell. The function now prefers column C when
+    present + empty, falling back to column B only when C is
+    absent or already populated.
+  - **F-V09-S1 BitSight scheme guard (CWE-319)**. The cross-host
+    pagination guard previously checked `parsed.netloc` but not
+    `parsed.scheme`. A malicious upstream `next` URL of
+    `http://api.bitsighttech.com/...` (HTTPS→HTTP downgrade) would
+    have caused httpx to send the configured `Authorization: Basic
+    <base64(token:)>` header over cleartext HTTP. The guard now
+    refuses scheme downgrades alongside cross-host URLs.
+  - **H-4 test gap closures**: new tests for (a)
+    `parse_completed_questionnaire` JSON path with `vendor_id=None`
+    in the prefill block (CLI surfaces a clear correlation error),
+    (b) SIG BYO partial-label-match case (function silently skips
+    non-matching rows instead of failing the whole operation).
+
+### Changed
+
+- **Dockerfile python base 3.12-slim → 3.14-slim** (PR #14, commit
+  `5ff87ff`; Dependabot docker-group bump). Container-build CI
+  validates new base post-bump.
+
+### Docs
+
+- **GOVERNANCE.md**, **CONTRIBUTING.md** coding-standards paragraph
+  + stale-string fix, **SECURITY.md** Supported Versions table
+  refresh (v0.7.2→v0.7.8), and **docs/openssf-best-practices-badge.md**
+  — OpenSSF Silver-tier preparatory work (commit `6f862eb`).
+- **README.md** OpenSSF Best Practices badge embed for project 12724
+  (commit `77382f3`).
+- **docs/v0.7.9-plan.md** carry-over section: rolled v0.7.8
+  Step 5.A 11 deferred findings into v0.7.9 scope; dropped the
+  now-shipped container-build trap note (commit `9b92e1e`).
+
+### CI
+
+- **container-build PyPI-propagation race fix**: added a Wait-for-
+  PyPI step that polls the registry for the just-published wheel
+  before kicking off the container build smoke test, plus dropped
+  the fragile head-commit skip guard. Closes the v0.7.5-era trap
+  that re-fired during v0.7.8 ship (commit `cd03675`).
+
 ### Added
 
 - **TPRM DD-questionnaire P0.2 second slice** (v0.7.9 — completes

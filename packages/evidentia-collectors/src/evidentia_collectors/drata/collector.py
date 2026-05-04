@@ -295,17 +295,19 @@ class DrataCollector:
             if cursor:
                 page_params["pageToken"] = cursor
             data = self._get(path, **page_params)
-            results = (
-                data.get("data")
-                or data.get("results")
-                or data.get("vendors")
-                or []
-            )
-            if not isinstance(results, list):
-                raise DrataQueryError(
-                    f"Drata API: expected list payload on GET {path}; "
-                    f"got {type(results).__name__}"
-                )
+            # v0.7.9 P0.4 Continuous H-2: explicit-key priority order
+            # rather than `or`-fall-through. Falsy `[]` (legitimate
+            # empty page) shouldn't fall through to alternative keys
+            # — it's a real response shape that means "no results
+            # this page".
+            if "data" in data and isinstance(data["data"], list):
+                results = data["data"]
+            elif "results" in data and isinstance(data["results"], list):
+                results = data["results"]
+            elif "vendors" in data and isinstance(data["vendors"], list):
+                results = data["vendors"]
+            else:
+                results = []
             out.extend(r for r in results if isinstance(r, dict))
             if len(out) >= self._max_vendors:
                 out = out[: self._max_vendors]
@@ -329,6 +331,11 @@ class DrataCollector:
                         or page_info.get("end_cursor")
                     )
             if not next_cursor or not isinstance(next_cursor, str):
+                break
+            if cursor is not None and next_cursor == cursor:
+                # Stuck-cursor guard (v0.7.9 P0.4 Continuous H-1):
+                # same cursor twice → stop instead of looping to
+                # max_vendors.
                 break
             cursor = next_cursor
         return out

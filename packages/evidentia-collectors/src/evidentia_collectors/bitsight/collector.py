@@ -323,6 +323,18 @@ class BitSightCollector:
             if parsed.netloc and parsed.netloc != base_parsed.netloc:
                 # Defensive: don't follow cross-host pagination links
                 break
+            # v0.7.9 P0.4 Continuous F-V09-S1 (CWE-319): also refuse
+            # scheme-downgrade. A malicious upstream returning an
+            # http://api.bitsighttech.com/... `next` URL would
+            # otherwise leak the Authorization: Basic header over
+            # cleartext HTTP. Keep us on the same scheme as the
+            # configured base_url.
+            if (
+                parsed.scheme
+                and base_parsed.scheme
+                and parsed.scheme != base_parsed.scheme
+            ):
+                break
             next_url = (
                 raw_next
                 if parsed.netloc

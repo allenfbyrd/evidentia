@@ -481,8 +481,8 @@ plus a React/Vite frontend workspace:
 | ---------------------------- | --------------------------------------------------------------------------- |
 | `evidentia-core`         | Pydantic data models, OSCAL catalog loader, crosswalk engine, gap analyzer  |
 | `evidentia-ai`           | LiteLLM + Instructor client, risk statement generator, control explainer  |
-| `evidentia-collectors`   | Evidence collection agents — AWS (Config + Security Hub), GitHub (branch protection + CODEOWNERS) |
-| `evidentia-integrations` | Jira push + bidirectional status sync; ServiceNow / Vanta / Drata queued    |
+| `evidentia-collectors`   | Evidence collection agents — AWS (Config + Security Hub), GitHub (branch protection + CODEOWNERS), Okta (SSO + MFA), Databricks (Unity Catalog + clusters), Snowflake (LOGIN_HISTORY + grants + masking), 5 SQL adapters (Postgres / MySQL / SQLite / MSSQL / Oracle), 4 vendor-risk APIs (Vanta / Drata / BitSight / SecurityScorecard) |
+| `evidentia-integrations` | Jira push + bidirectional status sync, ServiceNow ticket sync, Tableau + Power BI publish |
 | `evidentia-api`          | FastAPI server (26 REST routes across 12 router modules) that bundles the React SPA for `evidentia serve` |
 | `evidentia`              | CLI meta-package: Typer/Rich entry points (`evidentia` + `cb` alias)        |
 | `evidentia-ui` *(non-Python)* | Vite + React 18 + shadcn/ui frontend; built bundle is copied into `evidentia-api` at wheel time |

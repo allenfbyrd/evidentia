@@ -300,18 +300,25 @@ class SecurityScorecardCollector:
         """Walk the portfolio companies endpoint via page+per_page."""
         out: list[dict[str, Any]] = []
         page = 1
+        prev_count = 0
         while True:
             data = self._get(
                 f"/portfolios/{portfolio_id}/companies",
                 page=page,
                 per_page=DEFAULT_PAGE_SIZE,
             )
-            entries = data.get("entries", []) or data.get("companies", [])
-            if not isinstance(entries, list):
+            # v0.7.9 P0.4 Continuous H-2: explicit-key priority order
+            # rather than `or`-fall-through. Falsy `[]` (legitimate
+            # empty page) shouldn't fall through to alternative keys.
+            if "entries" in data and isinstance(data["entries"], list):
+                entries: list[Any] = data["entries"]
+            elif "companies" in data and isinstance(data["companies"], list):
+                entries = data["companies"]
+            else:
                 raise SecurityScorecardQueryError(
                     f"SecurityScorecard /portfolios/{portfolio_id}/"
-                    f"companies: expected `entries` to be a list; "
-                    f"got {type(entries).__name__}"
+                    f"companies: expected `entries` or `companies` "
+                    f"to be a list; neither was present or non-list."
                 )
             out.extend(e for e in entries if isinstance(e, dict))
             if len(out) >= self._max_companies:
@@ -327,6 +334,12 @@ class SecurityScorecardCollector:
             # to avoid infinite loop on malformed metadata.
             if not entries:
                 break
+            # v0.7.9 P0.4 Continuous H-3: monotonic-increase guard.
+            # If the API reports more pages but our running output
+            # didn't grow this iteration, something's stuck — stop.
+            if len(out) <= prev_count:
+                break
+            prev_count = len(out)
             page += 1
         return out
 

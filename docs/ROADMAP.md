@@ -335,7 +335,7 @@ Dockerfile-touching releases catch this class of bug pre-tag.
 All v0.7.3 PyPI artifacts (wheels, SBOM, attestations) carry
 forward unchanged. See `CHANGELOG.md` `[0.7.4]` block.
 
-## v0.7.5 — Container publish + critical security batch + quick-win polish — NEXT
+## v0.7.5 — Container publish + critical security batch + quick-win polish — SHIPPED
 
 See [`docs/v0.7.5-plan.md`](v0.7.5-plan.md). Renumbered from
 v0.7.4-plan at v0.7.4 hot-fix ship time; **augmented 2026-04-29
@@ -351,7 +351,7 @@ Original P0 (container publish + cosign + SLSA) and P1 (R1
 quarterly resync, R2 oscal verify UX) carry forward unchanged.
 ~5-7 week ship target.
 
-## v0.7.6 — UI alpha.2 + benchmark design + quickstart polish — PLANNED
+## v0.7.6 — UI alpha.2 + benchmark design + quickstart polish — SHIPPED
 
 See [`docs/v0.7.6-plan.md`](v0.7.6-plan.md). Closes the alpha.2
 UI completion gap that's been outstanding since v0.4.0 (Gap Analyze
@@ -362,7 +362,7 @@ measurement run (`docs/benchmarks.md` v1), publishes
 `docs/quickstart.md` (90-second flow), and runs a `/security-review`
 deep-pass threat-model walk. ~4-5 week ship target.
 
-## v0.7.7 — SQL family evidence collectors — PLANNED
+## v0.7.7 — SQL family evidence collectors — SHIPPED (+ v0.7.7.1 same-day Dockerfile-pin hot-fix)
 
 See [`docs/v0.7.7-plan.md`](v0.7.7-plan.md). First substantive
 new-collector release since v0.5.0. Adds 5 SQL-family adapters as

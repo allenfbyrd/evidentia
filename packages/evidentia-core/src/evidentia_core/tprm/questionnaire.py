@@ -734,13 +734,18 @@ def generate_from_byo_template(
         target = label_to_value.get(a_value)
         if target is None:
             continue
-        # Try column B first (standard layout)
-        if len(row) > 1 and row[1].value in (None, ""):
-            row[1].value = target
-            pre_filled_count += 1
-        # Some templates use column C for vendor response
-        elif len(row) > 2 and row[2].value in (None, ""):
+        # v0.7.9 P0.4 Continuous H-5: real-world Shared Assessments
+        # SIG / SIG-Lite templates frequently put instruction text in
+        # column B and intend column C as the vendor response cell.
+        # If column C exists and is empty, prefer it. Only fall back
+        # to column B when column C is absent or already populated.
+        # This produces correct SIG-layout results far more often than
+        # the previous always-prefer-B order.
+        if len(row) > 2 and row[2].value in (None, ""):
             row[2].value = target
+            pre_filled_count += 1
+        elif len(row) > 1 and row[1].value in (None, ""):
+            row[1].value = target
             pre_filled_count += 1
 
     if pre_filled_count == 0:

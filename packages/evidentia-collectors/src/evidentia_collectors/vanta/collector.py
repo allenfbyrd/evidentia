@@ -357,6 +357,12 @@ class VantaCollector:
             if not next_cursor or not isinstance(next_cursor, str):
                 # No usable cursor → stop. Safer than infinite loop.
                 break
+            if cursor is not None and next_cursor == cursor:
+                # Stuck-cursor guard (v0.7.9 P0.4 Continuous H-1):
+                # if the API returns the SAME endCursor twice in a
+                # row with hasNextPage=true, we'd otherwise loop
+                # until max_vendors. Break instead.
+                break
             cursor = next_cursor
         return out
 

@@ -578,6 +578,48 @@ class TestParseCompletedQuestionnaire:
         with pytest.raises(FileNotFoundError):
             parse_completed_questionnaire(tmp_path / "ghost.json")
 
+    def test_parses_json_without_vendor_id_returns_none(
+        self, tmp_path: Path
+    ) -> None:
+        """v0.7.9 P0.4 Continuous H-4: a questionnaire JSON whose
+        prefill block carries no vendor_id (operator-edited file or
+        vendor stripped the metadata) parses cleanly with
+        vendor_id=None. Caller is responsible for surfacing a
+        clear error if correlation isn't supplied via the CLI's
+        --vendor-id override."""
+        from evidentia_core.tprm.questionnaire import (
+            parse_completed_questionnaire,
+        )
+
+        # Construct a minimal JSON questionnaire with empty vendor block
+        json_path = tmp_path / "no-vendor-id.json"
+        import json as _json
+
+        json_path.write_text(
+            _json.dumps(
+                {
+                    "id": "00000000-0000-0000-0000-000000000001",
+                    "format": "evidentia-generic",
+                    "questions": [
+                        {
+                            "id": "EVG-GOV-01",
+                            "domain": "Governance",
+                            "question_text": "?",
+                            "vendor_response": "Yes",
+                        }
+                    ],
+                    "vendor": {},  # empty — no vendor_id field
+                }
+            ),
+            encoding="utf-8",
+        )
+        completed = parse_completed_questionnaire(json_path)
+        assert completed.questionnaire_id == (
+            "00000000-0000-0000-0000-000000000001"
+        )
+        assert completed.vendor_id is None
+        assert completed.responses == {"EVG-GOV-01": "Yes"}
+
 
 # ── v0.7.9 P0.2 second slice: SIG BYO template ─────────────────────
 
@@ -670,7 +712,7 @@ class TestGenerateFromByoTemplate:
             )
 
     def test_byo_sig_errors_on_unrecognized_layout(
-        self, tmp_path: Any  # type: ignore[name-defined]
+        self, tmp_path: Path
     ) -> None:
         import openpyxl
         from evidentia_core.tprm.questionnaire import (
@@ -691,3 +733,55 @@ class TestGenerateFromByoTemplate:
             generate_from_byo_template(
                 v, template_path=path, fmt=QuestionnaireFormat.SIG
             )
+
+    def test_byo_sig_partial_label_match_succeeds(
+        self, tmp_path: Path
+    ) -> None:
+        """v0.7.9 P0.4 Continuous H-4: a SIG template where SOME
+        vendor-metadata labels match Evidentia's recognizer + others
+        don't. The function should silently skip the non-matching
+        rows and pre-fill the matching ones, NOT fail the whole
+        operation."""
+        import io
+
+        import openpyxl
+        from evidentia_core.tprm.questionnaire import (
+            generate_from_byo_template,
+        )
+
+        # Mix of recognized + unrecognized labels. Note the layout:
+        # column A label, column B empty, column C empty (3-column
+        # rows so the H-5 prefer-C ordering applies; matched values
+        # land in column C).
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Vendor Information"
+        ws.append(["Label", "Instructions", "Response"])
+        ws.append(["Some Custom Field", "instructions", ""])  # unmatched
+        ws.append(["Company Name", "fill in legal name", ""])  # matched
+        ws.append(["Internal SIG Q-99", "internal", ""])  # unmatched
+        ws.append(["Vendor Type", "saas/iaas/etc", ""])  # matched
+        path = tmp_path / "partial.xlsx"
+        wb.save(str(path))
+
+        v = _make_vendor(name="PartialMatch Co", type_=VendorType.SAAS)
+        out = generate_from_byo_template(
+            v, template_path=path, fmt=QuestionnaireFormat.SIG
+        )
+        # Should NOT raise; matching rows pre-filled, others left empty
+        assert isinstance(out, bytes)
+        wb_out = openpyxl.load_workbook(filename=io.BytesIO(out))
+        ws_out = wb_out["Vendor Information"]
+        rows = list(ws_out.iter_rows(values_only=True))
+        # Build label→C-cell map for matched-rows assertion (H-5
+        # prefers column C when present + empty)
+        # row format: (label, instructions, response)
+        for label, _instructions, response in rows[1:]:
+            if label == "Company Name":
+                assert response == "PartialMatch Co"
+            if label == "Vendor Type":
+                assert response == "saas"
+            if label == "Some Custom Field":
+                assert response in (None, "")
+            if label == "Internal SIG Q-99":
+                assert response in (None, "")
