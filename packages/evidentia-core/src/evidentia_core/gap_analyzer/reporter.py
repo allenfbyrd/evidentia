@@ -21,6 +21,7 @@ from evidentia_core.models.gap import GapAnalysisReport
 
 if TYPE_CHECKING:
     from evidentia_core.models.finding import SecurityFinding
+    from evidentia_core.models.tprm import Vendor
 
 OutputFormat = Literal["json", "csv", "markdown", "oscal-ar"]
 
@@ -31,6 +32,7 @@ def export_report(
     format: OutputFormat = "json",
     *,
     findings: list[SecurityFinding] | None = None,
+    vendor_inventory: list[Vendor] | None = None,
     gpg_key_id: str | None = None,
     gnupghome: str | Path | None = None,
     sign_with_sigstore: bool = False,
@@ -85,6 +87,7 @@ def export_report(
             report,
             path,
             findings=findings,
+            vendor_inventory=vendor_inventory,
             gpg_key_id=gpg_key_id,
             gnupghome=gnupghome,
             sign_with_sigstore=sign_with_sigstore,
@@ -209,6 +212,7 @@ def _export_oscal_ar(
     path: Path,
     *,
     findings: list[SecurityFinding] | None = None,
+    vendor_inventory: list[Vendor] | None = None,
     gpg_key_id: str | None = None,
     gnupghome: str | Path | None = None,
     sign_with_sigstore: bool = False,
@@ -225,10 +229,18 @@ def _export_oscal_ar(
     written to ``<path>.asc``. When ``sign_with_sigstore=True``, a
     Sigstore bundle is also written to ``<path>.sigstore.json``. GPG
     and Sigstore are independent — both can coexist for defence-in-depth.
+
+    v0.7.9 P0.5: when ``vendor_inventory`` is provided, each vendor is
+    added to ``metadata.parties[]`` (standard OSCAL discovery) and
+    ``back-matter.resources[]`` (tamper-evident record). Same integrity
+    model as findings: tampering with a vendor record changes its hash
+    and fails :func:`evidentia_core.oscal.verify.verify_ar_file`.
     """
     from evidentia_core.oscal.exporter import gap_report_to_oscal_ar
 
-    oscal_ar = gap_report_to_oscal_ar(report, findings=findings)
+    oscal_ar = gap_report_to_oscal_ar(
+        report, findings=findings, vendor_inventory=vendor_inventory
+    )
     path.write_text(json.dumps(oscal_ar, indent=2, default=str), encoding="utf-8")
 
     if gpg_key_id:

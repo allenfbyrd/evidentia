@@ -93,6 +93,22 @@ def analyze(
             "collect aws --output ...` or `evidentia collect github ...`."
         ),
     ),
+    vendor_inventory: Path | None = typer.Option(
+        None,
+        "--vendor-inventory",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help=(
+            "Optional TPRM vendor inventory JSON (v0.7.9 P0.5). When "
+            "supplied with --format oscal-ar, each vendor is added to "
+            "the AR's metadata.parties[] (standard OSCAL discovery) "
+            "AND back-matter.resources[] (tamper-evident vendor "
+            "record with SHA-256 hash). Produce with `evidentia tprm "
+            "vendor list --json > vendors.json`."
+        ),
+    ),
     sign_with_gpg: str | None = typer.Option(
         None,
         "--sign-with-gpg",
@@ -252,6 +268,35 @@ def analyze(
                 f"{findings} for AR evidence embedding.[/dim]"
             )
 
+    # v0.7.9 P0.5: load optional TPRM vendor inventory for OSCAL AR
+    # vendor-inventory back-matter embedding.
+    vendor_list: list[Any] | None = None
+    if vendor_inventory is not None:
+        if format != "oscal-ar":
+            console.print(
+                "[yellow]Note:[/yellow] --vendor-inventory is only "
+                "used by --format oscal-ar. Ignoring for format=[bold]"
+                f"{format}[/bold]."
+            )
+        else:
+            from evidentia_core.models.tprm import Vendor
+
+            raw_vendors = json.loads(
+                vendor_inventory.read_text(encoding="utf-8")
+            )
+            if not isinstance(raw_vendors, list):
+                console.print(
+                    "[red]Error:[/red] --vendor-inventory file must "
+                    "be a JSON array of Vendor objects (as produced "
+                    "by `evidentia tprm vendor list --json`)."
+                )
+                raise typer.Exit(code=1)
+            vendor_list = [Vendor.model_validate(item) for item in raw_vendors]
+            console.print(
+                f"[dim]Loaded {len(vendor_list)} vendor(s) from "
+                f"{vendor_inventory} for AR back-matter embedding.[/dim]"
+            )
+
     if sign_with_gpg and format != "oscal-ar":
         console.print(
             "[yellow]Note:[/yellow] --sign-with-gpg only applies to "
@@ -274,6 +319,7 @@ def analyze(
         output,
         format=format,  # type: ignore[arg-type]
         findings=findings_list,
+        vendor_inventory=vendor_list,
         gpg_key_id=sign_with_gpg,
         sign_with_sigstore=sign_with_sigstore,
         sigstore_bundle_path=sigstore_bundle,

@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **OSCAL TPRM vendor-inventory emit** (v0.7.9 P0.5). Extends
+  `evidentia_core.oscal.exporter.gap_report_to_oscal_ar` (and
+  the `evidentia_core.gap_analyzer.export_report` driver) with
+  a new optional `vendor_inventory: list[Vendor] | None`
+  parameter. When supplied, each TPRM vendor lands in TWO
+  surfaces of the OSCAL Assessment Results document:
+  (1) `metadata.parties[]` as a `type=organization` party
+  (standard OSCAL discovery surface — trestle-conformant tools
+  can navigate vendors via the OSCAL party model) carrying
+  Evidentia-namespaced props for criticality_tier /
+  regulatory_classification / contract_start_date /
+  contract_end_date / next_review_due / region /
+  residual_risk_score / fourth_party_count / vendor_type;
+  (2) `back-matter.resources[]` as a tamper-evident vendor
+  record with canonical-JSON `base64.value` + SHA-256
+  `rlinks[].hashes[]` (same integrity model as the v0.7.0
+  finding-resource embedding — vendor-record tampering is
+  detected by the existing
+  `evidentia_core.oscal.verify.verify_ar_file` chain). The
+  vendor's party UUID and back-matter resource UUID both equal
+  `Vendor.id` so cross-references resolve. New `--vendor-inventory
+  <path>` CLI flag on `evidentia gap analyze --format oscal-ar`
+  accepting a JSON-array file (as produced by `evidentia tprm
+  vendor list --json`). Top-level `metadata.props` gains an
+  Evidentia-namespaced `vendor-inventory-count` property for
+  quick auditor discovery. Closes the v0.7.9 P0 TPRM module
+  loop: vendors flow from inventory → DD-questionnaire →
+  concentration-report → vendor-risk-collector findings →
+  OSCAL AR artifact, all in a single Sigstore-signable
+  evidence bundle. Audit trail satisfies OCC Bulletin 2013-29
+  + FRB SR 13-19 + FFIEC IT Examination Handbook Outsourcing
+  booklet inventory expectations. 9 new unit tests covering
+  parties+back-matter dual-encoding, UUID consistency, prop
+  population, integrity-hash determinism, canonical-JSON
+  round-trip, vendor-count metadata, no-vendor-no-noise, and
+  vendor+finding coexistence.
 - **SecurityScorecard portfolio collector** (v0.7.9 P0.4 fourth
   slice — completes the v0.7.9 P0.4 vendor-risk-collector quartet).
   New `evidentia collect securityscorecard [--portfolio-id <id>]`

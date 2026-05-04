@@ -34,6 +34,7 @@ from evidentia_core.oscal.digest import digest_bytes, format_digest
 
 if TYPE_CHECKING:
     from evidentia_core.models.finding import SecurityFinding
+    from evidentia_core.models.tprm import Vendor
 
 
 # v0.7.0 namespace for Evidentia-specific OSCAL prop extensions. Downstream
@@ -47,17 +48,19 @@ def gap_report_to_oscal_ar(
     *,
     findings: list[SecurityFinding] | None = None,
     blind_spots: list[dict[str, str]] | None = None,
+    vendor_inventory: list[Vendor] | None = None,
 ) -> dict[str, Any]:
     """Convert a Evidentia gap report to an OSCAL Assessment Results dict.
 
     Produces a minimal but valid OSCAL assessment-results structure with:
 
-    - metadata (title, version, last-modified, parties)
+    - metadata (title, version, last-modified, parties — v0.7.9: vendors
+      from the TPRM inventory land here as ``type=organization`` parties)
     - results (one result containing findings, observations)
     - findings (one per gap, with severity and remediation)
     - back-matter.resources (v0.7.0: one per :class:`SecurityFinding` with
-      SHA-256 digest; only emitted when ``findings`` or ``blind_spots`` is
-      non-empty)
+      SHA-256 digest; v0.7.9: one per :class:`Vendor` with vendor metadata
+      props + SHA-256 digest of the canonical vendor record)
 
     Parameters
     ----------
@@ -78,6 +81,29 @@ def gap_report_to_oscal_ar(
         see the explicit limits of automated coverage inline alongside
         the AR. Auditor expectation: every collector documents what it
         does NOT cover, surfaced in the same artifact as the findings.
+    vendor_inventory:
+        Optional TPRM vendor inventory list (v0.7.9 P0.5). When provided:
+
+        - Each :class:`evidentia_core.models.tprm.Vendor` is added to
+          ``metadata.parties[]`` as ``type=organization`` with vendor
+          metadata as Evidentia-namespaced props (criticality_tier,
+          regulatory_classification, contract dates, next_review_due,
+          residual_risk_score). Standard OSCAL party-discovery surface
+          for trestle-conformance.
+        - Each Vendor is ALSO added to ``back-matter.resources[]`` as a
+          tamper-evident resource: canonical JSON in ``base64.value``,
+          SHA-256 in ``rlinks[].hashes[]``. Same integrity model as
+          the v0.7.0 finding-resource embedding, so vendor-record
+          tampering is detected by the existing
+          :func:`evidentia_core.oscal.verify.verify_ar_file` chain.
+        - The vendor's party UUID and back-matter resource UUID both
+          equal :attr:`Vendor.id` so cross-references resolve.
+
+        OCC Bulletin 2013-29 + FRB SR 13-19 + FFIEC IT Examination
+        Handbook Outsourcing booklet auditors expect a
+        comprehensive third-party inventory in the assessment artifact.
+        OSCAL AR + vendor-inventory back-matter satisfies that
+        expectation in a tool-portable, integrity-protected format.
 
     The output is a Python dict ready to be serialized as OSCAL JSON.
     """
@@ -105,6 +131,18 @@ def gap_report_to_oscal_ar(
         for bs in blind_spots:
             back_matter_resources.append(_blind_spot_to_oscal_resource(bs))
 
+    # v0.7.9 P0.5: TPRM vendor inventory. Vendors land in BOTH
+    # metadata.parties[] (standard OSCAL discovery surface) AND
+    # back-matter.resources[] (Evidentia-style tamper-evident records).
+    # The dual encoding lets trestle-conformant tools navigate vendors
+    # via parties while operators get the integrity guarantees from the
+    # back-matter resource hash.
+    vendor_parties: list[dict[str, Any]] = []
+    if vendor_inventory:
+        for vendor in vendor_inventory:
+            back_matter_resources.append(_vendor_to_oscal_resource(vendor))
+            vendor_parties.append(_vendor_to_oscal_party(vendor))
+
     findings_output = [_gap_to_finding(gap) for gap in report.gaps]
     observations = [_gap_to_observation(gap, resource_by_control) for gap in report.gaps]
 
@@ -121,7 +159,8 @@ def gap_report_to_oscal_ar(
                         "uuid": str(uuid4()),
                         "type": "organization",
                         "name": report.organization,
-                    }
+                    },
+                    *vendor_parties,
                 ],
                 "props": [
                     {
@@ -136,6 +175,18 @@ def gap_report_to_oscal_ar(
                         "name": "total-gaps",
                         "value": str(report.total_gaps),
                     },
+                    *(
+                        [
+                            {
+                                "name": "vendor-inventory-count",
+                                "ns": EVIDENTIA_OSCAL_NS,
+                                "value": str(len(vendor_inventory)),
+                                "class": "tprm",
+                            }
+                        ]
+                        if vendor_inventory
+                        else []
+                    ),
                 ],
             },
             "import-ap": {
@@ -364,6 +415,219 @@ def _gap_to_observation(
             ]
 
     return observation
+
+
+def _vendor_canonical_json(vendor: Vendor) -> bytes:
+    """Serialize a Vendor to deterministic canonical JSON bytes.
+
+    Identical pattern to :func:`_finding_canonical_json` — same
+    sort_keys + separators. Verifier reuses this so both sides of
+    the hash agree bit-for-bit.
+    """
+    payload = vendor.model_dump(mode="json")
+    return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _vendor_to_oscal_party(vendor: Vendor) -> dict[str, Any]:
+    """Convert a TPRM Vendor to an OSCAL ``metadata.parties[]`` entry.
+
+    Surface goal: standard OSCAL discovery — auditors using trestle or
+    other OSCAL tooling can list vendors via the ``parties[]`` field
+    without needing to know about Evidentia's back-matter integrity model.
+
+    The party type is always ``organization`` (vendors are organizational
+    entities, not individuals). Vendor metadata lands in
+    Evidentia-namespaced props so trestle-conformant tools ignore them
+    while Evidentia-aware tooling consumes them.
+    """
+    props: list[dict[str, Any]] = [
+        {
+            "name": "vendor-id",
+            "ns": EVIDENTIA_OSCAL_NS,
+            "value": vendor.id,
+            "class": "tprm",
+        },
+        {
+            "name": "vendor-type",
+            "ns": EVIDENTIA_OSCAL_NS,
+            "value": (
+                vendor.type.value
+                if hasattr(vendor.type, "value")
+                else str(vendor.type)
+            ),
+            "class": "tprm",
+        },
+        {
+            "name": "criticality-tier",
+            "ns": EVIDENTIA_OSCAL_NS,
+            "value": (
+                vendor.criticality_tier.value
+                if hasattr(vendor.criticality_tier, "value")
+                else str(vendor.criticality_tier)
+            ),
+            "class": "tprm",
+        },
+        {
+            "name": "relationship-owner",
+            "ns": EVIDENTIA_OSCAL_NS,
+            "value": vendor.relationship_owner,
+            "class": "tprm",
+        },
+        {
+            "name": "contract-start-date",
+            "ns": EVIDENTIA_OSCAL_NS,
+            "value": vendor.contract_start_date.isoformat(),
+            "class": "tprm",
+        },
+    ]
+    # Optional fields surfaced as props only when present, so the AR
+    # diff stays minimal when fields are unset.
+    if vendor.contract_end_date is not None:
+        props.append(
+            {
+                "name": "contract-end-date",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": vendor.contract_end_date.isoformat(),
+                "class": "tprm",
+            }
+        )
+    if vendor.last_due_diligence_review is not None:
+        props.append(
+            {
+                "name": "last-due-diligence-review",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": vendor.last_due_diligence_review.isoformat(),
+                "class": "tprm",
+            }
+        )
+    if vendor.next_review_due is not None:
+        props.append(
+            {
+                "name": "next-review-due",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": vendor.next_review_due.isoformat(),
+                "class": "tprm",
+            }
+        )
+    if vendor.region is not None:
+        props.append(
+            {
+                "name": "region",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": vendor.region,
+                "class": "tprm",
+            }
+        )
+    if vendor.regulatory_classification:
+        props.append(
+            {
+                "name": "regulatory-classification",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": ", ".join(
+                    rc.value if hasattr(rc, "value") else str(rc)
+                    for rc in vendor.regulatory_classification
+                ),
+                "class": "tprm",
+            }
+        )
+    if vendor.residual_risk_score is not None:
+        props.append(
+            {
+                "name": "residual-risk-score",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": str(vendor.residual_risk_score),
+                "class": "tprm",
+            }
+        )
+    if vendor.fourth_parties:
+        props.append(
+            {
+                "name": "fourth-party-count",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": str(len(vendor.fourth_parties)),
+                "class": "tprm",
+            }
+        )
+    return {
+        "uuid": vendor.id,
+        "type": "organization",
+        "name": vendor.name,
+        "props": props,
+    }
+
+
+def _vendor_to_oscal_resource(vendor: Vendor) -> dict[str, Any]:
+    """Convert a TPRM Vendor to an OSCAL ``back-matter.resources[]`` entry.
+
+    Same integrity model as :func:`_finding_to_oscal_resource`:
+
+    - ``base64.value`` — canonical JSON of the vendor record
+    - ``rlinks[].hashes[]`` — SHA-256 of the canonical JSON
+    - ``props[]`` — Evidentia-namespaced metadata so downstream filters
+      can triage without decoding
+
+    The resource UUID equals :attr:`Vendor.id` so it matches the
+    party UUID emitted by :func:`_vendor_to_oscal_party`. Cross-references
+    via ``href: "#<vendor-id>"`` resolve consistently.
+    """
+    canonical = _vendor_canonical_json(vendor)
+    hex_digest = digest_bytes(canonical)
+    criticality_value = (
+        vendor.criticality_tier.value
+        if hasattr(vendor.criticality_tier, "value")
+        else str(vendor.criticality_tier)
+    )
+    type_value = (
+        vendor.type.value
+        if hasattr(vendor.type, "value")
+        else str(vendor.type)
+    )
+    return {
+        "uuid": vendor.id,
+        "title": vendor.name,
+        "description": vendor.notes
+        or (
+            f"TPRM vendor record for {vendor.name} "
+            f"(criticality: {criticality_value}, type: {type_value})"
+        ),
+        "props": [
+            {
+                "name": "vendor-id",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": vendor.id,
+                "class": "tprm",
+            },
+            {
+                "name": "criticality-tier",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": criticality_value,
+                "class": "tprm",
+            },
+            {
+                "name": "evidence-digest",
+                "ns": EVIDENTIA_OSCAL_NS,
+                "value": format_digest(hex_digest),
+                "class": "integrity",
+            },
+        ],
+        "rlinks": [
+            {
+                "href": f"#{vendor.id}",
+                "media-type": "application/json",
+                "hashes": [
+                    {
+                        "algorithm": "SHA-256",
+                        "value": hex_digest,
+                    }
+                ],
+            }
+        ],
+        "base64": {
+            "filename": f"vendor-{vendor.id}.json",
+            "media-type": "application/json",
+            "value": base64.b64encode(canonical).decode("ascii"),
+        },
+    }
 
 
 def _now_iso() -> str:

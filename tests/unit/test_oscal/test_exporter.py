@@ -259,3 +259,233 @@ def test_finding_with_no_matching_control_still_lands_in_back_matter() -> None:
     observations = out["assessment-results"]["results"][0]["observations"]
     for obs in observations:
         assert "relevant-evidence" not in obs
+
+
+# ─── v0.7.9 P0.5: TPRM vendor-inventory back-matter embedding ──────────
+#
+# Covers the new ``vendor_inventory=`` kwarg. Each Vendor lands in
+# metadata.parties[] (standard OSCAL discovery) AND back-matter.resources[]
+# (tamper-evident record). UUIDs match across surfaces.
+
+from datetime import date  # noqa: E402
+
+from evidentia_core.models.tprm import (  # noqa: E402
+    CriticalityTier,
+    RegulatoryClassification,
+    Vendor,
+    VendorType,
+)
+
+
+def _make_vendor(
+    name: str = "Acme SaaS Co",
+    *,
+    criticality_tier: CriticalityTier = CriticalityTier.HIGH,
+    vendor_id: str | None = None,
+) -> Vendor:
+    kwargs: dict = {
+        "name": name,
+        "type": VendorType.SAAS,
+        "criticality_tier": criticality_tier,
+        "relationship_owner": "owner@example.com",
+        "contract_start_date": date(2025, 1, 1),
+        "contract_end_date": date(2026, 1, 1),
+        "regulatory_classification": [
+            RegulatoryClassification.DATA_PROCESSOR,
+        ],
+        "residual_risk_score": 12,
+        "region": "us-east-1",
+    }
+    if vendor_id is not None:
+        kwargs["id"] = vendor_id
+    return Vendor(**kwargs)
+
+
+def test_vendor_inventory_lands_in_parties_and_back_matter() -> None:
+    """Each vendor must appear in BOTH metadata.parties[] (discovery)
+    AND back-matter.resources[] (integrity)."""
+    vendor = _make_vendor()
+    out = gap_report_to_oscal_ar(
+        _make_report(), vendor_inventory=[vendor]
+    )
+
+    parties = out["assessment-results"]["metadata"]["parties"]
+    # 1 organization (the report org) + 1 vendor party
+    vendor_parties = [p for p in parties if p["name"] == "Acme SaaS Co"]
+    assert len(vendor_parties) == 1
+
+    resources = out["assessment-results"]["back-matter"]["resources"]
+    vendor_resources = [r for r in resources if r["title"] == "Acme SaaS Co"]
+    assert len(vendor_resources) == 1
+
+
+def test_vendor_party_uuid_matches_resource_uuid() -> None:
+    """Cross-reference resolution requires matching UUIDs across surfaces."""
+    vendor = _make_vendor()
+    out = gap_report_to_oscal_ar(
+        _make_report(), vendor_inventory=[vendor]
+    )
+
+    parties = out["assessment-results"]["metadata"]["parties"]
+    vendor_party = next(p for p in parties if p["name"] == "Acme SaaS Co")
+    resources = out["assessment-results"]["back-matter"]["resources"]
+    vendor_resource = next(
+        r for r in resources if r["title"] == "Acme SaaS Co"
+    )
+
+    assert vendor_party["uuid"] == vendor_resource["uuid"]
+    assert vendor_party["uuid"] == vendor.id
+
+
+def test_vendor_party_carries_tprm_props() -> None:
+    """The party props must carry vendor metadata for tooling that
+    discovers vendors via standard OSCAL parties."""
+    vendor = _make_vendor()
+    out = gap_report_to_oscal_ar(
+        _make_report(), vendor_inventory=[vendor]
+    )
+
+    parties = out["assessment-results"]["metadata"]["parties"]
+    vendor_party = next(p for p in parties if p["name"] == "Acme SaaS Co")
+
+    prop_names = {p["name"]: p["value"] for p in vendor_party["props"]}
+    assert prop_names["vendor-id"] == vendor.id
+    assert prop_names["criticality-tier"] == "high"
+    assert prop_names["vendor-type"] == "saas"
+    assert prop_names["region"] == "us-east-1"
+    assert prop_names["contract-start-date"] == "2025-01-01"
+    assert prop_names["regulatory-classification"] == "data_processor"
+
+
+def test_vendor_resource_has_integrity_hash() -> None:
+    """The back-matter resource must carry a SHA-256 hash so tampering
+    is detectable via verify_ar_file."""
+    vendor = _make_vendor()
+    out = gap_report_to_oscal_ar(
+        _make_report(), vendor_inventory=[vendor]
+    )
+
+    resources = out["assessment-results"]["back-matter"]["resources"]
+    vendor_resource = next(
+        r for r in resources if r["title"] == "Acme SaaS Co"
+    )
+
+    rlinks = vendor_resource["rlinks"]
+    assert len(rlinks) == 1
+    hashes = rlinks[0]["hashes"]
+    assert any(h["algorithm"] == "SHA-256" for h in hashes)
+    # Hash is non-empty hex
+    sha256 = next(h["value"] for h in hashes if h["algorithm"] == "SHA-256")
+    assert len(sha256) == 64
+    assert all(c in "0123456789abcdef" for c in sha256)
+
+
+def test_vendor_resource_canonical_json_round_trips() -> None:
+    """The base64-decoded vendor JSON must round-trip back into a
+    Vendor model bit-for-bit."""
+    vendor = _make_vendor()
+    out = gap_report_to_oscal_ar(
+        _make_report(), vendor_inventory=[vendor]
+    )
+
+    resources = out["assessment-results"]["back-matter"]["resources"]
+    vendor_resource = next(
+        r for r in resources if r["title"] == "Acme SaaS Co"
+    )
+
+    decoded = base64.b64decode(vendor_resource["base64"]["value"])
+    import json as _json
+
+    payload = _json.loads(decoded)
+    round_tripped = Vendor.model_validate(payload)
+    assert round_tripped.id == vendor.id
+    assert round_tripped.name == vendor.name
+    assert round_tripped.criticality_tier == vendor.criticality_tier
+
+
+def test_vendor_resource_hash_is_deterministic() -> None:
+    """Same Vendor input → same hash, every time. Verifier-side
+    correctness depends on this."""
+    vendor = _make_vendor()
+    out_1 = gap_report_to_oscal_ar(
+        _make_report(), vendor_inventory=[vendor]
+    )
+    out_2 = gap_report_to_oscal_ar(
+        _make_report(), vendor_inventory=[vendor]
+    )
+
+    res_1 = next(
+        r
+        for r in out_1["assessment-results"]["back-matter"]["resources"]
+        if r["title"] == "Acme SaaS Co"
+    )
+    res_2 = next(
+        r
+        for r in out_2["assessment-results"]["back-matter"]["resources"]
+        if r["title"] == "Acme SaaS Co"
+    )
+    hash_1 = res_1["rlinks"][0]["hashes"][0]["value"]
+    hash_2 = res_2["rlinks"][0]["hashes"][0]["value"]
+    assert hash_1 == hash_2
+
+
+def test_vendor_inventory_count_in_metadata_props() -> None:
+    """Top-level metadata props expose the vendor count for quick
+    auditor discovery."""
+    vendors = [
+        _make_vendor(name="VendorA"),
+        _make_vendor(name="VendorB"),
+        _make_vendor(name="VendorC"),
+    ]
+    out = gap_report_to_oscal_ar(
+        _make_report(), vendor_inventory=vendors
+    )
+
+    md_props = out["assessment-results"]["metadata"]["props"]
+    count_prop = next(
+        (p for p in md_props if p["name"] == "vendor-inventory-count"),
+        None,
+    )
+    assert count_prop is not None
+    assert count_prop["value"] == "3"
+
+
+def test_no_vendor_inventory_means_no_vendor_props() -> None:
+    """When vendor_inventory is None or empty, the AR should NOT carry
+    vendor-related metadata or back-matter (avoids noise in the diff)."""
+    out = gap_report_to_oscal_ar(_make_report())
+
+    md_props = out["assessment-results"]["metadata"]["props"]
+    assert not any(
+        p["name"] == "vendor-inventory-count" for p in md_props
+    )
+
+    parties = out["assessment-results"]["metadata"]["parties"]
+    # Only the report's organization party — no vendor parties
+    assert len(parties) == 1
+
+
+def test_vendor_resource_with_findings_coexist() -> None:
+    """Vendor resources and finding resources must coexist in the
+    same back-matter without UUID or shape conflicts."""
+    vendor = _make_vendor()
+    finding = _make_finding(control_ids=["AC-2"])
+    out = gap_report_to_oscal_ar(
+        _make_report(),
+        findings=[finding],
+        vendor_inventory=[vendor],
+    )
+
+    resources = out["assessment-results"]["back-matter"]["resources"]
+    # 1 vendor + 1 finding
+    assert len(resources) == 2
+    # UUIDs are unique
+    uuids = [r["uuid"] for r in resources]
+    assert len(set(uuids)) == 2
+    # Each carries a hash
+    for r in resources:
+        assert "rlinks" in r
+        assert any(
+            h["algorithm"] == "SHA-256"
+            for h in r["rlinks"][0]["hashes"]
+        )
