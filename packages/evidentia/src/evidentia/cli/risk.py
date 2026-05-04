@@ -6,6 +6,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 import typer
 import yaml
@@ -248,7 +249,10 @@ def quantify(
     method: str = typer.Option(
         "open-fair",
         "--method",
-        help="Quantification method. Currently: 'open-fair'.",
+        help=(
+            "Quantification method: 'open-fair' (deterministic PERT-mean) "
+            "or 'fair-mc' (Monte Carlo simulation, v0.7.12+)."
+        ),
     ),
     scenarios: Path = typer.Option(
         ...,
@@ -267,19 +271,51 @@ def quantify(
         "--force",
         help="Overwrite the output path if it already exists.",
     ),
+    iterations: int = typer.Option(
+        10_000,
+        "--iterations",
+        help=(
+            "Monte Carlo iteration count (only with --method fair-mc). "
+            "Default 10,000 (FAIR-U recommended convergence point)."
+        ),
+    ),
+    seed: int | None = typer.Option(
+        None,
+        "--seed",
+        help=(
+            "Random seed for deterministic Monte Carlo runs (only with "
+            "--method fair-mc). Pass an explicit int for golden-file "
+            "tests + reproducible audit-trail outputs."
+        ),
+    ),
+    csv_export: Path | None = typer.Option(
+        None,
+        "--csv",
+        help=(
+            "Path to write per-iteration ALE samples as CSV (only with "
+            "--method fair-mc). Useful for downstream analysis in pandas "
+            "or Excel."
+        ),
+    ),
 ) -> None:
     """Compute dollarized risk quantification per the chosen method.
 
-    Currently supports Open FAIR (`--method open-fair`). Produces
-    a deterministic Markdown report covering total ALE,
-    risk-category distribution, and per-scenario LEF / LM / ALE
-    breakdown with each factor's resolved-mean value.
+    Two methods supported:
+
+    * ``--method open-fair`` (v0.7.11+): deterministic PERT-mean
+      expected-value form. Fast, repeatable, collapses uncertainty
+      into a single number per scenario.
+
+    * ``--method fair-mc`` (v0.7.12+): Monte Carlo simulation over
+      Beta-PERT distributions for each factor. Produces P10/P50/P90
+      percentile bands per scenario + optional CSV export of all
+      per-iteration ALE samples.
 
     Scenarios file shape (YAML)::
 
         - name: Credential stuffing
           description: External attackers reuse leaked credentials
-          tef: 365            # daily attempts
+          tef: 365            # daily attempts (scalar)
           vulnerability: 0.001
           primary_loss: 5000
           secondary_loss:     # PERT range
@@ -288,22 +324,52 @@ def quantify(
             high: 250000
         - name: Ransomware on file server
           ...
-
-    A future v0.7.12 sub-slice will add Monte Carlo simulation
-    (FAIR's canonical quantification path); v0.7.11 ships the
-    deterministic PERT-mean expected-value form per the v0.7.11
-    P1.5 G4 plan.
     """
-    if method != "open-fair":
+    if method not in ("open-fair", "fair-mc"):
         console.print(
-            f"[red]Error:[/red] --method must be 'open-fair' (got "
-            f"{method!r}). Future versions will add fair-mc, "
-            f"openfair-mc, etc."
+            f"[red]Error:[/red] --method must be 'open-fair' or 'fair-mc' "
+            f"(got {method!r})."
         )
         raise typer.Exit(code=1)
 
     scenarios_list = _load_scenarios_or_exit(scenarios)
-    rendered = generate_risk_quantification_report(scenarios_list)
+
+    if method == "open-fair":
+        rendered = generate_risk_quantification_report(scenarios_list)
+    else:  # fair-mc
+        if iterations < 1:
+            console.print(
+                f"[red]Error:[/red] --iterations must be >= 1 (got "
+                f"{iterations})."
+            )
+            raise typer.Exit(code=1)
+        from evidentia_core.risk_quant.monte_carlo import (
+            generate_monte_carlo_report,
+            simulate_ale,
+        )
+
+        sims: list[tuple[Any, Any]] = []
+        for sc in scenarios_list:
+            res = simulate_ale(sc, iterations=iterations, seed=seed)
+            sims.append((sc, res))
+        rendered = generate_monte_carlo_report(sims)
+        if csv_export is not None:
+            # Concatenate every scenario's samples — one CSV per
+            # full simulation set (caller wants a single file).
+            csv_path = csv_export.expanduser().resolve()
+            csv_path.parent.mkdir(parents=True, exist_ok=True)
+            import csv as csv_mod
+
+            with csv_path.open("w", encoding="utf-8", newline="") as fh:
+                writer = csv_mod.writer(fh)
+                writer.writerow(["scenario_name", "iteration", "ale"])
+                for sc, res in sims:
+                    for i, ale in enumerate(res.samples, start=1):
+                        writer.writerow([sc.name, i, ale])
+            console.print(
+                f"[green]Wrote[/green] {len(sims)} scenario(s) × "
+                f"{iterations} iterations to {csv_path}"
+            )
 
     if output is None:
         sys.stdout.write(rendered)

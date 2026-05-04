@@ -79,6 +79,26 @@ class TestQuantify:
     def test_unknown_method_errors(
         self, runner: CliRunner, tmp_path: Path
     ) -> None:
+        """v0.7.12: 'fair-mc' is now a valid method (Monte Carlo). Test
+        that a truly unknown method still errors."""
+        scenarios = tmp_path / "scenarios.yaml"
+        _write(scenarios, _SAMPLE_SCENARIOS)
+        result = runner.invoke(
+            app,
+            [
+                "risk", "quantify",
+                "--method", "monte-carlo-old-name",
+                "--scenarios", str(scenarios),
+            ],
+        )
+        assert result.exit_code == 1
+        assert "must be 'open-fair' or 'fair-mc'" in result.output
+
+    def test_fair_mc_method_runs_simulation(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        """v0.7.12 P1.5 G4.1: --method fair-mc runs Monte Carlo +
+        renders a report containing P10/P50/P90 percentiles."""
         scenarios = tmp_path / "scenarios.yaml"
         _write(scenarios, _SAMPLE_SCENARIOS)
         result = runner.invoke(
@@ -87,10 +107,40 @@ class TestQuantify:
                 "risk", "quantify",
                 "--method", "fair-mc",
                 "--scenarios", str(scenarios),
+                "--iterations", "200",
+                "--seed", "42",
             ],
         )
-        assert result.exit_code == 1
-        assert "must be 'open-fair'" in result.output
+        assert result.exit_code == 0, f"stderr: {result.output}"
+        assert "FAIR Monte Carlo" in result.output
+        assert "P10" in result.output
+        assert "P50" in result.output
+        assert "P90" in result.output
+
+    def test_fair_mc_csv_export(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        """v0.7.12 P1.5 G4.1: --csv writes per-iteration ALE samples."""
+        scenarios = tmp_path / "scenarios.yaml"
+        _write(scenarios, _SAMPLE_SCENARIOS)
+        csv_out = tmp_path / "sim.csv"
+        result = runner.invoke(
+            app,
+            [
+                "risk", "quantify",
+                "--method", "fair-mc",
+                "--scenarios", str(scenarios),
+                "--iterations", "100",
+                "--seed", "42",
+                "--csv", str(csv_out),
+            ],
+        )
+        assert result.exit_code == 0
+        assert csv_out.exists()
+        rows = csv_out.read_text(encoding="utf-8").splitlines()
+        assert rows[0] == "scenario_name,iteration,ale"
+        # 1 header + (scenarios * 100) data rows
+        assert len(rows) > 1
 
     def test_invalid_yaml_errors(
         self, runner: CliRunner, tmp_path: Path
