@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.11] - 2026-05-04
+
+**The audit chain-of-custody + governance-trio + Open FAIR ship.**
+Brings retention metadata + WORM (Write-Once-Read-Many) backend
+abstraction, the third governance primitive (KRI/KPI/KGI metrics),
+the fourth (Open FAIR risk quantification), the fifth (process-as-
+code workflows), and a substantial deferral roll-up. First v0.7.x
+release in this cycle to ship with **zero security findings** —
+PROCEED-CLEAN at the Phase final pre-release-review.
+
+Per the v0.7.11 plan, concrete cloud-WORM backends (S3 Object
+Lock + Azure Immutable Blob + GCS Bucket Lock) + FAIR Monte Carlo
+simulation + remaining ~12 deferrals are deferred to v0.7.12.
+
 ### Added
 
 - **`evidentia retention` — audit chain-of-custody primitives**

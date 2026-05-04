@@ -445,24 +445,28 @@ and 4 of the 17 v0.7.9-deferred findings (M-1 / M-2 / L-3 / L-7).
 Pre-tag review: 0 HIGH / 1 MEDIUM (F-V10-S1 inline-fixed) / 1 LOW
 (F-V10-S2 deferred); 0 unfixed at ship.
 
-## v0.7.11 — Audit chain-of-custody + KRI/KPI/KGI + Open FAIR — NEXT
+## v0.7.11 — Audit chain-of-custody + KRI/KPI/KGI + Open FAIR + workflows — SHIPPED
 
-See [`docs/v0.7.11-plan.md`](v0.7.11-plan.md). Captures the items
-originally scoped for the v0.7.9 8-10 week mega-release plus
-v0.7.10 carry-forwards:
+See [`docs/v0.7.11-plan.md`](v0.7.11-plan.md). Shipped: P0 audit
+chain-of-custody (RetentionMetadata + lifecycle state machine +
+WORMBackend ABC + LocalFilesystemWORM reference impl), P1.5
+governance trio (G3 KRI/KPI/KGI metrics + G4 Open FAIR risk
+quantification + G5 process-as-code workflows), P3 first-batch
+deferral closures (F-V10-S2 + M-1 + M-2 + M-5 + M-6 + L-1 + L-3 +
+L-6 + L-7), `validate_within` harmonization across 6 stores, +
+P4 docs (audit-chain-of-custody.md + governance-metrics.md +
+risk-quantification.md). Concrete S3/Azure/GCS WORM backends +
+FAIR Monte Carlo simulation deferred to v0.7.12. Pre-tag review
+0 HIGH / 0 MEDIUM / 0 LOW — first PROCEED-CLEAN of the v0.7.x
+cycle.
 
-- P2 retention metadata + WORM backend support (S3 Object Lock /
-  Azure Immutable Blob / GCS Bucket Lock)
-- Remaining three governance primitives: G3 KRI/KPI/KGI Pydantic
-  schemas + metrics dashboard, G4 Open FAIR risk quantification,
-  G5 process-as-code governance workflows
-- v0.7.10 P3 follow-up: 13 remaining v0.7.9 deferrals (M-3 / M-4 /
-  M-5 / M-6 / M-7 / M-8 / M-9 + L-1 / L-2 / L-4 / L-5 / L-6 / L-8)
-  + v0.7.10 F-V10-S2 ($EDITOR allowlist) + 9 v0.7.8 LOW × 9 batch
-- Harmonize `validate_within` usage across all 3 JSON-file stores
-  (Step 4 review forward-look)
+## v0.7.12 — Concrete WORM backends + FAIR Monte Carlo + P3 second batch — NEXT
 
-~3-4 week ship target.
+See [`docs/v0.7.12-plan.md`](v0.7.12-plan.md). Adds the three
+canonical cloud-WORM implementations (S3 Object Lock + Azure
+Immutable Blob + GCS Bucket Lock) + FAIR Monte Carlo simulation
++ remaining ~12 deferrals from v0.7.8/v0.7.9/v0.7.10. ~4-5 week
+ship target.
 
 ## v0.7.x — Patches + bridge to v0.8.0 — RESERVED
 

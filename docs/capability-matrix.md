@@ -13,6 +13,64 @@
 
 ---
 
+## Re-validation snapshot — 2026-05-04 (v0.7.11 ship — pre-tag)
+
+v0.7.11 ships the **P0 audit chain-of-custody** (RetentionMetadata
++ lifecycle state machine + `WORMBackend` ABC + `LocalFilesystemWORM`
+reference impl), **P1.5 governance trio** (G3 KRI/KPI/KGI metrics
++ G4 Open FAIR risk quantification + G5 process-as-code workflows),
+**P3 first-batch deferral closures** (9 of 17 closed: F-V10-S2 + M-1
++ M-2 + M-5 + M-6 + L-1 + L-3 + L-6 + L-7), **`validate_within`
+harmonization** across 6 secure stores, plus **P4 docs** (audit-
+chain-of-custody.md + governance-metrics.md +
+risk-quantification.md).
+
+### Existing tiers — regression check (v0.7.11)
+
+| Tier | v0.7.11 status | Evidence |
+|---|---|---|
+| 1 — AI features | ✅ unchanged | No `evidentia-ai` files touched |
+| 2 — OSCAL signing + verify | ✅ unchanged | OSCAL exporter surface untouched |
+| 3 — Air-gap enforcement | ✅ unchanged | network_guard.py untouched |
+| 4 — Secret scrubber | ✅ extended | F-V10-S2 closure adds `cli/_editor.py` `$EDITOR` allowlist; tokens still flow via env vars only |
+| 5 — Collectors | ✅ hardened (P3) | M-5 cross-host break + scheme-downgrade now emit structured warning events; M-6 SSC portfolio auto-pick now warns; M-1 + M-2 + L-3 + L-7 carried from v0.7.10 P3 |
+| 6 — OSCAL exporter + output formats | ✅ unchanged | gap_report_to_oscal_ar surface untouched |
+| 7 — CLI commands | ✅ extended (4 new top-level groups) | `evidentia retention` (7 verbs) + `evidentia governance metrics` (6 verbs) + `evidentia governance workflow` (6 verbs) + `evidentia risk quantify` (1 verb) |
+| 8 — REST API | ✅ extended (L-1 hardening) | All 4 vendor-risk POST endpoints replaced silent `or 2000` coercion with explicit type+range gate |
+| 9 — Web UI | ✅ unchanged | No evidentia-ui files touched |
+| 10 — Configuration precedence | ✅ extended | EVIDENTIA_METRIC_STORE_DIR + EVIDENTIA_WORKFLOW_STORE_DIR + EVIDENTIA_RETENTION_STORE_DIR + EVIDENTIA_EDITOR_ALLOW_ANY env vars added |
+| 11 — JSON-file persistence | ✅ harmonized (6-store pattern) | metric_store + workflow_store + retention_metadata_store add `validate_within` belt-and-suspenders; existing vendor_store + model_risk_store retroactively gain it for save_*; all 6 stores now follow identical secure pattern |
+| 12 — Bundled regulatory catalogs | ✅ unchanged (89) | No catalog changes |
+
+### New v0.7.11 surfaces
+
+| # | New surface | Status | Evidence |
+|---|---|---|---|
+| N1 | `evidentia retention {set,list,show,extend,transition,delete,report}` CLI + RetentionMetadata schema + lifecycle state machine | ✅ | 72 tests (55 unit + 17 CLI). State machine enforces: legal-hold blocks expiration, can't skip ACTIVE→PURGED, PURGED is terminal, WORM forbids retention shortening. |
+| N2 | `WORMBackend` ABC + `LocalFilesystemWORM` reference impl | ✅ | 17 tests covering put/get/delete/extend round-trip + 6 contract-violation cases (double-put, in-window delete, legal-hold delete, non-EXPIRED delete, retention shortening, path traversal). Concrete S3/Azure/GCS deferred to v0.7.12. |
+| N3 | `evidentia governance metrics {add,observe,list,show,delete,report}` CLI + KRI/KPI/KGI schemas + `evaluate_metric()` + `generate_metrics_report()` | ✅ | 42 tests (28 unit + 14 CLI). Status state machine across both directions; missing-thresholds correctly blocked. |
+| N4 | `evidentia risk quantify --method open-fair` CLI + OpenFAIRScenario + PERTRange + ALE computation + Markdown report | ✅ | 30 tests (23 unit + 7 CLI). PERT mean formula validated; risk-band categorization verified across all 5 bands. |
+| N5 | `evidentia governance workflow {run,advance,status,list,log,delete}` CLI + Workflow + WorkflowStep schemas + state machine + `advance_workflow_step()` | ✅ | 42 tests (28 unit + 14 CLI). Step ordering enforced; rejection short-circuits; APPROVED/SKIPPED auto-promote next step; PURGED-state-equivalent terminal handling. |
+
+### Adversarial probing summary (v0.7.11 surfaces)
+
+Coverage: **6 of 7 vectors** (network n/a for local-store-only modules).
+- Bad input: Pydantic extra="forbid" + range validation
+- Missing dependency: lazy imports + clear ImportError messages
+- Network failure: n/a
+- Expired credential: n/a (REST is unauth by design)
+- Malformed config: YAML safe_load + per-entry validation
+- Concurrent request / race: atomic os.replace(tmp, out_path)
+- Large-input DoS: FastAPI default body-size limits
+
+### F-V11 findings disposition
+
+**0 findings at v0.7.11 ship — first PROCEED-CLEAN of the v0.7.x cycle.**
+
+(v0.7.10 had 1 MEDIUM inline-fixed F-V10-S1 + 1 LOW deferred F-V10-S2; v0.7.11 P3 closes F-V10-S2.)
+
+---
+
 ## Re-validation snapshot — 2026-05-04 (v0.7.10 ship — pre-tag)
 
 v0.7.10 ships the **Model Risk Management overlay** (`evidentia
