@@ -9,6 +9,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`evidentia retention` — audit chain-of-custody primitives**
+  (v0.7.11 P0). Brings retention metadata + WORM (Write-Once-Read-
+  Many) backend abstraction to Evidentia so collected evidence
+  can carry per-record retention policies aligned with US/EU
+  regulatory record-retention regimes (SEC Rule 17a-4 / FINRA 3110
+  / IRS 1.6001-1 / Sarbanes-Oxley §404 / HIPAA / GLBA / PCI DSS
+  10.7 / OCC 2011-12 / SR 11-7 model risk / GDPR purpose-limited).
+
+  New module `evidentia_core.retention`:
+  - `RetentionClassification` enum (10 regulator-aligned classes)
+  - `RetentionPolicy` reusable policy template
+  - `RetentionMetadata` per-record schema with auto-populated
+    `lock_until` from `created_at + retention_period_days`
+  - `RetentionLifecycleStage` enum (active / preserved / expired
+    / purged) with state-machine transitions
+  - `is_locked()` predicate (legal-hold-aware)
+  - `transition_lifecycle()` enforces legal transitions; raises
+    `RetentionTransitionError` on illegal moves (skipping ahead,
+    transitioning while locked, transitioning out of PURGED,
+    transitioning to EXPIRED while under legal hold)
+  - `default_retention_days()` per-classification regulator
+    defaults
+  - `generate_retention_report()` deterministic Markdown audit
+    report with executive summary + per-classification table +
+    purge-eligible list + legal-hold list
+
+  WORM backend abstraction:
+  - `WORMBackend` ABC defining the put / get / get_metadata /
+    delete / extend_retention contract
+  - `LocalFilesystemWORM` reference implementation with
+    application-level WORM enforcement (no hardware-level WORM —
+    suitable for dev/test only). Concrete `S3ObjectLockWORM`,
+    `AzureImmutableBlobWORM`, `GCSBucketLockWORM` deferred to
+    v0.7.12 with their respective extras
+  - `WORMBackendError` raised on contract violations: double-put,
+    delete inside retention window, delete under legal hold,
+    delete on non-EXPIRED records, retention-shortening attempts
+
+  CLI: `evidentia retention {set, list, show, extend, transition,
+  delete, report}`. JSON-file persistence
+  (`evidentia_core.retention_metadata_store`) follows the
+  harmonized v0.7.11 store pattern (UUID-shape gate +
+  `validate_within` + atomic `os.replace`). Brings the secure-store
+  pattern to a 6-store harmonization. 72 new tests (55 unit + 17
+  CLI integration).
+
 - **`evidentia governance workflow` — process-as-code governance
   workflows** (v0.7.11 P1.5 G5). Closes the v0.7.11 P1.5
   governance trio (G3 KRI/KPI/KGI + G4 Open FAIR + G5 workflows).

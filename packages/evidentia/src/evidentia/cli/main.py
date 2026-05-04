@@ -22,6 +22,7 @@ from evidentia.cli import init as init_cmd
 from evidentia.cli import integrations as integrations_cmd
 from evidentia.cli import model_risk as model_risk_cmd
 from evidentia.cli import oscal as oscal_cmd
+from evidentia.cli import retention as retention_cmd
 from evidentia.cli import risk as risk_cmd
 from evidentia.cli import tprm as tprm_cmd
 
@@ -73,6 +74,11 @@ app.add_typer(
     governance_cmd.app,
     name="governance",
     help="Governance — Three Lines of Defense + Effective Challenge (v0.7.10 P1.5).",
+)
+app.add_typer(
+    retention_cmd.app,
+    name="retention",
+    help="Audit chain-of-custody — retention metadata + WORM (v0.7.11 P0).",
 )
 app.command(name="init", help="Initialize a new Evidentia project.")(init_cmd.init)
 
