@@ -9,6 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`evidentia governance workflow` — process-as-code governance
+  workflows** (v0.7.11 P1.5 G5). Closes the v0.7.11 P1.5
+  governance trio (G3 KRI/KPI/KGI + G4 Open FAIR + G5 workflows).
+  Operators declare governance processes in YAML — change-approval,
+  quarterly-review, validation-cycle, etc. — then execute + track
+  via the CLI. New module `evidentia_core.governance.workflows`
+  ships:
+  - `WorkflowStepStatus` enum (5 states: pending / in_progress /
+    approved / rejected / skipped)
+  - `WorkflowStatus` enum (5 states: draft / in_progress /
+    approved / rejected / canceled)
+  - `WorkflowStepEvent` schema (timestamped state-transition with
+    actor + optional note)
+  - `WorkflowStep` schema (name + required_role + sla_days +
+    history)
+  - `Workflow` schema (name + subject + initiator + steps)
+  - `current_step_index()` finds the active step
+  - `evaluate_workflow()` derives overall status from step states
+    (any rejected → REJECTED; all approved/skipped → APPROVED;
+    otherwise IN_PROGRESS or DRAFT)
+  - `advance_workflow_step()` enforces ordered execution + auto-
+    promotes the next step to IN_PROGRESS on forward transitions;
+    raises `WorkflowAdvanceError` on rule violation
+  - `generate_workflow_log()` deterministic Markdown audit-log
+    with rejection-callout + per-step status table + per-step
+    event narrative
+  - `evidentia_core.workflow_store` JSON-file persistence
+    following the harmonized v0.7.11 store pattern
+  CLI: `evidentia governance workflow {run,advance,status,list,
+  log,delete}`. 42 new tests (28 unit + 14 CLI integration).
 - **`evidentia risk quantify --method open-fair` — Open FAIR risk
   quantification** (v0.7.11 P1.5 G4). Implements the Open Group's
   Open FAIR (Factor Analysis of Information Risk) taxonomy for

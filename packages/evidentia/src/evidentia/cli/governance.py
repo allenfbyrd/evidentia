@@ -35,9 +35,15 @@ from evidentia_core.governance import (
     MetricKind,
     MetricObservation,
     Owner,
+    Workflow,
+    WorkflowAdvanceError,
+    WorkflowStepStatus,
+    advance_workflow_step,
     evaluate_metric,
+    evaluate_workflow,
     generate_lines_report,
     generate_metrics_report,
+    generate_workflow_log,
 )
 from evidentia_core.metric_store import (
     InvalidMetricIdError,
@@ -46,17 +52,28 @@ from evidentia_core.metric_store import (
     load_metric_by_id,
     save_metric,
 )
+from evidentia_core.workflow_store import (
+    InvalidWorkflowIdError,
+    delete_workflow,
+    list_workflows,
+    load_workflow_by_id,
+    save_workflow,
+)
 from pydantic import ValidationError
 from rich.console import Console
 from rich.table import Table
 
-app = typer.Typer(help="Governance commands (3LOD + Effective Challenge + KRI/KPI/KGI).")
+app = typer.Typer(help="Governance commands (3LOD + Effective Challenge + KRI/KPI/KGI + workflows).")
 challenge_app = typer.Typer(help="Effective Challenge log commands.")
 metrics_app = typer.Typer(
     help="KRI / KPI / KGI metric definitions + observations + reports."
 )
+workflow_app = typer.Typer(
+    help="Process-as-code governance workflows (change-approval, review cycles, etc.)."
+)
 app.add_typer(challenge_app, name="challenge")
 app.add_typer(metrics_app, name="metrics")
+app.add_typer(workflow_app, name="workflow")
 
 console = Console()
 
@@ -696,5 +713,294 @@ def metrics_report(
         f"[green]Wrote[/green] metrics report to [bold]{output}[/bold] "
         f"({len(metrics)} metric(s))."
     )
+
+
+# ── Process-as-code workflows (v0.7.11 P1.5 G5) ────────────────────
+
+
+def _load_workflow_template(path: Path) -> Workflow:
+    """Load a workflow template (YAML) + return an instantiated Workflow.
+
+    Expected YAML shape::
+
+        name: Credit-model v3 quarterly review 2026-Q1
+        template: model-quarterly-review-v1
+        description: Quarterly review of the credit-scoring model.
+        subject: Model 80e8b404
+        initiator: model-owner@bank.example
+        steps:
+          - name: Model owner self-review
+            description: Verify performance metrics are within tolerance.
+            required_role: 1LOD model owner
+            sla_days: 7
+          - name: MRM 2nd-line review
+            required_role: MRM Director (2LOD)
+            sla_days: 14
+          - name: CISO sign-off
+            required_role: CISO
+            sla_days: 21
+
+    The first step is auto-promoted to IN_PROGRESS on instantiation.
+    """
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            raw = yaml.safe_load(fh)
+    except OSError as e:
+        console.print(f"[red]Error:[/red] could not read {path}: {e}")
+        raise typer.Exit(code=1) from e
+    except yaml.YAMLError as e:
+        console.print(f"[red]Error:[/red] {path} is not valid YAML: {e}")
+        raise typer.Exit(code=1) from e
+
+    if not isinstance(raw, dict):
+        console.print(
+            f"[red]Error:[/red] {path} must be a YAML mapping; got "
+            f"{type(raw).__name__}."
+        )
+        raise typer.Exit(code=1)
+
+    try:
+        wf = Workflow.model_validate(raw)
+    except ValidationError as e:
+        console.print(f"[red]Invalid workflow data:[/red] {e}")
+        raise typer.Exit(code=1) from e
+
+    # Auto-promote the first step from PENDING → IN_PROGRESS so the
+    # workflow is "active" immediately after run.
+    if wf.steps and wf.steps[0].status == WorkflowStepStatus.PENDING.value:
+        first = wf.steps[0].model_copy(
+            update={"status": WorkflowStepStatus.IN_PROGRESS.value}
+        )
+        new_steps = [first, *wf.steps[1:]]
+        wf = wf.model_copy(update={"steps": new_steps})
+    # Re-evaluate workflow status from the (now in-progress) step list
+    wf = wf.model_copy(update={"status": evaluate_workflow(wf)})
+    return wf
+
+
+@workflow_app.command("run")
+def workflow_run(
+    template: Path = typer.Option(
+        ..., "--template", "-t",
+        help="Path to a YAML workflow-template file.",
+    ),
+) -> None:
+    """Instantiate a workflow from a YAML template + persist it."""
+    wf = _load_workflow_template(template)
+    save_workflow(wf)
+    console.print(
+        f"[green]Started[/green] workflow [bold]{wf.name}[/bold] "
+        f"(id: {wf.id}); status: [cyan]{wf.status}[/cyan]"
+    )
+
+
+@workflow_app.command("advance")
+def workflow_advance(
+    workflow_id: str = typer.Argument(..., help="Workflow ID (UUID)."),
+    step: int = typer.Option(
+        ..., "--step",
+        help="Step index (0-based) to transition.",
+    ),
+    new_status: str = typer.Option(
+        ..., "--new-status",
+        help="approved / rejected / skipped / in_progress.",
+    ),
+    actor: str = typer.Option(
+        ..., "--actor",
+        help="Actor identity (typically email).",
+    ),
+    note: str | None = typer.Option(
+        None, "--note", help="Optional rationale / approval note.",
+    ),
+) -> None:
+    """Transition a workflow step to a new status."""
+    try:
+        wf = load_workflow_by_id(workflow_id)
+    except InvalidWorkflowIdError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from e
+    if wf is None:
+        console.print(
+            f"[red]Error:[/red] No workflow with ID {workflow_id!r} found."
+        )
+        raise typer.Exit(code=1)
+    try:
+        status_enum = WorkflowStepStatus(new_status)
+    except ValueError as e:
+        console.print(
+            f"[red]Error:[/red] Unknown new-status {new_status!r}; "
+            f"valid: {[s.value for s in WorkflowStepStatus]}"
+        )
+        raise typer.Exit(code=1) from e
+    try:
+        new_wf = advance_workflow_step(
+            wf,
+            step_index=step,
+            new_status=status_enum,
+            actor=actor,
+            note=note,
+        )
+    except WorkflowAdvanceError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from e
+    save_workflow(new_wf)
+    console.print(
+        f"[green]Advanced[/green] step {step} of [bold]{wf.name}[/bold] "
+        f"to [cyan]{new_status}[/cyan]; workflow status: "
+        f"[cyan]{new_wf.status}[/cyan]"
+    )
+
+
+@workflow_app.command("status")
+def workflow_status(
+    workflow_id: str = typer.Argument(..., help="Workflow ID (UUID)."),
+    json_out: bool = typer.Option(
+        False, "--json",
+        help="Emit machine-readable JSON instead of formatted text.",
+    ),
+) -> None:
+    """Show a single workflow's current state."""
+    try:
+        wf = load_workflow_by_id(workflow_id)
+    except InvalidWorkflowIdError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from e
+    if wf is None:
+        console.print(
+            f"[red]Error:[/red] No workflow with ID {workflow_id!r} found."
+        )
+        raise typer.Exit(code=1)
+
+    if json_out:
+        sys.stdout.write(wf.model_dump_json(indent=2))
+        sys.stdout.write("\n")
+        return
+
+    console.print(f"[bold]{wf.name}[/bold]  [dim]({wf.id})[/dim]")
+    console.print(f"  Subject:     {wf.subject or '_(none)_'}")
+    console.print(f"  Initiator:   {wf.initiator}")
+    console.print(f"  Status:      [cyan]{wf.status}[/cyan]")
+    console.print(f"  Description: {wf.description}")
+    console.print(f"  Steps ({len(wf.steps)}):")
+    for i, step in enumerate(wf.steps):
+        sla = f" SLA {step.sla_days}d" if step.sla_days else ""
+        console.print(
+            f"    {i}. {step.name}  [dim]({step.required_role})[/dim]"
+            f"{sla} → [cyan]{step.status}[/cyan] "
+            f"[dim]({len(step.history)} event(s))[/dim]"
+        )
+
+
+@workflow_app.command("list")
+def workflow_list(
+    json_out: bool = typer.Option(
+        False, "--json", help="Emit machine-readable JSON array."
+    ),
+) -> None:
+    """List all workflows newest-first."""
+    workflows = list_workflows()
+    if json_out:
+        sys.stdout.write(
+            json.dumps(
+                [w.model_dump(mode="json") for w in workflows], indent=2
+            )
+        )
+        sys.stdout.write("\n")
+        return
+
+    if not workflows:
+        console.print("[dim]No workflows defined.[/dim]")
+        return
+
+    table = Table(title=f"Workflows ({len(workflows)} total)")
+    table.add_column("ID", style="dim")
+    table.add_column("Name", style="bold")
+    table.add_column("Subject")
+    table.add_column("Initiator")
+    table.add_column("Status", style="cyan")
+    table.add_column("Steps")
+    for w in workflows:
+        table.add_row(
+            w.id[:8],
+            w.name,
+            w.subject or "—",
+            w.initiator,
+            w.status,
+            str(len(w.steps)),
+        )
+    console.print(table)
+
+
+@workflow_app.command("log")
+def workflow_log(
+    workflow_id: str = typer.Argument(..., help="Workflow ID (UUID)."),
+    output: Path | None = typer.Option(
+        None, "--output", "-o",
+        help="Output path. If omitted, prints to stdout.",
+    ),
+    force: bool = typer.Option(
+        False, "--force",
+        help="Overwrite the output path if it exists.",
+    ),
+) -> None:
+    """Emit a Markdown audit-log of the workflow's full lifecycle."""
+    try:
+        wf = load_workflow_by_id(workflow_id)
+    except InvalidWorkflowIdError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from e
+    if wf is None:
+        console.print(
+            f"[red]Error:[/red] No workflow with ID {workflow_id!r} found."
+        )
+        raise typer.Exit(code=1)
+    rendered = generate_workflow_log(wf)
+
+    if output is None:
+        sys.stdout.write(rendered)
+        if not rendered.endswith("\n"):
+            sys.stdout.write("\n")
+        return
+
+    if output.exists() and not force:
+        console.print(
+            f"[red]Error:[/red] {output} already exists; pass --force."
+        )
+        raise typer.Exit(code=1)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(rendered, encoding="utf-8")
+    console.print(
+        f"[green]Wrote[/green] workflow log to [bold]{output}[/bold]."
+    )
+
+
+@workflow_app.command("delete")
+def workflow_delete(
+    workflow_id: str = typer.Argument(..., help="Workflow ID (UUID)."),
+    yes: bool = typer.Option(
+        False, "--yes", help="Skip confirmation prompt.",
+    ),
+) -> None:
+    """Delete a workflow record by ID."""
+    try:
+        wf = load_workflow_by_id(workflow_id)
+    except InvalidWorkflowIdError as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1) from e
+    if wf is None:
+        console.print(
+            f"[red]Error:[/red] No workflow with ID {workflow_id!r} found."
+        )
+        raise typer.Exit(code=1)
+    if not yes:
+        confirmed = typer.confirm(
+            f"Delete workflow '{wf.name}' (id: {wf.id})?",
+            default=False,
+        )
+        if not confirmed:
+            console.print("[yellow]Aborted.[/yellow]")
+            raise typer.Exit(code=0)
+    delete_workflow(workflow_id)
+    console.print(f"[green]Deleted[/green] workflow [bold]{wf.name}[/bold].")
 
 

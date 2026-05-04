@@ -40,6 +40,18 @@ from evidentia_core.governance.metrics import (
     evaluate_metric,
     generate_metrics_report,
 )
+from evidentia_core.governance.workflows import (
+    Workflow,
+    WorkflowAdvanceError,
+    WorkflowStatus,
+    WorkflowStep,
+    WorkflowStepEvent,
+    WorkflowStepStatus,
+    advance_workflow_step,
+    current_step_index,
+    evaluate_workflow,
+    generate_workflow_log,
+)
 
 __all__ = [
     "ChallengeOutcome",
@@ -51,7 +63,17 @@ __all__ = [
     "MetricObservation",
     "MetricStatus",
     "Owner",
+    "Workflow",
+    "WorkflowAdvanceError",
+    "WorkflowStatus",
+    "WorkflowStep",
+    "WorkflowStepEvent",
+    "WorkflowStepStatus",
+    "advance_workflow_step",
+    "current_step_index",
     "evaluate_metric",
+    "evaluate_workflow",
     "generate_lines_report",
     "generate_metrics_report",
+    "generate_workflow_log",
 ]
