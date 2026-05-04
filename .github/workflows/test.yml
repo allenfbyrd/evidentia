@@ -49,8 +49,27 @@ jobs:
           EVIDENTIA_SKIP_FRONTEND_BUILD: "1"
         run: uv sync --all-packages
 
-      - name: Run tests
+      - name: Run tests (with coverage on Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: uv run pytest tests/ -q --cov --cov-report=xml --cov-report=term
+
+      - name: Run tests (no coverage on non-Linux)
+        if: matrix.os != 'ubuntu-latest'
         run: uv run pytest tests/ -q
+
+      # v0.7.10 P2: upload Linux coverage to Codecov for the
+      # OpenSSF Silver `test_statement_coverage80` MUST.
+      # Failure to upload does NOT fail the build (token-less
+      # public repo upload can transient-fail; coverage gate is
+      # enforced locally via the codecov.yml `target: 80%`).
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2  # v6.0.0
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+          flags: python
+          name: evidentia-python
 
   lint:
     name: ruff

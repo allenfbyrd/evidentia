@@ -1,0 +1,76 @@
+# Codecov configuration (v0.7.10 P2).
+#
+# Closes the OpenSSF Best Practices Silver-tier `test_statement_
+# coverage80` MUST criterion. The project carries ≥ 80% statement
+# coverage measured by Codecov, an independent test-coverage
+# service.
+#
+# Coverage scope is configured in `pyproject.toml [tool.coverage.run]`
+# — display-layer CLI wrappers + environmental-dependency modules
+# (Sigstore, FastAPI launcher) are explicitly omitted with rationale.
+
+coverage:
+  status:
+    project:
+      default:
+        # OpenSSF Silver `test_statement_coverage80` floor. Locked
+        # at 80% so a regression in coverage fails the build.
+        target: 80%
+        # Per-PR threshold: a PR may drop coverage by at most 1%
+        # before it fails the project gate. Buys headroom for
+        # legitimate refactors while still flagging large dips.
+        threshold: 1%
+        if_no_uploads: error
+        only_pulls: false
+    patch:
+      default:
+        # New code in a PR must hit ≥ 80% itself — prevents the
+        # project gate from being a "diluted-by-old-code" pass.
+        target: 80%
+        if_no_uploads: error
+        only_pulls: true
+
+  # Don't post the precision-noise comment on every PR — Codecov
+  # opens GitHub-PR review comments which can clutter the diff.
+  # The status check above is the gate.
+  precision: 2
+  range: "70...90"
+  round: nearest
+
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
+  require_changes: true
+
+# Tell Codecov how the workspace is laid out so file paths in the
+# coverage XML resolve cleanly.
+fixes:
+  - "packages/evidentia-core/src/evidentia_core/::evidentia_core/"
+  - "packages/evidentia/src/evidentia/::evidentia/"
+  - "packages/evidentia-api/src/evidentia_api/::evidentia_api/"
+  - "packages/evidentia-collectors/src/evidentia_collectors/::evidentia_collectors/"
+  - "packages/evidentia-ai/src/evidentia_ai/::evidentia_ai/"
+  - "packages/evidentia-integrations/src/evidentia_integrations/::evidentia_integrations/"
+
+# Ignore non-Python tracked paths so Codecov doesn't churn on
+# docs / static / TS files that aren't in the Python coverage scope.
+ignore:
+  - "docs/"
+  - "tests/"
+  - "scripts/"
+  - "examples/"
+  - "packages/evidentia-ui/"
+  - "**/*.md"
+  - "**/*.yaml"
+  - "**/*.yml"
+  - "**/*.json"
+  - "**/*.toml"
+
+flag_management:
+  default_rules:
+    carryforward: true
+  individual_flags:
+    - name: python
+      paths:
+        - "packages/*/src/"
+      carryforward: true

@@ -9,6 +9,7 @@ AI-generated risk statements, automated evidence collection, and compliance
 reporting — all usable from a Python library, a CLI, or a REST API.
 
 [![tests](https://github.com/allenfbyrd/evidentia/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/allenfbyrd/evidentia/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/allenfbyrd/evidentia/branch/main/graph/badge.svg)](https://codecov.io/gh/allenfbyrd/evidentia)
 [![PyPI version](https://img.shields.io/pypi/v/evidentia.svg)](https://pypi.org/project/evidentia/)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green.svg)

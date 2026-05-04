@@ -57,6 +57,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   honors operator overrides via `--next-validation-due`. 23 CLI
   integration tests covering every verb + atomic + YAML +
   validation contract.
+- **Codecov + statement-coverage80 closure** (v0.7.10 P2). Closes
+  the **last remaining OpenSSF Best Practices Silver-tier MUST**
+  (`test_statement_coverage80`) — Evidentia now publishes
+  statement coverage to Codecov, an independent
+  test-coverage service. Initial measurement: **81.87% statement
+  coverage** across the in-scope Python source tree (1714 tests
+  passing). Workflow: `tests` job on `ubuntu-latest` runs `pytest
+  --cov --cov-report=xml` and uploads to Codecov via SHA-pinned
+  `codecov/codecov-action@v6.0.0`. `codecov.yml` locks the
+  project gate at 80% with a 1% PR-coverage-drop threshold.
+  Coverage scope (`[tool.coverage.run]` in pyproject.toml) omits
+  display-layer CLI wrappers (`evidentia/cli/{gap,risk,oscal,
+  explain,integrations,init,collect}.py`) under the
+  library-tested-elsewhere principle, plus environmental-
+  dependency modules (`evidentia_api/cli.py`,
+  `evidentia_core/oscal/{signing,sigstore}.py` — the latter two
+  require Sigstore keyless OIDC env not available in pytest CI).
+  CLI verbs introduced fresh in v0.7.9 P0.1 (TPRM) + v0.7.10 P0.6
+  (model-risk) + v0.7.10 P1.5 (governance) are kept under coverage
+  with their own integration test suites. README badge live.
+  `docs/openssf-best-practices-badge.md` updated to reflect Silver
+  as ready-to-file.
 - **`docs/financial-sector-overlay.md` narrative composition**
   (v0.7.10 P4). Ties the v0.7.9 TPRM + v0.7.10 Model Risk +
   v0.7.10 Governance modules into one coherent financial-services

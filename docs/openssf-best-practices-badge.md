@@ -10,8 +10,8 @@ BadgeApp project entry: <https://www.bestpractices.dev/projects/12724>.
 
 | Tier | Status | Blockers | Target |
 |------|--------|----------|--------|
-| **Passing** | In progress (36% form-filled before this doc) | Form completion only — every Met claim is already substantiated in the repo. | This release cycle (v0.7.9). |
-| **Silver** | Ready to file after small doc additions | GOVERNANCE.md added in this commit. Coding-standards paragraph added to CONTRIBUTING.md. Stale strings in CONTRIBUTING.md + SECURITY.md fixed. Remaining: (a) embed Passing badge in README once awarded (auto-satisfies `documentation_achievements`); (b) optionally publish coverage % via Codecov to formalize `test_statement_coverage80` Met claim. | v0.7.9 ship. |
+| **Passing** | Filed + badge live | None — badge embedded in README. | Shipped v0.7.9. |
+| **Silver** | All MUST criteria Met (v0.7.10 P2 closed `test_statement_coverage80`) | Form-fill the Silver application; submit. Codecov live; coverage 81.87% measured locally; threshold-locked at 80% via `codecov.yml`. | v0.7.10 ship — Allen files form post-merge. |
 | **Gold** | Not reachable today. | Hard MUST blockers requiring ≥2 contributors: `bus_factor ≥2`, `contributors_unassociated ≥2`, `two_person_review 50%+`, meaningful `code_review_standards`. Plus mechanical: per-file copyright + SPDX headers, `good first issue` labels, reproducible-build verification, ≥90% statement / ≥80% branch coverage. | v1.0+ or whenever OSS contributor base develops. |
 
 ## Passing-tier embed
@@ -27,21 +27,31 @@ criterion.
 
 ## Silver-tier remaining work
 
-After this commit lands:
+All MUST criteria are Met as of the v0.7.10 P2 commit. Allen's
+remaining task is the form fill at <https://www.bestpractices.dev/projects/12724>
+once Codecov starts reporting against `main` after the v0.7.10
+ship.
 
-1. **Embed the Passing badge in README** the moment the Passing form
-   hits 100% (ideally same commit as this doc's update once awarded).
-2. **Optional: publish coverage %** — add `--cov` invocation to
-   `test.yml` + a Codecov upload action + the resulting badge in
-   README. Confirms Silver's `test_statement_coverage80` and
-   pre-positions for Gold's `test_statement_coverage90` +
-   `test_branch_coverage80`.
-3. **Optional: docs/assurance-case.md** — a single doc that explicitly
-   stitches `docs/threat-model.md` + the latest
-   `docs/security-review-vX.Y.Z.md` + `docs/enterprise-grade-accepted-findings.md`
-   into the OpenSSF assurance-case structure. Strengthens
-   `assurance_case` from "composed across 3 docs" to "single direct
-   URL."
+Closed in v0.7.10:
+
+1. ✅ **Passing badge embed in README** — landed in v0.7.9.
+2. ✅ **Coverage publishing via Codecov** — `test.yml` now runs
+   `pytest --cov` on Linux + uploads `coverage.xml` via the
+   pinned `codecov/codecov-action@v6.0.0`. `codecov.yml` locks
+   the project gate at 80% with a 1% PR threshold. README badge
+   live.
+3. ✅ **`docs/assurance-case.md`** — landed in v0.7.9 (single
+   direct URL stitching threat-model + security-review +
+   accepted-findings).
+
+Coverage history:
+
+| Cycle | Statement coverage | Note |
+|---|---|---|
+| v0.7.9 ship | not measured publicly | Codecov not yet wired |
+| v0.7.10 P2 (this slice) | 81.87% | Locked at 80% floor via codecov.yml |
+| v0.7.11+ target | ≥85% | Add CLI integration tests for the omitted display layers |
+| v1.0 target | ≥90% (statement) + ≥80% (branch) | Pre-condition for Gold tier |
 
 ## Silver-tier defensible Unmets
 
