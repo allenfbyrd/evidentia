@@ -258,6 +258,106 @@ class TestRenderCsvQuestionnaire:
 # ── JSON round-trip ────────────────────────────────────────────────
 
 
+class TestCsvInjectionDefense:
+    """H-1 Continuous-review regression — questionnaire CSV is
+    explicitly designed to be sent to the vendor; vendor-controlled
+    cells in the prefill header (vendor name / 4P name / region /
+    relationship_owner) must not interpret as Excel formulas."""
+
+    @pytest.mark.parametrize(
+        "malicious_name",
+        [
+            "=cmd|'/c calc'!A0",
+            "+SUM(A1)",
+            "@HYPERLINK(\"http://attacker\")",
+            "-formula",
+        ],
+    )
+    def test_questionnaire_csv_neutralizes_vendor_name_formulas(
+        self, malicious_name: str
+    ) -> None:
+        v = _make_vendor(name=malicious_name)
+        q = generate_questionnaire(
+            v, QuestionnaireFormat.EVIDENTIA_GENERIC
+        )
+        csv_str = render_csv_questionnaire(q)
+        # Vendor-name cell should be prefixed with single-quote
+        for line in csv_str.split("\n"):
+            if line.startswith("# Vendor name,"):
+                # The cell after the comma should start with "'"
+                cell = line.split(",", 1)[1].strip().strip('"')
+                assert cell.startswith("'"), (
+                    f"Vendor name cell should be defused: {line!r}"
+                )
+
+    def test_questionnaire_csv_4p_list_cell_safe_via_count_prefix(
+        self,
+    ) -> None:
+        # The 4P-list cell in the prefill header is wrapped as
+        # ``"<count>: <name1>, <name2>"``, so it always starts with
+        # a digit (the count) — Excel never interprets it as a
+        # formula even when 4P names contain `=` / `+` / `-` / `@`.
+        # _csv_safe additionally prefixes if the wrapped string
+        # somehow leads with a formula char (defense in depth).
+        v = _make_vendor(
+            fourth_parties=[
+                FourthParty(
+                    name="=BAD()",
+                    type=VendorType.SAAS,
+                    relationship="malicious",
+                ),
+            ],
+        )
+        q = generate_questionnaire(
+            v, QuestionnaireFormat.EVIDENTIA_GENERIC
+        )
+        csv_str = render_csv_questionnaire(q)
+        # Find the "# 4th parties" row + verify the cell starts
+        # with a digit (count), not `=`
+        for line in csv_str.split("\n"):
+            if line.startswith("# 4th parties,"):
+                cell = line.split(",", 1)[1].strip().strip('"')
+                assert cell[0].isdigit(), (
+                    f"4P list cell should lead with count digit, "
+                    f"not formula char: {line!r}"
+                )
+                # Malicious payload still appears (we don't drop it)
+                assert "=BAD()" in cell or "BAD()" in cell
+                break
+        else:
+            pytest.fail(
+                f"No '# 4th parties' row in CSV:\n{csv_str}"
+            )
+
+
+class TestFormatStringSafety:
+    """H-3 Continuous-review regression — vendor.name with `{...}`
+    placeholders should not raise KeyError or attempt to substitute.
+    Closes the foot-gun where a future template addition could be
+    exploited via attacker-controlled vendor name."""
+
+    def test_vendor_name_with_brace_placeholders_renders_literally(
+        self,
+    ) -> None:
+        # Vendor name containing `.format()`-style placeholder syntax
+        v = _make_vendor(name="{vendor_name}")
+        # Must not raise KeyError or recursively substitute
+        q = generate_questionnaire(
+            v, QuestionnaireFormat.EVIDENTIA_GENERIC
+        )
+        # The literal braces survive into the title
+        assert "{vendor_name}" in q.title
+
+    def test_vendor_name_with_unknown_placeholder_safe(self) -> None:
+        # Hypothetical attacker-supplied template-walker
+        v = _make_vendor(name="{0.__class__.__init__.__globals__}")
+        # Must not raise + must not actually walk attributes
+        q = generate_questionnaire(
+            v, QuestionnaireFormat.EVIDENTIA_GENERIC
+        )
+        assert "{0.__class__.__init__.__globals__}" in q.title
+
+
 class TestQuestionnaireJsonRoundTrip:
     def test_round_trip(self) -> None:
         v = _make_vendor()

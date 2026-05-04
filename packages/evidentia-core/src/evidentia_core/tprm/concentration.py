@@ -64,6 +64,37 @@ from evidentia_core.models.common import (
 )
 from evidentia_core.models.tprm import Vendor, VendorType
 
+# Characters that, when leading a CSV cell, trigger formula
+# interpretation in Excel / LibreOffice / Google Sheets. Per OWASP
+# CSV Injection guidance: `=`, `+`, `-`, `@`, plus tab + carriage
+# return (which can be used to lead-rotate fields in some parsers).
+# Fix lands here in the v0.7.9 P0.3 + P0.2 Continuous-review
+# (security review M-1 / code-quality H-1) so the CSV that goes to
+# the vendor — and the concentration CSV that gets shared with
+# regulators / auditors — cannot be weaponized via a crafted vendor
+# name or 4th-party name.
+_CSV_FORMULA_LEAD_CHARS: frozenset[str] = frozenset(
+    ["=", "+", "-", "@", "\t", "\r"]
+)
+
+
+def _csv_safe(value: object) -> str:
+    """Defuse CSV-injection vectors before writing a cell.
+
+    Prefixes a single-quote (``'``) when the stringified value's
+    first character is in :data:`_CSV_FORMULA_LEAD_CHARS`. The
+    single-quote is the OWASP-recommended neutralizer + survives
+    round-tripping in most spreadsheet consumers (Excel renders
+    it but doesn't interpret as formula; LibreOffice + Sheets
+    likewise). Non-string values pass through unchanged after
+    str() coercion (so ``int`` / ``float`` cells emit cleanly).
+    """
+    s = str(value)
+    if s and s[0] in _CSV_FORMULA_LEAD_CHARS:
+        return "'" + s
+    return s
+
+
 SUPPORTED_DIMENSIONS: frozenset[str] = frozenset(
     [
         "region",
@@ -199,18 +230,29 @@ def _extract_values_for_dimension(
     if dimension == "4th-party":
         return [fp.name for fp in vendor.fourth_parties]
     if dimension == "cloud-provider":
-        # Two contributions:
+        # Two contributions, each with a source-distinguishing suffix
+        # so an FFIEC-facing report doesn't merge "direct AWS contract"
+        # with "AWS shows up as a downstream 4P" into one bucket
+        # labeled simply "AWS" — they're materially different
+        # concentration risks. Closes v0.7.9 P0.3+P0.2 Continuous-
+        # review H-2.
+        #
         #   1. The vendor itself, if its primary type is cloud_provider
-        #      (e.g., direct AWS contract) — labeled by vendor name
-        #   2. Each disclosed 4th-party with type=cloud_provider — labeled
-        #      by 4th-party name (e.g., a SaaS vendor disclosing AWS as
-        #      its underlying IaaS)
+        #      (direct AWS contract) — labeled "<vendor name> (direct)"
+        #   2. Each disclosed 4th-party with type=cloud_provider —
+        #      labeled "<4P name> (4th-party)"
+        #
+        # An operator running concentration with `--by cloud-provider`
+        # then sees two rows for the same provider — "AWS (direct)" +
+        # "AWS (4th-party)" — and can investigate each independently.
+        # If they want the merged view, adding both row counts is
+        # trivial in their downstream tool.
         out: list[str] = []
         if str(vendor.type) == VendorType.CLOUD_PROVIDER.value:
-            out.append(vendor.name)
+            out.append(f"{vendor.name} (direct)")
         for fp in vendor.fourth_parties:
             if str(fp.type) == VendorType.CLOUD_PROVIDER.value:
-                out.append(fp.name)
+                out.append(f"{fp.name} (4th-party)")
         return out
     raise ValueError(
         f"Unsupported concentration dimension {dimension!r}; "
@@ -454,10 +496,16 @@ def render_csv_report(report: ConcentrationReport) -> str:
     )
     for dim in report.dimensions:
         for vc in dim.distribution:
+            # Apply _csv_safe to the only user-supplied cell — `vc.value`
+            # carries vendor / 4th-party / region names + regulatory-
+            # classification labels. Other columns (`dim.dimension` is
+            # closed-set per SUPPORTED_DIMENSIONS; `count` / `percentage`
+            # are numeric; `exceeds_threshold` is constant) cannot
+            # carry attacker-controlled formula content.
             writer.writerow(
                 [
                     dim.dimension,
-                    vc.value,
+                    _csv_safe(vc.value),
                     vc.count,
                     vc.percentage,
                     "true" if vc.exceeds_threshold else "false",

@@ -181,13 +181,24 @@ class TestComputeConcentration:
         report = compute_concentration(vendors, ["cloud-provider"])
         dim = report.dimensions[0]
         values = {v.value: v.count for v in dim.distribution}
-        # AWS Direct: appears as direct vendor (1) + as 4th-party of
-        # SaaS-on-AWS (1) → 2 distinct vendor IDs
-        assert values["AWS Direct"] == 2
-        # Azure: 1 vendor (SaaS-on-Azure)
-        assert values["Azure"] == 1
-        # Stripe is not a cloud provider — must NOT appear
-        assert "Stripe" not in values
+        # H-2 Continuous-review fix: source-distinguishing suffix.
+        # Direct AWS-Direct contract appears as "AWS Direct (direct)"
+        # (1 vendor); the 4th-party AWS-Direct disclosure on
+        # SaaS-on-AWS appears as "AWS Direct (4th-party)" (1 vendor).
+        # Two rows, not one merged row — operators reviewing the
+        # concentration report can distinguish "we have a direct
+        # AWS contract" from "AWS is a downstream 4P".
+        assert values["AWS Direct (direct)"] == 1
+        assert values["AWS Direct (4th-party)"] == 1
+        # Azure: 1 vendor (SaaS-on-Azure) as 4th-party
+        assert values["Azure (4th-party)"] == 1
+        # Stripe is not a cloud provider — must NOT appear in any form
+        assert all(
+            "Stripe" not in v for v in values
+        ), f"Stripe leaked into cloud-provider dimension: {values!r}"
+        # Old un-suffixed labels must NOT appear
+        assert "AWS Direct" not in values
+        assert "Azure" not in values
 
     def test_4p_dimension_includes_all_4p_types(self) -> None:
         vendors = [
@@ -332,6 +343,104 @@ class TestRenderHtmlReport:
 
 
 # ── CSV rendering ──────────────────────────────────────────────────
+
+
+class TestCsvInjectionDefense:
+    """H-1 Continuous-review regression — _csv_safe neutralizes
+    formula-injection vectors in vendor-controlled CSV cells.
+
+    Closes v0.7.9 P0.3 + P0.2 Continuous-review H-1 / security M-1
+    (CWE-1236 Improper Neutralization of Formula Elements in CSV
+    File). The CSV is specifically designed to be opened in Excel /
+    LibreOffice / Sheets where leading `=` `+` `-` `@` interpret
+    as formula start; a single-quote prefix neutralizes per OWASP
+    guidance.
+    """
+
+    def test_csv_safe_set_includes_owasp_chars(self) -> None:
+        # Verify the formula-lead set covers the OWASP-recommended
+        # set: =, +, -, @ (Excel/Sheets formula leads), plus tab + CR
+        # (defense-in-depth against parser quirks). Tab/CR aren't
+        # round-trip-testable through csv.reader (which strips leading
+        # whitespace on parse), so we assert the set membership
+        # directly.
+        from evidentia_core.tprm.concentration import (
+            _CSV_FORMULA_LEAD_CHARS,
+        )
+
+        for ch in ("=", "+", "-", "@", "\t", "\r"):
+            assert ch in _CSV_FORMULA_LEAD_CHARS
+
+    @pytest.mark.parametrize(
+        "malicious_name",
+        [
+            "=cmd|'/c calc'!A0",
+            "=HYPERLINK(\"http://attacker.example\",\"Click\")",
+            "+SUM(A1)",
+            "-2+3",
+            "@SUM(1+1)",
+        ],
+    )
+    def test_concentration_csv_neutralizes_formula_lead_chars(
+        self, malicious_name: str
+    ) -> None:
+        # 4th-party name is one of the user-controlled cells
+        v = Vendor(
+            name="Parent",
+            type=VendorType.SAAS,
+            criticality_tier=CriticalityTier.HIGH,
+            relationship_owner="x@x.com",
+            contract_start_date=date(2025, 1, 1),
+            fourth_parties=[
+                FourthParty(
+                    name=malicious_name,
+                    type=VendorType.SAAS,
+                    relationship="malicious-test",
+                ),
+            ],
+        )
+        report = compute_concentration([v], ["4th-party"])
+        csv_str = render_csv_report(report)
+        # Parse the CSV and inspect the value cell directly — avoids
+        # substring/escape headaches with `csv.writer`'s embedded-
+        # quote / tab / CR handling.
+        import csv as _csv
+        import io as _io
+
+        rows = list(_csv.reader(_io.StringIO(csv_str)))
+        # Header row + data rows; the data row has the malicious name
+        # in the `value` column (index 1)
+        data_rows = rows[1:]
+        assert len(data_rows) == 1
+        value_cell = data_rows[0][1]
+        # Defused: cell starts with a single-quote
+        assert value_cell.startswith("'"), (
+            f"Expected single-quote prefix on defused cell; "
+            f"got {value_cell!r}"
+        )
+        # Original malicious name follows the prefix unchanged
+        assert value_cell == "'" + malicious_name
+
+    def test_concentration_csv_passes_safe_values_through(self) -> None:
+        # Normal (non-formula-leading) vendor name should NOT get
+        # a single-quote prefix.
+        v = Vendor(
+            name="Acme Cloud",
+            type=VendorType.SAAS,
+            criticality_tier=CriticalityTier.HIGH,
+            relationship_owner="x@x.com",
+            contract_start_date=date(2025, 1, 1),
+            region="us-east-1",
+        )
+        report = compute_concentration([v], ["region"])
+        csv_str = render_csv_report(report)
+        # us-east-1 should appear unprefixed (the leading char `u`
+        # is not in the formula-lead set)
+        for line in csv_str.split("\n"):
+            if "us-east-1" in line:
+                assert "'us-east-1" not in line, (
+                    f"Safe value should not be prefixed: {line!r}"
+                )
 
 
 class TestRenderCsvReport:

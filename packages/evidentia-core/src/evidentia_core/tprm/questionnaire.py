@@ -64,6 +64,7 @@ from evidentia_core.models.common import (
     utc_now,
 )
 from evidentia_core.models.tprm import Vendor
+from evidentia_core.tprm.concentration import _csv_safe
 
 
 class QuestionnaireFormat(str, Enum):
@@ -263,7 +264,14 @@ def generate_questionnaire(
     title_template = data.get(
         "title_template", "Vendor DD Questionnaire — {vendor_name}"
     )
-    title = title_template.format(vendor_name=vendor.name)
+    # Use string `.replace()` rather than `.format(vendor_name=...)`
+    # so a vendor name containing `{}` / `{0}` / `{secret}` cannot
+    # raise KeyError at render time or, worse, leak adjacent format
+    # args via positional/attribute walking. Closes v0.7.9 P0.3+P0.2
+    # Continuous-review H-3 (defensive). The template comes from
+    # packaged trusted JSON, so it itself can't be malicious — the
+    # concern is just that vendor.name is user-supplied free-text.
+    title = title_template.replace("{vendor_name}", vendor.name)
     return Questionnaire(
         format=format,
         title=title,
@@ -290,17 +298,23 @@ def render_csv_questionnaire(q: Questionnaire) -> str:
     # Header section: vendor prefill as key/value comment lines.
     # Use a leading "#" sentinel so spreadsheet importers can filter
     # them out if desired; csv module handles arbitrary strings fine.
+    # User-content cells go through _csv_safe to neutralize formula-
+    # injection vectors (vendor name + 4th-party name + region etc.
+    # are operator-supplied; the questionnaire CSV is explicitly
+    # designed to be sent to the vendor, making formula injection
+    # in those fields a real exfil/phish primitive). Closes v0.7.9
+    # P0.2/P0.3 Continuous-review H-1 / security M-1.
     writer.writerow(["# Vendor DD Questionnaire"])
-    writer.writerow(["# Title", q.title])
+    writer.writerow(["# Title", _csv_safe(q.title)])
     writer.writerow(["# Questionnaire ID", q.id])
     writer.writerow(["# Format", str(q.format)])
     writer.writerow(["# Generated at", q.generated_at.isoformat()])
     writer.writerow(["# Vendor ID", q.vendor.vendor_id])
-    writer.writerow(["# Vendor name", q.vendor.vendor_name])
+    writer.writerow(["# Vendor name", _csv_safe(q.vendor.vendor_name)])
     writer.writerow(["# Vendor type", q.vendor.vendor_type])
     writer.writerow(["# Criticality tier", q.vendor.criticality_tier])
     writer.writerow(
-        ["# Relationship owner", q.vendor.relationship_owner]
+        ["# Relationship owner", _csv_safe(q.vendor.relationship_owner)]
     )
     writer.writerow(
         ["# Contract start", str(q.vendor.contract_start_date)]
@@ -310,26 +324,30 @@ def render_csv_questionnaire(q: Questionnaire) -> str:
             ["# Contract end", str(q.vendor.contract_end_date)]
         )
     if q.vendor.region:
-        writer.writerow(["# Region", q.vendor.region])
+        writer.writerow(["# Region", _csv_safe(q.vendor.region)])
     if q.vendor.regulatory_classification:
         writer.writerow(
             [
                 "# Regulatory classification",
-                ", ".join(q.vendor.regulatory_classification),
+                _csv_safe(", ".join(q.vendor.regulatory_classification)),
             ]
         )
     if q.vendor.fourth_party_count:
         writer.writerow(
             [
                 "# 4th parties",
-                f"{q.vendor.fourth_party_count}: "
-                + ", ".join(q.vendor.fourth_party_names),
+                _csv_safe(
+                    f"{q.vendor.fourth_party_count}: "
+                    + ", ".join(q.vendor.fourth_party_names)
+                ),
             ]
         )
     if q.licensing_attribution:
         writer.writerow(["# Attribution", q.licensing_attribution])
     writer.writerow([])  # blank separator row
-    # Question rows
+    # Question rows. Question content (text + notes) comes from
+    # packaged-data trusted JSON, but we _csv_safe it anyway as
+    # defense-in-depth against future user-templated questions.
     writer.writerow(
         [
             "id",
@@ -345,9 +363,9 @@ def render_csv_questionnaire(q: Questionnaire) -> str:
             [
                 question.id,
                 question.domain,
-                question.question_text,
+                _csv_safe(question.question_text),
                 " | ".join(question.response_options),
-                question.notes or "",
+                _csv_safe(question.notes) if question.notes else "",
                 "",  # blank for vendor to fill
             ]
         )
