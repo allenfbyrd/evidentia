@@ -57,6 +57,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   honors operator overrides via `--next-validation-due`. 23 CLI
   integration tests covering every verb + atomic + YAML +
   validation contract.
+- **FFIEC IT Examination Handbook — Outsourcing Technology
+  Services booklet catalog** (v0.7.10 P1 first slice). New
+  bundled Tier A control catalog covering the 30 examination-
+  guidance items across 7 categories (Roles + Responsibilities,
+  Risk Management, Outsourcing Decision, Vendor Selection,
+  Contract Issues, Ongoing Monitoring, Related Topics) per the
+  FFIEC IT Handbook published at
+  https://ithandbook.ffiec.gov/. Public domain (US federal
+  inter-agency examination guidance per 17 USC §105).
+  Generator script `scripts/catalogs/gen_ffiec.py` documents
+  the authoring path for the remaining 6 P1 catalogs (Information
+  Security / Audit / Management / Operations booklets; OCC
+  Bulletin 2026-13a + FRB SR 26-02 model-risk; FFIEC Cybersecurity
+  Assessment Tool) which will land in subsequent v0.7.10 P1
+  sub-batches. Total bundled catalogs: 82 → 83 (target 89 once
+  the full P1 batch ships). README + status sections refreshed.
+  All 169 catalog tests pass with the new manifest.
 - **v0.7.9-deferred-finding closures** (v0.7.10 P3 first batch).
   Closes 4 of the 17 MEDIUM/LOW findings deferred from v0.7.9
   with explicit ship-velocity rationale:

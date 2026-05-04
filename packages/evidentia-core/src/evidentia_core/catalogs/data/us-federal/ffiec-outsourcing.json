@@ -1,0 +1,200 @@
+{
+  "framework_id": "ffiec-outsourcing",
+  "framework_name": "FFIEC IT Examination Handbook — Outsourcing Technology Services booklet",
+  "version": "June 2004 + 2008/2010 supplements",
+  "source": "https://ithandbook.ffiec.gov/it-booklets/outsourcing-technology-services.aspx",
+  "tier": "A",
+  "category": "control",
+  "placeholder": false,
+  "families": [
+    "1. Roles + Responsibilities",
+    "2. Risk Management",
+    "3. Outsourcing Decision",
+    "4. Vendor Selection",
+    "5. Contract Issues",
+    "6. Ongoing Monitoring",
+    "7. Related Topics"
+  ],
+  "controls": [
+    {
+      "id": "1.1",
+      "title": "Board and Senior Management Responsibility",
+      "description": "The board of directors and senior management are responsible for understanding the risks associated with outsourcing arrangements and ensuring effective risk management throughout the relationship lifecycle.",
+      "family": "1. Roles + Responsibilities"
+    },
+    {
+      "id": "1.2",
+      "title": "Outsourcing Risk Management Function",
+      "description": "The institution establishes a clearly-defined outsourcing risk management function with documented authority + reporting lines to the board.",
+      "family": "1. Roles + Responsibilities"
+    },
+    {
+      "id": "1.3",
+      "title": "Information Security Officer Involvement",
+      "description": "The Information Security Officer is involved in vendor selection + ongoing-monitoring decisions for arrangements involving sensitive customer data or operational impact.",
+      "family": "1. Roles + Responsibilities"
+    },
+    {
+      "id": "2.1",
+      "title": "Risk Assessment Methodology",
+      "description": "Outsourcing risk assessments cover: strategic / reputational / operational / transaction / credit / compliance / country risks, prioritized by criticality of the outsourced function.",
+      "family": "2. Risk Management"
+    },
+    {
+      "id": "2.2",
+      "title": "Critical Function Identification",
+      "description": "The institution identifies its critical business functions and applies enhanced due diligence + monitoring to vendors supporting them.",
+      "family": "2. Risk Management"
+    },
+    {
+      "id": "2.3",
+      "title": "Concentration Risk Analysis",
+      "description": "The institution assesses concentration risk arising from reliance on a small number of vendors, geographic concentrations, or shared-service-provider relationships.",
+      "family": "2. Risk Management"
+    },
+    {
+      "id": "2.4",
+      "title": "Subcontractor (4th Party) Risk",
+      "description": "The institution maintains visibility into critical subcontractor relationships used by primary vendors and extends ongoing-monitoring expectations to those parties.",
+      "family": "2. Risk Management"
+    },
+    {
+      "id": "3.1",
+      "title": "Strategic Alignment Review",
+      "description": "The decision to outsource is documented and reviewed for alignment with the institution's strategic objectives, regulatory obligations, and risk appetite.",
+      "family": "3. Outsourcing Decision"
+    },
+    {
+      "id": "3.2",
+      "title": "Cost-Benefit + Risk-Adjusted Analysis",
+      "description": "The outsourcing business case includes risk-adjusted analysis of in-house vs vendor cost, capability, and quality dimensions.",
+      "family": "3. Outsourcing Decision"
+    },
+    {
+      "id": "3.3",
+      "title": "Regulatory Notification (where required)",
+      "description": "The institution notifies the appropriate federal regulator of material outsourcing arrangements per 12 USC §1867 (BSCA) when applicable.",
+      "family": "3. Outsourcing Decision"
+    },
+    {
+      "id": "4.1",
+      "title": "Due Diligence Scope",
+      "description": "Vendor due diligence covers: financial condition, experience + reputation, business continuity capability, information security posture, regulatory compliance history, insurance coverage, and reference checks.",
+      "family": "4. Vendor Selection"
+    },
+    {
+      "id": "4.2",
+      "title": "Information Security Posture Review",
+      "description": "Vendor security posture review covers: encryption + key management, access controls, audit logging, incident response, vulnerability + patch management, third-party audit reports (SOC 2, ISO 27001).",
+      "family": "4. Vendor Selection"
+    },
+    {
+      "id": "4.3",
+      "title": "Business Continuity + Disaster Recovery Capability",
+      "description": "Vendor BC/DR capability is evaluated, including documented RTO + RPO targets, tested recovery procedures, and geographic resilience.",
+      "family": "4. Vendor Selection"
+    },
+    {
+      "id": "4.4",
+      "title": "Pre-Contract Site Visit + Audit",
+      "description": "For critical relationships, the institution performs an on-site or virtual review of vendor facilities + controls before contract execution.",
+      "family": "4. Vendor Selection"
+    },
+    {
+      "id": "5.1",
+      "title": "Contract Scope and Performance Standards",
+      "description": "The contract clearly defines the services in scope, performance standards (SLAs), and remedies for non-performance.",
+      "family": "5. Contract Issues"
+    },
+    {
+      "id": "5.2",
+      "title": "Right-to-Audit Clause",
+      "description": "The contract grants the institution + its regulators the right to audit vendor controls + access vendor records relating to services provided.",
+      "family": "5. Contract Issues"
+    },
+    {
+      "id": "5.3",
+      "title": "Confidentiality + Data Protection",
+      "description": "The contract addresses customer-data protection, confidentiality, breach notification timelines, and data return / destruction at contract end.",
+      "family": "5. Contract Issues"
+    },
+    {
+      "id": "5.4",
+      "title": "Subcontracting Restrictions",
+      "description": "The contract restricts vendor subcontracting (assignment) to require prior institution approval for material transfers; flow-down clauses bind subcontractors to the same protections.",
+      "family": "5. Contract Issues"
+    },
+    {
+      "id": "5.5",
+      "title": "Termination + Exit Provisions",
+      "description": "The contract includes clear termination triggers, notice periods, transition assistance obligations, and data return / portability requirements.",
+      "family": "5. Contract Issues"
+    },
+    {
+      "id": "5.6",
+      "title": "Foreign-Based Vendor Considerations",
+      "description": "Contracts with foreign-based vendors address governing law, jurisdiction, regulatory access, and country-risk factors per FFIEC offshore-outsourcing guidance.",
+      "family": "5. Contract Issues"
+    },
+    {
+      "id": "6.1",
+      "title": "Performance Monitoring",
+      "description": "Ongoing monitoring covers: SLA performance, financial condition, control effectiveness (via SOC 2 / ISO 27001 / right-to-audit), security incidents, regulatory matters.",
+      "family": "6. Ongoing Monitoring"
+    },
+    {
+      "id": "6.2",
+      "title": "Periodic Risk Reassessment",
+      "description": "Vendor risk assessments are refreshed on a documented cadence (typically annual for critical vendors; biennial for moderate; triennial for low-impact).",
+      "family": "6. Ongoing Monitoring"
+    },
+    {
+      "id": "6.3",
+      "title": "Incident + Issue Tracking",
+      "description": "Vendor-side security incidents, control deficiencies, and SLA misses are tracked + remediated via documented issue-management processes.",
+      "family": "6. Ongoing Monitoring"
+    },
+    {
+      "id": "6.4",
+      "title": "Change Notification",
+      "description": "Vendors are required to notify the institution of material changes: ownership, key personnel, subcontracting, service-delivery model, or geographic location.",
+      "family": "6. Ongoing Monitoring"
+    },
+    {
+      "id": "6.5",
+      "title": "Annual Senior-Management + Board Review",
+      "description": "Senior management + the board receive at-least-annual reports on the outsourcing portfolio: vendor list, risk ratings, performance, incidents, concentration analysis.",
+      "family": "6. Ongoing Monitoring"
+    },
+    {
+      "id": "7.1",
+      "title": "Cloud Computing Considerations",
+      "description": "Cloud arrangements receive enhanced scrutiny for shared-responsibility model clarity, multi-tenancy controls, data residency, and cross-border data flows.",
+      "family": "7. Related Topics"
+    },
+    {
+      "id": "7.2",
+      "title": "Software-as-a-Service (SaaS) Arrangements",
+      "description": "SaaS arrangements are evaluated for vendor lock-in risk, data portability provisions, and service-availability track records.",
+      "family": "7. Related Topics"
+    },
+    {
+      "id": "7.3",
+      "title": "Resilience + Concentration Across Critical Functions",
+      "description": "The institution's overall outsourcing posture is reviewed for resilience: avoiding single-point-of-failure vendor dependencies for critical operations.",
+      "family": "7. Related Topics"
+    },
+    {
+      "id": "7.4",
+      "title": "Affiliate + Group-Level Outsourcing",
+      "description": "Intra-group outsourcing is documented + governed under the same standards as third-party outsourcing, including affiliate transactions per Regulation W.",
+      "family": "7. Related Topics"
+    },
+    {
+      "id": "7.5",
+      "title": "Records Retention + Examination Access",
+      "description": "Vendor-held records are retained per the institution's retention policy + applicable regulatory requirements; regulators have access via the right-to-audit clause.",
+      "family": "7. Related Topics"
+    }
+  ]
+}

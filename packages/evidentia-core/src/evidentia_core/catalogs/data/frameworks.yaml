@@ -109,6 +109,14 @@ frameworks:
   path: us-federal/fedramp-rev5-moderate.json
   source_url: FedRAMP PMO — https://www.fedramp.gov (U.S. Government work, public domain). Baseline is a tailored subset of NIST SP 800-53 Rev 5.
   refresh: monthly
+- id: ffiec-outsourcing
+  name: FFIEC IT Examination Handbook — Outsourcing Technology Services booklet
+  version: June 2004 + 2008/2010 supplements
+  tier: A
+  category: control
+  path: us-federal/ffiec-outsourcing.json
+  source_url: https://ithandbook.ffiec.gov/it-booklets/outsourcing-technology-services.aspx
+  refresh: monthly
 - id: glba-safeguards
   name: GLBA Safeguards Rule (16 CFR § 314)
   version: 2023 (Notification Amendment)
