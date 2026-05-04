@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.10] - 2026-05-04
+
+**The financial-services Model Risk Management + governance ship.**
+Brings Evidentia into alignment with the Model Risk Management
+regulatory stack (SR 11-7 / SR 26-02 / OCC Bulletin 2011-12 / OCC
+Bulletin 2026-13a) and the IIA Three Lines Model 2020 governance
+framework. Introduces the `evidentia model-risk` + `evidentia
+governance` top-level capability modules; ships 6 new bundled
+financial-sector regulatory catalogs (5 FFIEC IT Handbook booklets
++ FFIEC Cybersecurity Assessment Tool + OCC Bulletin 2026-13a /
+FRB SR 26-02 model-risk supersession) on top of the v0.7.10 P1
+first slice (FFIEC Outsourcing booklet); closes the last remaining
+**OpenSSF Best Practices Silver-tier MUST** (`test_statement_
+coverage80`) by publishing 81.87% statement coverage to Codecov;
+closes 4 of the 17 v0.7.9-deferred MEDIUM/LOW findings (M-1 / M-2 /
+L-3 / L-7); and ships comprehensive walkthrough docs covering both
+modules. **All 7 OpenSSF Silver MUST criteria are now Met** —
+Allen files the Silver application form post-tag.
+
+Per the v0.7.10 plan, P3 follow-up (13 remaining v0.7.9 deferrals
++ 9 v0.7.8 LOWs) is deferred to v0.7.11 with documented rationale
+per finding (none are correctness defects or active exploit paths).
+
 ### Added
 
 - **Model Risk Management Pydantic schemas** (v0.7.10 P0.6.1

@@ -22,6 +22,10 @@ from platformdirs import user_data_dir
 
 from evidentia_core.governance.effective_challenge import EffectiveChallenge
 from evidentia_core.models.common import utc_now
+from evidentia_core.security.paths import (
+    PathTraversalError,
+    validate_within,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -61,10 +65,13 @@ def save_challenge(
 ) -> Path:
     """Persist a challenge record. Atomic via os.replace.
 
-    ID shape is validated up-front via :func:`_validate_id_shape`;
-    once the ID is known UUID-shaped, path construction is safe
-    (no path-traversal vector through ``<id>.json``). Mirrors
-    model_risk_store's save_model pattern.
+    ID shape is validated up-front via :func:`_validate_id_shape`,
+    then the constructed path is independently validated to be
+    within the store directory via
+    :func:`evidentia_core.security.paths.validate_within` —
+    belt-and-suspenders barrier matching the v0.7.9 vendor_store +
+    v0.7.10 P0.6.1 model_risk_store patterns. v0.7.10 P3 closure
+    of v0.7.10 security-review F-V10-S1.
     """
     _validate_id_shape(challenge.id)
     store_dir = get_challenge_store_dir(override)
@@ -73,7 +80,13 @@ def save_challenge(
     refreshed = challenge.model_copy(update={"updated_at": utc_now()})
     payload = refreshed.model_dump_json(indent=2)
 
-    out_path = store_dir / f"{challenge.id}.json"
+    candidate = store_dir / f"{challenge.id}.json"
+    try:
+        out_path = validate_within(candidate, store_dir)
+    except PathTraversalError as e:
+        raise InvalidChallengeIdError(
+            f"Invalid challenge ID: path-traversal violation: {challenge.id!r}"
+        ) from e
     tmp_path = store_dir / f"{challenge.id}.json.tmp"
     tmp_path.write_text(payload, encoding="utf-8")
     os.replace(tmp_path, out_path)
@@ -87,7 +100,13 @@ def load_challenge_by_id(
     """Load a challenge by ID. Returns None for well-formed-unknown IDs."""
     _validate_id_shape(challenge_id)
     store_dir = get_challenge_store_dir(override)
-    path = store_dir / f"{challenge_id}.json"
+    candidate = store_dir / f"{challenge_id}.json"
+    try:
+        path = validate_within(candidate, store_dir)
+    except PathTraversalError as e:
+        raise InvalidChallengeIdError(
+            f"Invalid challenge ID: path-traversal violation: {challenge_id!r}"
+        ) from e
     if not path.exists():
         return None
     return EffectiveChallenge.model_validate_json(path.read_text(encoding="utf-8"))
@@ -124,7 +143,13 @@ def delete_challenge(
     """Delete a challenge by ID. Returns True if removed."""
     _validate_id_shape(challenge_id)
     store_dir = get_challenge_store_dir(override)
-    path = store_dir / f"{challenge_id}.json"
+    candidate = store_dir / f"{challenge_id}.json"
+    try:
+        path = validate_within(candidate, store_dir)
+    except PathTraversalError as e:
+        raise InvalidChallengeIdError(
+            f"Invalid challenge ID: path-traversal violation: {challenge_id!r}"
+        ) from e
     if not path.exists():
         return False
     path.unlink()
