@@ -388,6 +388,24 @@ class AzureImmutableBlobWORM(WORMBackend):
         )
         return new_metadata
 
+    def _update_metadata(
+        self, record_id: str, new_metadata: RetentionMetadata
+    ) -> None:
+        """Sidecar metadata rewrite (does NOT touch the immutable payload)."""
+        meta_blob = self._container.get_blob_client(
+            self._meta_key(record_id)
+        )
+        try:
+            meta_blob.upload_blob(
+                new_metadata.model_dump_json(indent=2).encode("utf-8"),
+                overwrite=True,
+            )
+        except HttpResponseError as e:
+            raise WORMBackendError(
+                f"Azure metadata update failed for record {record_id!r}: "
+                f"{getattr(e, 'message', str(e))}"
+            ) from e
+
     def __repr__(self) -> str:
         return (
             f"AzureImmutableBlobWORM(container={self._container_name!r}, "

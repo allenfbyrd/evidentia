@@ -112,6 +112,21 @@ class EventAction(str, Enum):
     AI_EXPLAIN_CACHE_HIT = "evidentia.ai.explain_cache_hit"
     AI_EXPLAIN_BATCH_COMPLETED = "evidentia.ai.explain_batch_completed"
 
+    # Retention + WORM lifecycle events (v0.7.12 P1) — audit-trail
+    # actions on records under retention metadata. The PURGED variant
+    # serves as the canonical legal-counsel-defensible artifact for
+    # GDPR Article 17 (right-to-erasure) executions: every purge
+    # call emits one event with the operator identity + GDPR
+    # request reference, persisted to the audit log INDEPENDENT of
+    # the record itself (which has been deleted).
+    RETENTION_RECORD_PUT = "evidentia.retention.record_put"
+    RETENTION_RECORD_EXTENDED = "evidentia.retention.record_extended"
+    RETENTION_LEGAL_HOLD_APPLIED = "evidentia.retention.legal_hold_applied"
+    RETENTION_LEGAL_HOLD_RELEASED = "evidentia.retention.legal_hold_released"
+    RETENTION_LIFECYCLE_TRANSITIONED = "evidentia.retention.lifecycle_transitioned"
+    RETENTION_RECORD_PURGED = "evidentia.retention.record_purged"
+    RETENTION_GDPR_PURGE = "evidentia.retention.gdpr_purge"
+
 
 class EventCategory(str, Enum):
     """ECS ``event.category`` values Evidentia uses.

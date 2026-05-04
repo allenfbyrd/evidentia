@@ -316,6 +316,21 @@ class GCSBucketLockWORM(WORMBackend):
         )
         return new_metadata
 
+    def _update_metadata(
+        self, record_id: str, new_metadata: RetentionMetadata
+    ) -> None:
+        """Sidecar metadata rewrite (does NOT touch the payload)."""
+        meta_blob = self._bucket.blob(self._meta_key(record_id))
+        try:
+            meta_blob.upload_from_string(
+                new_metadata.model_dump_json(indent=2),
+                content_type="application/json",
+            )
+        except GoogleAPIError as e:
+            raise WORMBackendError(
+                f"GCS metadata update failed for record {record_id!r}: {e}"
+            ) from e
+
     def __repr__(self) -> str:
         return (
             f"GCSBucketLockWORM(bucket={self._bucket_name!r}, "

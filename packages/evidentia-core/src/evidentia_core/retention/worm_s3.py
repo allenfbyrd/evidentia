@@ -403,6 +403,23 @@ class S3ObjectLockWORM(WORMBackend):
         )
         return new_metadata
 
+    def _update_metadata(
+        self, record_id: str, new_metadata: RetentionMetadata
+    ) -> None:
+        """Sidecar metadata rewrite (does NOT touch the locked payload)."""
+        try:
+            self._client.put_object(
+                Bucket=self._bucket,
+                Key=self._meta_key(record_id),
+                Body=new_metadata.model_dump_json(indent=2).encode("utf-8"),
+                ContentType="application/json",
+            )
+        except ClientError as e:
+            raise WORMBackendError(
+                f"S3 metadata update failed for record {record_id!r}: "
+                f"{e.response.get('Error', {}).get('Message', str(e))}"
+            ) from e
+
     def __repr__(self) -> str:
         return (
             f"S3ObjectLockWORM(bucket={self._bucket!r}, "

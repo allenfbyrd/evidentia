@@ -246,6 +246,7 @@ def transition_lifecycle(
     new_stage: RetentionLifecycleStage,
     *,
     today: date | None = None,
+    force_gdpr_purge: bool = False,
 ) -> RetentionMetadata:
     """Transition a record's lifecycle stage with validation.
 
@@ -257,8 +258,27 @@ def transition_lifecycle(
         AND no legal hold
       - ACTIVE → PRESERVED is always allowed (legal hold trigger)
       - PRESERVED → ACTIVE is allowed (legal hold released)
-      - PRESERVED → EXPIRED requires `legal_hold=False` AND the
+      - PRESERVED → EXPIRED requires ``legal_hold=False`` AND the
         lock window to have passed
+
+    GDPR Article 17 (right-to-erasure) override:
+
+      - When ``force_gdpr_purge=True``, ACTIVE → EXPIRED is allowed
+        for records whose ``retention_period_days == 0`` (the
+        Pydantic invariant for GDPR purpose-limited records). This
+        closes the v0.7.11 functional gap where GDPR records had
+        ``lock_until=None`` and could not satisfy the standard
+        ``can_expire`` precondition.
+      - The override is scoped: it does NOT bypass legal_hold
+        (which always trumps GDPR per most legal frameworks) and
+        it does NOT allow ACTIVE → EXPIRED on records with
+        ``retention_period_days > 0`` (those follow the standard
+        retention path).
+      - Operators MUST audit-log every ``force_gdpr_purge=True``
+        call with operator + gdpr_request_ref provenance via
+        ``EventAction.RETENTION_GDPR_PURGE``. The
+        ``WORMBackend.purge_immediately`` operator workflow is the
+        canonical entry point.
 
     Returns a new RetentionMetadata (input not mutated).
     """
@@ -272,11 +292,23 @@ def transition_lifecycle(
         return metadata.model_copy(update={"updated_at": utc_now()})
 
     today = today or date.today()
+    # v0.7.12 P1 closure of v0.7.11 GDPR functional gap: GDPR
+    # purpose-limited records (retention_period_days=0,
+    # lock_until=None) cannot satisfy the standard can_expire
+    # precondition because lock_until is None. The
+    # force_gdpr_purge override path permits ACTIVE → EXPIRED for
+    # these records ONLY (legal_hold still trumps).
+    is_gdpr_purpose_limited = metadata.retention_period_days == 0
+    can_expire_gdpr = (
+        force_gdpr_purge
+        and is_gdpr_purpose_limited
+        and not metadata.legal_hold
+    )
     can_expire = (
         not metadata.legal_hold
         and metadata.lock_until is not None
         and today >= metadata.lock_until
-    )
+    ) or can_expire_gdpr
 
     valid_transitions = {
         RetentionLifecycleStage.ACTIVE.value: {

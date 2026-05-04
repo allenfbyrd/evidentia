@@ -103,6 +103,135 @@ class WORMBackend(ABC):
         """
         ...
 
+    def purge_immediately(
+        self,
+        record_id: str,
+        *,
+        gdpr_request_ref: str,
+        operator_id: str,
+    ) -> RetentionMetadata:
+        """GDPR Article 17 (right-to-erasure) immediate purge.
+
+        Permits delete bypassing the standard retention checks,
+        but ONLY when the underlying record's
+        ``retention_period_days == 0`` (the Pydantic invariant for
+        GDPR purpose-limited records). Closes the v0.7.11
+        functional gap where GDPR records could not transition
+        ACTIVE→EXPIRED via :func:`transition_lifecycle` because
+        ``lock_until`` was None.
+
+        The pre-conditions:
+
+          1. ``metadata.retention_period_days == 0`` — operator
+             cannot use this path to purge non-GDPR records
+             (which must follow the retention-window path)
+          2. ``metadata.legal_hold`` is False — legal hold trumps
+             GDPR per most legal frameworks (the operator must
+             release the legal hold first if a GDPR request
+             arrives during litigation hold)
+          3. ``operator_id`` and ``gdpr_request_ref`` are
+             populated — for audit-trail provenance
+
+        The default impl raises :class:`WORMBackendError` for
+        any precondition violation, then delegates to
+        :meth:`delete` after transitioning the record's
+        lifecycle to EXPIRED via the
+        ``force_gdpr_purge=True`` path. Concrete subclasses MAY
+        override to add cloud-specific Governance-mode bypass
+        logic.
+
+        Args:
+            record_id: Record to purge.
+            gdpr_request_ref: Free-text reference to the GDPR
+                request (ticket ID, email subject, regulator
+                inquiry ID). Persisted to the audit trail.
+            operator_id: Identity of the operator authorizing
+                the purge. Persisted to the audit trail.
+
+        Returns:
+            The terminal RetentionMetadata snapshot (lifecycle
+            PURGED) for audit-trail purposes — the actual
+            record bytes are deleted.
+
+        Raises:
+            WORMBackendError: when any precondition fails OR the
+                cloud-side delete is rejected.
+        """
+        from evidentia_core.models.common import utc_now
+        from evidentia_core.retention.metadata import (
+            RetentionLifecycleStage,
+        )
+
+        if not gdpr_request_ref or not isinstance(gdpr_request_ref, str):
+            raise WORMBackendError(
+                "purge_immediately requires a non-empty gdpr_request_ref"
+            )
+        if not operator_id or not isinstance(operator_id, str):
+            raise WORMBackendError(
+                "purge_immediately requires a non-empty operator_id"
+            )
+
+        metadata = self.get_metadata(record_id)
+        if metadata.retention_period_days != 0:
+            raise WORMBackendError(
+                f"purge_immediately is GDPR-only (Article 17): record "
+                f"{record_id!r} has retention_period_days="
+                f"{metadata.retention_period_days}, must be 0 for "
+                f"GDPR purpose-limited records. Use the standard "
+                f"retention-window path for non-GDPR records."
+            )
+        if metadata.legal_hold:
+            raise WORMBackendError(
+                f"purge_immediately rejected: record {record_id!r} is "
+                f"under legal hold. Legal hold trumps GDPR — release "
+                f"the hold first (if appropriate per legal counsel)."
+            )
+
+        # Force-transition to EXPIRED via the gdpr override (audit
+        # trail of the lifecycle change), then transition to PURGED,
+        # then delegate to delete() which will respect the EXPIRED
+        # state. The metadata snapshot returned reflects PURGED.
+        from evidentia_core.retention.metadata import transition_lifecycle
+
+        expired_metadata = transition_lifecycle(
+            metadata,
+            RetentionLifecycleStage.EXPIRED,
+            force_gdpr_purge=True,
+        )
+        # Persist the EXPIRED state to the sidecar so delete() will
+        # accept it. Subclasses store metadata differently (file
+        # sidecar, S3 object, Azure blob, GCS blob) — re-put via the
+        # same path the original put used.
+        self._update_metadata(record_id, expired_metadata)
+        # Now delete (lifecycle is EXPIRED, no legal hold, lock_until
+        # is None so is_locked() returns False)
+        self.delete(record_id)
+        # Return a "PURGED" terminal snapshot for audit-trail
+        # callers. The underlying record is gone; this object exists
+        # only as a return value capturing the final state.
+        return expired_metadata.model_copy(
+            update={
+                "lifecycle_stage": RetentionLifecycleStage.PURGED.value,
+                "updated_at": utc_now(),
+            }
+        )
+
+    def _update_metadata(
+        self, record_id: str, new_metadata: RetentionMetadata
+    ) -> None:
+        """Persist a fresh metadata snapshot to the backend.
+
+        Default implementation expects subclasses to override OR
+        to compose their existing extend_retention / put paths.
+        Subclasses with sidecar metadata (LocalFilesystemWORM,
+        S3, Azure, GCS) override this with a backend-specific
+        rewrite that does NOT touch the payload.
+        """
+        raise NotImplementedError(
+            "_update_metadata must be overridden by concrete "
+            "WORMBackend subclasses to support purge_immediately."
+        )
+
 
 class LocalFilesystemWORM(WORMBackend):
     """Reference local-filesystem WORM implementation.
@@ -227,6 +356,21 @@ class LocalFilesystemWORM(WORMBackend):
         )
         os.replace(tmp, meta_path)
         return new_metadata
+
+    def _update_metadata(
+        self, record_id: str, new_metadata: RetentionMetadata
+    ) -> None:
+        """Atomic sidecar metadata rewrite (does NOT touch payload)."""
+        _, meta_path = self._record_path(record_id)
+        if not meta_path.exists():
+            raise WORMBackendError(
+                f"metadata for record {record_id!r} not found"
+            )
+        tmp = meta_path.with_suffix(".meta.tmp")
+        tmp.write_text(
+            new_metadata.model_dump_json(indent=2), encoding="utf-8"
+        )
+        os.replace(tmp, meta_path)
 
     def root(self) -> Path:
         """Return the resolved root directory (for inspection / tests)."""
