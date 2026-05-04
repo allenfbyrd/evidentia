@@ -103,11 +103,27 @@ this doc with rationale, or dismissed via the GitHub UI.
 
 ---
 
-*Last reviewed: v0.7.8 P0.5 cycle. Created in v0.7.6 to capture
-the 5 NEW HIGH alerts that surfaced post-v0.7.5 push (3 CodeQL
-false positives on `validate_within` + 1 Scorecard `contents:
-write` finding on the new `publish-container` job + 1 Scorecard
-`==X.Y.Z` pin finding on the Dockerfile). v0.7.8 P0.5 review:
-- closed #30 in v0.7.8 P0.5 S4 (workflow-level permissions block)
-- accepted #29 (was-#30 follow-up) and #84 (Dockerfile pin bumped
-  to ==0.7.7.1) per existing rationale templates.*
+*Last reviewed: v0.7.9 P0.6 ship cycle (2026-05-04). v0.7.9
+review:
+
+- Re-confirmed CodeQL `py/path-injection` false positives (#71/#72/#73)
+  remain accepted under the same rationale; the long-term CodeQL
+  custom-pack fix is still queued (v0.7.10+).
+- Re-confirmed Scorecard `Token-Permissions` accepts (#29 + #75)
+  under the existing single-writer-on-tag-push rationale.
+- Scorecard `Pinned-Dependencies` accept on the Dockerfile pin:
+  re-flagged on every patch bump (each new exact-pin string is a
+  fresh alert) — accepted under the existing PEP 740 + SLSA L3
+  chain rationale. The Dockerfile is now pinned to
+  `evidentia[gui]==0.7.9` (was 0.7.7.1 at v0.7.8 review). When
+  Scorecard surfaces a new alert for the 0.7.9 pin, dismiss with
+  the same `won't_fix` rationale as #74 / #84.
+- New v0.7.9 surfaces (TPRM module + 4 vendor-risk-collector
+  quartet + OSCAL TPRM emit) added 0 net-new accepted findings
+  beyond the pre-existing categories above.
+
+History: v0.7.6 created (5 NEW HIGH alerts post-v0.7.5 push: 3
+CodeQL `validate_within` false positives + 1 Scorecard
+`contents: write` + 1 Scorecard `==X.Y.Z` pin). v0.7.8 P0.5 S4
+closed #30 (workflow-level `permissions: contents: read`
+default added) and accepted #29 / #84 per existing templates.*

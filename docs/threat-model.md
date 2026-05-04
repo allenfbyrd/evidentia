@@ -242,39 +242,165 @@ These categories are **not** addressed by this threat model:
 
 ---
 
-## v0.7.9 attack-surface delta (in flight)
+## v0.7.9 attack-surface delta (SHIPPED 2026-05-04 at tag `v0.7.9`)
 
-The v0.7.9 P0.1 first-slice (shipped 2026-05-03 to `origin/main`;
-no tag yet) added the TPRM vendor inventory module: 4 new REST
-endpoints under `/api/tprm/vendors` (CRUD + cadence preview),
+The v0.7.9 ship adds **12 new public surfaces** across the TPRM
+module + the vendor-risk-collector quartet + OSCAL TPRM emit.
+All inherit the established defense baseline (Pydantic
+`extra="forbid"`; `validate_within` for path inputs; UUID-shape
+validation for IDs; manual `HTTPException(400, ...)` for runtime
+body errors per the v0.7.8 F-V08-DAST-3 invariant; never accept
+secrets via CLI args or REST request bodies; env-var-only
+credential sourcing per CLAUDE.md secret-handling protocol).
+Specific new surfaces + their hardening:
+
+### P0.1 — TPRM vendor inventory (CLI + REST + storage)
+
 5 new CLI verbs (`evidentia tprm vendor add/list/show/edit/
-delete`), and JSON-file persistence under user-dir. Surfaces
-inherit the same `validate_within` + UUID-shape-validation
-defenses as `gap_store`; manual `HTTPException` calls preserve
-the v0.7.8 F-V08-DAST-3 invariant (400 not 422 for runtime
-body-content errors). REST `create_vendor`/`replace_vendor`
-operate on `model_copy(update=...)` of the request DTO rather
-than mutating it directly (closes Continuous-review H-3).
-`save_vendor` now writes atomically via tmp-file + `os.replace`
-(closes Continuous-review M-1). `EvidenceRef` enforces its
-two-mode contract (artifact_id OR file_path+sha256) via
-`@model_validator` (closes Continuous-review H-1).
+delete`), 5 new REST endpoints (`/api/tprm/vendors` CRUD + cadence
+preview), and JSON-file persistence under platformdirs-backed
+user-dir. Surfaces inherit `validate_within` + UUID-shape
+validation; manual `HTTPException` preserves F-V08-DAST-3 invariant.
+REST `create_vendor`/`replace_vendor` operate on
+`model_copy(update=...)` of the request DTO rather than mutating
+it directly (closes Continuous-review H-3). `save_vendor` writes
+atomically via tmp-file + `os.replace` (M-1 fix). `EvidenceRef`
+enforces its two-mode contract (artifact_id OR file_path+sha256)
+via `@model_validator` (H-1 fix).
 
-A defense-in-depth response-headers middleware
+### P0.2 — Due-diligence questionnaire generator + ingest
+
+`evidentia tprm dd-questionnaire generate/ingest` CLI + 1 REST
+endpoint. 5 input formats (evidentia-generic / caiq-lite /
+caiq-full all packaged + sig / sig-lite via `--from-template`
+BYO XLSX). 3 output formats (JSON / CSV / XLSX behind new
+`[xlsx]` extra). Hardening:
+
+- **CSV-injection defense** (CWE-1236) on every operator-supplied
+  user-content cell (vendor name, fourth-party names, region,
+  relationship_owner, regulatory_classification, question_text,
+  notes) via `_csv_safe()` OWASP single-quote prefix. Same
+  defense applied to XLSX render path as defense-in-depth even
+  though XLSX doesn't auto-evaluate formulas the way CSV
+  spreadsheet importers do.
+- **Format-string foot-gun** closed: `title_template.replace(
+  "{vendor_name}", vendor.name)` instead of
+  `title_template.format(vendor_name=...)` so a vendor name
+  containing `{}` / `{0}` / `{secret}` cannot raise KeyError or
+  walk format args (P0.3+P0.2-first Continuous H-3 fix).
+- **Ingest deserialization safety**: `json.loads` (CWE-502-safe;
+  never `pickle.loads` / `yaml.unsafe_load`); `csv.reader` (safe);
+  `openpyxl.load_workbook(data_only=True)` (no formula evaluation;
+  no VBA macro execution per openpyxl's documented behavior).
+- **SIG BYO XLSX template path**: CLI-only (no REST exposure).
+  Operator-supplied path validated via Typer's `exists=True`;
+  uses `Path` typing; openpyxl's read does not auto-execute
+  macros.
+
+### P0.3 — Concentration-risk reporting
+
+`evidentia tprm concentration-report` CLI + 1 REST endpoint;
+6 dimensions; HTML/JSON/CSV outputs. Hardening:
+
+- **HTML XSS-safe** via `html.escape` on every operator-supplied
+  vendor + value name (Continuous H-1 fix). Single-file output
+  (no JS deps; sortable tables via inline click-to-sort JS that
+  doesn't execute user content).
+- **CSV-injection defense** (`_csv_safe`) on user-content cells.
+- **Cloud-provider direct-vs-4P collision** resolved with
+  `(direct)`/`(4th-party)` source suffix so two vendors with the
+  same name (one `vendor.type==cloud_provider` + one disclosed
+  as a 4th-party of another vendor) don't silently overwrite each
+  other in the aggregate (Continuous H-2 fix).
+
+### P0.4 — Vendor-risk SaaS collectors (Vanta + Drata + BitSight + SecurityScorecard)
+
+4 new CLI commands (`evidentia collect {vanta,drata,bitsight,
+securityscorecard}`) + 4 new REST endpoints + 4 status-endpoint
+extensions. All read-only against the upstream vendor APIs.
+Hardening:
+
+- **Token sourcing**: env-var only (`VANTA_API_TOKEN` /
+  `DRATA_API_TOKEN` / `BITSIGHT_API_TOKEN` /
+  `SECURITYSCORECARD_API_TOKEN`); never accepted via CLI args or
+  REST request bodies; never echoed in log messages or error
+  responses.
+- **Auth header diversity**: Vanta + Drata use `Authorization:
+  Bearer <token>`; BitSight uses HTTP Basic with token-as-username
+  + empty password (wrapped internally; never in URLs); SSC uses
+  `Authorization: Token <value>`. Each collector's `_ensure_client`
+  builds the header in code, not via URL params.
+- **Cross-host pagination guards** (Vanta + Drata + BitSight + SSC):
+  `_paginate` refuses to follow `next` URLs pointing off-host
+  (CWE-319 cross-host info-leak defense). BitSight additionally
+  refuses scheme-downgrade (HTTPS→HTTP) `next` URLs to prevent a
+  malicious upstream from leaking the HTTP Basic auth header
+  over cleartext HTTP (Continuous F-V09-S1 fix per CWE-319
+  cleartext transmission).
+- **Stuck-cursor guards** (Vanta + Drata + SSC): if upstream API
+  returns the same `endCursor` / `nextPageToken` twice or fails
+  the monotonic-output-grew check, loop terminates instead of
+  running to the `max_vendors`/`max_companies` cap (Continuous
+  H-1 / H-3 fixes).
+- **Explicit-key payload-priority** (Drata + SSC): rejects
+  fall-through `data.get("data") or data.get("results") or []`
+  patterns that mishandle legitimate `{"data": []}` empty pages
+  (Continuous H-2 fix per CWE-697).
+- **Defensive field-shape detection**: each collector's
+  `_is_high_risk` / low-rating detector covers 4-6 documented +
+  de-facto API field-shape variants. `BLIND_SPOTS` documents
+  the field-shape uncertainty for auditor-grade transparency.
+
+### P0.5 — OSCAL TPRM emit
+
+Extends `evidentia_core.oscal.exporter.gap_report_to_oscal_ar()`
++ adds `--vendor-inventory` flag on `evidentia gap analyze`.
+Hardening:
+
+- **Tamper-evident vendor records**: each Vendor lands in
+  `back-matter.resources[]` with canonical-JSON `base64.value` +
+  SHA-256 `rlinks[].hashes[]`. Same integrity model as the v0.7.0
+  finding-resource embedding — tampering with vendor record
+  changes hash + fails `evidentia oscal verify`.
+- **Deterministic canonical JSON**: `json.dumps(sort_keys=True,
+  separators=(",", ":"))` so verifier-side recompute is
+  bit-for-bit reproducible.
+- **Cross-reference resolution**: vendor's party UUID +
+  back-matter resource UUID both equal `Vendor.id` so
+  `href: "#<vendor-id>"` references resolve intra-document.
+
+### Defense-in-depth: security-headers middleware
+
+A response-headers middleware
 (`evidentia_api.security_headers.SecurityHeadersMiddleware`)
-landed in this same cycle, closing the v0.7.8 Step 5.A
-deferred F-V08-DAST-2 LOW finding (CWE-693). When enabled, every
-response carries Content-Security-Policy (locks loads to
-same-origin; `frame-ancestors 'none'`), X-Frame-Options DENY,
-X-Content-Type-Options nosniff, Referrer-Policy
-strict-origin-when-cross-origin, Strict-Transport-Security one
-year + subdomains, and Permissions-Policy denying
-camera/microphone/geolocation/payment/USB/FLoC. The new
-`--security-headers / --no-security-headers` flag on `evidentia
-serve` defaults to auto — ON for non-loopback binds, OFF for
-localhost. Operators behind a TLS-terminating reverse proxy that
-already injects these headers can suppress duplicates via
-`--no-security-headers`.
+landed in this cycle, closing the v0.7.8 Step 5.A deferred
+F-V08-DAST-2 LOW finding (CWE-693). When enabled, every response
+carries Content-Security-Policy (locks loads to same-origin;
+`frame-ancestors 'none'`), X-Frame-Options DENY, X-Content-Type-
+Options nosniff, Referrer-Policy strict-origin-when-cross-origin,
+Strict-Transport-Security one year + subdomains, and Permissions-
+Policy denying camera/microphone/geolocation/payment/USB/FLoC.
+The new `--security-headers / --no-security-headers` flag on
+`evidentia serve` defaults to auto — ON for non-loopback binds,
+OFF for localhost (dev-loop parity). Operators behind a TLS-
+terminating reverse proxy that already injects these headers can
+suppress duplicates via `--no-security-headers`.
+
+### v0.7.8 carry-over hardening
+
+- **Snowflake quoted-identifier escape** via `_quote_snowflake_
+  identifier()` static helper (Snowflake's documented double-up
+  convention; defensive against operator-controlled inputs in
+  third-party-managed Snowflake accounts).
+- **Snowflake masking-policy + row-access-policy count separation**:
+  manifest reflects distinct CoverageCount per evidence source.
+- **Databricks PermissionDenied typed catch** replaces v0.7.8
+  message-string heuristic with `databricks.sdk.errors.
+  PermissionDenied` + `Unauthenticated`. ImportError-safe
+  fallback to v0.7.8 heuristic on older SDK.
+- **Power BI 1MB byte-cap guard**: `push_rows()` bisects batches
+  exceeding 950 KB headroom (Power BI's documented 1 MB body
+  limit). Single-row exceedance raises clear `PowerBIPublishError`.
 
 ## Hardening backlog
 

@@ -109,28 +109,45 @@ document in the same PR.
 ## Continuity and bus factor
 
 The project's current bus factor is 1 (single maintainer). The
-following continuity mitigations exist by design:
+**concrete continuity plan** lives in
+[`docs/access-continuity.md`](docs/access-continuity.md), which
+documents the operational SLA, step-by-step recovery procedure,
+and the named-successor + emergency-contact pattern that satisfy
+the OpenSSF Best Practices Silver-tier `access_continuity`
+criterion.
 
+Key elements summarized here:
+
+- **Operational SLA** — the project commits to resuming normal
+  operations (creating + closing issues, accepting proposed
+  changes, releasing software versions) within **7 calendar days**
+  of confirmation of loss of support from the maintainer.
 - **Keyless signing** — Sigstore + Trusted Publisher OIDC + cosign
-  keyless mean there are no offline private keys that can be lost
-  with the maintainer. A successor maintainer with repo write access
+  keyless mean there are **no offline private keys** that can be
+  lost with the maintainer. A successor with repo write access
   can continue releases without any key transfer.
-- **Public process** — every operational procedure is documented in
-  the repo (release-checklist.md, threat-model.md, security
-  policy, per-release plans). A successor doesn't need to interview
-  the original maintainer to take over.
-- **Standard infrastructure** — GitHub for source + issues, PyPI for
-  Python distribution, GHCR for container images. All standard,
-  recoverable platforms with documented account-recovery procedures.
-- **Apache-2.0 license** — anyone can fork at any time without the
-  maintainer's permission.
+- **Public process** — every operational procedure is documented
+  in the repo
+  ([`release-checklist.md`](docs/release-checklist.md),
+  [`threat-model.md`](docs/threat-model.md), security policy,
+  per-release plans). A successor doesn't need to interview the
+  original maintainer to take over.
+- **Standard infrastructure** — GitHub for source + issues +
+  GHCR, PyPI for Python distribution. All standard, recoverable
+  platforms with documented account-recovery + project-owner-
+  transfer procedures.
+- **Apache-2.0 license** — anyone can fork at any time without
+  the maintainer's permission.
+- **Named successor + emergency contact** — documented in the
+  maintainer's encrypted password manager + will / estate
+  documents (kept private to avoid social-engineering risk;
+  auditors can verify by direct contact with the maintainer).
 
-The remaining single-point-of-failure is GitHub repo ownership +
-PyPI project-owner roles. Both platforms have documented support
-procedures for ownership transfer in the event of maintainer
-incapacity, but the procedure does require external verification.
-A formal continuity plan (named successor + organizational entity)
-is planned alongside LLC formation.
+The remaining single-points-of-failure (GitHub repo ownership +
+PyPI project-owner roles + future DNS) all have documented
+external recovery procedures. See
+[`docs/access-continuity.md`](docs/access-continuity.md) for the
+step-by-step runbook.
 
 ## Changes to this document
 
