@@ -388,17 +388,39 @@ class DatabricksCollector:
         except DatabricksPermissionError:
             raise
         except Exception as e:
-            # Heuristic: SDK raises a generic Exception subclass when
-            # the principal lacks token_management permission. Detect
-            # by message; if uncertain, raise upward as a generic
-            # collector error so the manifest captures it.
-            msg = str(e).lower()
-            if "permission" in msg or "not authorized" in msg:
-                raise DatabricksPermissionError(
-                    "PAT inventory requires token_management or "
-                    "workspace-admin permission; SDK denied: "
-                    f"{e}"
-                ) from e
+            # v0.7.9 (closes v0.7.8 F-V08-CR-MEDIUM): use the SDK's
+            # typed error hierarchy rather than a message-string
+            # heuristic. databricks.sdk.errors.PermissionDenied +
+            # Unauthenticated are documented + stable across SDK
+            # versions >= 0.20.
+            try:
+                from databricks.sdk.errors import (
+                    PermissionDenied as _SdkPermissionDenied,
+                )
+                from databricks.sdk.errors import (
+                    Unauthenticated as _SdkUnauthenticated,
+                )
+
+                if isinstance(
+                    e, (_SdkPermissionDenied, _SdkUnauthenticated)
+                ):
+                    raise DatabricksPermissionError(
+                        "PAT inventory requires token_management or "
+                        "workspace-admin permission; SDK "
+                        f"{type(e).__name__}: {e}"
+                    ) from e
+            except ImportError:
+                # Older SDK without the typed error module; fall back
+                # to the v0.7.8 message-string heuristic so older
+                # operator deployments still get the permission-flag
+                # behavior.
+                msg = str(e).lower()
+                if "permission" in msg or "not authorized" in msg:
+                    raise DatabricksPermissionError(
+                        "PAT inventory requires token_management or "
+                        "workspace-admin permission; SDK denied: "
+                        f"{e}"
+                    ) from e
             raise DatabricksCollectorError(
                 f"PAT inventory call failed: {e}"
             ) from e

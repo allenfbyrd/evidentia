@@ -1024,18 +1024,42 @@ class SnowflakeCollector:
             collected=len(findings),
         )
 
+    @staticmethod
+    def _quote_snowflake_identifier(name: str) -> str:
+        """Quote + escape an identifier for Snowflake SQL.
+
+        Snowflake's documented escape: a literal ``"`` inside a quoted
+        identifier is doubled (``"my""db"`` → identifier ``my"db``).
+        Snowflake's published convention disallows ``"`` in identifier
+        names, but operator-controlled inputs (custom database names
+        in third-party-managed Snowflake accounts, role-impersonation
+        scenarios) make the defensive escape worth the one-line cost.
+        Closes v0.7.8 deferred F-V08-CR-MEDIUM Snowflake quoted-
+        identifier hardening.
+        """
+        return '"' + name.replace('"', '""') + '"'
+
     def _policy_inventory_findings(
         self, context: CollectionContext
-    ) -> tuple[list[SecurityFinding], CoverageCount]:
+    ) -> tuple[list[SecurityFinding], list[CoverageCount]]:
         """Masking + row-access policy inventory across all DBs.
 
         Iterates over every database the principal can see (per
         SHOW DATABASES) and queries each database's
         INFORMATION_SCHEMA for masking + row-access policies.
+
+        v0.7.9 (closes v0.7.8 F-V08-CR-MEDIUM count-separation):
+        returns TWO CoverageCount entries — one per evidence source
+        (snowflake-masking-policy / snowflake-row-access-policy) —
+        so manifests reflect distinct coverage rather than mixing
+        the two source counts under a single bucket.
         """
         conn = self._ensure_connected()
         findings: list[SecurityFinding] = []
-        scanned = 0
+        masking_scanned = 0
+        masking_collected = 0
+        row_access_scanned = 0
+        row_access_collected = 0
         try:
             # F-V08-CR-H2 — open a dedicated cursor for SHOW DATABASES,
             # then open fresh per-db cursors for the inner per-database
@@ -1053,16 +1077,18 @@ class SnowflakeCollector:
                     db_names.append(str(row[1]))
 
             for db in db_names:
+                quoted_db = self._quote_snowflake_identifier(db)
                 # Masking policies.
                 try:
                     with conn.cursor() as cur:
                         cur.execute(
-                            f'SELECT POLICY_NAME, POLICY_SCHEMA, '
-                            f'POLICY_OWNER FROM '
-                            f'"{db}".INFORMATION_SCHEMA.MASKING_POLICIES'
+                            f"SELECT POLICY_NAME, POLICY_SCHEMA, "
+                            f"POLICY_OWNER FROM "
+                            f"{quoted_db}.INFORMATION_SCHEMA."
+                            f"MASKING_POLICIES"
                         )
                         pol_rows = cur.fetchall()
-                    scanned += len(pol_rows)
+                    masking_scanned += len(pol_rows)
                     for prow in pol_rows:
                         policy_name = (
                             str(prow[0]) if prow[0] else "unknown"
@@ -1100,6 +1126,7 @@ class SnowflakeCollector:
                                 ),
                             )
                         )
+                        masking_collected += 1
                 except Exception as e:
                     _log.info(
                         action=EventAction.COLLECT_STARTED,
@@ -1118,12 +1145,13 @@ class SnowflakeCollector:
                 try:
                     with conn.cursor() as cur:
                         cur.execute(
-                            f'SELECT POLICY_NAME, POLICY_SCHEMA, '
-                            f'POLICY_OWNER FROM '
-                            f'"{db}".INFORMATION_SCHEMA.ROW_ACCESS_POLICIES'
+                            f"SELECT POLICY_NAME, POLICY_SCHEMA, "
+                            f"POLICY_OWNER FROM "
+                            f"{quoted_db}.INFORMATION_SCHEMA."
+                            f"ROW_ACCESS_POLICIES"
                         )
                         pol_rows = cur.fetchall()
-                    scanned += len(pol_rows)
+                    row_access_scanned += len(pol_rows)
                     for prow in pol_rows:
                         policy_name = (
                             str(prow[0]) if prow[0] else "unknown"
@@ -1162,6 +1190,7 @@ class SnowflakeCollector:
                                 ),
                             )
                         )
+                        row_access_collected += 1
                 except Exception as e:
                     _log.info(
                         action=EventAction.COLLECT_STARTED,
@@ -1189,12 +1218,20 @@ class SnowflakeCollector:
         # Cursors are context-managed (F-V08-CR-H2); no top-level
         # finally cur.close() needed.
 
-        return findings, CoverageCount(
-            resource_type="snowflake-policy",
-            scanned=scanned,
-            matched_filter=scanned,
-            collected=len(findings),
-        )
+        return findings, [
+            CoverageCount(
+                resource_type="snowflake-masking-policy",
+                scanned=masking_scanned,
+                matched_filter=masking_scanned,
+                collected=masking_collected,
+            ),
+            CoverageCount(
+                resource_type="snowflake-row-access-policy",
+                scanned=row_access_scanned,
+                matched_filter=row_access_scanned,
+                collected=row_access_collected,
+            ),
+        ]
 
     def _key_rotation_findings(
         self, context: CollectionContext
@@ -1342,9 +1379,22 @@ class SnowflakeCollector:
                 continue
 
             all_findings.extend(sub_findings)
-            all_coverage.append(coverage)
-            if coverage.collected == 0:
-                empty_categories.append(category)
+            # v0.7.9 (closes v0.7.8 F-V08-CR-MEDIUM Snowflake count
+            # separation): the policy sub-check returns a LIST of
+            # CoverageCount entries (one per evidence source — masking
+            # vs row-access — so the manifest reflects distinct
+            # coverage). Other sub-checks return a single CoverageCount.
+            # Normalize both to the all_coverage list.
+            if isinstance(coverage, list):
+                all_coverage.extend(coverage)
+                # The category-empty check fires when ALL sub-source
+                # buckets were empty.
+                if all(c.collected == 0 for c in coverage):
+                    empty_categories.append(category)
+            else:
+                all_coverage.append(coverage)
+                if coverage.collected == 0:
+                    empty_categories.append(category)
 
         finished = utc_now()
         account = self._cached_account_id or self._account

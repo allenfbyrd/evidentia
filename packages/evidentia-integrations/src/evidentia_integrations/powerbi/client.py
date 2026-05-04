@@ -6,6 +6,7 @@ for the Azure AD service-principal OAuth2 flow.
 
 from __future__ import annotations
 
+import json
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -296,8 +297,13 @@ class PowerBIClient:
     ) -> None:
         """Push rows to a Push Dataset table.
 
-        Power BI's documented limit for a single push request is
-        10,000 rows; this method splits into batches of 10,000.
+        Power BI's documented limits for a single push request are
+        BOTH (a) max 10,000 rows AND (b) max 1 MB request body. This
+        method splits on the row-count cap, then sub-splits any batch
+        whose serialized JSON exceeds 1 MB so wide-schema customers
+        (e.g., 50+ string columns × 10,000 rows) don't hit the byte
+        cap with a 4xx. Closes v0.7.8 deferred F-V08-CR-MEDIUM Power
+        BI 1MB guard.
         """
         if self._http is None:
             self._signin()
@@ -306,9 +312,17 @@ class PowerBIClient:
         if not rows:
             return
 
-        batch_size = 10_000
-        for batch_start in range(0, len(rows), batch_size):
-            batch = rows[batch_start : batch_start + batch_size]
+        row_batch_size = 10_000
+        # 1 MB is the documented Power BI limit. We use 950 KB to
+        # leave headroom for the JSON envelope (`{"rows": [...]}`)
+        # + multibyte character expansion.
+        max_batch_bytes = 950 * 1024
+
+        def _serialize_batch(batch: list[dict[str, Any]]) -> bytes:
+            return json.dumps({"rows": batch}).encode("utf-8")
+
+        def _post(batch: list[dict[str, Any]], offset: int) -> None:
+            assert self._http is not None
             try:
                 r = self._http.post(
                     f"/groups/{self._config.workspace_id}/datasets/"
@@ -319,6 +333,41 @@ class PowerBIClient:
             except httpx.HTTPError as e:
                 raise PowerBIPublishError(
                     f"Push rows to '{table_name}' failed "
-                    f"(batch starting at row {batch_start}): "
+                    f"(batch starting at row {offset}): "
                     f"{type(e).__name__}: {e}"
                 ) from e
+
+        for batch_start in range(0, len(rows), row_batch_size):
+            batch = rows[batch_start : batch_start + row_batch_size]
+            payload = _serialize_batch(batch)
+            if len(payload) <= max_batch_bytes:
+                _post(batch, batch_start)
+                continue
+            # Wide-schema fallback: bisect the batch until each chunk
+            # fits the 1 MB window. log2(10_000) ≈ 14, so worst case
+            # we do 14 levels of bisection — bounded and predictable.
+            stack: list[tuple[list[dict[str, Any]], int]] = [
+                (batch, batch_start)
+            ]
+            while stack:
+                chunk, offset = stack.pop()
+                chunk_payload = _serialize_batch(chunk)
+                if len(chunk_payload) <= max_batch_bytes:
+                    _post(chunk, offset)
+                    continue
+                if len(chunk) <= 1:
+                    # A single row exceeds 1 MB on its own — Power BI
+                    # cannot accept it. Surface a clear error so the
+                    # operator can investigate.
+                    raise PowerBIPublishError(
+                        f"Single row at offset {offset} exceeds "
+                        f"Power BI's 1 MB push-dataset limit "
+                        f"(serialized size: {len(chunk_payload)} "
+                        "bytes). Reduce the row's field sizes or "
+                        "drop the offending field from the dataset."
+                    )
+                mid = len(chunk) // 2
+                # Push order matches input order: process left first,
+                # so push left LAST onto the stack (LIFO).
+                stack.append((chunk[mid:], offset + mid))
+                stack.append((chunk[:mid], offset))

@@ -370,3 +370,102 @@ class TestEnsureDataset:
                 schema=[{"name": "x", "dataType": "String"}],
             )
         assert ds_id == "new-id"
+
+
+class TestPushRowsByteCapBisection:
+    """Closes v0.7.8 deferred F-V08-CR-MEDIUM Power BI 1MB guard.
+
+    Power BI's documented limit for a single push request is BOTH
+    (a) max 10,000 rows AND (b) max 1 MB request body. The push_rows
+    method splits on the row-count cap, then bisects on byte size
+    when a wide-schema batch exceeds 1 MB.
+    """
+
+    def _push_client(self, monkeypatch: pytest.MonkeyPatch) -> Any:
+        client = _build_client_with_secret(
+            monkeypatch, fake_msal=_patch_msal_success()
+        )
+        client._signin()
+        assert client._http is not None
+        return client
+
+    def test_small_batch_single_post(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        client = self._push_client(monkeypatch)
+        rows = [{"a": 1, "b": "small"}] * 50
+        post_response = MagicMock(spec=httpx.Response)
+        post_response.status_code = 200
+        post_response.raise_for_status = MagicMock()
+        with patch.object(
+            client._http, "post", return_value=post_response
+        ) as post_mock:
+            client.push_rows(
+                dataset_id="ds-1",
+                table_name="gaps",
+                rows=rows,
+            )
+        assert post_mock.call_count == 1
+
+    def test_byte_cap_bisection_kicks_in_for_wide_batch(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        client = self._push_client(monkeypatch)
+        # Each row is ~1 KB of payload; 2000 rows ≈ 2 MB > 1 MB cap.
+        # Should bisect to 2 sub-batches.
+        wide_value = "x" * 1000
+        rows = [{"col": wide_value} for _ in range(2000)]
+        post_response = MagicMock(spec=httpx.Response)
+        post_response.status_code = 200
+        post_response.raise_for_status = MagicMock()
+        with patch.object(
+            client._http, "post", return_value=post_response
+        ) as post_mock:
+            client.push_rows(
+                dataset_id="ds-1",
+                table_name="gaps",
+                rows=rows,
+            )
+        # > 1 post (bisection happened); ≤ 4 (we don't bisect more
+        # than necessary)
+        assert post_mock.call_count >= 2
+        # All rows accounted for: sum the row counts across calls
+        total = sum(
+            len(call.kwargs["json"]["rows"])
+            for call in post_mock.call_args_list
+        )
+        assert total == 2000
+
+    def test_oversized_single_row_raises(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        client = self._push_client(monkeypatch)
+        # A single row with 2 MB of data exceeds 1 MB → can't bisect
+        # below 1 row; should raise PowerBIPublishError.
+        big_value = "x" * (2 * 1024 * 1024)
+        rows = [{"col": big_value}]
+        with pytest.raises(
+            PowerBIPublishError, match="exceeds Power BI's 1 MB"
+        ):
+            client.push_rows(
+                dataset_id="ds-1",
+                table_name="gaps",
+                rows=rows,
+            )
+
+    def test_empty_rows_short_circuits(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        client = self._push_client(monkeypatch)
+        post_response = MagicMock(spec=httpx.Response)
+        post_response.status_code = 200
+        post_response.raise_for_status = MagicMock()
+        with patch.object(
+            client._http, "post", return_value=post_response
+        ) as post_mock:
+            client.push_rows(
+                dataset_id="ds-1",
+                table_name="gaps",
+                rows=[],
+            )
+        assert post_mock.call_count == 0

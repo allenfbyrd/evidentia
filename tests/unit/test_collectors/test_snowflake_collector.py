@@ -654,12 +654,15 @@ class TestManifest:
         c = _make_collector()
         _findings, manifest = c.collect_v2()
         types = {cov.resource_type for cov in manifest.coverage_counts}
-        # 6 sub-checks scaffolded
+        # 6 sub-checks scaffolded; policy sub-check fans out into
+        # masking + row-access (closes v0.7.8 F-V08-CR-MEDIUM
+        # Snowflake count separation in v0.7.9).
         assert "snowflake-login-history-row" in types
         assert "snowflake-user" in types
         assert "snowflake-grant" in types
         assert "snowflake-network-policy" in types
-        assert "snowflake-policy" in types
+        assert "snowflake-masking-policy" in types
+        assert "snowflake-row-access-policy" in types
         assert "snowflake-encryption-key" in types
 
     def test_findings_carry_source_system_snowflake(self) -> None:
@@ -673,6 +676,49 @@ class TestManifest:
         findings = c.collect()
         assert isinstance(findings, list)
         assert len(findings) > 0
+
+
+class TestQuotedIdentifierEscape:
+    """Closes v0.7.8 F-V08-CR-MEDIUM Snowflake quoted-identifier
+    hardening. The static helper escapes literal ``"`` per Snowflake's
+    documented convention (double-up the quote)."""
+
+    def test_quote_simple_identifier(self) -> None:
+        from evidentia_collectors.snowflake.collector import (
+            SnowflakeCollector,
+        )
+
+        assert SnowflakeCollector._quote_snowflake_identifier(
+            "PROD_DB"
+        ) == '"PROD_DB"'
+
+    def test_quote_identifier_with_embedded_quote(self) -> None:
+        from evidentia_collectors.snowflake.collector import (
+            SnowflakeCollector,
+        )
+
+        assert SnowflakeCollector._quote_snowflake_identifier(
+            'my"db'
+        ) == '"my""db"'
+
+    def test_quote_identifier_with_multiple_embedded_quotes(self) -> None:
+        from evidentia_collectors.snowflake.collector import (
+            SnowflakeCollector,
+        )
+
+        assert SnowflakeCollector._quote_snowflake_identifier(
+            'a"b"c'
+        ) == '"a""b""c"'
+
+    def test_quote_identifier_passthrough_for_alphanumerics(self) -> None:
+        from evidentia_collectors.snowflake.collector import (
+            SnowflakeCollector,
+        )
+
+        # Snowflake identifier can have alphanumerics + underscore
+        assert SnowflakeCollector._quote_snowflake_identifier(
+            "MY_DB_2025"
+        ) == '"MY_DB_2025"'
 
 
 # ── TestErrorPath ──────────────────────────────────────────────────

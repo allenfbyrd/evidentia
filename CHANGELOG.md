@@ -9,6 +9,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **v0.7.8 Step 5.A carry-over batch** — 4 MEDIUM findings closed +
+  PR #18 actions-bump fix. Per the original v0.7.9 plan §"Carry-
+  over from v0.7.8 Step 5.A".
+  - **F-V08-CR-MEDIUM Snowflake count separation**: split the
+    `_policy_inventory_findings` sub-check's coverage tracking
+    into TWO `CoverageCount` entries (one per evidence source —
+    `snowflake-masking-policy` + `snowflake-row-access-policy`)
+    rather than mixing the two source counts under a single
+    `snowflake-policy` bucket. Manifest reflects distinct coverage
+    per evidence source. Orchestration loop normalizes both
+    single-CoverageCount and list-of-CoverageCount returns from
+    sub-checks.
+  - **F-V08-CR-MEDIUM Snowflake quoted-identifier hardening**: new
+    `_quote_snowflake_identifier()` static helper that escapes
+    literal `"` per Snowflake's documented convention (double-up
+    the quote — `my"db` → `"my""db"`). Replaces the unescaped
+    f-string `f'"{db}".INFORMATION_SCHEMA.MASKING_POLICIES'`
+    constructs in both masking + row-access query paths. Defensive
+    hardening — Snowflake's published convention disallows `"` in
+    identifiers, but operator-controlled inputs in third-party-
+    managed accounts make the escape worth the one-line cost.
+    4 new unit tests covering simple / single-quote / multi-quote
+    / alphanumeric-passthrough cases.
+  - **F-V08-CR-MEDIUM Databricks PermissionDenied typed catch**:
+    replaced the `if "permission" in str(e).lower()` message-string
+    heuristic in `_pat_inventory_findings` with a typed catch on
+    `databricks.sdk.errors.PermissionDenied` +
+    `databricks.sdk.errors.Unauthenticated`. Falls back to the
+    message-string heuristic only when the typed-error module is
+    unavailable (older databricks-sdk < 0.20). Stable across SDK
+    upgrades; no longer mis-classifies localized error messages.
+  - **F-V08-CR-MEDIUM Power BI 1MB byte-cap guard**: `push_rows()`
+    now bisects batches whose serialized JSON exceeds Power BI's
+    documented 1 MB request-body limit (using a 950 KB headroom
+    threshold for the JSON envelope + multibyte expansion). Wide-
+    schema customers (50+ string columns × 10K rows ≈ 2 MB)
+    previously hit the byte cap with a 4xx; now they get split
+    into sub-batches that each fit. Single-row exceedance raises a
+    clear `PowerBIPublishError` so the operator can investigate.
+    4 new unit tests covering small-batch single-post / wide-batch
+    bisection / oversized-row error / empty-rows short-circuit.
+  - **PR #18 Meridian gap diff workflow fix**: the actions/cache
+    bump from v4.3.0 to v5.0.5 (along with checkout + setup-
+    buildx + build-push + github-script bumps) tightened cache-
+    key scoping; PR runs can no longer always restore the main-
+    branch cache. The `Seed baseline on cache miss` step was
+    previously gated on `github.event_name == 'push'`, so PR
+    runs after a cache-key bump (or when the cache is otherwise
+    missing) failed at the diff step with `File '/tmp/base.json'
+    does not exist`. Dropped the event-name gate; the seed now
+    fires on ANY cache miss, producing a clean no-regression diff
+    for the first PR after a key bump (and recording the seeded
+    baseline into the cache on push events).
 - **v0.7.9 P0.4 Continuous-review HIGH findings** (5 inline-fixes
   + 2 added tests). Surfaced by the first /pre-release-review
   Continuous-variant pass on the v0.7.9 cycle, mid-flight after

@@ -83,8 +83,16 @@ jobs:
           restore-keys: |
             meridian-baseline-v0.7.6-main
 
-      - name: Seed baseline on main-branch push (first run ever)
-        if: steps.baseline.outputs.cache-hit != 'true' && github.event_name == 'push'
+      # v0.7.9 (PR #18 fix): the actions/cache@v5 bump tightened
+      # cache-key scoping; PR runs can't always restore the main-
+      # branch cache. When the cache misses on ANY event (push or
+      # pull_request), seed the baseline from /tmp/head.json so the
+      # diff step always has a base file to read. On push we record
+      # the seeded baseline into the cache via the next-run save;
+      # on PR we just produce a clean no-regression diff for the
+      # first run after a cache key bump.
+      - name: Seed baseline on cache miss (first run ever or key bump)
+        if: steps.baseline.outputs.cache-hit != 'true'
         run: cp /tmp/head.json /tmp/base.json
 
       # ---- PR path: compute diff, post comment, gate on regressions ----
