@@ -13,6 +13,72 @@
 
 ---
 
+## Re-validation snapshot — 2026-05-05 (v0.8.0 pre-tag)
+
+v0.8.0 (in progress on `main`; not yet tagged) ships **the
+OSS-native AI moat** — four AI-quality features that
+distinguish a Vanta-class dashboard from a compliance-
+engineering tool, plus the plugin-contract scaffolding that
+makes a community catalog ecosystem possible.
+
+**New public surfaces tested this cycle**:
+
+| Surface | Test path | Coverage |
+|---|---|---|
+| `evidentia eval stub-smoke` (DFAH P0.1) | `tests/unit/test_eval/test_harness.py` (5 classes / 23 tests) | Determinism scoring, replay equivalence, hash normalization, harness end-to-end with deterministic + non-deterministic stubs, EvalResult JSON round-trip, CliRunner doctor |
+| `evidentia risk generate --emit-trace` (PRT P0.2) | `tests/unit/test_prt/test_models.py` (3 classes / 14 tests) + `tests/unit/test_ai/test_risk_statements.py` (2 emit_trace tests) | TraceClaim / ReasoningTrace models, Pydantic round-trip, pre-v0.8.0 backward-compat parsing, OSCAL emit with traces, back-matter resource shape, evidence-digest SHA-256 binding, trestle pydantic.v1 round-trip preservation |
+| `evidentia mcp serve / doctor` (P0.3) | `tests/unit/test_mcp/test_server.py` (3 classes / 15 tests) | FastMCP server build, tool registration, list_frameworks/get_control/gap_analyze/gap_diff behavior + error paths (missing files, malformed reports, unknown controls), CliRunner doctor + serve usage |
+| Plugin contracts (P0.4) | `tests/unit/test_plugins/test_contracts.py` (5 classes / 38 tests) | ABC abstractness, LocalTokenAuthProvider auth flows + edge cases, FilesystemStorageBackend roundtrips + path validation, LocalDirectoryMarketplaceProvider catalog discovery + manifest fallback, BaseSaaSCollector contract, discover_plugins entry-point discovery |
+| `GET /api/metrics` (P1 G3) | `tests/unit/test_prometheus_metrics/test_prometheus.py` (2 classes / 10 tests) | Render output shape (HELP/TYPE annotations + escaped labels + trailing newline), counter increment, EventOutcome failure-counter handling, FastAPI TestClient endpoint roundtrip, audit-event tap into in-process counter dict |
+| M-4 collector refactor | `tests/unit/test_collectors/test_{vanta,drata,bitsight,securityscorecard}_collector.py` (92 tests; carry-forward) | Multi-inheritance preserves `pytest.raises(VantaAuthError)` semantics; `_auth_header()` overrides for HTTP Basic + custom Token prefix work end-to-end; ~60% scaffolding LOC reduction without behavior regressions |
+
+**Inherited surface re-validation** (carry-forward from
+v0.7.16 — no functional changes in v0.8.0):
+
+| Surface | Status |
+|---|---|
+| Gap analysis + 89 bundled catalogs | Carry-forward; all v0.7.x tests pass |
+| Risk statements (NIST SP 800-30) | Carry-forward; +reasoning_trace optional field (backward-compat) |
+| OSCAL Assessment Results emit | Carry-forward; +risk_statements_with_traces kwarg (additive) |
+| Evidence collectors (AWS/GitHub/Jira/Okta/SQL/Cloud-DW/BI) | Carry-forward |
+| TPRM module (vendor inventory + DD questionnaire + concentration report) | Carry-forward |
+| Model Risk Management overlay (SR 11-7 / SR 26-02) | Carry-forward |
+| Governance primitives (Three Lines of Defense + Effective Challenge + KRI/KPI/KGI + Open FAIR) | Carry-forward |
+| Audit chain-of-custody + WORM backends (S3 + Azure + GCS) | Carry-forward |
+| GDPR Article 17 purge flow | Carry-forward |
+| Sigstore-signed AR + cosign-signed container + SLSA L3 provenance | Carry-forward (release.yml unchanged) |
+
+**Adversarial probing (DAST per v4 G11)**:
+
+- `/api/metrics` endpoint Prometheus-injection: validated
+  via test_prometheus.py `test_label_escaping_preserves_special_chars`
+  — backslash + double-quote + newline correctly escaped.
+- MCP `gap_analyze` / `gap_diff` path-traversal: documented
+  as out-of-scope for v0.8.0 stdio-only trust model in
+  `SERVER_INSTRUCTIONS` per F-V08-S1; v0.8.1 HTTP/SSE
+  transports require `validate_within` gating.
+- Plugin entry-point discovery: opt-in (operators must
+  explicitly invoke `discover_plugins()`); no auto-load on
+  package import.
+
+**Quality gates at pre-tag**: 2227 tests passing / 12
+skipped (was 2120 at v0.7.16; +107). mypy strict 0/0 across
+210 source files (was 188; +22). ruff clean. Standing-rule
+sweep clean across all 8 v0.8.0-cycle commits. Single-author
+attribution.
+
+**Pre-release-review v4 Pre-tag deliverables**:
+
+- `docs/security-review-v0.8.0.md` (5th canonical Pre-tag
+  deliverable per v4 §G7) — 17 findings; 5 inline-fixed
+  during Step 5.A; 12 bucketed to v0.8.1 with rationale; 0
+  CRITICAL/HIGH unfixed.
+- `docs/threat-model.md` extended with v0.8.0 attack-surface
+  delta covering all 4 new public surfaces + PRT model +
+  inherited mitigations.
+
+---
+
 ## Re-validation snapshot — 2026-05-04 (v0.7.12 in-progress — pre-pre-tag)
 
 v0.7.12 (in progress on `main`; not yet tagged) ships the **3

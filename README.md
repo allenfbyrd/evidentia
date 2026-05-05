@@ -148,6 +148,36 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.8.0 (May 2026)** — *The OSS-native AI moat*. First minor
+after the v0.7.x cycle close. Lands four AI-quality features
+that distinguish a Vanta-class dashboard from a compliance-
+engineering tool: **DFAH determinism harness** (`evidentia eval
+stub-smoke` — auditor-defensible numerical proof that AI
+artifact generation is reproducible per arXiv 2601.15322),
+**Policy Reasoning Traces** (`evidentia risk generate
+--emit-trace` — decomposes risk statements into ordered claims
+with policy clause citations per arXiv 2509.23291), **MCP
+server** (`evidentia mcp serve` — exposes Evidentia to MCP-
+aware AI clients over stdio with 4 read-only tools), and
+**plugin contract scaffolding** (`evidentia_core.plugins` —
+4 ABCs + 3 reference implementations + entry-point discovery
+for community catalog providers + SI-partner extensions).
+M-4 collector base-class refactor consolidates ~60% of the
+HTTP scaffolding across the 4 vendor-risk collectors. New
+`/api/metrics` Prometheus endpoint + `docs/evidence-integrity.md`
+operator deployment guidance. Pre-release-review v4 Pre-tag
+PROCEED-CLEAN with 5 inline-fixes from the parallel security
++ code-quality reviews; 12 findings bucketed to v0.8.1 with
+documented rationale. **2227 tests passing across 210 source
+files; mypy strict 0/0; ruff clean.**
+
+**v0.7.16 (May 2026)** — *Final v0.7.x cycle release.*
+Closes the v0.7.x cycle (18 patches + 2 hot-fixes over ~12
+days; 6 consecutive PROCEED-CLEAN). python-dotenv CVE bump
++ commit-msg hook variant of standing-rule sweep + post-
+ship release.yml hardening validation. v0.8.0 design phase
+opens immediately post-ship.
+
 **v0.7.15 (May 2026)** — *Tailwind 4 + SettingsPage refactor +
 standing-rule pre-commit hook*. Final v0.7.x cycle release before
 v0.8.0 design opens. Tailwind 3→4 migration (full shadcn/ui
