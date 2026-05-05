@@ -29,6 +29,19 @@ spec (https://prometheus.io/docs/instrumenting/exposition_formats/).
 Operators can scrape this with ``prometheus.io`` directly OR
 ingest into Grafana Agent / OpenTelemetry Collector for
 metric forwarding.
+
+OPERATIONAL POSTURE (v0.8.0 review F-V08-S3): the endpoint is
+NOT auth-gated. Acceptable for the default localhost-bound
+deployment (`uvicorn --host 127.0.0.1`) where the same trust
+boundary already applies to ``/api/docs`` + ``/api/health``.
+For non-loopback bind (`--host 0.0.0.0`), operators MUST
+front the endpoint with reverse-proxy basic auth, mTLS, or a
+network-segregated scrape network — Prometheus exposition
+output reveals server fingerprint + operational telemetry
+that an attacker can use to time auth-spray attacks. v0.8.1
+will wire :class:`AuthProvider` plugin contract into the
+FastAPI dependency stack so this endpoint inherits the same
+auth requirement as ``/api/risks`` and other gated routers.
 """
 
 from __future__ import annotations

@@ -61,7 +61,13 @@ SERVER_INSTRUCTIONS = (
     "operator already has on disk; the server never fetches "
     "remote data unless an explicit collector tool is invoked. "
     "Use list_frameworks first to discover the 89 bundled "
-    "catalogs, then gap_analyze + gap_diff to surface findings."
+    "catalogs, then gap_analyze + gap_diff to surface findings. "
+    "TRUST MODEL: v0.8.0 ships stdio transport only — the "
+    "client process runs as the operator's UID and the server "
+    "inherits the client's filesystem authority, so file-path "
+    "tool inputs aren't gated against an allow-root. v0.8.1 "
+    "HTTP/SSE transports will require explicit path-traversal "
+    "gating against an operator-configured allow-root."
 )
 
 

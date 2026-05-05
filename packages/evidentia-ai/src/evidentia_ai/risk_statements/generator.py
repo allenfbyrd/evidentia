@@ -396,6 +396,14 @@ class RiskStatementGenerator:
         follow-up. The stub trace lets the operator wire OSCAL
         emit + Sigstore signing pipelines today; the substantive
         trace authoring lands as a follow-up sub-slice.
+
+        AUDITOR NOTE (v0.8.0 review F9): the stub's
+        ``confidence=0.5`` value is a HARD-CODED PLACEHOLDER, not
+        an LLM introspection. Auditors filtering traces by
+        confidence should ignore stub-emitted traces (identified
+        by ``trace_kind=v0.8.0-stub`` in the audit log). v0.8.1
+        emits LLM-introspected confidence values that ARE
+        meaningful for filtering.
         """
         stub_trace = ReasoningTrace(
             claims=[

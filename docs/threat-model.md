@@ -942,6 +942,144 @@ leaked phrase; removed from script's SKIP_FILES list.
 
 ---
 
+## v0.8.0 attack-surface delta — "the OSS-native AI moat"
+
+v0.8.0 introduces four new public surfaces. Each is added
+with adversaries + mitigations enumerated for the threat-
+model audit trail.
+
+### Surface 1: Plugin entry-point discovery (P0.4)
+
+`evidentia_core.plugins.discover_plugins()` walks
+`importlib.metadata.entry_points(group='evidentia.plugins')`
+returning a dict of registered plugin classes. Operators
+wire plugins via setup.py / pyproject.toml entry-point
+declarations.
+
+- **Adversary**: malicious package on PyPI registers an
+  entry point claiming to be an `AuthProvider` /
+  `StorageBackend` / `MarketplaceProvider`. Operator
+  pip-installs the package; their Evidentia deployment
+  loads the malicious plugin without explicit operator
+  opt-in.
+- **Mitigation**: `discover_plugins` is OPT-IN — operators
+  explicitly invoke it; no auto-load on import. Operators
+  control which packages they install (per Evidentia's
+  pinned-deps + `uv.lock` hashed-transitive posture).
+  Plugin code runs with the operator's UID; no privilege
+  escalation. Auditors verifying a deployment inspect
+  installed entry points via `pip show -f`.
+- **Residual risk**: an operator who blindly installs
+  unvetted plugins inherits the plugin's authority.
+  Evidentia's posture: vetted plugins only; in-tree
+  reference impls (`evidentia_core.plugins.auth.local_token`
+  etc.) carry the same audit + signing as core code.
+
+### Surface 2: MCP stdio transport (P0.3)
+
+`evidentia mcp serve` exposes 4 read-only tools
+(`list_frameworks`, `get_control`, `gap_analyze`, `gap_diff`)
+to MCP-aware AI clients (Claude Desktop, Claude Code,
+ChatGPT Desktop) over stdio.
+
+- **Adversary**: malicious MCP client (e.g., compromised
+  Claude Desktop config) sends `gap_analyze` / `gap_diff`
+  calls with paths outside the operator's intended
+  evidence directory.
+- **Mitigation**: stdio transport runs in the operator's
+  shell context with the operator's UID — no privilege
+  escalation possible; the client process already has
+  the same filesystem access. The tools accept any path
+  the operator's UID can read because that matches the
+  trust boundary. Documented inline in
+  `SERVER_INSTRUCTIONS` + `evidentia-mcp/README.md`.
+- **Residual risk**: future v0.8.1 HTTP/SSE transports
+  open the surface to non-local clients. v0.8.1 MUST
+  gate file-path tool inputs against an operator-
+  configured allow-root via `validate_within`. Tracked
+  as v0.8.1 structural requirement.
+
+### Surface 3: `/api/metrics` Prometheus endpoint (P1 G3)
+
+`GET /api/metrics` returns Prometheus exposition format
+output covering app version, uptime, per-EventAction
+counts, and failure counts.
+
+- **Adversary**: anonymous attacker scraping the endpoint
+  on a non-loopback-bound deployment. Endpoint reveals
+  server version (fingerprint), audit-event volume
+  (operational telemetry), and failure rates (signal an
+  attacker can use to time auth-spray attacks).
+- **Mitigation**: v0.8.0 default (`uvicorn --host
+  127.0.0.1`) shares the same trust boundary as
+  `/api/docs` + `/api/health`. `evidentia serve
+  --security-headers` (or the auto-on-bind-host=0.0.0.0
+  variant) attaches CSP + X-Frame-Options +
+  Strict-Transport-Security. Operators binding to
+  `0.0.0.0` MUST front the endpoint with reverse-proxy
+  basic auth, mTLS, or a network-segregated scrape
+  network (documented in `docs/evidence-integrity.md`).
+- **Residual risk**: v0.8.1 wires the `AuthProvider`
+  plugin contract into the FastAPI dependency stack so
+  `/api/metrics` inherits the same auth requirement as
+  `/api/risks`. v0.8.0 review F-V08-S3 documents this
+  scope.
+
+### Surface 4: DFAH eval harness output (P0.1)
+
+`evidentia eval stub-smoke` (and the future v0.8.1
+`risk-determinism` verb) emits per-prompt sample-hash JSON
+to stdout/file. The output IS audit evidence — a 3PAO
+reviewing the eval can reconstruct exactly which samples
+passed determinism + which violated.
+
+- **Adversary**: an attacker who can modify the eval
+  output post-emit could fabricate determinism passes
+  for non-deterministic LLM output, masking real
+  AI-quality regressions.
+- **Mitigation**: eval output is SHA-256-hashable
+  canonical JSON via Pydantic's `model_dump_json`. CI
+  pipelines should pipe `evidentia eval` output through
+  Sigstore signing (the existing `evidentia oscal sign`
+  pattern is reusable post-v0.8.1 when the eval-result
+  signing surface lands). The `EvalResult.run_id` is a
+  ULID; same-run-id replay attacks are detectable via
+  the audit log.
+- **Residual risk**: v0.8.0 doesn't auto-sign eval output.
+  Operators wanting end-to-end signing today pipe the
+  output through `cosign sign-blob` manually. v0.8.1
+  adds first-class Sigstore signing for eval results.
+
+### v0.8.0 PRT (P0.2) attack-surface notes
+
+PRT is a model field on RiskStatement, not a new public
+surface. Adversaries can:
+
+- Forge a reasoning trace claiming citations the LLM
+  didn't actually produce. Mitigation: SHA-256-hashed
+  back-matter resource binds the canonical JSON;
+  tampering fails `evidentia oscal verify`. The Sigstore
+  signature on the AR transitively binds the trace.
+- Submit a low-quality stub trace and have it accepted
+  as "AI-derived." Mitigation: stub traces carry
+  `trace_kind=v0.8.0-stub` in the audit log; auditors
+  filter on the kind field. Per F9 disclosure in v0.8.0
+  review.
+
+### Inherited mitigations (carry-forward from v0.7.x)
+
+All v0.7.x mitigations remain in force:
+
+- Read-only collectors + BLIND_SPOTS disclosures
+- Sigstore-signed OSCAL AR + per-resource SHA-256 hashes
+- Retention metadata + cloud-WORM backends (S3/Azure/GCS)
+- GDPR Article 17 purge flow
+- Pinned dependencies + uv.lock hashed transitives
+- SLSA L3 build provenance + cosign-signed container
+- Standing-rule keyword sweep (file content + commit msg)
+
+---
+
 ## Review cadence
 
 This doc is reviewed at every release per

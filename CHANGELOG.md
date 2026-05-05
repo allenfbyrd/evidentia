@@ -7,6 +7,131 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-05
+
+**The OSS-native AI moat.** First minor release after the
+v0.7.x cycle close (18 patch releases over ~12 days). Lands
+the four AI-quality features that distinguish a Vanta-class
+dashboard from a compliance-engineering tool: DFAH
+determinism harness, Policy Reasoning Traces, MCP server,
+and the plugin-contract scaffolding that makes a community
+catalog ecosystem possible.
+
+### Added
+
+- **DFAH determinism harness (P0.1)** —
+  `evidentia eval stub-smoke` CLI verb + `DFAHarness` library
+  API per arXiv 2601.15322. Validates that AI-driven artifact
+  generation is auditor-defensibly reproducible (same prompt
+  + same model + same temperature → same output across N
+  samples). New module `evidentia_ai.eval` with `harness.py`
+  / `metrics.py` / `seeds.py` + result models
+  (DeterminismResult, ReplayResult, EvalResult). CI-gateable
+  via `--fail-on-determinism-rate-below 0.95` (per arXiv
+  2601.15322 DFAH guidance). 4 new EventAction entries:
+  `AI_EVAL_STARTED`, `AI_EVAL_DETERMINISM_VIOLATION`,
+  `AI_EVAL_FAITHFULNESS_VIOLATION`, `AI_EVAL_COMPLETED`.
+  Reserves the faithfulness-violation slot for the v0.8.1
+  follow-up.
+- **Policy Reasoning Traces (P0.2)** —
+  `evidentia risk generate --emit-trace` flag +
+  `RiskStatementGenerator.generate(emit_trace=True)` kwarg
+  per arXiv 2509.23291. Decomposes AI-generated risk
+  statements into ordered atomic claims + per-claim policy
+  clause citations + confidence scores. New Pydantic models
+  `TraceClaim` + `ReasoningTrace`. Optional
+  `RiskStatement.reasoning_trace` field — backward
+  compatible with pre-v0.8.0 payloads. OSCAL emit gains
+  `risk_statements_with_traces` kwarg surfacing traces as
+  Evidentia-namespaced back-matter resources with canonical
+  JSON + SHA-256 + base64 (Sigstore-signable; tamper-
+  evident). Trestle pydantic.v1 round-trip preserves the
+  trace data. New EventAction `AI_RISK_TRACE_EMITTED`. v0.8.0
+  ships a single-claim stub trace; v0.8.1 ships the
+  substantive LLM-driven per-claim decomposition.
+- **MCP server (P0.3)** — new `evidentia-mcp` workspace
+  member exposing 4 read-only tools (`list_frameworks`,
+  `get_control`, `gap_analyze`, `gap_diff`) over the canonical
+  stdio transport. `evidentia mcp serve` runs the server;
+  `evidentia mcp doctor` runs a 4-check health probe. Built
+  on the official `mcp` Python SDK's FastMCP scaffolding;
+  graceful CLI degradation when the `evidentia[mcp]` extra
+  isn't installed. HTTP/SSE transports + CIMD richness
+  defer to v0.8.1.
+- **Plugin contract scaffolding (P0.4)** — four ABCs in
+  `evidentia_core.plugins`:
+  `AuthProvider` (Authorization-header authentication),
+  `StorageBackend[T]` (Pydantic-record persistence with
+  generic type parameter), `MarketplaceProvider` (OSCAL
+  catalog provider with list/fetch separation), and
+  `BaseSaaSCollector` (HTTP scaffolding for SaaS API
+  collectors with `_auth_header()` hook). Three reference
+  implementations (`LocalTokenAuthProvider`,
+  `FilesystemStorageBackend`, `LocalDirectoryMarketplaceProvider`)
+  + `discover_plugins()` helper using
+  `importlib.metadata.entry_points(group='evidentia.plugins')`.
+- **M-4 collector base-class refactor** — Vanta, Drata,
+  BitSight, and SecurityScorecard collectors now inherit
+  from `BaseSaaSCollector`. Per-collector scaffolding LOC
+  drops ~60% (130→50 lines); 92 collector tests still pass.
+  BitSight + SecurityScorecard override `_auth_header()` for
+  HTTP Basic + `Token <key>` schemes respectively.
+  Multi-inheritance with the SaaS\* base classes preserves
+  existing `pytest.raises(VantaAuthError)` test semantics.
+- **Prometheus `/metrics` endpoint (P1 G3)** —
+  `GET /api/metrics` returns Prometheus 0.0.4 text-format
+  exposition. New `evidentia_core.audit.metrics` stdlib-only
+  counter aggregator taps the audit-event-firing path via a
+  module-level dict + threading.Lock. Metrics:
+  `evidentia_app_info{version=...}`, `evidentia_uptime_seconds`,
+  `evidentia_audit_events_total{action=...}`,
+  `evidentia_audit_events_failures_total`. Process-local;
+  multi-process aggregation defers to v0.8.1.
+- **`docs/evidence-integrity.md` (P1 G8)** — anti-tamper
+  deployment guidance covering evidence-collection integrity
+  + tamper-evident audit + emit pipeline + reproducibility +
+  three deployment patterns (SaaS, air-gapped, federal SI) +
+  verification commands operators wire into CI gates.
+
+### Changed
+
+- `EvidentiaLogger._emit` now records every audit event into
+  the in-process Prometheus counter aggregator. Lazy import
+  keeps logger.py free of the metrics module's threading
+  primitives at import time.
+
+### Fixed
+
+- `DFAHarness.run` replay-equivalence check now compares
+  against `DeterminismResult.modal_hash` (canonical
+  determinism modal) rather than `outputs[0]` (potential
+  outlier). Closes pre-release-review F-V08-CR-7 correctness
+  finding.
+- `evidentia_ai.eval.seeds` docstring now accurately
+  describes whitespace-collapse + trailing-terminator-strip
+  behavior. Closes pre-release-review F-V08-CR-6.
+- `RiskStatementGenerator._attach_stub_trace` docstring
+  carries auditor disclosure that the v0.8.0 stub
+  `confidence=0.5` is a placeholder, not an LLM-introspected
+  value. Closes pre-release-review F-V08-CR-9.
+
+### Notes
+
+- This is the first minor release after the v0.7.x cycle
+  CLOSED 2026-05-05. The pre-release-review v4 Pre-tag run
+  + Step 7 post-tag verification gate the ship.
+- Five inline-fixes during pre-release-review Step 5.A
+  (correctness + defense-in-depth doc clarifications); 12
+  bucketed to v0.8.1 with documented rationale (F-V08-CR-1
+  HIGH logger record_event level filter, F-V08-CR-2 HIGH
+  metrics counter encapsulation, F-V08-CR-3/4 MEDIUM
+  collector base + MCP private API, plus 9 LOW polish).
+- `docs/security-review-v0.8.0.md` is the 5th canonical
+  Pre-tag deliverable per pre-release-review v4 §G7.
+- `docs/threat-model.md` extended with v0.8.0 attack-
+  surface delta covering all 4 new public surfaces +
+  inherited mitigations.
+
 ## [0.7.16] - 2026-05-05
 
 **The v0.7.x cycle wrap — security bump + commit-msg hook variant

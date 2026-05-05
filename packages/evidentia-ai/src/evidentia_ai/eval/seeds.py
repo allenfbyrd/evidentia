@@ -11,15 +11,28 @@ substantive claim.
 The normalization is intentionally minimal:
 
 - Strip leading + trailing whitespace.
-- Collapse runs of whitespace to single space.
-- Lowercase trailing punctuation (``.``, ``!``, ``?``).
-- Preserve everything else verbatim.
+- Collapse runs of internal whitespace to a single space.
+- Strip trailing terminator punctuation (``.``, ``!``, ``?``)
+  + any whitespace following it.
+- Preserve everything else verbatim. Internal punctuation,
+  case, and non-terminator characters are NOT touched —
+  ``"AC-2."`` and ``"AC-2!"`` hash identically (both
+  trail-stripped), but ``"Risk."`` and ``"risk."`` do NOT
+  (case is preserved).
 
 The harness does NOT do semantic equivalence (no embedding
 similarity, no LLM-judged paraphrase detection). That would
 make CI gates flaky + would obscure real determinism
 regressions. If two outputs differ in any non-whitespace,
-non-trailing-punct way, that's a determinism violation.
+non-trailing-terminator way, that's a determinism violation.
+
+v0.8.0 review note (F6): the trailing-terminator collapse
+treats ``.``, ``!``, and ``?`` as interchangeable for
+determinism purposes. Operators wanting stricter
+equivalence (e.g., punctuation-distinct outputs flagged as
+violations) should use the raw ``hashlib.sha256`` of the
+caller's output without normalization — but expect noise
+from harmless whitespace drift.
 """
 
 from __future__ import annotations

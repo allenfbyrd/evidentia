@@ -39,8 +39,8 @@ from evidentia_ai.eval.metrics import (
     DeterminismResult,
     ReplayResult,
     determinism_score,
-    replay_equivalent,
 )
+from evidentia_ai.eval.seeds import hash_output
 
 _log = get_logger("evidentia.ai.eval")
 
@@ -249,14 +249,18 @@ class DFAHarness:
                 )
             if check_replay:
                 # Use the same context for the replay so model +
-                # temperature + prompt_hash are pinned. The first
-                # determinism sample's normalized output is the
-                # canonical "original" we compare against.
+                # temperature + prompt_hash are pinned. Compare
+                # against the determinism MODAL hash (most-frequent
+                # sample) rather than outputs[0] — when the first
+                # sample happened to be a determinism outlier, the
+                # modal hash is what canonical replay should match.
+                # v0.8.0 P0.1 review fix (F7).
                 replay_output = self._generator(sample.prompt, ctx)
-                replay_result = replay_equivalent(
-                    original=outputs[0],
-                    replay=replay_output,
+                replay_hash = hash_output(replay_output)
+                replay_result = ReplayResult(
                     prompt_id=sample.prompt_id,
+                    original_hash=det_result.modal_hash,
+                    replay_hash=replay_hash,
                 )
                 replay_results.append(replay_result)
 
