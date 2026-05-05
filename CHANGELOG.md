@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.15] - 2026-05-05
+
+**The Tailwind 4 migration + SettingsPage refactor + pre-commit
+standing-rule sweep release.** Final v0.7.x cycle close before
+v0.8.0 design opens. Closes the v0.7.13 + v0.7.14 frontend
+deferrals + the lesson-learned from the v0.7.13-cycle commit-
+message leak. No new public surfaces.
+
+### Added
+
+- **`scripts/standing_rule_sweep.sh`** — pre-commit hook that
+  runs the canonical 21-pattern keyword sweep on staged files.
+  Closes the gap surfaced by the v0.7.13-cycle 9613e62 leak
+  (sweep ran only at pre-push; staged content + commit
+  messages weren't checked at commit time). Hook integrates
+  via `.pre-commit-config.yaml` `standing-rule-sweep` local
+  hook. Limitation documented inline: commit-message body is
+  not scanned by this hook; the file-content sweep is the
+  primary catch.
+- **`@tailwindcss/vite`** + **`tw-animate-css`** as new dev
+  dependencies (replace `tailwindcss-animate` + the v3
+  PostCSS chain).
+- **`<SettingsForm/>`** sub-component in `SettingsPage.tsx` —
+  isolated form-state component keyed on
+  `configQuery.data.source_path` so each new config-load
+  triggers a remount with fresh state seeded by useState
+  lazy initializers. React's canonical idiom for "initialize
+  state from async data".
+
+### Fixed
+
+- **Tailwind 3 → 4 migration** (P0.1; closes v0.7.13 + v0.7.14
+  deferral): full shadcn/ui new-york preset rewritten from
+  `tailwind.config.ts` JS-config to CSS-first `@theme {}`
+  blocks in `src/index.css`. PostCSS chain replaced with
+  the first-class `@tailwindcss/vite` Vite plugin.
+  `tailwindcss-animate@1.0.7` (last v3-era release; not
+  v4-compatible) replaced with `tw-animate-css@1.4.0`
+  (community fork; v4-native). Visual output verified
+  unchanged (severity palette, dark-mode toggle, accordion
+  animations all carry forward).
+- **`react-hooks/set-state-in-effect` lint error** in
+  `SettingsPage.tsx` (P0.2; closes v0.7.14 deferral): the
+  v0.4.1 useEffect+setState pattern that copied
+  `configQuery.data` into local form state replaced with a
+  key-based remount of the new `<SettingsForm/>`
+  sub-component. Lint rule promoted from `warn` (v0.7.14) →
+  `error` (v0.7.15) so any future regression fails CI.
+
+### Changed
+
+- `tailwind.config.ts` (deleted) — config moved to CSS-first
+  `@theme` block in `src/index.css`.
+- `postcss.config.js` (deleted) — PostCSS chain replaced by
+  `@tailwindcss/vite` plugin.
+- `vite.config.ts` — added `@tailwindcss/vite` plugin.
+- `src/index.css` — `@tailwind base/components/utilities`
+  triple replaced with `@import "tailwindcss"` +
+  `@import "tw-animate-css"`. All theme tokens (12 shadcn/ui
+  colors + Evidentia severity palette + border radius +
+  container width) declared as `--color-*` CSS custom
+  properties under `@theme {}`. `@custom-variant dark`
+  directive enables class-based dark-mode (Tailwind 4
+  defaults to media-query without this).
+- `eslint.config.js` — `react-hooks/set-state-in-effect`
+  promoted to `error`; obsolete `tailwind.config.ts` override
+  block removed.
+
+### Notes
+
+- **PR #21 backlog now FULLY ABSORBED** across the v0.7.x
+  cycle: 13 frontend bumps total (v0.7.14 P0.2-P0.5: 7 bumps
+  including TS 5→6 / ESLint 9→10 / plugin-react-hooks 5→7 /
+  jsdom + minors; v0.7.15 P0.1: tailwind 3→4 + the
+  tailwindcss-animate replacement). The v0.7.x line ships on
+  the latest stable frontend toolchain.
+- **Recurring Scorecard PinnedDependencies false-positive** on
+  the Dockerfile pip install line continues. v0.8.0 G4
+  closes structurally; v0.7.14's `docker/requirements.txt`
+  preview is the foundation. Per-release dismissal continues
+  per the runbook in `docs/dockerfile-pinning.md`.
+
 ## [0.7.14] - 2026-05-05
 
 **The frontend modernization + Codecov P2.1 deep-dive + final

@@ -767,6 +767,104 @@ tree stays gitignored throughout.
 
 ---
 
+## v0.7.15 attack-surface delta
+
+v0.7.15 closes the remaining frontend deferral from v0.7.13 +
+v0.7.14 (Tailwind 3→4 migration), refactors `SettingsPage.tsx`
+to eliminate the `react-hooks/set-state-in-effect` lint rule
+violation, and adds the standing-rule sweep as a pre-commit
+hook to close the gap that produced the v0.7.13 cycle 9613e62
+commit-message leak.
+
+### No new attack surface
+
+v0.7.15 adds zero new public surfaces. All work is:
+
+- **Frontend dev-tooling rewrite** (Tailwind 3→4) —
+  devDependency change; the PostCSS chain becomes a Vite
+  plugin; theme config moves from JS to CSS-first `@theme`
+  blocks. Production wheel embeds the same compiled CSS
+  (35 KB / 6.4 KB gzipped, vs v3's 22 KB / 5 KB gzipped — the
+  delta is Tailwind 4's broader default emit, not new
+  application code).
+- **SettingsPage refactor** — internal pattern fix
+  (useEffect+setState seed → key-based remount of inner
+  sub-component). Same form fields, same backend interaction,
+  same auth model. No new endpoints; no new state escape.
+- **Pre-commit hook** — a contributor-side script that runs
+  before `git commit` lands locally. Doesn't ship in the
+  production wheel; doesn't run on operators' machines;
+  exists only to catch leaks before they reach CI/origin.
+
+### Carry-forward state
+
+All v0.7.14 trust boundaries + STRIDE entries carry forward
+unchanged. The 3 cloud-WORM backends, 6 retention stores, GDPR
+purge-flow, FAIR Monte Carlo simulator, TPRM module, model risk
+overlay, and audit chain-of-custody all stay as documented in
+prior version sub-sections.
+
+### Tailwind 3→4 migration (P0.1)
+
+The migration replaces:
+
+- `tailwind.config.ts` (deleted) → `@theme {}` blocks in
+  `src/index.css`
+- `postcss.config.js` (deleted) → `@tailwindcss/vite` plugin
+  in `vite.config.ts`
+- `tailwindcss-animate@1.0.7` (last v3-era) → `tw-animate-css`
+  (v4-compatible community fork)
+- `autoprefixer` (removed; Tailwind 4 handles vendor prefixing
+  internally)
+
+**Trust posture**: the build pipeline is contributor-side
+tooling. Production wheel embeds the compiled output from
+`vite build`; no change to the bundle delivery model. Operators
+running `evidentia serve` see the same `index.html` + bundled
+JS/CSS pattern. No new attack surface.
+
+The new `@tailwindcss/vite` plugin is a first-class Tailwind 4
+release artifact (signed npm package; SLSA-built per upstream
+release process). Same trust boundary as the v3 PostCSS chain
+which used `tailwindcss` + `autoprefixer` — the dependency
+count is similar, just consolidated under one package.
+
+### `<SettingsForm/>` refactor (P0.2)
+
+Internal pattern fix; no surface change. The form fields, the
+PUT `/api/config` payload shape, and the backend validation
+all remain identical. Only the React component composition
+changes (parent owns query; child owns form state, mounted
+with `key={config.source_path}` for clean remount on data
+load).
+
+**Trust posture**: same as before. The settings page is
+already authenticated (gated by the v0.4.0 token-auth
+foundation); v0.7.15 doesn't change that.
+
+### Pre-commit hook (P0.3)
+
+`scripts/standing_rule_sweep.sh` runs the 21-pattern keyword
+guard on staged files. The hook exists to catch
+secrecy-vocabulary leaks BEFORE they hit origin/main —
+upgrading the v0.7.x sweep from pre-push (publishing-authority
+gate) to pre-commit (commit-time gate).
+
+**Trust posture**: contributor-side enforcement. The hook
+doesn't ship in any artifact (wheel, container, etc.); it's a
+local-machine guard. Bypass via `git commit --no-verify` is
+possible but documented as Allen-approval-only in the script
+output. No change to operator/runtime trust boundary.
+
+### Standing-rule sweep posture (carries forward)
+
+All 21 forbidden tokens unchanged. The pre-commit hook
+extends the sweep's coverage (now runs at commit-time as well
+as push-time) but the pattern set + disposition rules are
+identical.
+
+---
+
 ## Review cadence
 
 This doc is reviewed at every release per

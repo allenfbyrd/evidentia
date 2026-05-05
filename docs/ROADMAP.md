@@ -1,16 +1,16 @@
 # Evidentia roadmap
 
-**Last updated: v0.7.13 (May 2026).**
+**Last updated: v0.7.14 (May 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
-at the project root. Versions v0.3.0 through v0.7.13 have shipped;
-v0.7.14 is the next active scope — frontend toolchain modernization
-(TypeScript 5→6 + ESLint 9→10 + plugin bumps) + final v0.7.x hygiene
-(3 deferred v0.7.8 LOWs + Codecov P2.1 + container-build Wait
-extension) + hash-pinned `docker/requirements.txt` preview as
-v0.8.0 G4 foundation. Anything beyond v0.7.14 is forward-looking —
-the exact shape will depend on real-world usage patterns and the
-bigger v0.8+ direction documented in
+at the project root. Versions v0.3.0 through v0.7.14 have shipped;
+v0.7.15 is the next active scope — Tailwind 3→4 migration (the
+deferred half of PR #21) + SettingsPage refactor (eliminates
+react-hooks/set-state-in-effect) + standing-rule sweep pre-commit
+hook (closes the v0.7.13-cycle leak gap). Final v0.7.x release
+before v0.8.0 design opens. Anything beyond v0.7.15 is
+forward-looking — the exact shape will depend on real-world usage
+patterns and the bigger v0.8+ direction documented in
 [`positioning-and-value.md`](positioning-and-value.md) §13.
 
 ## v0.3.0 — Compliance-as-code — SHIPPED
@@ -496,33 +496,45 @@ post-tag verification all sub-checks PASS + 2nd consecutive
 pin-trap fix validation + 1st validation of G16 release body
 substantiveness gate.
 
-## v0.7.14 — Frontend modernization + Codecov P2.1 + final v0.7.x hygiene + v0.8.0 G4 foundation — NEXT
+## v0.7.14 — Frontend modernization + Codecov P2.1 + final v0.7.x hygiene + v0.8.0 G4 foundation — SHIPPED
 
-Wrap-up patch release before v0.8.0 opens. PR #21 frontend
-major bumps re-issued: TypeScript 5→6 + ESLint 9→10 + plugin-
-react-hooks 5→7 + plugin-react-refresh 0.4→0.5 + jsdom 25→29 +
-postcss + @types/node minors. (Tailwind 3→4 deferred to
-v0.7.15 / v0.8.0 P5 per the 2-day time-box rule —
-CSS-first @theme rewrite of full shadcn/ui preset is multi-day
-work.) 3 deferred v0.7.8 LOWs closed (test-coverage gaps,
-Tableau Windows tempfile cleanup via TemporaryDirectory,
-Databricks LTS env-var extensibility). Codecov 0% deeper
-diagnosis (P2.1; flag_management.individual_flags[].paths
-glob removal as attempt 1). container-build.yml Wait-for-PyPI
-extended to poll all 6 inter-package deps (closes the v0.7.13
-e32b742 propagation race). Hash-pinned `docker/requirements.txt`
-preview generation tooling lands as v0.8.0 G4 reproducible-
-build foundation. v0.7.13 in-repo retrospective doc
-(`docs/v0.7.13-shipped.md`). ~1.5-2 week ship target.
+See [`docs/v0.7.14-shipped.md`](v0.7.14-shipped.md). 7 of 8 PR
+#21 frontend major bumps landed (TypeScript 5→6, ESLint 9→10,
+plugin-react-hooks 5→7, plugin-react-refresh 0.4→0.5, jsdom
+25→29, postcss + @types/node minors; tailwind 3→4 deferred to
+v0.7.15). 3 deferred v0.7.8 LOWs closed (test-coverage gaps,
+Tableau Windows tempfile via TemporaryDirectory, Databricks
+LTS env-var). **Codecov 0% RESOLVED** via P2.1 attempt 1
+(flag_management block removal); dashboard now shows 82.14%
+on c0c9a31. container-build Wait extended to poll all 6
+packages. Hash-pinned `docker/requirements.txt` preview lands
+as v0.8.0 G4 foundation. Fourth consecutive PROCEED-CLEAN
+/security-review.
 
-## v0.7.15 — Tailwind 3→4 + remaining hot-fixes — RESERVED
+## v0.7.15 — Tailwind 4 migration + SettingsPage refactor + standing-rule pre-commit — NEXT
 
-Reserved patch window for the deferred Tailwind 3→4 migration
-(if not absorbed into v0.7.14 or v0.8.0 P5), Codecov P2.1
-escalation if attempt 1 didn't resolve, plus any v0.7.14
-dogfooding follow-ups. Domain-expert walk-through scheduling
-for the v0.9.0 federal-compliance theme (CONMON + POA&M)
-opens here. ~1-2 week reservation.
+Final v0.7.x patch before v0.8.0 design opens. P0.1: Tailwind
+3→4 migration (the deferred half of PR #21; full shadcn/ui
+preset rewritten to CSS-first `@theme` blocks in
+`src/index.css`; PostCSS chain replaced with
+`@tailwindcss/vite` plugin; `tailwindcss-animate` v3-era →
+`tw-animate-css` v4-compatible). P0.2: SettingsPage.tsx
+refactor (key-based remount of `<SettingsForm/>` sub-component
+eliminates the `react-hooks/set-state-in-effect` lint
+violation; rule promoted from `warn` → `error`). P0.3:
+`scripts/standing_rule_sweep.sh` + `.pre-commit-config.yaml`
+hook (closes the v0.7.13-cycle 9613e62 leak gap by running
+the canonical 21-pattern guard at commit-time, not just
+pre-push). ~1-week ship target.
+
+## v0.7.16 — Reserved — patches + bridge to v0.8.0
+
+Reserved patch window for v0.7.15 dogfooding follow-ups,
+`commit-msg` pre-commit hook variant if the 9613e62-class
+pattern recurs, domain-expert walk-through scheduling for the
+v0.9.0 federal-compliance theme (CONMON + POA&M), and any
+final polish before the v0.8.0 AI moat work begins.
+~1 week reservation.
 
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 

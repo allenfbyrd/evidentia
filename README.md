@@ -148,6 +148,21 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.7.14 (May 2026)** — *frontend modernization + Codecov
+P2.1 RESOLVED + final v0.7.x hygiene + v0.8.0 G4 foundation*.
+7 of 8 PR #21 frontend major bumps (TypeScript 5→6, ESLint
+9→10 flat-config, plugin-react-hooks 5→7, jsdom + minors;
+tailwind 3→4 deferred to v0.7.15). 3 deferred v0.7.8 LOWs
+closed (Tableau Windows tempfile via TemporaryDirectory,
+Databricks LTS env-var, test-coverage gaps). Codecov dashboard
+fixed (was 0% since v0.7.10; now 82.14% via removing the
+`flag_management.individual_flags[].paths` glob that filtered
+all files out). container-build Wait extended to all 6 packages.
+Hash-pinned `docker/requirements.txt` preview lands as v0.8.0
+G4 reproducible-build foundation. Fourth consecutive PROCEED-
+CLEAN /security-review. 2120 tests passing across 188 source
+files.
+
 **v0.7.13 (May 2026)** — *dependency modernization + Codecov fix
 + P3 carry-over closures + release-notes hygiene*. Wrap-up of
 the v0.7.x cycle. No new public surfaces. Codecov coverage
@@ -224,7 +239,7 @@ compliance evidence to NIST 800-53 controls. Plus ServiceNow
 output integration carry-forward.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full version history
-(v0.1.0 through v0.7.13). For forward direction, see
+(v0.1.0 through v0.7.14). For forward direction, see
 [`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md) (the OSS-native AI
 moat — DFAH + PRT + MCP + plugin contracts) and
 [`docs/ROADMAP.md`](docs/ROADMAP.md) (everything else).
