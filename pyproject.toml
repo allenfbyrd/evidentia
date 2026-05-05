@@ -157,28 +157,38 @@ markers = [
 # library-tested-elsewhere principle.
 [tool.coverage.run]
 branch = false
-# v0.7.12 P0.7 closure of Codecov 0% bug: coverage.py defaults to
-# emitting filenames RELATIVE TO each `source` root, which produces
-# bare paths like `evidentia_core/foo.py` (no `packages/.../src/`
-# prefix) in the XML report. Codecov's path-matcher then can't
-# locate these files in the GitHub repo (whose layout IS
-# `packages/.../src/...`) and rejects every line as unmatched →
-# `state: error` with `totals: 0` on every commit, badge shows 0%.
+# v0.7.13 P0.3 deeper diagnosis of Codecov 0% bug: the v0.7.12 P0.7
+# `relative_files = true` fix did NOT resolve the bug — every commit
+# since v0.7.10 still ships with `state: error` + `coverage: 0.0` +
+# `report.files: []` on Codecov.
 #
-# `relative_files = true` rewrites the XML to emit repo-relative
-# paths (`packages/evidentia-core/src/evidentia_core/foo.py`),
-# which Codecov maps directly to GitHub's tree without needing
-# `fixes:` rules in codecov.yml.
+# Root cause (re-diagnosed 2026-05-04 against local coverage.xml):
+# the Cobertura XML format encodes file paths as `<class
+# filename="...">` RELATIVE TO whichever `<source>` root matches.
+# When 6 `source = [...]` entries are listed AND filename collisions
+# exist (each package has its own `__init__.py`, several have
+# `app.py` / `client.py` / `config.py`), the resulting XML is
+# fundamentally ambiguous: a single `<class filename="audit/
+# logger.py">` could resolve to any of the 6 sources. Codecov's
+# path-resolver bails → 0% coverage.
 #
-# Reference: https://coverage.readthedocs.io/en/latest/config.html#run-relative-files
+# Fix: switch to `source_pkgs` (coverage.py 7.0+ feature). Coverage
+# measures by importable package name; the Cobertura output records
+# the FULL on-disk path (`packages/evidentia-core/src/evidentia_core/
+# audit/logger.py`) without needing per-source-root disambiguation.
+# Codecov's path-resolver maps these directly to the GitHub repo
+# tree.
+#
+# Reference:
+#   https://coverage.readthedocs.io/en/latest/config.html#run-source-pkgs
 relative_files = true
-source = [
-    "packages/evidentia-core/src/evidentia_core",
-    "packages/evidentia-ai/src/evidentia_ai",
-    "packages/evidentia-collectors/src/evidentia_collectors",
-    "packages/evidentia-integrations/src/evidentia_integrations",
-    "packages/evidentia-api/src/evidentia_api",
-    "packages/evidentia/src/evidentia",
+source_pkgs = [
+    "evidentia_core",
+    "evidentia_ai",
+    "evidentia_collectors",
+    "evidentia_integrations",
+    "evidentia_api",
+    "evidentia",
 ]
 omit = [
     # Environmental dependencies
