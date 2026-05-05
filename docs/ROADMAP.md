@@ -1,16 +1,15 @@
 # Evidentia roadmap
 
-**Last updated: v0.7.14 (May 2026).**
+**Last updated: v0.7.15 (May 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
-at the project root. Versions v0.3.0 through v0.7.14 have shipped;
-v0.7.15 is the next active scope — Tailwind 3→4 migration (the
-deferred half of PR #21) + SettingsPage refactor (eliminates
-react-hooks/set-state-in-effect) + standing-rule sweep pre-commit
-hook (closes the v0.7.13-cycle leak gap). Final v0.7.x release
-before v0.8.0 design opens. Anything beyond v0.7.15 is
-forward-looking — the exact shape will depend on real-world usage
-patterns and the bigger v0.8+ direction documented in
+at the project root. Versions v0.3.0 through v0.7.15 have shipped;
+v0.7.16 is the final v0.7.x release — python-dotenv security CVE bump
+(PR #23) + commit-msg pre-commit hook variant + v0.7.15-shipped
+retrospective + post-ship release.yml hardening validation. v0.8.0
+design phase opens immediately post-v0.7.16 ship. Anything beyond
+v0.8.0 is forward-looking — the exact shape will depend on real-world
+usage patterns and the bigger v0.8+ direction documented in
 [`positioning-and-value.md`](positioning-and-value.md) §13.
 
 ## v0.3.0 — Compliance-as-code — SHIPPED
@@ -511,30 +510,31 @@ packages. Hash-pinned `docker/requirements.txt` preview lands
 as v0.8.0 G4 foundation. Fourth consecutive PROCEED-CLEAN
 /security-review.
 
-## v0.7.15 — Tailwind 4 migration + SettingsPage refactor + standing-rule pre-commit — NEXT
+## v0.7.15 — Tailwind 4 + SettingsPage refactor + standing-rule pre-commit — SHIPPED
 
-Final v0.7.x patch before v0.8.0 design opens. P0.1: Tailwind
-3→4 migration (the deferred half of PR #21; full shadcn/ui
-preset rewritten to CSS-first `@theme` blocks in
-`src/index.css`; PostCSS chain replaced with
-`@tailwindcss/vite` plugin; `tailwindcss-animate` v3-era →
-`tw-animate-css` v4-compatible). P0.2: SettingsPage.tsx
-refactor (key-based remount of `<SettingsForm/>` sub-component
-eliminates the `react-hooks/set-state-in-effect` lint
-violation; rule promoted from `warn` → `error`). P0.3:
-`scripts/standing_rule_sweep.sh` + `.pre-commit-config.yaml`
-hook (closes the v0.7.13-cycle 9613e62 leak gap by running
-the canonical 21-pattern guard at commit-time, not just
-pre-push). ~1-week ship target.
+See [`docs/v0.7.15-shipped.md`](v0.7.15-shipped.md). Tailwind 3→4
+migration (CSS-first `@theme` blocks; `@tailwindcss/vite` plugin;
+`tw-animate-css` replaces v3-era `tailwindcss-animate`),
+SettingsPage refactor (key-based remount; lint rule promoted
+warn→error), standing-rule sweep pre-commit hook
+(file-content stage). Fifth consecutive PROCEED-CLEAN. Ship-cycle
+hardening: post-ship commit `fd36e78` extends release.yml
+publish-container Wait step to all 6 packages (matches v0.7.14
+P2.2 fix for container-build.yml).
 
-## v0.7.16 — Reserved — patches + bridge to v0.8.0
+## v0.7.16 — Final v0.7.x: security CVE bump + commit-msg hook + retrospective — NEXT
 
-Reserved patch window for v0.7.15 dogfooding follow-ups,
-`commit-msg` pre-commit hook variant if the 9613e62-class
-pattern recurs, domain-expert walk-through scheduling for the
-v0.9.0 federal-compliance theme (CONMON + POA&M), and any
-final polish before the v0.8.0 AI moat work begins.
-~1 week reservation.
+Final v0.7.x release. PR #23 closes 2 Dependabot medium-severity
+alerts (python-dotenv CVE — symlink-following in `set_key`;
+vulnerable < 1.2.2). Adds the `commit-msg` pre-commit hook
+variant that closes the gap left by v0.7.15's file-content-only
+hook (catches leaks in commit-message body too). Publishes
+`docs/v0.7.15-shipped.md` in-repo retrospective. Validates the
+post-v0.7.15 release.yml Wait extension (commit `fd36e78`) on
+its first release pipeline run. Refreshes the OpenSSF Silver
+answer sheet with v0.7.16 ship state (Codecov 82.14%
+`test_statement_coverage80` MET via v0.7.14 P2.1 fix). v0.8.0
+design phase opens immediately post-ship.
 
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 

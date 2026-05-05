@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.16] - 2026-05-05
+
+**The v0.7.x cycle wrap — security bump + commit-msg hook variant
++ in-repo retrospective + post-ship release.yml hardening.**
+Final v0.7.x release. v0.8.0 design phase opens immediately
+post-ship.
+
+### Added
+
+- **`commit-msg` pre-commit hook variant** (`standing-rule-sweep-msg`
+  in `.pre-commit-config.yaml`): scans the commit-message body for
+  the canonical 21-pattern set. Closes the gap left by the v0.7.15
+  P0.3 file-content-only hook — completes the dual-stage coverage
+  (committed file content + commit message body). Same script
+  (`scripts/standing_rule_sweep.sh`) handles both stages.
+- **`docs/v0.7.15-shipped.md`**: in-repo retrospective for v0.7.15
+  alongside the memory pointer. Captures the Tailwind 4 migration
+  + SettingsPage refactor + standing-rule pre-commit shipment +
+  the post-ship release.yml hardening incident.
+
+### Fixed
+
+- **PR #23 — python-dotenv 1.0.1 → 1.2.2** in
+  `docker/requirements.txt`. Closes 2 Dependabot medium-severity
+  alerts (#7 + #8) for CVE — symlink-following in
+  `python-dotenv.set_key` allows arbitrary file overwrite via
+  cross-device rename fallback (vulnerable < 1.2.2). The
+  v0.7.14 P1.5 hash-pinned requirements.txt generation tooling
+  picked this up automatically; first auto-bump from Dependabot
+  on the new file.
+- **`release.yml` publish-container Wait extension to all 6
+  inter-package deps** (commit `fd36e78`; landed post-v0.7.15
+  ship as ship-cycle hardening). Same fix as v0.7.14 P2.2 for
+  `container-build.yml`. Closes the LAST PyPI propagation race
+  surface in the release pipeline. The v0.7.15 first ship
+  publish-container fire failed at this gap; recovery via
+  `gh run rerun --failed`. v0.7.16 ship validates the fix.
+
+### Changed
+
+- **`.pre-commit-config.yaml`** doc comment paraphrased to remove
+  the literal forbidden-token phrase that the v0.7.13-cycle
+  9613e62 leak introduced. The file is no longer a self-reference
+  exception; removed from `scripts/standing_rule_sweep.sh`'s
+  SKIP_FILES list.
+- **`scripts/standing_rule_sweep.sh`** docstring + SKIP_FILES
+  updated to reflect the dual-stage coverage (commit + commit-msg).
+
+### Notes
+
+- **OpenSSF Silver tier `test_statement_coverage80` MET** as of
+  v0.7.14 (Codecov dashboard 82.14%). The answer-sheet refresh
+  in `~/.claude/plans/evidentia-badgeapp-silver-gold-answer-sheet.md`
+  reflects v0.7.16 ship state for re-submission to bestpractices.dev
+  if the form prompts for verification.
+- **v0.7.x cycle CLOSED**: 17 releases over ~12 days
+  (v0.7.0 → v0.7.16). 5 consecutive PROCEED-CLEAN
+  /security-review verdicts (v0.7.11 + v0.7.12 + v0.7.13 +
+  v0.7.14 + v0.7.15; v0.7.16 expected to make 6). Pin-trap
+  fix validated 5 consecutive releases (will be 5 + 1 at
+  v0.7.16). release.yml CHANGELOG auto-population validated
+  4 consecutive releases. All 17 v0.7.x release bodies
+  substantive.
+
 ## [0.7.15] - 2026-05-05
 
 **The Tailwind 4 migration + SettingsPage refactor + pre-commit

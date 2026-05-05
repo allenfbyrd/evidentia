@@ -865,6 +865,83 @@ identical.
 
 ---
 
+## v0.7.16 attack-surface delta
+
+v0.7.16 is the FINAL v0.7.x cycle release. Closes the
+remaining loose ends (python-dotenv security CVE bump via
+PR #23 + commit-msg pre-commit hook variant + in-repo
+retrospective + post-ship release.yml hardening) before
+v0.8.0 design opens.
+
+### No new attack surface
+
+v0.7.16 adds zero new public surfaces. All work is:
+
+- **Dependency upgrade** (python-dotenv 1.0.1 → 1.2.2 via
+  PR #23) — closes 2 Dependabot medium-severity alerts; the
+  upgrade itself is a well-known security CVE fix
+- **Pre-commit hook variant** (commit-msg stage) —
+  contributor-side enforcement; doesn't ship in any artifact
+- **Documentation** (v0.7.15-shipped retrospective + CHANGELOG
+  + threat-model + ROADMAP + README + answer-sheet refresh)
+- **CI/release-pipeline hardening** (release.yml Wait
+  extension; commit `fd36e78` landed post-v0.7.15 ship)
+
+### python-dotenv 1.0.1 → 1.2.2 (PR #23 / Dependabot #7 + #8)
+
+The python-dotenv vulnerability (`set_key` symlink-following
+allows arbitrary file overwrite via cross-device rename
+fallback; CVE applies to < 1.2.2) is a runtime concern only
+in code paths that:
+1. Use python-dotenv's `set_key()` function to write to a
+   .env file
+2. Run with the .env file path resolvable to a symlink
+3. Run on a system where the symlink target lives on a
+   different filesystem than the staging path
+
+Evidentia uses python-dotenv as a transitive dep through
+some collector packages; doesn't directly call `set_key()`.
+The blast radius if exploited would be limited to whatever
+process is running with python-dotenv loaded and writes to
+.env files. The fix is a clean version bump; no API
+changes; no behavior change for read-only use.
+
+The bump came in via Dependabot's auto-PR generation against
+the hash-pinned `docker/requirements.txt` (v0.7.14 P1.5
+foundation). This is the FIRST auto-bump from the new
+hash-pinned file — validates the workflow. The hash file
+self-updated to the new pin + new SHA256 hashes.
+
+### Commit-msg pre-commit hook variant
+
+`standing-rule-sweep-msg` hook stage scans the commit-msg
+body. Same `scripts/standing_rule_sweep.sh` is invoked at
+both stages (file-content + commit-msg) via different hook
+declarations in `.pre-commit-config.yaml`. The script doesn't
+distinguish between staged-file-paths and COMMIT_EDITMSG —
+both are positional file args from its perspective.
+
+**Trust posture**: contributor-side enforcement. The hook
+doesn't ship in any artifact (wheel, container, etc.);
+exists only to catch leaks before they reach origin/main.
+
+### release.yml Wait extension (commit fd36e78; post-v0.7.15)
+
+CI/release-pipeline hardening. Workflow-only change; no
+runtime reach. Closes the LAST PyPI propagation race surface
+in the release pipeline (was: only umbrella package polled;
+now: all 6 inter-package deps polled before docker build).
+
+### Standing-rule sweep posture (carries forward)
+
+All 21 forbidden tokens unchanged. v0.7.16 ADDS the
+commit-msg variant of the sweep but doesn't change the
+pattern set or disposition rules. `.pre-commit-config.yaml`
+doc comment paraphrased to remove the literal v0.7.13-cycle
+leaked phrase; removed from script's SKIP_FILES list.
+
+---
+
 ## Review cadence
 
 This doc is reviewed at every release per

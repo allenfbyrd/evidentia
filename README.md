@@ -148,6 +148,21 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.7.15 (May 2026)** — *Tailwind 4 + SettingsPage refactor +
+standing-rule pre-commit hook*. Final v0.7.x cycle release before
+v0.8.0 design opens. Tailwind 3→4 migration (full shadcn/ui
+preset rewrite to CSS-first `@theme {}`; PostCSS chain replaced
+with `@tailwindcss/vite` plugin; `tailwindcss-animate` v3-era →
+`tw-animate-css` v4-compatible). SettingsPage.tsx refactored to
+key-based remount of `<SettingsForm/>` sub-component; lint rule
+`react-hooks/set-state-in-effect` promoted from `warn` to
+`error`. New `scripts/standing_rule_sweep.sh` + pre-commit hook
+runs the canonical 21-pattern guard at commit-time. Fifth
+consecutive PROCEED-CLEAN /security-review. Post-ship hardening
+(commit `fd36e78`) extends `release.yml` publish-container Wait
+step to all 6 packages — closes the LAST PyPI propagation race
+surface. 2120 tests passing across 188 source files.
+
 **v0.7.14 (May 2026)** — *frontend modernization + Codecov
 P2.1 RESOLVED + final v0.7.x hygiene + v0.8.0 G4 foundation*.
 7 of 8 PR #21 frontend major bumps (TypeScript 5→6, ESLint
@@ -239,7 +254,7 @@ compliance evidence to NIST 800-53 controls. Plus ServiceNow
 output integration carry-forward.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full version history
-(v0.1.0 through v0.7.14). For forward direction, see
+(v0.1.0 through v0.7.15). For forward direction, see
 [`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md) (the OSS-native AI
 moat — DFAH + PRT + MCP + plugin contracts) and
 [`docs/ROADMAP.md`](docs/ROADMAP.md) (everything else).
