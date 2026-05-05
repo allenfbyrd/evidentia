@@ -72,6 +72,33 @@ _log = get_logger("evidentia.collectors.snowflake")
 COLLECTOR_ID = "snowflake-scan"
 
 
+# ── v0.7.13 P3 v0.7.8-LOW item 4: tz-cast helper ──────────────────
+
+
+def _to_utc_iso(value: datetime) -> str:
+    """Emit a UTC-tz-aware ISO 8601 string for a datetime.
+
+    Snowflake LOGIN_HISTORY rows occasionally surface as naive
+    datetimes (no tzinfo) depending on the connector version + the
+    account's TIMEZONE parameter. Naive isoformat produces ambiguous
+    timestamps that breaks audit-trail correlation across UTC + local-
+    tz systems.
+
+    Behavior:
+    - Tz-aware datetime → emit unchanged via ``isoformat()``.
+    - Naive datetime → assume UTC + emit with ``+00:00`` suffix.
+
+    The naive-assume-UTC convention matches Snowflake's default
+    storage convention (TIMESTAMP_NTZ defaults to UTC for
+    LOGIN_HISTORY rows in unconfigured accounts) but operators with
+    non-UTC account TIMEZONE settings should set TIMEZONE='UTC' on
+    the role used by Evidentia.
+    """
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=UTC)
+    return value.isoformat()
+
+
 # ── Typed exception hierarchy ──────────────────────────────────────
 
 
@@ -524,7 +551,17 @@ class SnowflakeCollector:
                             source_system="snowflake",
                             source_finding_id=(
                                 f"login-failed:{user_name}:"
-                                f"{event_ts.isoformat() if hasattr(event_ts, 'isoformat') else event_ts}"
+                                # v0.7.13 P3 v0.7.8-LOW item 4 (tz-cast):
+                                # Snowflake LOGIN_HISTORY rows emit
+                                # event_timestamp as a naive datetime
+                                # in some driver versions. isoformat()
+                                # on a naive value produces an
+                                # ambiguous timestamp (no tz suffix),
+                                # which makes audit-trail correlation
+                                # across UTC + local-tz systems
+                                # error-prone. Force-cast to UTC if
+                                # naive; pass through if tz-aware.
+                                f"{_to_utc_iso(event_ts) if isinstance(event_ts, datetime) else str(event_ts)}"
                                 f":{client_ip}"
                             ),
                             resource_type="snowflake-user",

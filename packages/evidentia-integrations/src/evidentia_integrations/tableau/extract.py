@@ -32,6 +32,7 @@ from __future__ import annotations
 import csv
 import io
 from collections.abc import Iterable
+from enum import Enum
 from typing import Any
 
 from evidentia_core.audit import CollectionContext
@@ -44,20 +45,28 @@ def _serialize(value: Any) -> str:
 
     - ``None`` → empty string (Tableau treats this as null)
     - bool → 'true' / 'false'
-    - list / tuple → semicolon-joined repr of each element
+    - list / tuple → semicolon-joined repr of each element (Nones skipped)
+    - Enum → ``str(value.value)``
     - everything else → ``str(value)``
+
+    v0.7.13 P3 closure of v0.7.8 LOW × 9 (items 5 + 7 + 8): list
+    branch skips Nones; Enum match tightened from ``hasattr(value,
+    "value")`` to ``isinstance(value, Enum)`` so Pydantic models
+    that happen to expose a ``.value`` field don't accidentally
+    take the Enum-string branch.
     """
     if value is None:
         return ""
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, list | tuple):
-        return ";".join(_serialize(v) for v in value)
+        # Filter Nones to prevent "None" string leakage in joins.
+        return ";".join(_serialize(v) for v in value if v is not None)
     if hasattr(value, "isoformat"):
         # datetime / date — Tableau-friendly ISO 8601 UTC.
         return str(value.isoformat())
-    if hasattr(value, "value") and not isinstance(value, str | int | float):
-        # Pydantic Enum — emit the string value not the repr.
+    if isinstance(value, Enum):
+        # Pydantic StrEnum / Enum — emit the string value not the repr.
         return str(value.value)
     return str(value)
 

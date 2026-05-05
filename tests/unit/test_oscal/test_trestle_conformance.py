@@ -293,7 +293,7 @@ def test_multiple_vendors_keep_uuid_identity_pairwise() -> None:
     party_ids = {
         str(p.uuid)
         for p in (ar.metadata.parties or [])
-        if any((q.name == "vendor-id" for q in (p.props or [])))
+        if any(q.name == "vendor-id" for q in (p.props or []))
     }
     bm = ar.back_matter
     assert bm is not None
@@ -301,7 +301,7 @@ def test_multiple_vendors_keep_uuid_identity_pairwise() -> None:
     resource_ids = {
         str(r.uuid)
         for r in bm.resources
-        if any((q.name == "vendor-id" for q in (r.props or [])))
+        if any(q.name == "vendor-id" for q in (r.props or []))
     }
 
     assert party_ids == expected_ids, (

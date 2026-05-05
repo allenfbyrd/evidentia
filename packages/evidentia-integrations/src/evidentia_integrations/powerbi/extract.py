@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
+from enum import Enum
 from typing import Any
 
 from evidentia_core.audit import CollectionContext
@@ -30,18 +31,33 @@ from evidentia_core.models.risk import RiskStatement
 
 
 def _row_value(value: Any) -> Any:
-    """Coerce a value into a Power-BI-friendly JSON-serializable form."""
+    """Coerce a value into a Power-BI-friendly JSON-serializable form.
+
+    v0.7.13 P3 closure of v0.7.8 LOW × 9 (items 5 + 7 + 8 — same root):
+
+    - Item 5 (None handling in lists): list / tuple branch now skips
+      None elements before joining, so a list like ``[None, "x",
+      None]`` becomes ``"x"`` instead of ``"None;x;None"``.
+    - Item 7+8 (Pydantic ``.value`` duck-typing collision): the
+      previous ``hasattr(value, "value")`` check matched any object
+      with a ``.value`` attribute, including Pydantic models that
+      happen to expose a ``value`` field. Tightened to
+      ``isinstance(value, Enum)`` so only true Enum instances
+      take the ``.value`` branch.
+    """
     if value is None:
         return None
     if isinstance(value, bool):
         return value
     if isinstance(value, list | tuple):
-        return ";".join(str(_row_value(v)) for v in value)
+        # Filter Nones to prevent "None" string leakage in joins.
+        return ";".join(
+            str(_row_value(v)) for v in value if v is not None
+        )
     if hasattr(value, "isoformat"):
         return value.isoformat()
-    if hasattr(value, "value") and not isinstance(
-        value, str | int | float
-    ):
+    if isinstance(value, Enum):
+        # Pydantic StrEnum / Enum — emit the string value not repr.
         return str(value.value)
     if isinstance(value, str | int | float):
         return value
