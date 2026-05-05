@@ -59,6 +59,19 @@ WORKDIR /home/evidentia
 # Bumped on every release that ships a Dockerfile change; dependabot
 # tracks the upstream evidentia release via the `uv` ecosystem and
 # tracks this Dockerfile pin via the `docker` ecosystem.
+#
+# Scorecard PinnedDependencies note (v0.7.13):
+# OpenSSF Scorecard's PinnedDependencies check expects pip installs
+# to use `--require-hashes` against a hash-pinned requirements file.
+# Evidentia uses exact-version pinning (==0.7.12) instead because the
+# wheel ships its own PEP 740 attestations + Sigstore signature, which
+# `pypi-attestations verify pypi` validates pre-install. Full
+# hash-pinning of all transitive deps requires a generated
+# requirements.txt at version-bump time; this is a v0.8.0+ supply-chain
+# hardening item (paired with reproducible-build verification G4 from
+# the v0.8.0 plan). Until then, the recurring Scorecard alert on this
+# line is dismissed at each rescan with rationale pointing here. See
+# docs/dockerfile-pinning.md for the full policy.
 RUN pip install --no-cache-dir --user "evidentia[gui]==0.7.12"
 
 # Put the user-installed `evidentia` entrypoint on PATH.
