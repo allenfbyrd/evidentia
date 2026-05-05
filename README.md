@@ -148,6 +148,21 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.7.13 (May 2026)** — *dependency modernization + Codecov fix
++ P3 carry-over closures + release-notes hygiene*. Wrap-up of
+the v0.7.x cycle. No new public surfaces. Codecov coverage
+upload fixed (switched to `source_pkgs` so Cobertura XML emits
+full repo-relative paths). `release.yml` now auto-populates the
+GitHub Release body from `CHANGELOG.md` via a new
+`extract_changelog_block.py` step + `body_path` arg — closes
+the v0.7.5–v0.7.12 stub-body gap structurally; future releases
+auto-populate. P3 carry-overs closed: M-9 OSCAL UUID
+conformance + L-2 Vanta/Drata high-risk extended fields +
+L-4 SIG BYO sparse-row debug logging + 5 of 9 v0.7.8 LOWs.
+Third consecutive PROCEED-CLEAN /security-review. Plus 10
+historical release-body backfills landed retroactively. 2100
+tests passing across 188 source files.
+
 **v0.7.12 (May 2026)** — *concrete cloud-WORM backends + FAIR
 Monte Carlo + GDPR purge-flow + alert-zero*. Adds the three cloud
 backends to the `WORMBackend` ABC introduced in v0.7.11:
@@ -209,7 +224,7 @@ compliance evidence to NIST 800-53 controls. Plus ServiceNow
 output integration carry-forward.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full version history
-(v0.1.0 through v0.7.12). For forward direction, see
+(v0.1.0 through v0.7.13). For forward direction, see
 [`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md) (the OSS-native AI
 moat — DFAH + PRT + MCP + plugin contracts) and
 [`docs/ROADMAP.md`](docs/ROADMAP.md) (everything else).

@@ -7,6 +7,117 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.14] - 2026-05-05
+
+**The frontend modernization + Codecov P2.1 deep-dive + final
+v0.7.x hygiene + v0.8.0 G4 foundation release.** No new public
+surfaces — the work is supply-chain modernization, P3 carry-over
+closures, internal observability fixes, and the hash-pinned
+requirements.txt preview that v0.8.0 G4 reproducible-build
+verification will switch the Dockerfile install to.
+
+### Added
+
+- **`docker/requirements.txt`** (~2200 lines; 80 packages with
+  SHA256 hashes) generated via `pip-compile --generate-hashes`
+  against `evidentia[gui]==0.7.13`. v0.7.14 P1.5 PREVIEW; the
+  Dockerfile install line continues to use exact-version pinning.
+  The full switch to `pip install --require-hashes` lands in
+  v0.8.0 G4 alongside the reproducible-build verification work.
+- **`scripts/bump_version.py --regenerate-requirements`** — new
+  optional flag that calls pip-compile after the version-bump
+  substitutions. Default OFF so routine bumps don't re-resolve
+  the transitive closure.
+- **`packages/evidentia-ui/eslint.config.js`** — ESLint 10
+  flat-config (the legacy `.eslintrc.*` was missing entirely;
+  pre-v0.7.14 the `npm run lint` step was effectively a no-op).
+  Lints `src/**/*.{ts,tsx}` + `tests/**/*.{ts,tsx}` with
+  typescript-eslint + react-hooks + react-refresh rule sets.
+- **`packages/evidentia-ui/src/vite-env.d.ts`** — triple-slash
+  reference to `vite/client` types so TypeScript 6's stricter
+  side-effect-import resolution finds the `*.css` module
+  declaration (without this, `import "@/index.css"` in main.tsx
+  surfaces TS2882).
+- **`DATABRICKS_EXTRA_LTS_RUNTIMES`** env var (Databricks
+  collector) — operators on a newer LTS than what
+  evidentia-collectors ships can supply additional version
+  prefixes (comma-separated). v0.7.8 LOW × 9 item 6 closure.
+
+### Fixed
+
+- **container-build.yml smoke test propagation race** (P2.2):
+  the existing Wait step polled only the `evidentia` umbrella
+  package, but pip's resolution then failed on
+  `evidentia-core<0.8.0,>=0.7.13` if evidentia-core hadn't
+  propagated yet (surfaced on the v0.7.13 e32b742 PR #18 merge).
+  Extended to poll all 6 inter-package deps (evidentia,
+  evidentia-core, evidentia-ai, evidentia-collectors,
+  evidentia-integrations, evidentia-api). Closes the same
+  race that v0.7.6 P0.5 CI1 closed for the publish-container
+  path.
+- **Codecov 0% bug — attempt 1 of deeper P2.1 diagnosis**:
+  removed the `flag_management.individual_flags[].paths` glob
+  `["packages/*/src/"]` block from `codecov.yml`. The Codecov
+  upload-state endpoint confirmed uploads land on their side
+  but parse to 0 files; most likely cause is the glob filter
+  not recursing deep enough into the new full-paths emitted
+  by the v0.7.13 `source_pkgs` fix. If this attempt resolves,
+  Codecov state will move from `error` to `complete` on
+  post-push commits. If still broken, attempt 2 + escalation
+  per §23.A.
+- **Tableau Windows tempfile cleanup** (P1.2; v0.7.8 LOW × 9
+  item 3 closure): refactored `publish_csv_datasource` from
+  `tempfile.NamedTemporaryFile(delete=False)` + manual
+  `unlink()` wrapped in `contextlib.suppress(OSError)` to
+  `tempfile.TemporaryDirectory()` context manager. The
+  directory cleanup at context exit reliably removes the file
+  on both POSIX and Windows; if a handle is still open at
+  exit time, `shutil.rmtree` retries (Python 3.12+ behavior).
+
+### Changed
+
+- **TypeScript 5 → 6** (P0.2): added `"ignoreDeprecations":
+  "6.0"` to `tsconfig.json` to silence the `baseUrl` deprecation
+  warning. Path-aliases will migrate to a `paths`-only setup
+  in v0.7.15 / v0.8.0 when the broader TS6 cleanup cycle opens.
+- **ESLint 9 → 10** (P0.3): bumped to flat-config (legacy
+  `.eslintrc.*` removed in ESLint 10). NEW typescript-eslint
+  ^8.59 dep replacing the deprecated separate
+  @typescript-eslint/parser + plugin packages.
+- **eslint-plugin-react-hooks 5 → 7** (P0.4): added
+  `react-hooks/set-state-in-effect` rule to v7. SettingsPage.tsx
+  uses this pattern for a config-load workflow that's
+  intentional but needs refactoring in v0.7.15; rule is set
+  to `warn` for v0.7.14.
+- **eslint-plugin-react-refresh 0.4 → 0.5** (P0.4)
+- **jsdom 25 → 29** + **postcss 8.4.47 → 8.5.14** + **@types/node
+  22 → 25** (P0.5; minor bumps; no API breakage)
+- **`docs/dockerfile-pinning.md`** updated with v0.7.14 P1.5
+  preview-state section documenting what shipped + what stays
+  deferred to v0.8.0 G4.
+
+### Notes
+
+- **Tailwind 3 → 4 deferred** to v0.7.15 / v0.8.0 P5 per the
+  2-day time-box rule (§23.B). The migration requires switching
+  from PostCSS chain to `@tailwindcss/vite` plugin + rewriting
+  the full shadcn/ui preset config to CSS-first `@theme {}`
+  block + replacing `tailwindcss-animate` (last v3-era release)
+  with `tw-animate-css` (v4-compatible community fork).
+  Estimated 1-2 days of careful work + visual validation;
+  doesn't fit the v0.7.14 wrap-up cadence.
+
+- **v0.7.8 LOW × 9 batch FULLY CLOSED** as of v0.7.14:
+  - 5 closed in v0.7.13 (items 4 + 5 + 7 + 8 + duck-typing)
+  - 1 already closed in v0.7.12 (logger contextlib.suppress)
+  - 3 closed in v0.7.14 (items 1 + 3 + 6 — this release)
+
+- **Recurring Scorecard PinnedDependencies false-positive**
+  on the Dockerfile pip install line continues. v0.8.0 G4
+  closes structurally; v0.7.14's `docker/requirements.txt`
+  preview is the foundation. Per-release dismissal continues
+  per the runbook in `docs/dockerfile-pinning.md`.
+
 ## [0.7.13] - 2026-05-04
 
 **The dependency modernization + Codecov fix + P3 carry-over

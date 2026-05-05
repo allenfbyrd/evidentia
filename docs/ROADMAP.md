@@ -1,14 +1,16 @@
 # Evidentia roadmap
 
-**Last updated: v0.7.12 (May 2026).**
+**Last updated: v0.7.13 (May 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
-at the project root. Versions v0.3.0 through v0.7.12 have shipped;
-v0.7.13 is the next active scope — a wrap-up of the v0.7.x cycle
-(dependency modernization + Codecov fix + P3 closures + release-notes
-hygiene) before v0.8.0 opens. Anything beyond v0.7.13 is
-forward-looking — the exact shape will depend on real-world usage
-patterns and the bigger v0.8+ direction documented in
+at the project root. Versions v0.3.0 through v0.7.13 have shipped;
+v0.7.14 is the next active scope — frontend toolchain modernization
+(TypeScript 5→6 + ESLint 9→10 + plugin bumps) + final v0.7.x hygiene
+(3 deferred v0.7.8 LOWs + Codecov P2.1 + container-build Wait
+extension) + hash-pinned `docker/requirements.txt` preview as
+v0.8.0 G4 foundation. Anything beyond v0.7.14 is forward-looking —
+the exact shape will depend on real-world usage patterns and the
+bigger v0.8+ direction documented in
 [`positioning-and-value.md`](positioning-and-value.md) §13.
 
 ## v0.3.0 — Compliance-as-code — SHIPPED
@@ -477,34 +479,50 @@ Steps 5.5 + 9.5 doc-consistency + release-notes practices, and
 /security-review (0 HIGH / 0 MEDIUM / 0 LOW). 2075 tests passing
 across 188 source files.
 
-## v0.7.13 — Dependency modernization + Codecov fix + P3 closures + release-notes hygiene — NEXT
+## v0.7.13 — Dependency modernization + Codecov fix + P3 closures + release-notes hygiene — SHIPPED
 
-Wrap-up release for the v0.7.x cycle before v0.8.0 opens.
-Dependency modernization (Dependabot #18 — 13 GH Actions major
-bumps; Dependabot #21 — frontend major bumps including tailwind
-3→4 + typescript 5→6 + eslint 9→10). Codecov 0% fix
-(switched to `source_pkgs` so the Cobertura XML emits full
-repo-relative file paths Codecov's path-resolver can match).
-P3 carry-over closures (M-9 OSCAL UUID conformance test + L-2
-`_is_high_risk` extra field shapes for Vanta + Drata + L-4 SIG
-BYO sparse-row debug logging + 5 of 9 v0.7.8 LOWs; remaining
-3 LOWs deferred to v0.7.14 with rationale). Release-notes
-hygiene (9 stub bodies backfilled v0.7.5→v0.7.12 + workflow
-auto-population from CHANGELOG so future releases never
-re-encounter the stub-body gap). M-4 collector base-class
-refactor formally documented as paired with v0.8.0 plugin
-contracts. Dockerfile pinning policy doc + recurring-Scorecard-
-alert dismissal runbook. ~3 weeks ship target.
+See [`docs/v0.7.13-shipped.md`](v0.7.13-shipped.md). Wrap-up
+release for the v0.7.x cycle. PR #18 (13 GH Actions major bumps)
+merged post-ship. Codecov source_pkgs fix (Cobertura XML emits
+full repo-relative file paths). P3 carry-overs closed (M-9
+OSCAL UUID conformance + L-2 Vanta/Drata extended fields + L-4
+SIG BYO debug logging + 5 of 9 v0.7.8 LOWs). `release.yml`
+auto-populates GitHub Release body from CHANGELOG via new
+`extract_changelog_block.py` (closes the v0.7.5→v0.7.12 stub-
+body gap structurally). 10 historical release-body backfills
+landed retroactively. Third consecutive PROCEED-CLEAN
+/security-review (0 unfixed findings; 0 inline-fixes). Step 7
+post-tag verification all sub-checks PASS + 2nd consecutive
+pin-trap fix validation + 1st validation of G16 release body
+substantiveness gate.
 
-## v0.7.14 — Patches + bridge to v0.8.0 — RESERVED
+## v0.7.14 — Frontend modernization + Codecov P2.1 + final v0.7.x hygiene + v0.8.0 G4 foundation — NEXT
 
-Reserved patch window for hot-fixes surfacing post-v0.7.13,
-domain-expert walk-through scheduling for the v0.9.0
-federal-compliance theme (CONMON + POA&M), and final polish
-before the v0.8.0 AI moat work begins. v0.7.13 deferrals
-(Tableau Windows tempfile cleanup + Databricks LTS list
-extensibility + test-coverage gaps) land here if not otherwise
-absorbed into v0.8.0. ~1-2 week reservation.
+Wrap-up patch release before v0.8.0 opens. PR #21 frontend
+major bumps re-issued: TypeScript 5→6 + ESLint 9→10 + plugin-
+react-hooks 5→7 + plugin-react-refresh 0.4→0.5 + jsdom 25→29 +
+postcss + @types/node minors. (Tailwind 3→4 deferred to
+v0.7.15 / v0.8.0 P5 per the 2-day time-box rule —
+CSS-first @theme rewrite of full shadcn/ui preset is multi-day
+work.) 3 deferred v0.7.8 LOWs closed (test-coverage gaps,
+Tableau Windows tempfile cleanup via TemporaryDirectory,
+Databricks LTS env-var extensibility). Codecov 0% deeper
+diagnosis (P2.1; flag_management.individual_flags[].paths
+glob removal as attempt 1). container-build.yml Wait-for-PyPI
+extended to poll all 6 inter-package deps (closes the v0.7.13
+e32b742 propagation race). Hash-pinned `docker/requirements.txt`
+preview generation tooling lands as v0.8.0 G4 reproducible-
+build foundation. v0.7.13 in-repo retrospective doc
+(`docs/v0.7.13-shipped.md`). ~1.5-2 week ship target.
+
+## v0.7.15 — Tailwind 3→4 + remaining hot-fixes — RESERVED
+
+Reserved patch window for the deferred Tailwind 3→4 migration
+(if not absorbed into v0.7.14 or v0.8.0 P5), Codecov P2.1
+escalation if attempt 1 didn't resolve, plus any v0.7.14
+dogfooding follow-ups. Domain-expert walk-through scheduling
+for the v0.9.0 federal-compliance theme (CONMON + POA&M)
+opens here. ~1-2 week reservation.
 
 ## v0.8.0 — The OSS-native AI moat — PLANNED
 

@@ -662,6 +662,111 @@ throughout.
 
 ---
 
+## v0.7.14 attack-surface delta
+
+v0.7.14 is a wrap-up release for the v0.7.x cycle: frontend
+toolchain modernization (TypeScript 5→6, ESLint 9→10, eslint
+plugin bumps, jsdom + postcss + @types/node minors), Codecov
+P2.1 deeper diagnosis (config-only change), container-build.yml
+Wait extension (workflow-only change), 3 v0.7.8 LOW carry-over
+closures (defensive code), hash-pinned `docker/requirements.txt`
+preview (v0.8.0 G4 foundation; Dockerfile install line
+unchanged), and a v0.7.13 in-repo retrospective doc.
+
+### No new attack surface
+
+v0.7.14 adds zero new public surfaces. All work is:
+
+- **Dependency upgrades** (frontend dev-dep bumps + new
+  typescript-eslint dep) — tooling-side; no runtime reach
+  through the production wheels published to PyPI.
+- **Internal hygiene** (3 v0.7.8 LOW closures: Tableau Windows
+  tempfile cleanup, Databricks LTS env-var, test-coverage
+  gaps) — defensive narrowing + diagnostic debug logging only.
+- **CI/observability fixes** (Codecov flag_management removal,
+  container-build Wait extension) — workflow-side; no runtime
+  attack surface.
+- **Documentation** (v0.7.13 retrospective, dockerfile-pinning
+  preview-state section, CHANGELOG) — pure markdown.
+- **Release-tooling** (`bump_version.py
+  --regenerate-requirements`, hash-pinned
+  `docker/requirements.txt`) — dev-side; not run inside the
+  Dockerfile install path.
+
+### Carry-forward state
+
+All v0.7.13 trust boundaries + STRIDE entries carry forward
+unchanged. The 3 cloud-WORM backends, 6 retention stores, GDPR
+purge-flow, FAIR Monte Carlo simulator, and TPRM module all stay
+as documented in §v0.7.12.
+
+### `DATABRICKS_EXTRA_LTS_RUNTIMES` env var (P1.3 closure)
+
+Operators can supply additional LTS runtime version prefixes
+(comma-separated) via this env var. The values are read at call
+time + merged into the in-package `_CURRENT_LTS_RUNTIMES`
+frozenset for `_is_current_lts()` matching. Trust posture: env
+vars are operator-trusted by convention; the values flow only
+into a `bool` return + don't reach any sensitive operation. No
+new attack surface.
+
+### Tableau `TemporaryDirectory()` refactor (P1.2 closure)
+
+The `publish_csv_datasource` method now uses
+`tempfile.TemporaryDirectory()` context manager instead of
+`NamedTemporaryFile(delete=False) + try/finally unlink`. The
+previous implementation silently leaked .csv tempfiles on
+Windows (`shutil.rmtree` retries on the new code). Trust
+posture: tempdir cleanup is local file IO; no new exposure.
+
+### `eslint.config.js` flat-config (P0.3 closure)
+
+ESLint 10 requires the flat-config format. Pre-v0.7.14 there
+was no ESLint config in evidentia-ui (the lint step was
+effectively a no-op); v0.7.14 adds a minimal config with
+typescript-eslint + react-hooks + react-refresh rules. The
+config file is dev-side tooling; not bundled into the
+production wheel.
+
+### `vite-env.d.ts` (P0.2 ancillary)
+
+New triple-slash reference to `vite/client` types so TypeScript
+6's stricter side-effect-import resolution finds the `*.css`
+module declaration. Pure type declarations; no runtime code.
+
+### Codecov `flag_management` removal (P2.1 attempt 1)
+
+`codecov.yml` `flag_management` block removed entirely.
+Coverage flagging by `python` still works via the upload-time
+`flags: python` arg in tests.yml. The removal is a config-only
+change to Codecov processing semantics; no runtime reach.
+
+### container-build.yml Wait extension (P2.2)
+
+The Wait-for-PyPI step now polls all 6 inter-package deps
+instead of just the umbrella. Workflow-only change; no runtime
+reach.
+
+### `docker/requirements.txt` preview (P1.5)
+
+Hash-pinned requirements file generated via
+`pip-compile --generate-hashes`. The Dockerfile install line is
+unchanged in v0.7.14 (still `RUN pip install --no-cache-dir
+--user "evidentia[gui]==X.Y.Z"`); the file ships as v0.8.0 G4
+foundation. The full switch to `--require-hashes` lands in
+v0.8.0 G4 alongside reproducible-build verification.
+
+In v0.7.14 the file is read-only documentation of the
+transitive closure at version-bump time. No runtime reach into
+the production wheels.
+
+### Standing-rule sweep posture (carries forward)
+
+All 21 forbidden tokens unchanged. The `.local/` private file
+tree stays gitignored throughout.
+
+---
+
 ## Review cadence
 
 This doc is reviewed at every release per
