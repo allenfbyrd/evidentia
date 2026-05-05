@@ -89,35 +89,51 @@ jobs:
         env:
           VERSION: ${{ steps.pin.outputs.version }}
         run: |
-          echo "Waiting for evidentia==${VERSION} to appear on PyPI..."
-          attempts=0
-          max_attempts=30  # 30 * 10s = 5 min cap
-          until pip index versions evidentia 2>&1 | grep -q "${VERSION}"; do
-            attempts=$((attempts + 1))
-            if [ "${attempts}" -ge "${max_attempts}" ]; then
-              echo ""
-              echo "::error::PyPI propagation timed out after 5 min waiting for evidentia==${VERSION}."
-              echo ""
-              echo "Most likely cause: the version-bump commit was pushed without"
-              echo "the matching v${VERSION} tag, so release.yml never fired and"
-              echo "evidentia==${VERSION} was never published to PyPI."
-              echo ""
-              echo "Recovery:"
-              echo "  git tag v${VERSION}"
-              echo "  git push origin v${VERSION}"
-              echo "  # then re-run this workflow via workflow_dispatch"
-              echo ""
-              echo "Latest visible on PyPI:"
-              pip index versions evidentia 2>&1 | head -3
-              exit 1
-            fi
-            echo "  attempt ${attempts}/${max_attempts}: not yet propagated, sleeping 10s"
-            sleep 10
+          # v0.7.14 P2.2: extend the wait to ALL 6 inter-package
+          # deps, not just the umbrella. The v0.7.13 e32b742 smoke
+          # test failure proved this gap: pip resolved
+          # evidentia==0.7.13 then failed on
+          # evidentia-core<0.8.0,>=0.7.13 because evidentia-core
+          # hadn't propagated yet. Polling all 6 packages prevents
+          # this race entirely (the v0.7.13 P0.5 pin-trap fix
+          # ensures the inter-package pins are tightened, so any
+          # of the 6 not-yet-propagated would block the install).
+          PACKAGES="evidentia evidentia-core evidentia-ai evidentia-collectors evidentia-integrations evidentia-api"
+          for pkg in $PACKAGES; do
+            echo "Waiting for ${pkg}==${VERSION} to appear on PyPI..."
+            attempts=0
+            max_attempts=30  # 30 * 10s = 5 min cap per package
+            until pip index versions "${pkg}" 2>&1 | grep -q "${VERSION}"; do
+              attempts=$((attempts + 1))
+              if [ "${attempts}" -ge "${max_attempts}" ]; then
+                echo ""
+                echo "::error::PyPI propagation timed out after 5 min waiting for ${pkg}==${VERSION}."
+                echo ""
+                echo "Most likely cause: the version-bump commit was pushed without"
+                echo "the matching v${VERSION} tag, so release.yml never fired and"
+                echo "${pkg}==${VERSION} was never published to PyPI."
+                echo ""
+                echo "Recovery:"
+                echo "  git tag v${VERSION}"
+                echo "  git push origin v${VERSION}"
+                echo "  # then re-run this workflow via workflow_dispatch"
+                echo ""
+                echo "Latest visible on PyPI:"
+                pip index versions "${pkg}" 2>&1 | head -3
+                exit 1
+              fi
+              echo "  ${pkg} attempt ${attempts}/${max_attempts}: not yet propagated, sleeping 10s"
+              sleep 10
+            done
+            echo "  ${pkg}==${VERSION} visible on PyPI"
           done
-          # Extra safety margin for Fastly mirror lag — even after the
-          # index page lists the version, individual mirror nodes can
-          # lag by 10-20s before the wheel file itself is fetchable.
-          echo "Index lists ${VERSION}; sleeping 20s for mirror catch-up"
+          # Extra safety margin for Fastly mirror lag — even after
+          # every index page lists the version, individual mirror
+          # nodes can lag by 10-20s before the wheel files themselves
+          # are fetchable. This single 20s wait is sufficient for the
+          # mirror catch-up across all 6 packages (mirror lag is per
+          # CDN node, not per package).
+          echo "All 6 packages list ${VERSION}; sleeping 20s for mirror catch-up"
           sleep 20
 
       - name: Build image (load into local Docker, not pushed)
