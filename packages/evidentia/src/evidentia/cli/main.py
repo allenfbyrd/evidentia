@@ -15,6 +15,7 @@ from rich.table import Table
 
 from evidentia.cli import catalog as catalog_cmd
 from evidentia.cli import collect as collect_cmd
+from evidentia.cli import eval as eval_cmd
 from evidentia.cli import explain as explain_cmd
 from evidentia.cli import gap as gap_cmd
 from evidentia.cli import governance as governance_cmd
@@ -79,6 +80,15 @@ app.add_typer(
     retention_cmd.app,
     name="retention",
     help="Audit chain-of-custody — retention metadata + WORM (v0.7.11 P0).",
+)
+app.add_typer(
+    eval_cmd.app,
+    name="eval",
+    help=(
+        "DFAH determinism harness (v0.8.0 P0.1). Validates that "
+        "AI-driven artifact generation is auditor-defensibly "
+        "reproducible."
+    ),
 )
 
 # v0.8.0 P0.3: MCP server — wired conditionally so operators

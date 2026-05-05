@@ -112,6 +112,17 @@ class EventAction(str, Enum):
     AI_EXPLAIN_CACHE_HIT = "evidentia.ai.explain_cache_hit"
     AI_EXPLAIN_BATCH_COMPLETED = "evidentia.ai.explain_batch_completed"
 
+    # v0.8.0 P0.1: AI determinism + faithfulness evaluation harness
+    # (DFAH per arXiv 2601.15322). Each ``evidentia eval`` invocation
+    # emits a STARTED + COMPLETED pair, plus one
+    # DETERMINISM_VIOLATION / FAITHFULNESS_VIOLATION event per
+    # failed sample so an auditor can reconstruct exactly which
+    # sample(s) triggered a CI gate failure.
+    AI_EVAL_STARTED = "evidentia.ai.eval_started"
+    AI_EVAL_DETERMINISM_VIOLATION = "evidentia.ai.eval_determinism_violation"
+    AI_EVAL_FAITHFULNESS_VIOLATION = "evidentia.ai.eval_faithfulness_violation"
+    AI_EVAL_COMPLETED = "evidentia.ai.eval_completed"
+
     # Retention + WORM lifecycle events (v0.7.12 P1) — audit-trail
     # actions on records under retention metadata. The PURGED variant
     # serves as the canonical legal-counsel-defensible artifact for
