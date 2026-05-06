@@ -53,6 +53,7 @@ from evidentia_core.audit.events import (
     EventOutcome,
     EventType,
 )
+from evidentia_core.audit.metrics import record_event
 
 ECS_VERSION = "8.11"
 """ECS specification version that this logger conforms to."""
@@ -342,19 +343,25 @@ class EvidentiaLogger:
             evidentia=evidentia,
             scope=_get_scope(),
         )
-        self._stdlib.log(
-            stdlib_level,
-            _scrub(message),
-            extra={"ecs_record": ecs_record},
-        )
-        # v0.8.0 P1 G3: tap event into the in-process Prometheus
-        # counter aggregator. Lazy-import keeps logger.py free of
-        # the metrics module's threading.Lock at import time.
-        from evidentia_core.audit.metrics import record_event
-
-        action_str = action.value if hasattr(action, "value") else str(action)
-        outcome_str = outcome.value if hasattr(outcome, "value") else str(outcome)
-        record_event(action=action_str, outcome=outcome_str)
+        # v0.8.1 F-V08-CR-1: gate counter increment on the stdlib
+        # logger's level filter. If the operator sets the logger
+        # to WARNING (CI-quiet mode), INFO events should NOT
+        # increment the Prometheus counter — counters and log
+        # stream stay in sync. The level check is identical to
+        # what stdlib `Logger.log` does internally before emit.
+        if self._stdlib.isEnabledFor(stdlib_level):
+            self._stdlib.log(
+                stdlib_level,
+                _scrub(message),
+                extra={"ecs_record": ecs_record},
+            )
+            # v0.8.0 P1 G3 / v0.8.1 F-V08-CR-1: tap event into the
+            # in-process Prometheus counter aggregator. Module-level
+            # import (lifted from lazy in v0.8.1 — no circular
+            # concern, single intra-package edge).
+            action_str = action.value if hasattr(action, "value") else str(action)
+            outcome_str = outcome.value if hasattr(outcome, "value") else str(outcome)
+            record_event(action=action_str, outcome=outcome_str)
 
 
 def get_logger(name: str) -> EvidentiaLogger:

@@ -1,4 +1,4 @@
-"""In-process Prometheus metrics aggregation (v0.8.0 P1 G3).
+"""In-process Prometheus metrics aggregation (v0.8.0 P1 G3 + v0.8.1 F-V08-CR-2).
 
 A lightweight stdlib-only counter aggregator that taps into
 the audit-event-firing path. The ECS-structured logger
@@ -9,15 +9,27 @@ via :mod:`evidentia_api.routers.metrics`.
 Process-local: counters reset on process restart and are
 NOT shared across worker processes in a multi-worker uvicorn
 deployment. Single-process operation is the v0.8.0 target;
-multi-process aggregation defers to v0.8.1 (likely via
+multi-process aggregation defers to v0.8.x (likely via
 Prometheus Pushgateway or an OpenTelemetry collector
 sidecar).
 
-Thread-safety: counters are Python ints incremented under a
-threading lock so concurrent audit events from different
+Thread-safety: counters are encapsulated in a
+:class:`MetricsRegistry` instance with a per-registry
+threading.Lock so concurrent audit events from different
 worker threads can't corrupt the counts. The lock contention
 is negligible compared to the audit-log I/O the events
 already incur.
+
+v0.8.1 F-V08-CR-2 closure: counters were previously module-
+level globals; that exposed implicit-state-management bugs
+where any caller could pass an outcome value that didn't
+match the literal ``"failure"`` string used by the comparison.
+The :class:`MetricsRegistry` class encapsulates state +
+asserts the outcome contract via :class:`EventOutcome`'s
+canonical values (``success``, ``failure``, ``unknown``).
+The module-level :func:`record_event` and
+:func:`render_metrics` functions remain as the public API
+and delegate to a process-default registry.
 """
 
 from __future__ import annotations
@@ -29,50 +41,110 @@ from collections.abc import Iterator
 # https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format
 PROMETHEUS_CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8"
 
-_lock = threading.Lock()
-_event_counts: dict[str, int] = {}
-_failure_count = 0
+# v0.8.1 F-V08-CR-2: canonical EventOutcome values that
+# MetricsRegistry recognizes for the failure-counter
+# increment. Mirrors :class:`evidentia_core.audit.events.EventOutcome`
+# (avoid circular import; closed enum tracked here).
+_VALID_OUTCOMES = frozenset({"success", "failure", "unknown"})
+
+
+class MetricsRegistry:
+    """Thread-safe counter aggregator for audit events.
+
+    Encapsulates the previously module-level globals so:
+
+    1. Tests can construct an isolated registry without a
+       module reload.
+    2. The outcome contract is enforced at boundary
+       (``record_event`` rejects unknown outcome strings
+       loudly via ValueError rather than silently miscounting).
+    3. Future multi-process aggregation can subclass this
+       with a Pushgateway-backed implementation while
+       preserving the API.
+
+    A process-default instance lives at :data:`_DEFAULT_REGISTRY`;
+    the module-level :func:`record_event` and
+    :func:`render_metrics` functions delegate to it.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._event_counts: dict[str, int] = {}
+        self._failure_count = 0
+
+    def record_event(self, *, action: str, outcome: str) -> None:
+        """Increment counters for a single audit-event firing.
+
+        Args:
+            action: The :class:`EventAction` string value (e.g.
+                ``evidentia.ai.risk_generated``).
+            outcome: One of ``"success"``, ``"failure"``, or
+                ``"unknown"`` — the :class:`EventOutcome` string
+                values. Other values raise ``ValueError`` (the
+                v0.8.1 F-V08-CR-2 enforcement; previously a
+                bug-prone implicit string comparison).
+        """
+        if outcome not in _VALID_OUTCOMES:
+            raise ValueError(
+                f"record_event: outcome must be one of "
+                f"{sorted(_VALID_OUTCOMES)}; got {outcome!r}"
+            )
+        with self._lock:
+            self._event_counts[action] = (
+                self._event_counts.get(action, 0) + 1
+            )
+            if outcome == "failure":
+                self._failure_count += 1
+
+    def reset(self) -> None:
+        """Clear counters; used by ``reset_for_tests``."""
+        with self._lock:
+            self._event_counts.clear()
+            self._failure_count = 0
+
+    def iter_event_lines(self) -> Iterator[str]:
+        """Yield Prometheus exposition lines for each action's count."""
+        with self._lock:
+            snapshot = dict(self._event_counts)
+        for action, count in sorted(snapshot.items()):
+            # Escape per Prometheus spec — backslash, double-quote,
+            # newline.
+            escaped = (
+                action.replace("\\", "\\\\")
+                .replace('"', '\\"')
+                .replace("\n", "\\n")
+            )
+            yield (
+                f'evidentia_audit_events_total{{action="{escaped}"}} '
+                f"{count}"
+            )
+
+    @property
+    def failure_count(self) -> int:
+        """Snapshot of the cumulative failure-event count."""
+        with self._lock:
+            return self._failure_count
+
+
+# Process-default registry. The module-level convenience
+# functions below delegate to this; tests + multi-tenant
+# scenarios can construct dedicated MetricsRegistry instances.
+_DEFAULT_REGISTRY = MetricsRegistry()
 
 
 def record_event(*, action: str, outcome: str) -> None:
-    """Increment counters for a single audit-event firing.
-
-    Called by :func:`evidentia_core.audit.get_logger`'s emit
-    path on every event. Cheap (dict + int increment under
-    lock) so the audit-log I/O dominates the cost.
-
-    Args:
-        action: The :class:`EventAction` string value (e.g.
-            ``evidentia.ai.risk_generated``).
-        outcome: The :class:`EventOutcome` string value
-            (``success``, ``failure``, or ``unknown``).
-    """
-    global _failure_count
-    with _lock:
-        _event_counts[action] = _event_counts.get(action, 0) + 1
-        if outcome == "failure":
-            _failure_count += 1
+    """Increment counters on the process-default registry."""
+    _DEFAULT_REGISTRY.record_event(action=action, outcome=outcome)
 
 
 def reset_for_tests() -> None:
-    """Test-only — clear the counters between cases."""
-    global _failure_count
-    with _lock:
-        _event_counts.clear()
-        _failure_count = 0
+    """Test-only — clear the process-default registry between cases."""
+    _DEFAULT_REGISTRY.reset()
 
 
 def _iter_event_lines() -> Iterator[str]:
-    with _lock:
-        snapshot = dict(_event_counts)
-    for action, count in sorted(snapshot.items()):
-        # Escape per Prometheus spec — backslash, double-quote, newline.
-        escaped = (
-            action.replace("\\", "\\\\")
-            .replace('"', '\\"')
-            .replace("\n", "\\n")
-        )
-        yield f'evidentia_audit_events_total{{action="{escaped}"}} {count}'
+    """Process-default registry iter_event_lines (back-compat)."""
+    yield from _DEFAULT_REGISTRY.iter_event_lines()
 
 
 def render_metrics(*, api_version: str, uptime_seconds: float) -> str:
@@ -123,8 +195,7 @@ def render_metrics(*, api_version: str, uptime_seconds: float) -> str:
     lines.extend(event_lines)
 
     # evidentia_audit_events_failures_total — failure counter.
-    with _lock:
-        failure_snapshot = _failure_count
+    failure_snapshot = _DEFAULT_REGISTRY.failure_count
     lines.append(
         "# HELP evidentia_audit_events_failures_total "
         "Cumulative count of audit events with outcome=failure."

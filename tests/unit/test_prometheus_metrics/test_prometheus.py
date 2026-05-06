@@ -127,11 +127,17 @@ class TestEndpoint:
         assert "evidentia_app_info" in response.text
 
     def test_audit_events_increment_endpoint_counter(self) -> None:
+        import logging
+
         app = create_app(dev_mode=False)
         client = TestClient(app)
         # Fire a real audit event (using the EventAction enum so the
-        # logger -> record_event tap fires too).
+        # logger -> record_event tap fires too). v0.8.1 F-V08-CR-1
+        # gates record_event on the stdlib logger's level filter, so
+        # the test must set the level to INFO explicitly to opt
+        # into seeing INFO events.
         log = get_logger("evidentia.test.metrics")
+        logging.getLogger("evidentia.test.metrics").setLevel(logging.INFO)
         log.info(
             action=EventAction.AI_RISK_GENERATED,
             outcome=EventOutcome.SUCCESS,
@@ -144,7 +150,38 @@ class TestEndpoint:
             'evidentia_audit_events_total{action="evidentia.ai.risk_generated"} 1'
         ) in response.text
 
+    def test_filtered_log_events_do_not_increment_counter(self) -> None:
+        """v0.8.1 F-V08-CR-1: when the stdlib logger filters out
+        an event (level=WARNING; INFO event), the counter does
+        NOT increment. Counters and log-stream stay in sync.
+        """
+        import logging
+
+        app = create_app(dev_mode=False)
+        client = TestClient(app)
+        # Set logger to WARNING — INFO events should be filtered.
+        log = get_logger("evidentia.test.filtered")
+        logging.getLogger("evidentia.test.filtered").setLevel(logging.WARNING)
+        log.info(
+            action=EventAction.AI_RISK_GENERATED,
+            outcome=EventOutcome.SUCCESS,
+            message="filtered INFO event",
+        )
+        response = client.get("/api/metrics")
+        # The event was filtered out; no counter increment.
+        assert (
+            'evidentia_audit_events_total{action="evidentia.ai.risk_generated"} 1'
+        ) not in response.text
+
     def test_prometheus_content_type_constant_well_formed(self) -> None:
         # Sanity check the constant exposed for downstream tooling.
         assert PROMETHEUS_CONTENT_TYPE.startswith("text/plain")
         assert "version=0.0.4" in PROMETHEUS_CONTENT_TYPE
+
+    def test_record_event_rejects_unknown_outcome(self) -> None:
+        """v0.8.1 F-V08-CR-2: record_event raises on unknown
+        outcome strings rather than silently miscounting."""
+        with pytest.raises(ValueError, match="outcome must be one of"):
+            record_event(action="evidentia.test.bad", outcome="bogus")
+        with pytest.raises(ValueError):
+            record_event(action="evidentia.test.bad", outcome="FAILURE")  # case-sensitive
