@@ -303,31 +303,47 @@ class TestCLI:
     def test_serve_help_shows_transport_choices(self) -> None:
         """v0.8.1 P3.1: --transport flag is documented + offers
         stdio/sse/http choices.
+
+        Inspect the Typer command's underlying Click parameter
+        metadata directly rather than the rendered help output.
+        Help-output rendering goes through Rich and depends on
+        terminal-width detection + ANSI styling, both of which
+        vary unpredictably across local/CI/OS — checking the
+        parameter declarations directly is deterministic.
         """
-        runner = CliRunner()
-        # COLUMNS=200 prevents Rich/Typer help-output from wrapping
-        # flag names across lines on narrow Windows-CI terminals;
-        # NO_COLOR=1 disables ANSI styling so substring matches
-        # against the rendered text find the literal tokens.
-        result = runner.invoke(
-            mcp_cli_app,
-            ["serve", "--help"],
-            env={"COLUMNS": "200", "NO_COLOR": "1"},
+        import click
+        from typer.main import get_command
+
+        click_app = get_command(mcp_cli_app)
+        # click_app is a Group; .get_command(ctx, name) walks
+        # subcommands. Pass ctx=None — no command actually runs.
+        assert isinstance(click_app, click.Group)
+        serve_cmd = click_app.get_command(None, "serve")  # type: ignore[arg-type]
+        assert serve_cmd is not None, "serve subcommand missing"
+
+        opt_flags = {opt for p in serve_cmd.params for opt in p.opts}
+        assert "--transport" in opt_flags
+
+        # Locate the transport param + assert its Choice values.
+        transport_param = next(
+            p for p in serve_cmd.params if "--transport" in p.opts
         )
-        assert result.exit_code == 0
-        assert "--transport" in result.stdout
-        # Choices visible in help output.
-        for choice in ("stdio", "sse", "http"):
-            assert choice in result.stdout
+        # Typer renders enum-typed Options as click.Choice; the
+        # choices are the enum's value strings.
+        assert isinstance(transport_param.type, click.Choice)
+        choice_values = set(transport_param.type.choices)
+        assert {"stdio", "sse", "http"}.issubset(choice_values)
 
     def test_serve_help_shows_host_port(self) -> None:
         """v0.8.1 P3.1: --host + --port flags are documented."""
-        runner = CliRunner()
-        result = runner.invoke(
-            mcp_cli_app,
-            ["serve", "--help"],
-            env={"COLUMNS": "200", "NO_COLOR": "1"},
-        )
-        assert result.exit_code == 0
-        assert "--host" in result.stdout
-        assert "--port" in result.stdout
+        import click
+        from typer.main import get_command
+
+        click_app = get_command(mcp_cli_app)
+        assert isinstance(click_app, click.Group)
+        serve_cmd = click_app.get_command(None, "serve")  # type: ignore[arg-type]
+        assert serve_cmd is not None, "serve subcommand missing"
+
+        opt_flags = {opt for p in serve_cmd.params for opt in p.opts}
+        assert "--host" in opt_flags
+        assert "--port" in opt_flags
