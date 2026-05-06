@@ -1,15 +1,18 @@
 # Evidentia roadmap
 
-**Last updated: v0.7.15 (May 2026).**
+**Last updated: v0.8.0 (May 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
-at the project root. Versions v0.3.0 through v0.7.15 have shipped;
-v0.7.16 is the final v0.7.x release — python-dotenv security CVE bump
-(PR #23) + commit-msg pre-commit hook variant + v0.7.15-shipped
-retrospective + post-ship release.yml hardening validation. v0.8.0
-design phase opens immediately post-v0.7.16 ship. Anything beyond
-v0.8.0 is forward-looking — the exact shape will depend on real-world
-usage patterns and the bigger v0.8+ direction documented in
+at the project root. Versions v0.3.0 through v0.7.16 + v0.8.0 have
+shipped. **v0.8.0 is the first minor of the v0.8.x line — "the
+OSS-native AI moat"** — landing four AI-quality features
+(DFAH determinism harness + Policy Reasoning Traces + MCP server +
+plugin-contract scaffolding) that distinguish a Vanta-class dashboard
+from a compliance-engineering tool. v0.8.1 plan opens
+post-ship to address review-bucketed deferrals + the LLM-driven
+richness for each P0 surface. Anything beyond v0.8.x is
+forward-looking — the exact shape will depend on real-world usage
+patterns and the bigger v0.8+ direction documented in
 [`positioning-and-value.md`](positioning-and-value.md) §13.
 
 ## v0.3.0 — Compliance-as-code — SHIPPED
@@ -522,7 +525,7 @@ hardening: post-ship commit `fd36e78` extends release.yml
 publish-container Wait step to all 6 packages (matches v0.7.14
 P2.2 fix for container-build.yml).
 
-## v0.7.16 — Final v0.7.x: security CVE bump + commit-msg hook + retrospective — NEXT
+## v0.7.16 — Final v0.7.x: security CVE bump + commit-msg hook + retrospective — SHIPPED
 
 Final v0.7.x release. PR #23 closes 2 Dependabot medium-severity
 alerts (python-dotenv CVE — symlink-following in `set_key`;
@@ -533,26 +536,90 @@ hook (catches leaks in commit-message body too). Publishes
 post-v0.7.15 release.yml Wait extension (commit `fd36e78`) on
 its first release pipeline run. Refreshes the OpenSSF Silver
 answer sheet with v0.7.16 ship state (Codecov 82.14%
-`test_statement_coverage80` MET via v0.7.14 P2.1 fix). v0.8.0
-design phase opens immediately post-ship.
+`test_statement_coverage80` MET via v0.7.14 P2.1 fix). Sixth
+consecutive PROCEED-CLEAN. v0.7.x cycle CLOSED.
 
-## v0.8.0 — The OSS-native AI moat — PLANNED
+## v0.8.0 — The OSS-native AI moat — SHIPPED
 
-See [`docs/v0.8.0-plan.md`](v0.8.0-plan.md) for the full plan. Theme:
-the differentiation features that no commercial GRC vendor offers
-today. P0: DFAH determinism harness for risk-statement generation
-(`evidentia eval`) + Policy Reasoning Traces mode
-(`evidentia risk generate --emit-trace`) + MCP server
-(`evidentia mcp serve`) exposing Evidentia's library surface to AI
-agents + plugin-contract scaffolding (AuthProvider / StorageBackend
-/ MarketplaceProvider) for out-of-tree extension authors. P1:
-mutation-testing CI gate, property-based tests, Prometheus
-`/metrics`, reproducible build target, `evidentia oscal export
---bundle-for-auditor` workflow, `evidentia trust-center` static-site
-generator (preview), `docs/benchmarks.md`, `docs/evidence-integrity.md`.
-P2: DSE evidence-validator preview, `evidentia-catalogs` standalone
-repo split, Hugging Face benchmark dataset publication. ~3 month
-ship target.
+See [`docs/security-review-v0.8.0.md`](security-review-v0.8.0.md) for the
+full pre-tag review (5th canonical Pre-tag deliverable per the
+pre-release-review v4 §G7) + [`docs/v0.8.0-plan.md`](v0.8.0-plan.md)
+for the original plan. First minor release after the v0.7.x cycle
+close. Lands the four AI-quality features that distinguish a
+Vanta-class dashboard from a compliance-engineering tool:
+
+- **DFAH determinism harness (P0.1)** — `evidentia eval stub-smoke`
+  CLI verb + `DFAHarness` library API per arXiv 2601.15322. New
+  module `evidentia_ai.eval` with harness/metrics/seeds + result
+  models. CI-gateable via `--fail-on-determinism-rate-below`. 4
+  new EventActions (started + determinism-violation + faithfulness-
+  violation reserved + completed).
+- **Policy Reasoning Traces (P0.2)** —
+  `evidentia risk generate --emit-trace` flag per arXiv 2509.23291.
+  New `TraceClaim` + `ReasoningTrace` Pydantic models; optional
+  `RiskStatement.reasoning_trace` field (backward-compat). OSCAL
+  emit gains `risk_statements_with_traces` kwarg surfacing traces as
+  Evidentia-namespaced back-matter resources with canonical JSON +
+  SHA-256 (Sigstore-signable). Trestle pydantic.v1 round-trip
+  preserves trace data. New EventAction
+  `AI_RISK_TRACE_EMITTED`. v0.8.0 ships single-claim stub trace;
+  v0.8.1 ships LLM-driven per-claim decomposition.
+- **MCP server (P0.3)** — NEW `evidentia-mcp` workspace member
+  exposing 4 read-only tools (`list_frameworks`, `get_control`,
+  `gap_analyze`, `gap_diff`) over stdio transport. `evidentia mcp
+  serve` + `evidentia mcp doctor`. HTTP/SSE + CIMD richness defer
+  to v0.8.1. PyPI Pending Publisher feature validated for the new
+  `evidentia-mcp` project.
+- **Plugin contract scaffolding (P0.4)** — 4 ABCs in
+  `evidentia_core.plugins`: `AuthProvider`, `StorageBackend[T]`
+  (PEP 695 generic), `MarketplaceProvider`, `BaseSaaSCollector`. 3
+  reference implementations + `discover_plugins()` opt-in
+  entry-point discovery.
+- **M-4 collector base-class refactor** — Vanta, Drata, BitSight,
+  SecurityScorecard inherit `BaseSaaSCollector`; per-collector
+  scaffolding LOC drops ~60%. BitSight + SecurityScorecard
+  override `_auth_header()` for HTTP Basic + custom Token schemes.
+
+P1 architectural primitives:
+- **G3 Prometheus `/metrics`** endpoint on `evidentia serve`
+  (stdlib-only counter aggregator taps audit-event-firing path).
+- **G8 `docs/evidence-integrity.md`** anti-tamper deployment
+  guidance (3 deployment patterns + verification commands).
+- G1 mutmut + G2 hypothesis + G4 Dockerfile `--require-hashes`
+  flip deferred to v0.8.1 per pace constraints.
+
+Image digest `sha256:fa8df8028986bd005469a267db46dc25f834b47bf232566422b63f7e2f6b2c1f`.
+PyPI: 7 packages all at 0.8.0 with PEP 740 attestations verified.
+SBOM 159 packages / 0 issues (osv-scanner clean). 2227 tests / 12
+skipped, mypy strict 0/0 across 210 source files, ruff clean.
+First PROCEED-CLEAN of the v0.8.x line. Step 7 post-tag
+verification all 7 sub-checks PASS (PEP 740 / cosign / osv-
+scanner / docker run / fresh-venv install **6th consecutive
+pin-trap validation** / G16 release-body 7615 bytes **5th
+consecutive auto-populate-from-CHANGELOG** / Scorecard delta).
+Two recurring code-scanning false positives dismissed
+(`py/partial-ssrf` on BaseSaaSCollector; `Pinned-Dependencies`
+on Dockerfile); 0 open code-scanning alerts at close.
+
+## v0.8.1 — PLANNED
+
+The v0.8.0 review surfaced 12 findings bucketed for v0.8.1
+follow-up: 2 HIGH (logger record_event level filter, metrics
+counter encapsulation), 4 MEDIUM (collector `_get` non-dict
+wrap, FastMCP private API in doctor, LocalDirectoryMarketplace
+silent manifest swallow, LocalTokenAuthProvider symlink window),
+6 LOW polish. Plus the deferred richness for each P0 surface:
+**DFAH risk-determinism CLI verb** (live LLM-driven; faithfulness
+scoring follow-up); **PRT LLM-driven per-claim decomposition**
+(replacing the v0.8.0 stub); **MCP HTTP/SSE transport** + CIMD
+(Client ID Metadata Document) richness; **FastAPI AuthProvider
+middleware integration** (closes the `/api/metrics` auth gate +
+gates other endpoints). Plus the v0.8.0 P1 deferrals: G1 mutmut
+mutation-testing CI gate, G2 hypothesis property-based tests on
+crosswalk + normaliser, G4 Dockerfile `--require-hashes` flip +
+reproducible-build verification (consumes the v0.7.14 P1.5 hash-
+pinned `docker/requirements.txt` foundation). Ship target ~6-8
+weeks; plan file lands at cycle open.
 
 ## v0.9.0 — Federal compliance — RESERVED
 
