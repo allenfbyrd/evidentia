@@ -55,6 +55,12 @@ from evidentia_ai.eval.faithfulness import (
     FaithfulnessResult,
     faithfulness_score,
 )
+from evidentia_ai.eval.faithfulness_semantic import (
+    DEFAULT_SEMANTIC_MODEL,
+    DEFAULT_SEMANTIC_THRESHOLD,
+    SemanticFaithfulnessNotAvailableError,
+    faithfulness_score_semantic,
+)
 from evidentia_ai.eval.harness import DFAHarness, EvalResult, EvalSample
 from evidentia_ai.eval.metrics import (
     DeterminismResult,
@@ -70,14 +76,18 @@ from evidentia_ai.eval.signing import (
 
 __all__ = [
     "DEFAULT_FAITHFULNESS_THRESHOLD",
+    "DEFAULT_SEMANTIC_MODEL",
+    "DEFAULT_SEMANTIC_THRESHOLD",
     "DFAHarness",
     "DeterminismResult",
     "EvalResult",
     "EvalSample",
     "FaithfulnessResult",
     "ReplayResult",
+    "SemanticFaithfulnessNotAvailableError",
     "determinism_score",
     "faithfulness_score",
+    "faithfulness_score_semantic",
     "hash_output",
     "normalize_for_determinism",
     "replay_equivalent",

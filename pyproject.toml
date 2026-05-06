@@ -75,6 +75,15 @@ dev = [
     # Runs out-of-band (weekly cron + on-demand workflow_dispatch)
     # because full mutmut runs are slow (~30-60 min per module).
     "mutmut>=3.2",
+    # v0.8.3 P1.1: numpy is used by evidentia_ai.eval.
+    # faithfulness_semantic for cosine-similarity computation.
+    # Production runtime gates on the [eval-faithfulness] extra
+    # which carries sentence-transformers + numpy together; dev
+    # deps surface numpy directly so tests can mock the
+    # sentence-transformers half while exercising the real numpy
+    # math. Sentence-transformers itself is NOT in dev deps —
+    # tests mock it to validate the missing-extra failure mode.
+    "numpy>=1.26",
 ]
 
 [tool.uv.sources]

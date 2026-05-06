@@ -32,6 +32,18 @@ dependencies = [
     "tenacity>=9.0",
 ]
 
+[project.optional-dependencies]
+# v0.8.3 P1.1: opt-in sentence-transformers path for paraphrase-
+# tolerant DFAH faithfulness scoring. ~90 MB model download (default
+# all-MiniLM-L6-v2) on first use; cached at ~/.cache/huggingface/.
+# Operators relying on the v0.8.2 stdlib Jaccard baseline (no
+# extra needed) are unaffected. Heavyweight; intentionally extra-
+# gated rather than core.
+eval-faithfulness = [
+    "sentence-transformers>=3.0",
+    "numpy>=1.26",
+]
+
 [project.urls]
 Homepage = "https://github.com/allenfbyrd/evidentia"
 Repository = "https://github.com/allenfbyrd/evidentia"
