@@ -19,6 +19,7 @@ Five test classes mirroring the eval module structure:
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -290,3 +291,207 @@ class TestEvalCLI:
         assert "determinism_results" in loaded
         # 3 default smoke prompts; harness ran 2 samples each
         assert len(loaded["determinism_results"]) == 3
+
+
+# ── 6. risk-determinism CLI verb (v0.8.1 P2.1) ───────────────────
+
+
+class TestRiskDeterminismCLI:
+    """Live LLM-driven harness against `RiskStatementGenerator`.
+
+    The verb requires a system-context YAML + gap report JSON
+    (the same files `evidentia risk generate` consumes). Tests
+    mock `RiskStatementGenerator.generate` so the LLM round-trip
+    is replaced with deterministic / non-deterministic stubs.
+    """
+
+    def test_risk_determinism_passes_with_deterministic_mock(
+        self, tmp_path: Path
+    ) -> None:
+        """Mock `RiskStatementGenerator.generate` to always return
+        the same RiskStatement; harness should report 1.0
+        determinism rate.
+        """
+        from unittest.mock import patch
+
+        from evidentia_core.models.gap import (
+            ControlGap,
+            GapAnalysisReport,
+            GapSeverity,
+            ImplementationEffort,
+        )
+        from evidentia_core.models.risk import (
+            ImpactRating,
+            LikelihoodRating,
+            RiskLevel,
+            RiskStatement,
+            RiskTreatment,
+        )
+
+        # Create a minimal gap report on disk.
+        gap = ControlGap(
+            framework="nist-800-53-rev5",
+            control_id="AC-2",
+            control_title="Account Management",
+            control_description="Manage accounts",
+            gap_severity=GapSeverity.HIGH,
+            gap_description="No automated deactivation",
+            implementation_status="missing",
+            cross_framework_value=[],
+            remediation_guidance="Enable IAM Access Analyzer",
+            implementation_effort=ImplementationEffort.MEDIUM,
+        )
+        report = GapAnalysisReport(
+            organization="Test Co",
+            frameworks_analyzed=["nist-800-53-rev5"],
+            analyzed_at=datetime(2026, 5, 5, tzinfo=UTC),
+            total_controls_required=10,
+            total_controls_in_inventory=5,
+            total_gaps=1,
+            critical_gaps=0,
+            high_gaps=1,
+            medium_gaps=0,
+            low_gaps=0,
+            informational_gaps=0,
+            coverage_percentage=50.0,
+            gaps=[gap],
+            efficiency_opportunities=[],
+            prioritized_roadmap=[],
+            evidentia_version="0.8.1",
+        )
+        gaps_file = tmp_path / "gaps.json"
+        gaps_file.write_text(report.model_dump_json(), encoding="utf-8")
+
+        # Create a minimal system context YAML on disk.
+        ctx_file = tmp_path / "context.yaml"
+        ctx_file.write_text(
+            "organization: Test Co\n"
+            "system_name: Test System\n"
+            "system_description: minimal test fixture\n"
+            "data_classification: [internal]\n"
+            "hosting: cloud\n"
+            "components: []\n"
+            "threat_actors: []\n"
+            "existing_controls: []\n"
+            "frameworks: [nist-800-53-rev5]\n",
+            encoding="utf-8",
+        )
+
+        # Mock the RiskStatement that the LLM "returns" — same
+        # object each time.
+        canonical_risk = RiskStatement(
+            id="determ-test-001",
+            asset="user-database",
+            threat_source="external-attacker",
+            threat_event="unauthorized-access",
+            vulnerability="weak-acct-management",
+            likelihood=LikelihoodRating.HIGH,
+            likelihood_rationale="Dormant accounts.",
+            impact=ImpactRating.HIGH,
+            impact_rationale="PII exposure.",
+            risk_level=RiskLevel.HIGH,
+            risk_description="Risk description.",
+            recommended_controls=["AC-2"],
+            remediation_priority=2,
+            treatment=RiskTreatment.MITIGATE,
+        )
+
+        # Patch RiskStatementGenerator.generate to return the
+        # same RiskStatement on every call. Build a real Generator
+        # instance + monkey-patch the `generate` method.
+        from evidentia_ai.risk_statements import RiskStatementGenerator
+
+        with patch.object(
+            RiskStatementGenerator,
+            "generate",
+            return_value=canonical_risk,
+        ):
+            runner = CliRunner()
+            out_path = tmp_path / "result.json"
+            result = runner.invoke(
+                eval_cli_app,
+                [
+                    "risk-determinism",
+                    "--context",
+                    str(ctx_file),
+                    "--gaps",
+                    str(gaps_file),
+                    "--samples-per-prompt",
+                    "3",
+                    "--output",
+                    str(out_path),
+                    "--model",
+                    "test-stub",
+                ],
+            )
+        assert result.exit_code == 0, result.stdout
+        assert "PASS" in result.stdout
+        assert out_path.exists()
+        loaded = json.loads(out_path.read_text(encoding="utf-8"))
+        # overall_determinism_rate is a @property on EvalResult,
+        # not a field — it doesn't survive model_dump_json. Check
+        # via determinism_results directly.
+        assert "determinism_results" in loaded
+        assert len(loaded["determinism_results"]) == 1
+        # 3 samples per prompt, all matching the modal hash
+        # (the mocked RiskStatementGenerator.generate returns
+        # the same canonical_risk every call).
+        assert loaded["determinism_results"][0]["modal_count"] == 3
+        assert loaded["determinism_results"][0]["distinct_outputs"] == 1
+
+    def test_risk_determinism_missing_gap_id_exits_2(
+        self, tmp_path: Path
+    ) -> None:
+        from evidentia_core.models.gap import GapAnalysisReport
+
+        report = GapAnalysisReport(
+            organization="Test Co",
+            frameworks_analyzed=["nist-800-53-rev5"],
+            analyzed_at=datetime(2026, 5, 5, tzinfo=UTC),
+            total_controls_required=10,
+            total_controls_in_inventory=5,
+            total_gaps=0,
+            critical_gaps=0,
+            high_gaps=0,
+            medium_gaps=0,
+            low_gaps=0,
+            informational_gaps=0,
+            coverage_percentage=100.0,
+            gaps=[],
+            efficiency_opportunities=[],
+            prioritized_roadmap=[],
+            evidentia_version="0.8.1",
+        )
+        gaps_file = tmp_path / "gaps.json"
+        gaps_file.write_text(report.model_dump_json(), encoding="utf-8")
+        ctx_file = tmp_path / "context.yaml"
+        ctx_file.write_text(
+            "organization: Test Co\n"
+            "system_name: Test\n"
+            "system_description: minimal\n"
+            "data_classification: [internal]\n"
+            "hosting: cloud\n"
+            "components: []\n"
+            "threat_actors: []\n"
+            "existing_controls: []\n"
+            "frameworks: [nist-800-53-rev5]\n",
+            encoding="utf-8",
+        )
+
+        runner = CliRunner()
+        result = runner.invoke(
+            eval_cli_app,
+            [
+                "risk-determinism",
+                "--context",
+                str(ctx_file),
+                "--gaps",
+                str(gaps_file),
+                "--gap-id",
+                "nonexistent",
+            ],
+        )
+        # Empty filtered set → exit 2 (usage error per CLI
+        # convention); message tells operator the gap-id wasn't
+        # found.
+        assert result.exit_code == 2

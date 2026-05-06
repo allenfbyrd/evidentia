@@ -73,6 +73,7 @@ from evidentia_ai.exceptions import (
 from evidentia_ai.risk_statements.prompts import (
     RISK_CONTEXT_TEMPLATE,
     RISK_STATEMENT_SYSTEM_PROMPT,
+    RISK_STATEMENT_TRACE_PROMPT,
 )
 from evidentia_ai.risk_statements.templates import SystemContext
 
@@ -335,22 +336,42 @@ class RiskStatementGenerator:
         run_id when threading a single batch identity through multiple
         calls (see :meth:`generate_batch` for the canonical pattern).
 
-        ``emit_trace`` (v0.8.0 P0.2) attaches a Policy Reasoning
-        Trace (per arXiv 2509.23291) to the returned risk statement.
-        v0.8.0 ships a stub trace — a single foundational claim
-        citing the source gap's framework + control_id at
-        confidence 0.5. The stub is honest signaling that the
-        substantive LLM-driven trace authoring is a v0.8.1
-        follow-up. Operators wanting richer traces today can
-        author them by hand against the :class:`ReasoningTrace`
-        model and assign to ``risk.reasoning_trace`` post-call.
+        ``emit_trace`` (v0.8.0 P0.2 + v0.8.1 P2.2 LLM-driven):
+        attaches a Policy Reasoning Trace (per arXiv 2509.23291)
+        to the returned risk statement.
+
+        v0.8.1+ behavior: the system prompt is augmented with
+        `RISK_STATEMENT_TRACE_PROMPT` instructing the LLM to
+        populate the `reasoning_trace` field with 3-7 atomic
+        claims, per-claim policy clause citations, and self-
+        introspected confidence values. Instructor's structured-
+        output extraction validates the trace shape against the
+        Pydantic ReasoningTrace model.
+
+        Fallback: if the LLM omits the trace (returns
+        `reasoning_trace=None` despite the prompt augmentation),
+        the v0.8.0 stub trace is attached as a defensive
+        fallback so operators wiring `--emit-trace` always get
+        SOMETHING in the trace field. The audit log distinguishes
+        LLM-derived vs stub via `trace_kind` (`"v0.8.1-llm"` or
+        `"v0.8.0-stub"`).
         """
         user_prompt = _build_risk_context(gap, system_context)
         gap_label = f"{gap.framework}:{gap.control_id}"
+        # v0.8.1 P2.2: augment the system prompt with trace
+        # instructions when the operator opts in. The same prompt
+        # text is hashed for the GenerationContext below so the
+        # `prompt_hash` reflects the actual prompt sent.
+        sys_prompt = RISK_STATEMENT_SYSTEM_PROMPT
+        if emit_trace:
+            sys_prompt = (
+                RISK_STATEMENT_SYSTEM_PROMPT
+                + RISK_STATEMENT_TRACE_PROMPT
+            )
 
         try:
             risk, attempts = self._invoke_llm_sync(
-                RISK_STATEMENT_SYSTEM_PROMPT, user_prompt, run_id=run_id
+                sys_prompt, user_prompt, run_id=run_id
             )
         except OfflineViolationError:
             # Programmer/policy error — must surface to the operator.
@@ -374,13 +395,57 @@ class RiskStatementGenerator:
             ) from exc
 
         gen_ctx = self._build_generation_context(
-            RISK_STATEMENT_SYSTEM_PROMPT, user_prompt, attempts, run_id=run_id
+            sys_prompt, user_prompt, attempts, run_id=run_id
         )
         risk = self._enrich(risk, gap, gen_ctx)
         if emit_trace:
-            risk = self._attach_stub_trace(risk, gap, run_id)
+            # v0.8.1 P2.2: prefer the LLM-derived trace.
+            # Instructor populates `risk.reasoning_trace` from
+            # the structured output. If the LLM omitted the
+            # field (returns None despite the prompt
+            # augmentation), fall back to the v0.8.0 stub so
+            # operators always get a trace artifact.
+            if risk.reasoning_trace is not None:
+                self._emit_trace_audit(risk, gap, run_id, kind="v0.8.1-llm")
+            else:
+                risk = self._attach_stub_trace(risk, gap, run_id)
         self._emit_success(risk, gap_label, attempts)
         return risk
+
+    def _emit_trace_audit(
+        self,
+        risk: RiskStatement,
+        gap: ControlGap,
+        run_id: str | None,
+        *,
+        kind: str,
+    ) -> None:
+        """v0.8.1 P2.2: emit AI_RISK_TRACE_EMITTED for LLM-derived
+        traces (the stub-attach helper emits the same event for
+        the v0.8.0-stub fallback path).
+
+        ``kind`` is ``"v0.8.1-llm"`` for LLM-derived traces,
+        ``"v0.8.0-stub"`` for the fallback. Auditors filter on
+        the kind via the audit-log `evidentia.trace_kind` field.
+        """
+        trace = risk.reasoning_trace
+        if trace is None:  # pragma: no cover - caller-filtered
+            return
+        _log.info(
+            action=EventAction.AI_RISK_TRACE_EMITTED,
+            outcome=EventOutcome.SUCCESS,
+            message=(
+                f"Reasoning trace emitted for "
+                f"{gap.framework}:{gap.control_id}"
+            ),
+            evidentia={
+                "run_id": run_id or risk.id,
+                "risk_id": risk.id,
+                "claim_count": len(trace.claims),
+                "overall_confidence": trace.overall_confidence,
+                "trace_kind": kind,
+            },
+        )
 
     def _attach_stub_trace(
         self,

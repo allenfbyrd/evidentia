@@ -49,6 +49,58 @@ CRITICAL RULES:
 - remediation_priority: 1 = most urgent, 5 = least urgent.
 """
 
+
+# v0.8.1 P2.2: appended to the system prompt when the operator
+# requests `emit_trace=True`. Instructs the LLM to fill in the
+# `reasoning_trace` field of the RiskStatement Pydantic model
+# with a Policy Reasoning Trace per arXiv 2509.23291. Decomposed
+# into 3-7 atomic claims; each claim cites the policy clauses
+# (catalog control IDs / regulatory paragraphs) that justify
+# it; per-claim self-reported confidence in [0, 1].
+RISK_STATEMENT_TRACE_PROMPT = """\
+
+## Policy Reasoning Trace (emit_trace mode)
+
+Additionally populate the `reasoning_trace` field with a
+Policy Reasoning Trace decomposing your risk-statement output
+into 3-7 atomic claims. Each claim should be:
+
+1. **Self-contained**: interpretable without reading the
+   surrounding text.
+2. **Cited**: list the specific policy clauses (catalog control
+   IDs, OCC bulletin paragraphs, regulatory publication
+   sections) that justify the claim. Use the format
+   ``<framework_id>:<control_id>`` (e.g.,
+   ``nist-800-53-rev5-moderate:AC-2``) for catalog controls.
+3. **Confidence-rated**: per-claim self-reported confidence in
+   [0.0, 1.0]. Use 0.7-0.9 for claims grounded in strong
+   citations + clear application; 0.4-0.6 for inferential
+   claims; 0.1-0.3 for speculative claims.
+
+The `methodology` field should briefly describe how you
+decomposed the risk statement (e.g., "Per-NIST-component
+decomposition: separate claims for asset, threat source,
+threat event, vulnerability, likelihood rationale, impact
+rationale, recommended controls.").
+
+The `overall_confidence` field should be the geometric mean
+of per-claim confidences, OR the lowest single claim
+confidence when one claim is clearly the load-bearing
+foundation.
+
+CRITICAL TRACE RULES:
+- Each claim MUST cite at least one clause. Foundational
+  claims about the system context (e.g., "the asset is the
+  user database") may cite the system-context block as
+  ``system-context``.
+- Confidence values reflect YOUR introspection of the claim's
+  defensibility against the cited clauses. Auditors filter
+  low-confidence traces for review; honesty here matters
+  more than appearing confident.
+- The trace should NOT recite the risk statement verbatim.
+  Decompose, don't paraphrase.
+"""
+
 RISK_CONTEXT_TEMPLATE = """\
 ## System Context
 Organization: {organization}

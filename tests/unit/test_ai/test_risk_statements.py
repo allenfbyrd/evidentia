@@ -260,7 +260,12 @@ def test_generate_without_emit_trace_leaves_reasoning_trace_none(
 def test_generate_with_emit_trace_attaches_stub_trace(
     system_context: SystemContext,
 ) -> None:
-    """v0.8.0 P0.2 — emit_trace=True attaches a stub PRT to the risk."""
+    """v0.8.0 P0.2 — emit_trace=True attaches a stub PRT to the
+    risk when the LLM doesn't populate reasoning_trace.
+
+    This is the FALLBACK path; the LLM-derived path is tested
+    in `test_generate_with_emit_trace_uses_llm_trace_when_present`.
+    """
     gap = _make_gap("AC-2")
     with _patched_sync_create(side_effect=[_fake_risk_statement()]):
         gen = RiskStatementGenerator()
@@ -275,6 +280,75 @@ def test_generate_with_emit_trace_attaches_stub_trace(
     # signal it's not LLM-derived).
     assert result.reasoning_trace.overall_confidence == 0.5
     assert "stub" in result.reasoning_trace.methodology.lower()
+
+
+def test_generate_with_emit_trace_uses_llm_trace_when_present(
+    system_context: SystemContext,
+) -> None:
+    """v0.8.1 P2.2 — when the LLM populates `reasoning_trace`,
+    the generator uses the LLM-derived trace rather than
+    falling back to the v0.8.0 stub.
+    """
+    from evidentia_core.models.risk import (
+        ReasoningTrace,
+        TraceClaim,
+    )
+
+    gap = _make_gap("AC-2")
+    # Build an LLM-derived RiskStatement that already carries a
+    # reasoning_trace (Instructor's structured-output extraction
+    # populates this field when the LLM emits one).
+    llm_trace = ReasoningTrace(
+        claims=[
+            TraceClaim(
+                claim="The asset is a customer-portal user database.",
+                clause_citations=["system-context"],
+                confidence=0.9,
+            ),
+            TraceClaim(
+                claim=(
+                    "Inadequate AC-2 lifecycle controls leave dormant "
+                    "accounts vulnerable to credential stuffing."
+                ),
+                clause_citations=[
+                    "nist-800-53-rev5:AC-2",
+                    "nist-800-53-rev5:AC-2(3)",
+                ],
+                confidence=0.8,
+            ),
+            TraceClaim(
+                claim=(
+                    "Quarterly access reviews would mitigate the gap."
+                ),
+                clause_citations=["nist-800-53-rev5:AC-2(3)"],
+                confidence=0.85,
+            ),
+        ],
+        methodology=(
+            "Per-NIST-component decomposition: separate claims "
+            "for asset, vulnerability, recommended control."
+        ),
+        overall_confidence=0.85,
+    )
+    fake_risk = _fake_risk_statement()
+    fake_risk.reasoning_trace = llm_trace
+
+    with _patched_sync_create(side_effect=[fake_risk]):
+        gen = RiskStatementGenerator()
+        result = gen.generate(gap, system_context, emit_trace=True)
+
+    # The LLM-derived trace is preserved; not overwritten by the
+    # v0.8.0 stub fallback.
+    assert result.reasoning_trace is not None
+    assert len(result.reasoning_trace.claims) == 3
+    # First claim asserts the asset; not a stub-style "Risk applies to..."
+    assert result.reasoning_trace.claims[0].claim.startswith("The asset")
+    # Methodology reflects LLM authoring, not the v0.8.0 stub note.
+    assert "decomposition" in result.reasoning_trace.methodology.lower()
+    assert "stub" not in result.reasoning_trace.methodology.lower()
+    # Overall confidence is the LLM's introspection (0.85), NOT
+    # the stub's hard-coded 0.5.
+    assert result.reasoning_trace.overall_confidence == 0.85
 
 
 def test_generate_propagates_model_inventory_ref_when_configured(
