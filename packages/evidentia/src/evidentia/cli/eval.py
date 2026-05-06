@@ -35,6 +35,7 @@ from LiteLLM env vars by the underlying generator.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -44,6 +45,31 @@ from evidentia_core.audit.provenance import (
     GenerationContext,
     compute_prompt_hash,
 )
+
+
+def _resolve_sign(
+    sign_flag: bool | None, output: Path | None
+) -> bool:
+    """v0.8.2 P3.2 — resolve the tri-state ``--sign / --no-sign``.
+
+    When ``sign_flag`` is None (the default), Sigstore signing
+    fires iff:
+      - ``output`` is set (signing has a target), AND
+      - GITHUB_ACTIONS env var is "true" (CI release context
+        with OIDC token available).
+
+    Operators running locally without OIDC get the eval JSON
+    written to ``output`` but no ``.sigstore.json`` bundle. Pass
+    ``--sign`` explicitly to force signing (raises if no OIDC
+    credential is detectable); pass ``--no-sign`` to suppress
+    signing even in CI (e.g., dry-runs).
+    """
+    if output is None:
+        # No output target → nothing to sign.
+        return False
+    if sign_flag is not None:
+        return sign_flag
+    return os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
 
 app = typer.Typer(
     name="eval",
@@ -115,6 +141,18 @@ def stub_smoke(
             "stdout."
         ),
     ),
+    sign: bool | None = typer.Option(
+        None,
+        "--sign/--no-sign",
+        help=(
+            "v0.8.2 P3.2: produce a Sigstore bundle alongside the "
+            "JSON output (audit-grade evidence). Default: auto-"
+            "detect — sign in CI release context "
+            "(GITHUB_ACTIONS=true), skip otherwise. Requires "
+            "--output to be set; explicit --sign without --output "
+            "is a no-op."
+        ),
+    ),
 ) -> None:
     """Run the harness against a built-in deterministic stub.
 
@@ -173,10 +211,20 @@ def stub_smoke(
     )
 
     if output is not None:
-        output.write_text(
-            result.model_dump_json(indent=2),
-            encoding="utf-8",
-        )
+        if _resolve_sign(sign, output):
+            # v0.8.2 P3.2: sign_eval_result writes the JSON +
+            # produces the Sigstore bundle.
+            from evidentia_ai.eval.signing import sign_eval_result
+
+            _, bundle_path = sign_eval_result(result, output)
+            typer.echo(
+                f"Eval output signed → {bundle_path.name}"
+            )
+        else:
+            output.write_text(
+                result.model_dump_json(indent=2),
+                encoding="utf-8",
+            )
 
     typer.echo(
         f"Eval run {result.run_id} — "
@@ -288,6 +336,18 @@ def risk_determinism(
         help=(
             "Additionally run a single replay-equivalence pass "
             "per gap (re-uses the determinism context)."
+        ),
+    ),
+    sign: bool | None = typer.Option(
+        None,
+        "--sign/--no-sign",
+        help=(
+            "v0.8.2 P3.2: produce a Sigstore bundle alongside the "
+            "JSON output. Default: auto-detect — sign in CI "
+            "release context (GITHUB_ACTIONS=true), skip otherwise. "
+            "Requires --output. The bundle proves the eval was "
+            "produced by a specific OIDC identity at a specific "
+            "time — auditor-defensible evidence."
         ),
     ),
 ) -> None:
@@ -446,10 +506,18 @@ def risk_determinism(
     )
 
     if output is not None:
-        output.write_text(
-            result.model_dump_json(indent=2),
-            encoding="utf-8",
-        )
+        if _resolve_sign(sign, output):
+            from evidentia_ai.eval.signing import sign_eval_result
+
+            _, bundle_path = sign_eval_result(result, output)
+            typer.echo(
+                f"Eval output signed → {bundle_path.name}"
+            )
+        else:
+            output.write_text(
+                result.model_dump_json(indent=2),
+                encoding="utf-8",
+            )
 
     typer.echo(
         f"Eval run {result.run_id} — "
@@ -473,3 +541,96 @@ def risk_determinism(
         fail_on_determinism_rate_below,
         output,
     )
+
+
+@app.command("verify")
+def verify(
+    output_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Path to the eval output JSON (signed via --sign).",
+    ),
+    bundle_path: Path | None = typer.Option(
+        None,
+        "--bundle",
+        "-b",
+        help=(
+            "Path to the Sigstore bundle. Defaults to "
+            "<output_path>.sigstore.json (the canonical naming "
+            "from --sign)."
+        ),
+    ),
+    expected_identity: str | None = typer.Option(
+        None,
+        "--expected-identity",
+        help=(
+            "Optional. Require the signer's certificate identity "
+            "to match (e.g., the GitHub Actions workflow URL "
+            "for a tagged release: 'https://github.com/<owner>/"
+            "<repo>/.github/workflows/release.yml@refs/tags/<tag>')."
+        ),
+    ),
+    expected_issuer: str | None = typer.Option(
+        None,
+        "--expected-issuer",
+        help=(
+            "Optional. Require the OIDC issuer to match "
+            "(e.g., 'https://token.actions.githubusercontent.com')."
+        ),
+    ),
+) -> None:
+    """v0.8.2 P3.2: verify a signed eval output.
+
+    Reads the eval JSON + its sibling Sigstore bundle, runs the
+    keyless-OIDC verification against Fulcio + Rekor, and prints
+    the verification outcome. Exits 0 on a clean verification +
+    1 on any failure mode (invalid signature, missing bundle,
+    transparency-log unreachable).
+
+    Requires network access (Fulcio + Rekor are public services).
+    Air-gap deployments cannot use Sigstore-signed eval output;
+    operators in those environments should use GPG signing on the
+    eval JSON via the v0.7.x ``evidentia oscal sign`` pattern
+    instead (or their own out-of-band integrity tooling).
+    """
+    from evidentia_ai.eval.signing import verify_eval_result
+
+    try:
+        verify_result = verify_eval_result(
+            output_path,
+            bundle_path=bundle_path,
+            expected_identity=expected_identity,
+            expected_issuer=expected_issuer,
+        )
+    except Exception as exc:
+        typer.echo(
+            f"Verification failed: {type(exc).__name__}: {exc}",
+            err=True,
+        )
+        sys.exit(1)
+
+    if verify_result.valid:
+        typer.echo(f"VALID — {output_path.name}")
+        if verify_result.signer_identity:
+            typer.echo(
+                f"  • signer: {verify_result.signer_identity}"
+            )
+        if verify_result.signer_issuer:
+            typer.echo(
+                f"  • issuer: {verify_result.signer_issuer}"
+            )
+        if verify_result.rekor_log_index is not None:
+            typer.echo(
+                f"  • rekor log index: "
+                f"{verify_result.rekor_log_index}"
+            )
+        sys.exit(0)
+    typer.echo(
+        f"INVALID — {output_path.name}: "
+        f"{verify_result.details or 'verification returned valid=False'}",
+        err=True,
+    )
+    sys.exit(1)

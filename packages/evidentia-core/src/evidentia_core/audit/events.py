@@ -122,6 +122,11 @@ class EventAction(str, Enum):
     AI_EVAL_DETERMINISM_VIOLATION = "evidentia.ai.eval_determinism_violation"
     AI_EVAL_FAITHFULNESS_VIOLATION = "evidentia.ai.eval_faithfulness_violation"
     AI_EVAL_COMPLETED = "evidentia.ai.eval_completed"
+    # v0.8.2 P3.2: first-class Sigstore signing for `evidentia eval`
+    # output. Fired once per eval invocation that opts in to --sign;
+    # the bundle path lands in evidentia.bundle_path so an auditor
+    # can correlate the EvalResult JSON with its Sigstore proof.
+    AI_EVAL_OUTPUT_SIGNED = "evidentia.ai.eval_output_signed"
 
     # v0.8.0 P0.2: Policy Reasoning Trace emit (arXiv 2509.23291).
     # Fired once per RiskStatement (or future trace-bearing

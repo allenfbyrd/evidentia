@@ -50,6 +50,11 @@ fake generator; live operator runs wire in
 
 from __future__ import annotations
 
+from evidentia_ai.eval.faithfulness import (
+    DEFAULT_FAITHFULNESS_THRESHOLD,
+    FaithfulnessResult,
+    faithfulness_score,
+)
 from evidentia_ai.eval.harness import DFAHarness, EvalResult, EvalSample
 from evidentia_ai.eval.metrics import (
     DeterminismResult,
@@ -58,15 +63,24 @@ from evidentia_ai.eval.metrics import (
     replay_equivalent,
 )
 from evidentia_ai.eval.seeds import hash_output, normalize_for_determinism
+from evidentia_ai.eval.signing import (
+    sign_eval_result,
+    verify_eval_result,
+)
 
 __all__ = [
+    "DEFAULT_FAITHFULNESS_THRESHOLD",
     "DFAHarness",
     "DeterminismResult",
     "EvalResult",
     "EvalSample",
+    "FaithfulnessResult",
     "ReplayResult",
     "determinism_score",
+    "faithfulness_score",
     "hash_output",
     "normalize_for_determinism",
     "replay_equivalent",
+    "sign_eval_result",
+    "verify_eval_result",
 ]
