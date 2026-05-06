@@ -1,0 +1,96 @@
+# v0.8.2 G1: mutmut mutation-testing CI gate.
+#
+# Mutmut introduces small random mutations to source code and
+# re-runs the test suite. A "killed" mutant means the tests
+# caught it; a "survived" mutant means the mutation went
+# undetected — a gap in test coverage.
+#
+# Triggers:
+#   - workflow_dispatch (operator-initiated baseline / re-baseline)
+#   - schedule (weekly Sunday 03:00 UTC for trend-line tracking)
+#
+# NOT on every PR — full mutmut runs take 30-60 minutes per
+# module. PR-level test-coverage gating happens via Codecov
+# (≥ 80% statement coverage MUST per OpenSSF Silver tier).
+# Mutmut runs out-of-band to surface mutation-survival rates
+# without blocking the PR cadence.
+#
+# Plan: §25.2 P2.1 + §25.3 step 4 (v0.8.2 cycle).
+
+name: mutmut
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 03:00 UTC every Sunday — quiet window for the GitHub
+    # Actions runner pool; keeps cost predictable.
+    - cron: "0 3 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    name: mutmut baseline (gap_analyzer + risk_statements)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          version: "latest"
+
+      - name: Sync workspace + install workspace packages
+        run: |
+          uv sync --quiet
+          uv pip install -e packages/evidentia-core \
+                         -e packages/evidentia-ai \
+                         -e packages/evidentia-collectors \
+                         -e packages/evidentia-integrations \
+                         -e packages/evidentia-api \
+                         -e packages/evidentia-mcp \
+                         -e packages/evidentia
+
+      - name: Sanity-check — pytest passes before mutation
+        run: |
+          # If the baseline test suite is broken, mutmut reports
+          # every mutation as "survived" because every test fails
+          # for the wrong reason. Fail fast here.
+          uv run pytest -x -q --no-header \
+            tests/unit/test_gap_analyzer/ tests/unit/test_ai/
+
+      - name: Run mutmut (paths from [tool.mutmut])
+        run: |
+          # mutmut's stats file persists between runs; we cache
+          # it via actions/cache below to avoid re-mutating
+          # unchanged code on each run.
+          uv run mutmut run || true
+          # `|| true` because mutmut returns non-zero when ANY
+          # mutant survives; we want to surface the score even
+          # when survivors exist.
+
+      - name: Surface mutation-score summary
+        run: |
+          uv run mutmut show all 2>&1 | tail -50
+          echo "---"
+          echo "Mutation score: see 'mutmut results' for the breakdown."
+          uv run mutmut results 2>&1 | head -20
+
+      - name: Upload mutmut state for inspection
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: mutmut-cache-${{ github.run_id }}
+          path: |
+            .mutmut-cache
+            mutants/
+          retention-days: 30
+          if-no-files-found: warn

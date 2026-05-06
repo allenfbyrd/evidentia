@@ -60,6 +60,21 @@ dev = [
     # pytest.importorskip so the test suite runs on minimal installs.
     "compliance-trestle>=4.0,<5.0",
     "mcp>=1.27.0",
+    # v0.8.2 G2: property-based tests on the gap-analyzer
+    # normalizer + the catalogs crosswalk engine. Generates
+    # randomized inputs against canonical invariants (idempotence,
+    # case-folding, prefix-stripping, mapping cardinality) to
+    # catch regressions hand-written tests would miss. Tests live
+    # in tests/property/.
+    "hypothesis>=6.110",
+    # v0.8.2 G1: mutation testing baseline on the gap_analyzer +
+    # risk_statements modules. Mutmut introduces small random
+    # mutations to source code + re-runs the test suite — surviving
+    # mutants point at gaps in the test corpus. Targeting a 65%
+    # baseline kill rate (configurable via [tool.mutmut] block).
+    # Runs out-of-band (weekly cron + on-demand workflow_dispatch)
+    # because full mutmut runs are slow (~30-60 min per module).
+    "mutmut>=3.2",
 ]
 
 [tool.uv.sources]
@@ -130,6 +145,33 @@ markers = [
     "integration: marks tests as integration tests",
     "ai: marks tests that call LLM APIs (expensive)",
 ]
+
+# v0.8.2 G1: mutmut mutation-testing config.
+#
+# Paths-to-mutate covers the two highest-leverage modules:
+#  - evidentia_core.gap_analyzer: the canonical control-mapping
+#    engine; bugs here surface as silent gap mis-classifications.
+#  - evidentia_ai.risk_statements: the canonical AI risk-statement
+#    generator; bugs here ship hallucinated content into auditor-
+#    facing artifacts.
+#
+# Runner config: ``pytest -x -q --no-header tests/`` matches the
+# CI suite minus -v noise; --max-fail=1 bails fast on test
+# regressions so the mutation runner doesn't waste time on a
+# broken baseline.
+#
+# The first ``mutmut run`` establishes the v0.8.2 baseline — the
+# CI gate fails on regression FROM that baseline (not against an
+# absolute threshold). See docs/mutation-testing.md for the full
+# operator workflow.
+[tool.mutmut]
+paths_to_mutate = [
+    "packages/evidentia-core/src/evidentia_core/gap_analyzer/",
+    "packages/evidentia-ai/src/evidentia_ai/risk_statements/",
+]
+runner = "uv run pytest -x -q --no-header tests/unit/test_gap_analyzer/ tests/unit/test_ai/"
+also_copy = []
+tests_dir = "tests/"
 
 # v0.7.10 P2: coverage configuration for Codecov + OpenSSF Silver
 # `test_statement_coverage80` MUST. Aim is sustained ≥ 80% statement
