@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3.1] - 2026-05-06
+
+**Same-day hot-fix tag for v0.8.3**: reverts G4 Dockerfile
+`--require-hashes` activation. v0.8.3 PyPI publish succeeded
+(7 packages with PEP 740 attestations) but the container build
+failed at the `pip install --require-hashes` step because uv
+build is NOT byte-identical across host platforms (Windows
+local pre-tag regeneration vs Linux CI build runner) even with
+the same SOURCE_DATE_EPOCH. The hashes computed by local
+pip-compile against Windows-built wheels didn't match what
+release.yml uploaded to PyPI from Linux-built wheels. PyPI's
+v0.8.3 wheels are valid + verifiable via `pypi-attestations
+verify pypi`; the gap is solely the container image which
+never published to ghcr.io.
+
+Same-day hot-fix tag pattern follows the v0.7.4 + v0.7.7.1
+precedent — small surgical fix to revert the failing change +
+ship a working container.
+
+### Fixed
+
+- **Dockerfile install line REVERTED to exact-version pinning**
+  (`pip install --no-cache-dir --user "evidentia[gui]==0.8.3.1"`)
+  matching the v0.8.2 pattern. Container build at v0.8.3.1
+  ship-time will install from PyPI without `--require-hashes`,
+  bypassing the cross-platform reproducibility issue.
+- **`docs/dockerfile-pinning.md`** updated with v0.8.3 G4
+  Path 1 attempt + revert narrative + v0.8.4 G4 Path 2
+  closure plan (post-PyPI regeneration in release.yml — pip-
+  compile against PyPI's just-published wheels + ephemeral
+  docker build; no cross-platform reproducibility required).
+
+### Preserved
+
+The structural foundation that landed across v0.7.14 P1.5 +
+v0.8.2 G4 + v0.8.3 G4 Path 1 attempt remains in place:
+
+- `docker/requirements.in` + `docker/requirements.txt`
+  regeneration tooling (`bump_version.py --regenerate-requirements`)
+- `release.yml` SOURCE_DATE_EPOCH + build-twice verification
+  step (kept; provides reproducibility verification value
+  independently of `--require-hashes` activation; helps
+  v0.8.4 G4 Path 2 design)
+- F-V82-S1 platform auto-detect (v0.8.3 P0.2 closure carries
+  forward unchanged)
+- All v0.8.3 AI-quality work (P1.1 sentence-transformers,
+  P1.2 LLM atomic-claim extraction, P1.3 calibration corpus)
+  carries forward unchanged
+
+### Deferred to v0.8.4
+
+- **G4 Dockerfile `--require-hashes` activation via Path 2**:
+  release.yml regenerates docker/requirements.txt against
+  PyPI's just-published wheels between Wait-for-PyPI step +
+  docker build step. Path 2 doesn't have Path 1's cross-
+  platform issue because hashes are computed FROM PyPI's
+  bytes (downloaded by pip), not from independent local + CI
+  builds.
+
 ## [0.8.3] - 2026-05-06
 
 **Supply-chain G4 activation + AI-quality completion.** Aggressive

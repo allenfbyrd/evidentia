@@ -1,96 +1,77 @@
 # Dockerfile dependency pinning policy
 
-> Status (v0.8.3): **G4 ACTIVATED via Path 1 (SOURCE_DATE_EPOCH-
-> driven reproducible builds).** The Dockerfile install line is
-> now `pip install --require-hashes -r /tmp/requirements.txt`
-> against `docker/requirements.txt` (every transitive pinned to
-> a SHA256 hash). `bump_version.py --regenerate-requirements`
-> wraps `uv build` (with SOURCE_DATE_EPOCH from HEAD's commit
-> timestamp) → pip-compile against locally-built wheels via
-> `--find-links=./dist/`. release.yml uses the same SOURCE_DATE_EPOCH
-> in its `uv build` step, so wheels are byte-identical across hosts
-> → SHA256 hashes match → container builds against PyPI's
-> just-published wheels with hash verification passing. The
-> recurring Scorecard PinnedDependencies false-positive cycle
-> (alerts #100 → #115 across v0.7.12 → v0.8.2) is structurally
-> closed. The historical narrative below is preserved for
-> context.
+> Status (v0.8.3.1): **G4 PATH 1 ATTEMPTED + REVERTED.** The
+> v0.8.3 release attempted G4 activation via SOURCE_DATE_EPOCH-
+> driven reproducible builds (Path 1) but the container build
+> first-fire FAILED at the `--require-hashes` install: uv build
+> is NOT byte-identical across host platforms (Windows local
+> regeneration vs Linux CI build runner) even with the same
+> SOURCE_DATE_EPOCH. PyPI publish at v0.8.3 succeeded; container
+> build failed; no `ghcr.io/allenfbyrd/evidentia:v0.8.3` image
+> was published. v0.8.3.1 hot-fix reverts the Dockerfile install
+> line to the v0.8.2 pattern (`evidentia[gui]==X.Y.Z` exact-
+> version pinning). v0.8.4 cycle-open will redesign G4 with
+> Path 2 (release.yml post-PyPI regeneration) which doesn't
+> have the cross-platform issue.
 
-## v0.8.3 G4 activation (current)
+## v0.8.3.1 status — G4 reverted to exact-version pinning
 
 The Dockerfile install line reads:
 
 ```dockerfile
-COPY docker/requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir --user --require-hashes -r /tmp/requirements.txt
+RUN pip install --no-cache-dir --user "evidentia[gui]==0.8.3.1"
 ```
 
-The regeneration pipeline:
+The structural foundation that landed across v0.7.14 + v0.8.2 +
+v0.8.3 IS still in place:
 
-1. **`uv build --all-packages` with SOURCE_DATE_EPOCH** —
-   `bump_version.py --regenerate-requirements` exports
-   `SOURCE_DATE_EPOCH=$(git log -1 --format=%ct HEAD)` before
-   invoking `uv build`. uv honors SOURCE_DATE_EPOCH for wheel
-   timestamps, producing byte-identical output across hosts
-   (verified via build-twice + `sha256sum` match).
+- `docker/requirements.in` + `docker/requirements.txt`
+  regeneration tooling (`bump_version.py --regenerate-requirements`)
+- `release.yml` SOURCE_DATE_EPOCH + build-twice verification
+  step (kept; provides reproducibility verification value
+  independently of `--require-hashes` activation)
+- F-V82-S1 platform auto-detect for non-Linux hosts
 
-2. **`pip-compile --find-links=./dist/`** — pip-compile resolves
-   `evidentia[gui]==X.Y.Z` against the locally-built wheels in
-   `dist/` (which aren't on PyPI yet at bump time). The
-   `--no-emit-find-links` flag keeps the local-wheels path out
-   of the generated requirements.txt so the file is portable to
-   environments that don't have `dist/` available.
+What did NOT work in v0.8.3:
 
-3. **release.yml uses the same SOURCE_DATE_EPOCH** — when the
-   tagged release pipeline runs, `release.yml`'s `Build packages`
-   step also exports SOURCE_DATE_EPOCH from the tag commit, so
-   `uv build` produces byte-identical wheels to what
-   bump_version.py generated locally → SHA256 hashes match →
-   pip's `--require-hashes` succeeds.
+- Cross-platform reproducibility of `uv build` — Windows local
+  + Linux CI produce different wheel bytes even with same
+  SOURCE_DATE_EPOCH. The pip-compile-driven hash generation
+  was Windows-host-specific; CI's Linux build couldn't match.
+- This is a uv / hatchling / Python wheel-format limitation,
+  not specific to Evidentia. Other projects targeting full
+  reproducibility either (a) build on a single canonical
+  platform, or (b) accept post-publish regeneration of the
+  hash file from PyPI's actual bytes.
 
-4. **Build-twice CI gate** — `release.yml` builds wheels into
-   two separate output dirs with the same SOURCE_DATE_EPOCH and
-   `sha256sum` matches before publish-pypi proceeds. Catches
-   any non-determinism that would surface as a hash mismatch
-   later in the pipeline.
+## v0.8.4 G4 closure plan — Path 2 (post-PyPI regeneration)
 
-### Regeneration command (operator-facing)
+Approach:
 
-```bash
-# Bumps version + regenerates docker/requirements.txt
-./scripts/bump_version.py --regenerate-requirements --to X.Y.Z
+1. release.yml `publish-pypi` job runs unchanged (publishes
+   wheels with PEP 740 attestations).
+2. Wait-for-PyPI step confirms all 7 packages propagated.
+3. **NEW** step: `pip-compile --generate-hashes
+   --no-emit-find-links` against PyPI's just-published wheels
+   → writes ephemeral `docker/requirements.txt`.
+4. Container build picks up the ephemeral file. Hashes are
+   sourced FROM PyPI's actual bytes, so the install always
+   succeeds.
+5. The repo's committed `docker/requirements.txt` is treated
+   as approximate/preview state (operators can use it for
+   auditing). The release-time regenerated file is what
+   actually gets baked into the container.
 
-# Or regenerate-only (no version bump):
-./scripts/bump_version.py --regenerate-requirements --to <current>
-```
+Path 2 doesn't have Path 1's cross-platform reproducibility
+issue because pip downloads from PyPI on both ends + computes
+SHA256 of the SAME bytes. No build determinism required.
 
-F-V82-S1 (v0.8.3 LOW): on non-Linux hosts (Windows, macOS),
-the script auto-invokes pip-compile inside the pinned
-`python:3.14-slim` base image so Linux-only transitives
-(uvloop) resolve correctly. Requires Docker installed +
-running.
+Risk: the regenerate-requirements step is a NEW workflow step
+that itself needs first-fire validation. v0.8.4 cycle-open
+plans this carefully — likely workflow_dispatch test against a
+throwaway tag before tagging v0.8.4.
 
-### Verification
-
-```bash
-# Local: docker build succeeds against locally-built wheels
-docker build -t evidentia:test .
-docker run --rm evidentia:test version    # → "Evidentia vX.Y.Z"
-
-# Post-tag: container build picks up PyPI-published wheels +
-# verifies hashes match
-gh run list --branch main --workflow release --limit 1
-```
-
-### Scorecard impact
-
-PinnedDependencies score moves from 9/10 → **10/10** at the
-v0.8.3 ship-time Scorecard scan. The recurring alert pattern
-(#100/#101/#102/#103/#107/#108/#113/#114) does not re-fire
-because the Dockerfile line no longer matches the alert
-pattern's regex.
-
-## Historical narrative (v0.7.13 → v0.8.1; preserved for context)
+## Historical narrative (v0.7.13 → v0.8.3.1; preserved for context)
 
 The `Dockerfile` at the repo root used to pin the `evidentia[gui]`
 install to the exact current release version (e.g.,
