@@ -79,7 +79,7 @@ jobs:
       # is that the smoke test is running for a release that hasn't
       # actually been published to PyPI yet. The error message
       # below makes that explicit.
-      - name: Extract version pin (v0.8.4: from docker/requirements.txt)
+      - name: Extract version pin (v0.8.4 — from docker/requirements.txt)
         id: pin
         run: |
           # v0.8.4 G4 Path 2: read pin from docker/requirements.txt
