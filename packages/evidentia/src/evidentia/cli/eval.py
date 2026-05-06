@@ -611,7 +611,19 @@ def verify(
     instead (or their own out-of-band integrity tooling).
     """
     from evidentia_ai.eval.signing import verify_eval_result
+    from evidentia_core.oscal.sigstore import (
+        SigstoreAirGapError,
+        SigstoreNotAvailableError,
+        SigstoreVerifyError,
+    )
 
+    # v0.8.3 F-V82-S2: tighter exception filtering — distinguish
+    # infrastructure availability (SigstoreNotAvailableError) +
+    # air-gap refusal (SigstoreAirGapError) from cryptographic
+    # verification failures (SigstoreVerifyError). Each maps to a
+    # distinct exit code so CI gates can react appropriately
+    # (e.g., availability errors → install [sigstore] extra +
+    # retry; verify errors → fail the build).
     try:
         verify_result = verify_eval_result(
             output_path,
@@ -619,11 +631,34 @@ def verify(
             expected_identity=expected_identity,
             expected_issuer=expected_issuer,
         )
-    except Exception as exc:
+    except SigstoreNotAvailableError as exc:
         typer.echo(
-            f"Verification failed: {type(exc).__name__}: {exc}",
+            f"Verification unavailable: sigstore-python not "
+            f"installed. Install via "
+            f"`pip install evidentia-core[sigstore]`. "
+            f"Underlying: {exc}",
             err=True,
         )
+        sys.exit(2)  # 2 = infrastructure missing; distinct from verify failure
+    except SigstoreAirGapError as exc:
+        typer.echo(
+            f"Verification unavailable: Sigstore requires network "
+            f"(Fulcio + Rekor). Use GPG signing for air-gapped "
+            f"deployments. Underlying: {exc}",
+            err=True,
+        )
+        sys.exit(2)
+    except SigstoreVerifyError as exc:
+        # Cryptographic verification fails for a known infrastructure
+        # reason (missing bundle, malformed cert chain, transparency-
+        # log unreachable). Distinct from valid=False which is a
+        # successful check that returned negative.
+        typer.echo(f"Verification failed: {exc}", err=True)
+        sys.exit(1)
+    except (FileNotFoundError, OSError) as exc:
+        # File-system errors (output_path missing, bundle_path
+        # missing) — the CLI's own filesystem issues, not Sigstore's.
+        typer.echo(f"Verification failed: {exc}", err=True)
         sys.exit(1)
 
     if verify_result.valid:
