@@ -1,14 +1,60 @@
 # Dockerfile dependency pinning policy
 
-> Status: v0.7.13 baseline. Hash-pinning roadmap: v0.8.0+ paired with
-> reproducible-build verification (v0.8.0 plan G4).
+> Status (v0.8.2): **STRUCTURAL FIX LANDED.** The Dockerfile now
+> uses `pip install --require-hashes -r /tmp/requirements.txt`
+> against a generated `docker/requirements.txt` (every transitive
+> dep pinned to a specific SHA256 hash). The recurring Scorecard
+> PinnedDependencies false-positive cycle (alerts #100 → #108
+> across v0.7.12 → v0.8.1) is closed. The historical narrative
+> below is preserved for context; jump to "v0.8.2 G4 closure"
+> for the current state.
 
-## Policy
+## v0.8.2 G4 closure (current)
 
-The `Dockerfile` at the repo root pins the `evidentia[gui]` install to
-the exact current release version (e.g. `evidentia[gui]==0.7.12`),
-**not** a full hash-pinned requirements file. This is a deliberate
-trade-off rather than an oversight.
+The Dockerfile install line is now:
+
+```dockerfile
+COPY docker/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir --user --require-hashes -r /tmp/requirements.txt
+```
+
+`docker/requirements.txt` is generated via
+`pip-compile --generate-hashes --output-file=docker/requirements.txt
+docker/requirements.in`, with `requirements.in` containing
+`evidentia[gui]==X.Y.Z`. The file pins ~140 transitive deps with
+SHA256 hashes per platform tag.
+
+**Regeneration**: `scripts/bump_version.py --regenerate-requirements
+--to A.B.C` updates the pin in `requirements.in` + invokes
+`pip-compile`. Run inside the pinned base-image
+(`python:3.14-slim@sha256:...`) so platform-specific transitives
+(uvloop, etc.) resolve correctly:
+
+```bash
+docker run --rm -v "$PWD/docker:/work" -w /work \
+  python:3.14-slim@sha256:<base-digest> \
+  sh -c "pip install -q pip-tools && pip-compile --generate-hashes \
+    --output-file=requirements.txt requirements.in"
+```
+
+**Verification**: `docker build -t evidentia:test .` succeeds; the
+pip install run inside the build emits the standard
+`Successfully installed ...` lines for every package in the
+hash-pinned set. A tampered transitive surfaces as
+`THESE PACKAGES DO NOT MATCH THE HASHES FROM THE REQUIREMENTS FILE`
++ build failure.
+
+**Scorecard impact**: PinnedDependencies score expected to move from
+9/10 → 10/10 on the next scan. The recurring alert pattern
+(#100/#101/#102/#103/#107/#108) does not re-fire because the
+Dockerfile line no longer matches the alert pattern's regex.
+
+## Historical narrative (v0.7.13 → v0.8.1; preserved for context)
+
+The `Dockerfile` at the repo root used to pin the `evidentia[gui]`
+install to the exact current release version (e.g.
+`evidentia[gui]==0.7.12`), **not** a full hash-pinned requirements
+file. This was a deliberate trade-off rather than an oversight.
 
 ## Why exact-version, not hash-pinning
 

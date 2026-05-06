@@ -115,16 +115,18 @@ def main() -> int:
         "--regenerate-requirements",
         action="store_true",
         help=(
-            "v0.7.14 P1.5 preview: also regenerate "
-            "docker/requirements.txt via pip-compile --generate-hashes "
-            "against evidentia[gui]==<--to>. The Dockerfile install "
-            "line continues to use exact-version pinning for now; the "
-            "switch to pip install --require-hashes -r requirements.txt "
-            "lands in v0.8.0 G4 (reproducible-build verification). "
-            "Until then, the regenerated file ships as v0.8.0 "
-            "foundation + can be inspected by operators planning their "
-            "own hash-pinned image builds. Requires pip-tools "
-            "installed (pip install pip-tools)."
+            "v0.7.14 P1.5 (foundation) → v0.8.2 G4 (production): "
+            "regenerate docker/requirements.txt via pip-compile "
+            "--generate-hashes against evidentia[gui]==<--to>. The "
+            "Dockerfile install line uses --require-hashes -r "
+            "/tmp/requirements.txt as of v0.8.2, so this regeneration "
+            "is REQUIRED on every release that touches Dockerfile "
+            "deps. Requires pip-tools installed (pip install pip-tools). "
+            "PLATFORM CAVEAT: pip-compile resolves transitives for the "
+            "HOST platform — Linux-only deps (uvloop) are missed when "
+            "run on Windows. For correct results, run inside the "
+            "pinned Linux base image: see docs/dockerfile-pinning.md "
+            "Regeneration section."
         ),
     )
     args = ap.parse_args()
