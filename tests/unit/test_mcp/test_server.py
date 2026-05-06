@@ -286,8 +286,36 @@ class TestCLI:
         assert "MCP SDK" in result.stdout
 
     def test_serve_with_no_stdio_exits_2(self) -> None:
-        """Operators trying to bypass stdio get a clear error."""
-        runner = CliRunner()
-        # We pass --no-stdio which the implementation rejects.
+        """Operators trying to bypass stdio without --transport
+        get a clear error pointing at the new flag."""
+        # CliRunner's mix_stderr=False keeps stderr separately
+        # captured; without it, the err output is mixed into
+        # stdout. Use mix_stderr=False so we can assert on the
+        # error message specifically.
+        runner = CliRunner(mix_stderr=False)
+        # We pass --no-stdio which the implementation rejects
+        # (with a hint to use --transport instead).
         result = runner.invoke(mcp_cli_app, ["serve", "--no-stdio"])
         assert result.exit_code == 2
+        # The error message points at --transport.
+        assert "--transport" in result.stderr
+
+    def test_serve_help_shows_transport_choices(self) -> None:
+        """v0.8.1 P3.1: --transport flag is documented + offers
+        stdio/sse/http choices.
+        """
+        runner = CliRunner()
+        result = runner.invoke(mcp_cli_app, ["serve", "--help"])
+        assert result.exit_code == 0
+        assert "--transport" in result.stdout
+        # Choices visible in help output.
+        for choice in ("stdio", "sse", "http"):
+            assert choice in result.stdout
+
+    def test_serve_help_shows_host_port(self) -> None:
+        """v0.8.1 P3.1: --host + --port flags are documented."""
+        runner = CliRunner()
+        result = runner.invoke(mcp_cli_app, ["serve", "--help"])
+        assert result.exit_code == 0
+        assert "--host" in result.stdout
+        assert "--port" in result.stdout

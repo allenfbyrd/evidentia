@@ -94,6 +94,49 @@ def run_stdio() -> None:
     server.run(transport="stdio")
 
 
+def run_sse(*, host: str, port: int) -> None:
+    """Run the MCP server over SSE (Server-Sent Events).
+
+    v0.8.1 P3.1: legacy HTTP transport for older MCP clients.
+    Binds an HTTP server on ``host:port``. Blocks until the
+    process is interrupted.
+
+    Args:
+        host: Bind address (default in caller is ``127.0.0.1``).
+        port: Bind port.
+
+    Operators binding to non-loopback addresses MUST front the
+    server with reverse-proxy auth — the v0.8.1 MCP server
+    doesn't gate file-path tool inputs against an allow-root.
+    See ``docs/threat-model.md`` Surface 2 for the full posture.
+    """
+    server = build_server()
+    # FastMCP exposes ``settings.host`` + ``settings.port`` as
+    # the canonical knobs for the HTTP transports. Mutate before
+    # ``server.run(transport="sse")`` so the bind address takes
+    # effect.
+    server.settings.host = host
+    server.settings.port = port
+    server.run(transport="sse")
+
+
+def run_http(*, host: str, port: int) -> None:
+    """Run the MCP server over streamable-http.
+
+    v0.8.1 P3.1: modern MCP HTTP transport supporting bi-
+    directional streaming. Used by browser-based agents +
+    remote MCP clients that don't speak stdio.
+
+    Same security posture as :func:`run_sse` — operators
+    binding to non-loopback MUST front with reverse-proxy
+    auth.
+    """
+    server = build_server()
+    server.settings.host = host
+    server.settings.port = port
+    server.run(transport="streamable-http")
+
+
 # ── Tool implementations ──────────────────────────────────────────
 
 

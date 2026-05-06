@@ -20,6 +20,16 @@ the top-level ``evidentia`` Typer app.
 
 from __future__ import annotations
 
-from evidentia_mcp.server import build_server, run_stdio
+from evidentia_mcp.server import (
+    build_server,
+    run_http,
+    run_sse,
+    run_stdio,
+)
 
-__all__ = ["build_server", "run_stdio"]
+__all__ = [
+    "build_server",
+    "run_http",
+    "run_sse",
+    "run_stdio",
+]

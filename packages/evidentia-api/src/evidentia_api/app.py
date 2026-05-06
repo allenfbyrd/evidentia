@@ -25,6 +25,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from evidentia_core.security.paths import (
     PathTraversalError,
@@ -36,6 +37,9 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from evidentia_api import __version__
+
+if TYPE_CHECKING:
+    from evidentia_core.plugins.auth import AuthProvider
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +53,7 @@ def create_app(
     dev_mode: bool = False,
     cors_origins: list[str] | None = None,
     security_headers: bool | None = None,
+    auth_provider: AuthProvider | None = None,
 ) -> FastAPI:
     """Build and return a FastAPI application.
 
@@ -71,6 +76,16 @@ def create_app(
         other value → off). The CLI ``evidentia serve`` flag wires the
         env var on the operator's behalf with auto-detection per
         bind-host. Closes v0.7.8 F-V08-DAST-2 LOW finding (CWE-693).
+    auth_provider
+        v0.8.1 P3.3: optional :class:`AuthProvider` instance from
+        ``evidentia_core.plugins.auth``. When non-None, attaches
+        :class:`AuthProviderMiddleware` so every ``/api/*`` route
+        requires a valid bearer token (gating
+        :class:`AuthResult.authenticated`). Liveness probes
+        (``/api/health``, ``/api/version``) bypass auth per the
+        UNAUTHENTICATED_PATHS allowlist. Default ``None`` matches
+        v0.8.0 behavior (no auth gating). Closes v0.8.0 review
+        F-V08-S3 ``/api/metrics`` MEDIUM finding when populated.
     """
     if offline:
         from evidentia_core.network_guard import set_offline
@@ -123,10 +138,26 @@ def create_app(
 
         app.add_middleware(SecurityHeadersMiddleware)
 
+    # v0.8.1 P3.3: AuthProvider middleware. Attaches BEFORE the
+    # security-headers middleware in the FastAPI middleware
+    # stack (Starlette runs middleware in reverse-add order, so
+    # this becomes the OUTER ring — auth check fires before
+    # any security-header logic). Closes the v0.8.0 review
+    # F-V08-S3 finding when populated.
+    if auth_provider is not None:
+        from evidentia_api.auth_middleware import (
+            AuthProviderMiddleware,
+        )
+
+        app.add_middleware(
+            AuthProviderMiddleware, provider=auth_provider
+        )
+
     # Attach flags to app state so every router dep can consult them.
     app.state.offline = offline
     app.state.dev_mode = dev_mode
     app.state.security_headers = security_headers
+    app.state.auth_provider = auth_provider
 
     # Register routers. Each router is a focused module — see routers/*.py.
     # Imports are deferred so module-load errors in one router don't take
