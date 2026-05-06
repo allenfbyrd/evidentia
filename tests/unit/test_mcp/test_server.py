@@ -305,7 +305,15 @@ class TestCLI:
         stdio/sse/http choices.
         """
         runner = CliRunner()
-        result = runner.invoke(mcp_cli_app, ["serve", "--help"])
+        # COLUMNS=200 prevents Rich/Typer help-output from wrapping
+        # flag names across lines on narrow Windows-CI terminals;
+        # NO_COLOR=1 disables ANSI styling so substring matches
+        # against the rendered text find the literal tokens.
+        result = runner.invoke(
+            mcp_cli_app,
+            ["serve", "--help"],
+            env={"COLUMNS": "200", "NO_COLOR": "1"},
+        )
         assert result.exit_code == 0
         assert "--transport" in result.stdout
         # Choices visible in help output.
@@ -315,7 +323,11 @@ class TestCLI:
     def test_serve_help_shows_host_port(self) -> None:
         """v0.8.1 P3.1: --host + --port flags are documented."""
         runner = CliRunner()
-        result = runner.invoke(mcp_cli_app, ["serve", "--help"])
+        result = runner.invoke(
+            mcp_cli_app,
+            ["serve", "--help"],
+            env={"COLUMNS": "200", "NO_COLOR": "1"},
+        )
         assert result.exit_code == 0
         assert "--host" in result.stdout
         assert "--port" in result.stdout
