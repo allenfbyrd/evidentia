@@ -410,7 +410,7 @@ jobs:
           # overwrite ephemerally so pip-compile resolves the v0.8.4
           # release we just uploaded.
           echo "evidentia[gui]==${VERSION}" > docker/requirements.in
-          pip install -q pip-tools
+          pip install -q pip-tools==7.5.3  # PinnedDependencies (Scorecard)
           attempts=0
           max_attempts=3
           until pip-compile --generate-hashes \
