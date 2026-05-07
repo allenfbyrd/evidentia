@@ -133,10 +133,29 @@ def serve(
         help=(
             "v0.8.5 P4: path to a CIMD (Client ID Metadata "
             "Document) registry JSON file. When set, the server "
-            "loads + attaches the registry; future per-client "
-            "scope-gating logic consults it via "
-            "``server.evidentia_cimd``. Optional. See "
+            "loads + attaches the registry; per-client scope-"
+            "gating logic (v0.8.6 P1) consults it via "
+            "``server.evidentia_cimd``. Pair with "
+            "``--default-client-id`` for stdio. Optional. See "
             "``evidentia_mcp.cimd`` for the file format."
+        ),
+    ),
+    default_client_id: str | None = typer.Option(
+        None,
+        "--default-client-id",
+        help=(
+            "v0.8.6 P1: fallback ``client_id`` when the MCP "
+            "request meta does not carry one. On stdio "
+            "(canonical case), the wire protocol does NOT pass "
+            "a per-request client_id, so this flag IS the "
+            "client_id for the entire stdio session — set it "
+            "to a slug registered in the CIMD registry to "
+            "enable per-tool scope enforcement. On HTTP/SSE, "
+            "the flag is a fallback when the MCP client did "
+            "not set ``_meta.client_id``. Documented as "
+            "INFORMATIONAL (audit-trail granularity), NOT a "
+            "security boundary on stdio. See "
+            "``evidentia_mcp.scope`` for the threat model."
         ),
     ),
 ) -> None:
@@ -185,6 +204,34 @@ def serve(
             err=True,
         )
 
+    # v0.8.6 P1: --default-client-id validation. Without
+    # --cimd-registry the flag is meaningless (no scope to
+    # enforce against). Without --default-client-id but with
+    # --cimd-registry on stdio, every tool call denies because
+    # stdio carries no per-request client_id — surface a warning
+    # so operators don't run a server that denies all tool calls.
+    if default_client_id is not None and cimd_registry is None:
+        typer.echo(
+            "WARNING: --default-client-id set without "
+            "--cimd-registry. Flag is ignored (no scope to "
+            "enforce against).",
+            err=True,
+        )
+    if (
+        cimd_registry is not None
+        and default_client_id is None
+        and transport == _Transport.STDIO
+    ):
+        typer.echo(
+            "WARNING: --cimd-registry set without "
+            "--default-client-id on stdio transport. Stdio "
+            "carries no per-request client_id, so every tool "
+            "call will deny (ambiguous-caller policy). Pair "
+            "--cimd-registry with --default-client-id for "
+            "stdio deployments.",
+            err=True,
+        )
+
     # v0.8.2 F-V81-S1: extra warning when binding non-loopback
     # WITHOUT --allow-root. Pairs with the existing reverse-proxy
     # auth warning to surface BOTH defenses to operators.
@@ -207,7 +254,11 @@ def serve(
             )
 
     if transport == _Transport.STDIO:
-        run_stdio(allow_root=allow_root, cimd_registry=cimd_registry)
+        run_stdio(
+            allow_root=allow_root,
+            cimd_registry=cimd_registry,
+            default_client_id=default_client_id,
+        )
     elif transport == _Transport.SSE:
         # SSE transport — the legacy MCP HTTP transport. Some
         # older MCP clients still expect this.
@@ -218,6 +269,7 @@ def serve(
             port=port,
             allow_root=allow_root,
             cimd_registry=cimd_registry,
+            default_client_id=default_client_id,
         )
     elif transport == _Transport.HTTP:
         # Streamable-http transport — the modern MCP HTTP
@@ -229,6 +281,7 @@ def serve(
             port=port,
             allow_root=allow_root,
             cimd_registry=cimd_registry,
+            default_client_id=default_client_id,
         )
     else:  # pragma: no cover — exhaustive Enum
         typer.echo(f"Unknown transport: {transport}", err=True)

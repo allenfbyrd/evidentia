@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "clients": {
+    "claude-desktop": {
+      "client_id": "claude-desktop",
+      "client_name": "Claude Desktop (read-only)",
+      "scope": "list_frameworks get_control",
+      "redirect_uris": [],
+      "policy_uri": null,
+      "tos_uri": null
+    },
+    "research-agent": {
+      "client_id": "research-agent",
+      "client_name": "Read-only research agent",
+      "scope": "list_frameworks get_control",
+      "redirect_uris": [],
+      "policy_uri": null,
+      "tos_uri": null
+    }
+  }
+}

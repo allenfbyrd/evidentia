@@ -173,6 +173,41 @@ Every successful `evidentia.ai.*_generated` event corresponds to an
 output object carrying a `GenerationContext` provenance block — see
 the next section.
 
+### `evidentia.mcp.*` — MCP tool authorization (v0.8.6 P1)
+
+Fired by `evidentia_mcp.scope.enforce_cimd_scope` once per tool
+call routed through the CIMD-enforcement gate. AUTHORIZED + DENIED
+are mutually exclusive per call; both carry the calling
+`client_id` + the requested `tool_name` + the registered scope
+allowlist so an auditor can reconstruct the gate's decision
+without re-running the request.
+
+| Action | When emitted |
+|---|---|
+| `evidentia.mcp.tool_authorized` | Tool dispatch passed the CIMD gate (registered `client_id` + scope contains tool); call delegated to FastMCP `call_tool` |
+| `evidentia.mcp.tool_denied` | Tool dispatch failed the CIMD gate (ambiguous client_id, unregistered client_id, or scope does not contain tool); MCP client receives `McpError` code -32602 |
+
+Both events carry the following evidentia-extension fields:
+
+| Field | Type | Purpose |
+|---|---|---|
+| `evidentia.run_id` | `str` (32-char hex) | Per-call UUID4; distinct from DFAH `run_id`. Lets auditors correlate the authorize/deny decision with downstream tool-execution events when AUTHORIZED proceeds. |
+| `evidentia.client_id` | `str \| null` | Resolved client_id (precedence: `Context.client_id` → `default_client_id` → `null`). When `null`, the call denied with ambiguous-caller policy. |
+| `evidentia.tool_name` | `str` | The MCP tool name the client requested (e.g., `gap_analyze`, `list_frameworks`). |
+| `evidentia.scope_allowlist` | `str \| null` | Space-separated tool allowlist from the matched CIMDDocument (or `null` if client_id was unresolved/unregistered). |
+
+When the MCP server is built without a CIMDRegistry attached
+(the v0.8.5 default), the gate passes all calls through and these
+events do NOT fire — absence of the events is itself an audit
+signal that the operator did not opt into per-tool gating.
+
+**Threat model**: CIMD is NOT authentication. The audit-trail
+records what `client_id` the gate observed; transport-level
+authentication (reverse-proxy mTLS, bearer tokens, UID-based
+trust for stdio) is the prerequisite for using CIMD as an AuthZ
+control. See `evidentia_mcp.scope` module docstring +
+`docs/threat-model.md` for the full posture.
+
 ## `GenerationContext` — AI output provenance
 
 Every artifact emitted by `evidentia-ai` (currently `RiskStatement`

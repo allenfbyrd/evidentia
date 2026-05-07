@@ -80,6 +80,7 @@ def build_server(
     *,
     allow_root: Path | None = None,
     cimd_registry: CIMDRegistry | None = None,
+    default_client_id: str | None = None,
 ) -> FastMCP:
     """Construct the FastMCP server with all tools registered.
 
@@ -95,15 +96,18 @@ def build_server(
             read (appropriate for stdio + loopback HTTP/SSE).
         cimd_registry: v0.8.5 P4. Optional Client ID Metadata
             Document registry. When set, the server attaches the
-            registry to its instance so future per-client
-            scope-gating logic can consult it. v0.8.5 ships the
-            registry-loading + attachment infrastructure;
-            per-tool scope enforcement at MCP-protocol level is
-            a v0.8.6 polish item. The registry IS visible to
-            tool implementations via ``server.evidentia_cimd``
-            attribute (custom-attached; not a FastMCP standard
-            field) for callers that want to opt into manual
-            scope checks.
+            registry to its instance + (v0.8.6 P1) wires the
+            scope-enforcement gate so every tool dispatch routes
+            through :func:`evidentia_mcp.scope.enforce_cimd_scope`.
+            The registry IS visible to tool implementations via
+            ``server.evidentia_cimd`` attribute (custom-attached;
+            not a FastMCP standard field).
+        default_client_id: v0.8.6 P1. Fallback ``client_id`` when
+            the MCP request meta does not carry one (canonical
+            stdio behavior; sometimes HTTP/SSE too). Combined
+            with ``cimd_registry`` to wire the scope-enforcement
+            gate. When ``cimd_registry`` is ``None`` this argument
+            is informational only.
 
     Returns:
         A :class:`mcp.server.fastmcp.FastMCP` instance ready to
@@ -119,6 +123,16 @@ def build_server(
     # collisions.
     server.evidentia_cimd = cimd_registry  # type: ignore[attr-defined]
     _register_tools(server, allow_root=allow_root)
+    # v0.8.6 P1: wire the CIMD scope-enforcement gate AFTER tools
+    # are registered. The gate is idempotent + checks
+    # ``server.evidentia_cimd`` at call time (so a None registry
+    # passes through with no audit emit; preserves v0.8.5
+    # behavior). When a registry IS attached, every tool dispatch
+    # routes through one authorization choke-point + emits
+    # AI_MCP_TOOL_AUTHORIZED / AI_MCP_TOOL_DENIED audit events.
+    from evidentia_mcp.scope import enforce_cimd_scope
+
+    enforce_cimd_scope(server, default_client_id=default_client_id)
     return server
 
 
@@ -126,6 +140,7 @@ def run_stdio(
     *,
     allow_root: Path | None = None,
     cimd_registry: CIMDRegistry | None = None,
+    default_client_id: str | None = None,
 ) -> None:
     """Run the MCP server over stdio (the canonical transport).
 
@@ -139,8 +154,17 @@ def run_stdio(
             value. Operators concerned about a malicious LLM
             client can still set the flag.
         cimd_registry: v0.8.5 P4. See :func:`build_server`.
+        default_client_id: v0.8.6 P1. See :func:`build_server`.
+            On stdio, the MCP wire protocol carries no per-request
+            client_id, so this flag IS the client_id. Documented
+            as informational, NOT a security boundary, in
+            :mod:`evidentia_mcp.scope`.
     """
-    server = build_server(allow_root=allow_root, cimd_registry=cimd_registry)
+    server = build_server(
+        allow_root=allow_root,
+        cimd_registry=cimd_registry,
+        default_client_id=default_client_id,
+    )
     server.run(transport="stdio")
 
 
@@ -150,6 +174,7 @@ def run_sse(
     port: int,
     allow_root: Path | None = None,
     cimd_registry: CIMDRegistry | None = None,
+    default_client_id: str | None = None,
 ) -> None:
     """Run the MCP server over SSE (Server-Sent Events).
 
@@ -167,12 +192,19 @@ def run_sse(
         cimd_registry: v0.8.5 P4. See :func:`build_server`.
             Especially relevant for non-loopback HTTP/SSE
             deployments where multiple clients may connect.
+        default_client_id: v0.8.6 P1. Fallback when MCP request
+            meta does not carry a client_id. See
+            :func:`build_server` + :mod:`evidentia_mcp.scope`.
 
     Operators binding to non-loopback addresses MUST also front
     the server with reverse-proxy auth. See
     ``docs/threat-model.md`` Surface 2 for the full posture.
     """
-    server = build_server(allow_root=allow_root, cimd_registry=cimd_registry)
+    server = build_server(
+        allow_root=allow_root,
+        cimd_registry=cimd_registry,
+        default_client_id=default_client_id,
+    )
     # FastMCP exposes ``settings.host`` + ``settings.port`` as
     # the canonical knobs for the HTTP transports. Mutate before
     # ``server.run(transport="sse")`` so the bind address takes
@@ -188,6 +220,7 @@ def run_http(
     port: int,
     allow_root: Path | None = None,
     cimd_registry: CIMDRegistry | None = None,
+    default_client_id: str | None = None,
 ) -> None:
     """Run the MCP server over streamable-http.
 
@@ -204,8 +237,13 @@ def run_http(
         port: Bind port.
         allow_root: See :func:`build_server`.
         cimd_registry: v0.8.5 P4. See :func:`build_server`.
+        default_client_id: v0.8.6 P1. See :func:`build_server`.
     """
-    server = build_server(allow_root=allow_root, cimd_registry=cimd_registry)
+    server = build_server(
+        allow_root=allow_root,
+        cimd_registry=cimd_registry,
+        default_client_id=default_client_id,
+    )
     server.settings.host = host
     server.settings.port = port
     server.run(transport="streamable-http")

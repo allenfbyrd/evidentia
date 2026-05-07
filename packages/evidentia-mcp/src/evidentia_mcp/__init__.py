@@ -25,6 +25,7 @@ from evidentia_mcp.cimd import (
     CIMDDocument,
     CIMDRegistry,
 )
+from evidentia_mcp.scope import enforce_cimd_scope
 from evidentia_mcp.server import (
     build_server,
     run_http,
@@ -37,6 +38,7 @@ __all__ = [
     "CIMDDocument",
     "CIMDRegistry",
     "build_server",
+    "enforce_cimd_scope",
     "run_http",
     "run_sse",
     "run_stdio",

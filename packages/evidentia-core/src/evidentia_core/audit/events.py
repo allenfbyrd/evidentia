@@ -145,6 +145,21 @@ class EventAction(str, Enum):
     # for fast filtering of low-confidence outputs.
     AI_RISK_TRACE_EMITTED = "evidentia.ai.risk_trace_emitted"
 
+    # v0.8.6 P1: MCP per-tool authorization audit trail. Fired by
+    # ``evidentia_mcp.scope.enforce_cimd_scope`` once per tool call
+    # routed through the CIMD-enforcement gate. AUTHORIZED + DENIED
+    # are mutually exclusive per call; both carry the calling
+    # client_id + the requested tool_name + the registered scope
+    # allowlist so an auditor can reconstruct the gate's decision
+    # without re-running the request. Pairs with the v0.8.5-shipped
+    # ``CIMDDocument.has_scope`` predicate. When the MCP server is
+    # built without a CIMDRegistry attached (the v0.8.5 default), the
+    # gate passes all calls through and these events do NOT fire —
+    # absence of the events is itself an audit signal that the
+    # operator did not opt into per-tool gating.
+    AI_MCP_TOOL_AUTHORIZED = "evidentia.mcp.tool_authorized"
+    AI_MCP_TOOL_DENIED = "evidentia.mcp.tool_denied"
+
     # Retention + WORM lifecycle events (v0.7.12 P1) — audit-trail
     # actions on records under retention metadata. The PURGED variant
     # serves as the canonical legal-counsel-defensible artifact for
