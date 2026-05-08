@@ -1885,6 +1885,80 @@ leaked.
 
 ---
 
+## v0.8.7 attack-surface delta — final v0.8.x wrap-up
+
+> Status: 2026-05-08. v0.8.7 SHIPPED. **FINAL v0.8.x patch.**
+> Backfills v0.8.6 cycle-close artifacts deferred during
+> single-session compression (Phase 1; docs only) + closes
+> the v0.8.6 P3 CLI deferral via `--faithfulness-threshold-
+> mode {framework-aware,fixed}` flag (Phase 2). 14th
+> consecutive PROCEED-CLEAN of v0.7.x → v0.8.x line.
+
+### `--faithfulness-threshold-mode` CLI flag (P2)
+
+**Surface change**: NEW `--faithfulness-threshold-mode
+{framework-aware,fixed}` flag on `evidentia eval risk-
+determinism` CLI surface (default `framework-aware`).
+Validation: invalid value → exit 2 with error message naming
+both valid options.
+
+`--faithfulness-threshold` default changed from `0.3` → `None`
+(sentinel for "user did not pass"). Backward compatible:
+callers who explicitly pass `--faithfulness-threshold 0.3`
+see identical behavior; callers who relied on the implicit
+default now get framework-aware resolution.
+
+Resolution precedence:
+1. Explicit `--faithfulness-threshold` value always wins.
+2. `framework-aware` mode + `check_faithfulness=True` +
+   samples non-empty → extract framework from first sample's
+   `prompt_id` (canonical `<framework>:<control_id>` format)
+   + `resolve_threshold(framework, method)`.
+3. `fixed` mode → `DEFAULT_FAITHFULNESS_THRESHOLD` (0.30)
+   framework-agnostic.
+
+Stdout summary adds `faithfulness threshold: X.XX (<source>)`
+line where source is `explicit` / `framework-aware
+(framework=...)` / `fixed (framework-agnostic default)`.
+
+**Threat coverage**: closes the v0.8.6 P3 CLI deferral.
+Operators can now opt into framework-aware threshold defaults
+via the CLI surface (no Python required). Improves auditor
+triage by surfacing the resolved threshold + its source in
+the eval output.
+
+**Residual risk**: pure operator-facing input validation; no
+runtime reach beyond threshold resolution at harness
+invocation. Allowlist-validated mode parameter rejects
+unexpected values at parse time. Framework extraction from
+`prompt_id` is robust to unrecognized formats — falls back
+gracefully to framework-agnostic threshold without disrupting
+the LLM call. Bare framework identifier `"nist-800-53"` maps
+to 0.60 in `DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD`; Rev5
+prefix `"nist-800-53-rev5"` falls back to 0.30 (documented in
+test_framework_aware_mode_uses_nist_0_60). Operators using
+Rev5-prefix gap files can pass `--faithfulness-threshold`
+explicitly OR use `--faithfulness-threshold-mode fixed`.
+
+### Phase 1 v0.8.6 cycle-close artifact backfill (docs only)
+
+**Surface change**: 6 docs-only changes per §30 P1 — no
+runtime surface; pure narrative/documentation backfill. New
+files: `docs/security-review-v0.8.6.md` +
+`docs/v0.8.6-plan.md`. Modified: `docs/threat-model.md` (this
+delta) + `docs/capability-matrix.md` v0.8.6 snapshot +
+`README.md` v0.8.6 entry + `docs/ROADMAP.md` v0.8.6 PLANNED
+→ SHIPPED transition.
+
+**Threat coverage**: not applicable — narrative + audit-trail
+infrastructure.
+
+**Residual risk**: standing-rule keyword sweep ran clean
+across all 8 modified files; no commercialization vocabulary
+or personal names leaked.
+
+---
+
 ---
 
 *First published v0.7.7 (2026-05). Origin: promoted from a

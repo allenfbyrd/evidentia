@@ -979,30 +979,45 @@ consecutive).
 - Standing-rule keyword sweep clean across all 4 v0.8.6-cycle
   commits
 
-## v0.8.7 — Final v0.8.x wrap-up — PLANNED
+## v0.8.7 — Final v0.8.x wrap-up — SHIPPED
 
-Backfills the 6 v0.8.6 cycle-close artifacts deferred during
-single-session compression + closes the v0.8.6 P3 CLI
-deferral. FINAL v0.8.x patch; v0.9.0 opens with a clean
-slate.
+Tag `v0.8.7` at commit (TBD post-tag). Single focused session
+per Allen's explicit cycle-open lock-in (§30: Single v0.8.7
+wrap-up release + LLM-rater deferred to v0.9.0 + CIMD
+signatures deferred to v1.0). 14th consecutive PROCEED-CLEAN
+of v0.7.x → v0.8.x line. **FINAL v0.8.x patch** — v0.9.0 opens
+with a clean slate.
 
-### Plans
+See [`docs/security-review-v0.8.7.md`](security-review-v0.8.7.md)
+for the v4 Pre-tag-style closeout (PROCEED-CLEAN; 14th
+consecutive).
 
-- Backfill `docs/security-review-v0.8.6.md` +
-  `docs/v0.8.6-plan.md` + `docs/threat-model.md` v0.8.6
-  delta + `docs/capability-matrix.md` v0.8.6 snapshot +
-  `README.md` Recent Releases v0.8.6 entry + this section.
-- Wire `--faithfulness-threshold-mode {framework-aware,fixed}`
-  CLI flag through `evidentia eval risk-determinism`. Library
-  + `resolve_threshold()` helper shipped v0.8.6 P3; CLI
-  surface lands here.
-- Standard cycle-close artifacts for v0.8.7 itself
-  (`security-review-v0.8.7.md` + `v0.8.7-plan.md` + threat-
-  model + capability-matrix + README + ROADMAP transition +
-  CHANGELOG).
-- Pre-release-review v4 Continuous + ship.
+### Closed in v0.8.7
 
-Ship target: single focused session.
+- **`--faithfulness-threshold-mode {framework-aware,fixed}`
+  CLI flag** (P2) — closes the v0.8.6 P3 CLI-surface
+  deferral. Default `framework-aware`; explicit
+  `--faithfulness-threshold` value always wins;
+  framework-aware mode extracts framework from prompt_id
+  (canonical `<framework>:<control_id>` format) +
+  `resolve_threshold(framework, method)` lookup; fixed mode
+  uses `DEFAULT_FAITHFULNESS_THRESHOLD` (0.30). Default
+  `--faithfulness-threshold` changed from `0.3` → `None`
+  sentinel; backward-compatible.
+- **6 v0.8.6 cycle-close artifacts backfilled** (P1; docs
+  only) — `security-review-v0.8.6.md` + `v0.8.6-plan.md` +
+  threat-model v0.8.6 delta + capability-matrix v0.8.6
+  snapshot + README v0.8.6 entry + ROADMAP v0.8.6 PLANNED →
+  SHIPPED transition.
+
+### Test count + quality gates
+
+- pytest 100% green: 2386 passed / 17 skipped (was 2383/17
+  at v0.8.6 ship; +3 new from TestFaithfulnessThresholdMode)
+- mypy strict 0/0 across 217 source files
+- ruff clean
+- Standing-rule keyword sweep clean across the v0.8.7-cycle
+  commits
 
 ## v0.9.0 — Federal compliance — PLANNED
 

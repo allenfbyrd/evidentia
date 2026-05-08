@@ -13,6 +13,78 @@
 
 ---
 
+## Re-validation snapshot — 2026-05-08 (v0.8.7 SHIPPED)
+
+v0.8.7 SHIPPED (tag `v0.8.7` at commit TBD). **FINAL v0.8.x
+patch** — wrap-up cycle. Single focused session per Allen's
+explicit cycle-open lock-in (§30: Single v0.8.7 wrap-up
+release + LLM-rater deferred to v0.9.0 + CIMD signatures
+deferred to v1.0). 14th consecutive PROCEED-CLEAN of v0.7.x →
+v0.8.x line.
+
+**New public surfaces tested this cycle**:
+
+| Surface | Test path | Coverage |
+|---|---|---|
+| `--faithfulness-threshold-mode {framework-aware,fixed}` CLI flag | `tests/unit/test_eval/test_harness.py::TestFaithfulnessThresholdMode` (3 tests) | Invalid mode → exit 2; fixed mode → 0.30 framework-agnostic verified via stdout; framework-aware mode + DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD lookup verified via direct `resolve_threshold` invocation |
+| `--faithfulness-threshold` default sentinel | TestFaithfulnessThresholdMode (3 tests) | Default changed from `0.3` → `None`; explicit `--faithfulness-threshold N` always wins over `--faithfulness-threshold-mode` |
+| Stdout summary: `faithfulness threshold: X.XX (<source>)` | TestFaithfulnessThresholdMode (verified via stdout assertion) | Source string per resolution path: `explicit` / `framework-aware (framework=...)` / `fixed (framework-agnostic default)` |
+| v0.8.6 cycle-close artifacts (Phase 1) | docs only — no runtime surface | 6 docs-only deliverables backfilled per §30 P1 |
+
+**Inherited surface re-validation** (carry-forward from
+v0.8.6 — no functional changes; v0.8.7 closes v0.8.6 P3 CLI
+deferral + adds wrap-up artifacts without modifying TPRM /
+model-risk / governance / cloud-WORM / Sigstore eval / DFAH
+determinism / DFAH faithfulness library + harness / PRT /
+MCP HTTP/SSE / CIMD scope enforcement / Cohen's Kappa /
+plugin-contract scaffolding surfaces).
+
+**Adversarial probing (DAST per v4 G11)**:
+
+- `--faithfulness-threshold-mode` allowlist enforcement
+  rejects unexpected values at Typer parse time (tested via
+  `test_invalid_mode_exits_2`).
+- Default sentinel change (`0.3 → None`) preserves backward
+  compat: callers who explicitly pass `--faithfulness-
+  threshold 0.3` see identical behavior (tested via
+  `test_fixed_mode_uses_0_30` — when in fixed mode, the
+  fallback IS 0.30).
+- Framework extraction from `prompt_id` is robust to
+  unrecognized formats — falls back to framework-agnostic
+  threshold without disrupting the LLM call.
+
+**Quality gates at ship**: 2386 tests passing / 17 skipped
+(was 2383 / 17 at v0.8.6 close; +3 new from
+TestFaithfulnessThresholdMode). mypy strict 0/0 across 217
+source files (unchanged). ruff clean. Standing-rule sweep
+clean across the v0.8.7-cycle commits.
+
+**Pre-release-review v4 Pre-tag deliverables**:
+
+- `docs/security-review-v0.8.7.md` (5th canonical Pre-tag
+  deliverable per v4 §G7) — Continuous variant; 0 unfixed
+  CRITICAL/HIGH/MEDIUM/LOW findings; 14th consecutive
+  PROCEED-CLEAN.
+- `docs/v0.8.7-plan.md` — public-safe re-statement of §30
+  scope.
+- `docs/threat-model.md` v0.8.7 attack-surface delta — covers
+  the CLI flag (P2) + the docs-only Phase 1 backfill.
+
+**Step 7 post-tag verification expected ALL PASS** (run
+post-tag-publish):
+
+- G1 PEP 740 verify all 7 wheels OK
+- G2 cosign verify SLSA Provenance v1
+- G3 osv-scanner --sbom clean
+- G4 docker run "Evidentia v0.8.7"
+- G5 fresh-venv install — **14th consecutive pin-trap fix
+  validation**
+- G7 Scorecard delta no regression (G4 Path 2 stable)
+- G16 release-body substantiveness — **13th consecutive
+  auto-populate-from-CHANGELOG**
+
+---
+
 ## Re-validation snapshot — 2026-05-07 (v0.8.6 SHIPPED)
 
 v0.8.6 SHIPPED (tag `v0.8.6` at commit `eb0f331`; container

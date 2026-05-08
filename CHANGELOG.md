@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.7] - 2026-05-08
+
+**Final v0.8.x wrap-up.** Single focused session closing the
+v0.8.6 P3 CLI deferral + backfilling v0.8.6 cycle-close
+artifacts deferred during single-session compression. 14th
+consecutive PROCEED-CLEAN of v0.7.x → v0.8.x line. v0.9.0
+opens with a clean slate for the federal-compliance theme.
+
+### Added
+
+- **`--faithfulness-threshold-mode {framework-aware,fixed}`
+  CLI flag** on `evidentia eval risk-determinism` (default
+  `framework-aware`). Closes the v0.8.6 P3 CLI-surface
+  deferral. Library + `resolve_threshold()` helper shipped
+  v0.8.6 P3; v0.8.7 closes the operator-facing CLI surface.
+- **Resolution precedence**:
+  1. Explicit `--faithfulness-threshold` value always wins.
+  2. `framework-aware` mode + `check_faithfulness=True` +
+     samples non-empty → extract framework from first sample's
+     `prompt_id` (canonical `<framework>:<control_id>`
+     format) + `resolve_threshold(framework, method)`.
+  3. `fixed` mode → `DEFAULT_FAITHFULNESS_THRESHOLD` (0.30)
+     framework-agnostic.
+- **Stdout summary** adds `faithfulness threshold: X.XX
+  (<source>)` line where source is `explicit` /
+  `framework-aware (framework=...)` / `fixed (framework-
+  agnostic default)`.
+- 3 new CLI tests in `TestFaithfulnessThresholdMode`:
+  invalid mode → exit 2; fixed mode uses 0.30; framework-
+  aware mode + DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD
+  lookup verified.
+- **6 v0.8.6 cycle-close artifacts backfilled** (P1; docs
+  only):
+  - `docs/security-review-v0.8.6.md` (5th canonical Pre-tag
+    deliverable per v4 §G7).
+  - `docs/v0.8.6-plan.md` (public-safe re-statement of §29
+    scope).
+  - `docs/threat-model.md` v0.8.6 attack-surface delta.
+  - `docs/capability-matrix.md` v0.8.6 SHIPPED snapshot.
+  - `README.md` Recent Releases v0.8.6 entry prepend.
+  - `docs/ROADMAP.md` v0.8.6 PLANNED → SHIPPED transition +
+    new v0.8.7 PLANNED section + v0.9.0 RESERVED → PLANNED
+    transition.
+
+### Changed
+
+- **`--faithfulness-threshold` default**: `0.3` → `None`
+  sentinel for backward-compatible framework-aware default
+  resolution. Callers who explicitly pass `--faithfulness-
+  threshold 0.3` see identical behavior; callers who relied
+  on the implicit default now get framework-aware
+  resolution.
+
+### Deferred to v0.9.0
+
+- **Real LLM-assisted second rater + κ ≥ 0.80** —
+  v0.9.0 federal-compliance walk-through naturally surfaces
+  a HUMAN second rater (domain expert); higher signal than
+  LLM rater.
+
+### Deferred to v1.0
+
+- **Cryptographic CIMD signatures** (per Webscale OIDC
+  profile) — substantial work; appropriate for v1.0 scope
+  per `v1.0-transition.md` carries-forward section.
+- **OpenSSF Best Practices Badge Gold tier** — BLOCKED on
+  ≥ 2 contributors per bestpractices.dev criteria.
+
+### Quality gates
+
+- pytest 100% green: 2386 passed / 17 skipped (was 2383/17
+  at v0.8.6 ship; +3 new)
+- mypy strict 0/0 across 217 source files
+- ruff clean
+- Standing-rule keyword sweep clean across the v0.8.7-cycle
+  commits
+
 ## [0.8.6] - 2026-05-07
 
 **CIMD scope enforcement at MCP-protocol level + Cohen's Kappa

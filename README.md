@@ -148,6 +148,27 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.8.7 (May 2026)** — *Final v0.8.x wrap-up*. Single focused
+session closing the v0.8.6 P3 CLI deferral + backfilling
+v0.8.6 cycle-close artifacts deferred during single-session
+compression. **NEW** `--faithfulness-threshold-mode
+{framework-aware,fixed}` flag on `evidentia eval risk-
+determinism` (default `framework-aware`) closes the v0.8.6
+P3 deferral; `--faithfulness-threshold` default changed from
+`0.3` → `None` sentinel for backward-compatible framework-
+aware default resolution. Resolution precedence: explicit
+value wins → framework-aware mode (extracts framework from
+prompt_id; looks up via `resolve_threshold(framework, method)`)
+→ fixed mode (0.30 framework-agnostic). 6 v0.8.6 cycle-close
+artifacts backfilled (`docs/security-review-v0.8.6.md` +
+`docs/v0.8.6-plan.md` + threat-model v0.8.6 delta +
+capability-matrix v0.8.6 snapshot + README v0.8.6 entry +
+ROADMAP v0.8.6 PLANNED → SHIPPED transition). 14th
+consecutive PROCEED-CLEAN of v0.7.x → v0.8.x line. **2386
+tests passing across 217 source files; mypy strict 0/0; ruff
+clean.** **FINAL v0.8.x patch** — v0.9.0 opens with the
+federal-compliance theme per the 2026-04-28 §10 Q4 lock-in.
+
 **v0.8.6 (May 2026)** — *CIMD scope enforcement at MCP-
 protocol level + Cohen's Kappa rater agreement + per-claim
 confidence + framework-aware threshold defaults + v0.7.x
