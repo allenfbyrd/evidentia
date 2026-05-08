@@ -121,3 +121,111 @@ class TestFaithfulnessScore:
         assert roundtripped.claim == result.claim
         assert roundtripped.score == result.score
         assert roundtripped.method == result.method
+
+
+# ── v0.8.6 P3 — confidence + framework-aware threshold tests ─────
+
+
+class TestConfidence:
+    """Per-claim bootstrap-resampled confidence."""
+
+    def test_compute_confidence_default_off(self) -> None:
+        """Default behavior: confidence is None (cost-aware)."""
+        result = faithfulness_score(
+            "Account management procedures must enforce least privilege",
+            ["Account management procedures must enforce least privilege"],
+        )
+        assert result.confidence is None
+
+    def test_compute_confidence_high_for_consistent_match(
+        self,
+    ) -> None:
+        """Verbatim match → resample stddev low → confidence high.
+        Use a fixed seed for deterministic test value.
+        """
+        from evidentia_ai.eval.faithfulness import faithfulness_score
+
+        result = faithfulness_score(
+            "Account management procedures enforce least privilege",
+            ["Account management procedures enforce least privilege"],
+            compute_confidence=True,
+            n_resamples=50,
+            confidence_seed=42,
+        )
+        assert result.confidence is not None
+        assert 0.0 <= result.confidence <= 1.0
+        # Verbatim match resamples score ~1.0 consistently → high
+        # confidence.
+        assert result.confidence >= 0.7
+
+    def test_compute_confidence_zero_on_empty_clauses(self) -> None:
+        """No clauses → bootstrap can't compute → confidence 0.0."""
+        result = faithfulness_score(
+            "Anything",
+            [],
+            compute_confidence=True,
+            n_resamples=10,
+            confidence_seed=1,
+        )
+        assert result.confidence == 0.0
+
+    def test_compute_confidence_zero_on_empty_claim(self) -> None:
+        """No claim tokens → bootstrap can't compute → 0.0."""
+        result = faithfulness_score(
+            "",
+            ["something here"],
+            compute_confidence=True,
+            n_resamples=10,
+            confidence_seed=1,
+        )
+        assert result.confidence == 0.0
+
+
+class TestFrameworkField:
+    """Framework persisted on result for audit-trail re-derivation."""
+
+    def test_framework_default_none(self) -> None:
+        result = faithfulness_score(
+            "test claim", ["test clause"]
+        )
+        assert result.framework is None
+
+    def test_framework_persisted_when_set(self) -> None:
+        result = faithfulness_score(
+            "test claim",
+            ["test clause"],
+            framework="nist-800-53",
+        )
+        assert result.framework == "nist-800-53"
+
+
+class TestResolveThreshold:
+    """v0.8.6 P3 framework-aware default threshold resolution."""
+
+    def test_known_framework_returns_mapped_threshold(self) -> None:
+        from evidentia_ai.eval.faithfulness import resolve_threshold
+
+        assert resolve_threshold("nist-800-53") == 0.60
+        assert resolve_threshold("ffiec-it-handbook") == 0.35
+        assert resolve_threshold("iso-27001") == 0.30
+
+    def test_unknown_framework_falls_back_to_default(self) -> None:
+        from evidentia_ai.eval.faithfulness import resolve_threshold
+
+        assert resolve_threshold("not-a-framework") == DEFAULT_FAITHFULNESS_THRESHOLD
+
+    def test_none_framework_returns_default(self) -> None:
+        from evidentia_ai.eval.faithfulness import resolve_threshold
+
+        assert resolve_threshold(None) == DEFAULT_FAITHFULNESS_THRESHOLD
+
+    def test_non_jaccard_method_returns_default(self) -> None:
+        """Semantic method has no framework-aware map shipped in
+        v0.8.6 — returns the framework-agnostic default."""
+        from evidentia_ai.eval.faithfulness import resolve_threshold
+
+        # Even with a known framework, the non-jaccard method
+        # path returns the agnostic default.
+        assert resolve_threshold(
+            "nist-800-53", method="semantic"
+        ) == DEFAULT_FAITHFULNESS_THRESHOLD

@@ -43,6 +43,7 @@ References:
 
 from __future__ import annotations
 
+import random
 import re
 from collections.abc import Iterable
 
@@ -54,6 +55,34 @@ from pydantic import Field
 # semantic-similarity scores for paraphrases. A semantic
 # (sentence-transformers) implementation would raise this to ~0.7.
 DEFAULT_FAITHFULNESS_THRESHOLD: float = 0.3
+
+# v0.8.6 P3: per-framework empirical Jaccard thresholds.
+# Numbers from the v0.8.5 P2 sweep
+# (`scripts/tune_faithfulness_threshold.py --corpus-pattern
+# 'tests/data/dfah-calibration/corpus_*.jsonl'`):
+#
+#     corpus_ffiec.jsonl: threshold=0.35, J=0.417
+#     corpus_iso27001.jsonl: threshold=0.30, J=0.417
+#     corpus_nist.jsonl: threshold=0.60, J=0.417
+#
+# NIST 800-53 control text shapes are unusually verbatim-heavy;
+# the empirical optimum sits higher than the framework-agnostic
+# 0.30 default. ISO 27001:2022 + FFIEC IT Examination Handbook
+# shapes are paraphrase-friendlier. Operators MAY override at
+# call sites; this map is the framework-aware default.
+DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD: dict[str, float] = {
+    "nist-800-53": 0.60,
+    "ffiec-it-handbook": 0.35,
+    "iso-27001": 0.30,
+}
+
+# v0.8.6 P3: default bootstrap-resample count for the jaccard
+# confidence estimator. 100 samples balances per-claim cost
+# (~100ms/claim on commodity hardware) against confidence-
+# interval stability. Operators tune via the
+# ``--confidence-resamples N`` CLI flag (smaller = faster + more
+# variance; larger = slower + tighter intervals).
+DEFAULT_CONFIDENCE_RESAMPLES: int = 100
 
 # Token-extraction regex: ASCII alphanumerics in word-boundary
 # groups. This intentionally drops punctuation, whitespace, and
@@ -114,6 +143,37 @@ class FaithfulnessResult(EvidentiaModel):
             "``jaccard-stdlib`` (token-overlap baseline). Future "
             "semantic-similarity paths will register under "
             "``sentence-transformers`` or similar identifiers."
+        ),
+    )
+    confidence: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "v0.8.6 P3: per-claim confidence in the faithfulness "
+            "score in [0, 1]. ``None`` when the scorer did not "
+            "compute confidence (cost-aware default; opt in via "
+            "the ``compute_confidence=True`` kwarg). For the "
+            "jaccard scorer, computed via bootstrap-resampled "
+            "score stddev (lower stddev = higher confidence). "
+            "For the semantic scorer, computed via top-K cosine-"
+            "similarity stddev. Operators filter low-confidence "
+            "below-threshold claims separately from high-"
+            "confidence ones to avoid false-positive triage on "
+            "borderline edge cases."
+        ),
+    )
+    framework: str | None = Field(
+        default=None,
+        description=(
+            "v0.8.6 P3: framework identifier the claim was "
+            "evaluated against (e.g., 'nist-800-53', 'ffiec-it-"
+            "handbook', 'iso-27001'). When set, the threshold-"
+            "resolution path defaults to "
+            ":data:`DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD`. "
+            "Lets auditors reviewing the JSON output re-derive "
+            "the framework-aware default without consulting the "
+            "original CLI invocation."
         ),
     )
 
@@ -205,11 +265,121 @@ def _jaccard(a: set[str], b: set[str]) -> float:
     return len(intersection) / len(union)
 
 
+def resolve_threshold(
+    framework: str | None,
+    method: str = "jaccard",
+) -> float:
+    """v0.8.6 P3: resolve the framework-aware default threshold.
+
+    Looks up the framework in
+    :data:`DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD` (when
+    ``method="jaccard"``); falls back to
+    :data:`DEFAULT_FAITHFULNESS_THRESHOLD` for unknown
+    frameworks or when ``framework is None``. Operators wanting
+    fixed framework-agnostic behavior (the v0.8.5 default) call
+    ``faithfulness_score(threshold=DEFAULT_FAITHFULNESS_THRESHOLD)``
+    directly without going through this resolver.
+
+    Args:
+        framework: Framework identifier (e.g., ``"nist-800-53"``,
+            ``"ffiec-it-handbook"``, ``"iso-27001"``). May be
+            ``None``; returns the framework-agnostic default.
+        method: Scoring method; only ``"jaccard"`` has a
+            framework-aware map shipped in v0.8.6. Other methods
+            fall back to the framework-agnostic default.
+
+    Returns:
+        Threshold in [0, 1].
+    """
+    if method == "jaccard" and framework is not None:
+        return DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD.get(
+            framework, DEFAULT_FAITHFULNESS_THRESHOLD
+        )
+    return DEFAULT_FAITHFULNESS_THRESHOLD
+
+
+def _bootstrap_confidence(
+    claim_tokens: set[str],
+    clause_token_sets: list[set[str]],
+    *,
+    n_resamples: int,
+    seed: int | None = None,
+) -> float:
+    """v0.8.6 P3: bootstrap-resampled confidence for jaccard.
+
+    Resamples the claim's token set ``n_resamples`` times with
+    replacement; recomputes the max-clause jaccard each time;
+    returns ``1.0 - normalized_stddev`` clamped to [0, 1].
+
+    Lower stddev across resamples = higher confidence. Empty
+    inputs return 0.0 (confidence undefined when there are no
+    tokens or no clauses).
+
+    Args:
+        claim_tokens: The original token set from
+            :func:`_tokenize` on the claim.
+        clause_token_sets: Pre-tokenized source clauses (sets).
+        n_resamples: Number of bootstrap iterations.
+        seed: Optional random seed for deterministic confidence
+            (test-only; production callers leave None).
+
+    Returns:
+        Confidence in [0, 1].
+    """
+    if not claim_tokens or not clause_token_sets:
+        return 0.0
+    if n_resamples < 2:
+        # Cannot compute stddev with < 2 samples.
+        return 0.0
+
+    rng = random.Random(seed)
+    token_list = list(claim_tokens)
+    n_tokens = len(token_list)
+    scores: list[float] = []
+    for _ in range(n_resamples):
+        # Sample with replacement; the resampled set may be
+        # smaller than the original (some tokens not picked).
+        resampled_indices = [
+            rng.randrange(n_tokens) for _ in range(n_tokens)
+        ]
+        resampled_tokens = {
+            token_list[i] for i in resampled_indices
+        }
+        # Max jaccard across all clauses for this resample.
+        best = max(
+            (
+                _jaccard(resampled_tokens, ct)
+                for ct in clause_token_sets
+            ),
+            default=0.0,
+        )
+        scores.append(best)
+
+    # Compute stddev. Bessel-corrected (n-1) sample stddev;
+    # numerically stable enough for n=100.
+    mean = sum(scores) / len(scores)
+    variance = sum((s - mean) ** 2 for s in scores) / (
+        len(scores) - 1
+    )
+    stddev = variance**0.5
+    # Stddev is naturally in [0, 0.5] for jaccard values in
+    # [0, 1] — max stddev when half the resamples score 0 and
+    # half score 1. Normalize by 0.5 so that confidence in
+    # [0, 1] makes intuitive sense.
+    normalized_stddev: float = min(stddev / 0.5, 1.0)
+    confidence: float = max(0.0, 1.0 - normalized_stddev)
+    return confidence
+
+
 def faithfulness_score(
     claim: str,
     source_clauses: Iterable[str],
     *,
     threshold: float = DEFAULT_FAITHFULNESS_THRESHOLD,
+    framework: str | None = None,
+    compute_confidence: bool = False,
+    n_resamples: int = DEFAULT_CONFIDENCE_RESAMPLES,
+    confidence_seed: int | None = None,
 ) -> FaithfulnessResult:
     """Compute :class:`FaithfulnessResult` for one claim.
 
@@ -231,6 +401,24 @@ def faithfulness_score(
             Jaccard baseline). Operators tuning for a paraphrase-
             heavy corpus typically lower this; tuning for a
             verbatim-quote corpus typically raise it.
+        framework: v0.8.6 P3. Optional framework identifier
+            (e.g., ``"nist-800-53"``); persisted in the result
+            for audit-trail re-derivation. Does NOT change
+            threshold-resolution at this call site (callers
+            supply the threshold explicitly via the
+            ``threshold=`` kwarg, possibly after calling
+            :func:`resolve_threshold` themselves).
+        compute_confidence: v0.8.6 P3. When ``True``, compute
+            the bootstrap-resampled confidence per
+            :func:`_bootstrap_confidence`. Default ``False``
+            (cost-aware; ~100ms/claim with the default
+            ``n_resamples=100``).
+        n_resamples: v0.8.6 P3. Number of bootstrap iterations
+            when ``compute_confidence=True``. Default
+            :data:`DEFAULT_CONFIDENCE_RESAMPLES` (100).
+        confidence_seed: v0.8.6 P3. Optional random seed for
+            deterministic confidence (test-only). Production
+            callers leave None.
 
     Returns:
         Populated :class:`FaithfulnessResult`. The
@@ -246,10 +434,15 @@ def faithfulness_score(
     clauses = list(source_clauses)
     claim_tokens = _tokenize(claim)
 
+    # Pre-tokenize clauses ONCE so confidence + scoring share the
+    # same token sets (avoids ~100x re-tokenization in the
+    # bootstrap loop).
+    clause_token_sets = [_tokenize(clause) for clause in clauses]
+
     # Score each clause; preserve original-clause order in ties.
     scored: list[tuple[str, float]] = [
-        (clause, _jaccard(claim_tokens, _tokenize(clause)))
-        for clause in clauses
+        (clause, _jaccard(claim_tokens, ct))
+        for clause, ct in zip(clauses, clause_token_sets, strict=True)
     ]
     # Sort descending by score; stable on ties (preserves input
     # order, which is the conventional auditor-friendly default).
@@ -263,9 +456,20 @@ def faithfulness_score(
         top_score = 0.0
         evidence = []
 
+    confidence: float | None = None
+    if compute_confidence:
+        confidence = _bootstrap_confidence(
+            claim_tokens,
+            clause_token_sets,
+            n_resamples=n_resamples,
+            seed=confidence_seed,
+        )
+
     return FaithfulnessResult(
         claim=claim,
         score=top_score,
         threshold=threshold,
         evidence_clauses=evidence,
+        confidence=confidence,
+        framework=framework,
     )
