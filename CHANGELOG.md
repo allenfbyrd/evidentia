@@ -7,6 +7,121 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.6] - 2026-05-07
+
+**CIMD scope enforcement at MCP-protocol level + Cohen's Kappa
+inter-rater agreement script + per-claim confidence + framework-
+aware threshold defaults + v0.7.x retrospective + v1.0
+transition narrative DRAFT.** Comprehensive scope closing all
+3 v0.8.5 carry-overs + 3 cycle-additions in a single focused
+session per Allen's explicit cycle-open lock-in (§29). 13th
+consecutive PROCEED-CLEAN of v0.7.x → v0.8.x line.
+
+### Added
+
+- **MCP per-tool scope enforcement at protocol level (P1)**.
+  Closes the v0.8.5 P4 deferral. New `evidentia_mcp.scope`
+  module with `enforce_cimd_scope(server, default_client_id)`
+  monkey-binds a wrapper to `FastMCP.call_tool` that:
+  - Pass-through when `server.evidentia_cimd is None`
+    (preserves v0.8.5 default no-gating behavior).
+  - Resolves `client_id` via precedence
+    `Context.client_id → default_client_id → None`.
+  - Denies on ambiguous-caller / unregistered client / out-
+    of-scope tool with `McpError` code -32602.
+  - Emits structured `AI_MCP_TOOL_AUTHORIZED` /
+    `AI_MCP_TOOL_DENIED` audit events per call carrying
+    `run_id` (UUID4) + `client_id` + `tool_name` +
+    `scope_allowlist`.
+- **`--default-client-id <slug>` CLI flag** on `evidentia
+  mcp serve` (P1). On stdio (canonical case) IS the
+  client_id for the entire session (documented as
+  INFORMATIONAL — audit-trail granularity, NOT a security
+  boundary). On HTTP/SSE, fallback when MCP request meta
+  does not carry a client_id.
+- **2 new EventActions** (P1): `AI_MCP_TOOL_AUTHORIZED` +
+  `AI_MCP_TOOL_DENIED`. Documented in `docs/log-schema.md`
+  with the `evidentia.mcp.*` event family.
+- **Operator-friendly CIMD example registries**:
+  `examples/mcp/cimd-registry-readonly.json` + `cimd-registry-power.json`.
+- **`scripts/compute_inter_rater_kappa.py`** (P2). Cohen's
+  Kappa formula + Landis & Koch 1977 verbal interpretation
+  + CI-gateable exit codes. Two modes: two-rater file mode
+  + rule-based-rater mode (deterministic; no LLM tokens or
+  human time).
+- **`tests/data/dfah-calibration/inter-rater-agreement.md`**
+  (P2). Documents the v0.8.6 κ probe results: best κ =
+  0.4848 (moderate) at jaccard threshold 0.85 — below the
+  ≥ 0.80 acceptance target. Per §29 R3 mitigation, ships
+  as "single-rater + κ probe inconclusive" with documented
+  rationale that the substantial moderate-to-poor agreement
+  empirically demonstrates the v0.8.3 sentence-transformers
+  semantic faithfulness path's necessity.
+- **Per-claim bootstrap-resampled confidence (P3)**. New
+  `FaithfulnessResult.confidence: float | None = None`
+  field. Default-off (cost-aware ~100ms/claim). Opt-in via
+  new `compute_confidence=True` kwarg + tunable
+  `n_resamples` (default 100) + optional `confidence_seed`
+  for deterministic test runs.
+- **Framework-aware Jaccard threshold map (P3)**. New
+  `DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD` constant maps
+  `"nist-800-53" → 0.60`, `"ffiec-it-handbook" → 0.35`,
+  `"iso-27001" → 0.30` per the v0.8.5 P2 empirical sweep.
+  New `resolve_threshold(framework, method)` helper falls
+  back to `DEFAULT_FAITHFULNESS_THRESHOLD` (0.30) for
+  unknown frameworks / non-jaccard methods.
+- **`FaithfulnessResult.framework: str | None = None`**
+  field (P3). Persisted on result for audit-trail
+  re-derivation.
+- **`docs/v0.7.x-retrospective.md`** (P4). v0.7.0 → v0.7.16
+  cycle narrative; per-release one-line highlights; what we
+  got right / what slipped / carries into v0.8.x.
+- **`docs/v1.0-transition.md`** DRAFT (P5). Plan-only
+  narrative covering v0.8.x → v1.0 arc; v1.0 theme
+  candidates (federal compliance per §10 Q4 / API stability
+  commitment); what v1.0 will NOT do; deprecation cycle
+  policy; acceptance gates. Footer marks as DRAFT for
+  stakeholder review.
+
+### Changed
+
+- `build_server(cimd_registry=, default_client_id=)` calls
+  `enforce_cimd_scope` AFTER `_register_tools` so the gate
+  sees the same dispatch the SDK uses internally.
+- `run_stdio` / `run_sse` / `run_http` all accept + forward
+  the new `default_client_id=` kwarg.
+- `tests/data/dfah-calibration/README.md` extended with
+  v0.8.6 P2 κ-probe-shipped section + cross-link to
+  `inter-rater-agreement.md`.
+- `faithfulness_score()` extended with 4 backward-compatible
+  kwargs: `framework=`, `compute_confidence=`,
+  `n_resamples=`, `confidence_seed=`.
+
+### Deferred to v0.8.7 / v0.9.0
+
+- **Real LLM-assisted second rater + κ ≥ 0.80** (P2 R3
+  mitigation acceptance). Carries forward to v0.8.7 /
+  v0.9.0.
+- **Human second rater (domain-expert pass)**. Reserved
+  for v0.9.0 federal-compliance walk-through.
+- **CLI flag `--faithfulness-threshold-mode {framework-aware,
+  fixed}`** on `evidentia eval risk-determinism`. Library +
+  helper shipped in v0.8.6 P3; CLI surface lands in v0.8.7.
+- **Cryptographic CIMD signatures** (per Webscale OIDC
+  profile). Reserved for future cycles.
+- **OpenSSF Best Practices Badge Gold tier** (requires
+  ≥ 2 contributors).
+
+### Quality gates
+
+- pytest 100% green: 2383 passed / 17 skipped (was 2338/17
+  at v0.8.5 ship; +45 new across P1 + P2 + P3)
+- mypy strict 0/0 across 217 source files (was 216; +1
+  scope module)
+- ruff clean
+- Standing-rule keyword sweep clean across all 5 v0.8.6-cycle
+  commits
+
 ## [0.8.5] - 2026-05-06
 
 **DFAH faithfulness CLI flags + corpus expansion + real-LLM
