@@ -144,10 +144,35 @@ on ~20% of new entries. The hand-craft + LLM-assist split:
 **Cohen's Kappa target**: ≥ 0.80 for inter-rater agreement
 once a second rater is brought in. Single-rater corpus
 should not be used to judge edge cases without a second
-opinion. v0.8.5 ships single-rater (Allen) + flags this as
-a known limitation; a future cycle introduces a second
-domain-expert rater + computes Cohen's Kappa over the
-disagreement subset.
+opinion.
+
+### v0.8.6 P2 update — κ probe shipped
+
+`scripts/compute_inter_rater_kappa.py` ships in v0.8.6 P2 as
+the inter-rater-agreement infrastructure. Operators run it
+two ways:
+
+1. **Two-rater file mode** — supply two JSONL files (rater 1
+   + rater 2 labels); compute κ over the intersection.
+2. **Rule-based rater mode** — supply rater 1's labels + a
+   deterministic rule that computes rater 2's labels (no LLM,
+   no human time). Useful as a label-quality probe.
+
+The v0.8.6 P2 cycle ran the rule-based mode against
+`corpus.jsonl` to surface label-quality signal. **Best κ =
+0.4848 (moderate) at jaccard threshold 0.85.** Below the
+≥ 0.80 acceptance target. Per the v0.8.6 plan §29 R3
+mitigation, the corpus ships as "single-rater + κ probe
+inconclusive" with the substantial moderate-to-poor agreement
+empirically demonstrating exactly what motivates the v0.8.3
+sentence-transformers semantic path: jaccard token-overlap is
+a deliberately weak proxy for semantic faithfulness.
+
+See [`inter-rater-agreement.md`](inter-rater-agreement.md)
+for the full methodology + results + reproduction recipe.
+
+The corpus remains primarily single-rater. v0.8.7 + v0.9.0
+reservations carry the multi-rater work forward.
 
 ## Per-framework tuning
 
