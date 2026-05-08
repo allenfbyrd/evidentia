@@ -160,6 +160,60 @@ class EventAction(str, Enum):
     AI_MCP_TOOL_AUTHORIZED = "evidentia.mcp.tool_authorized"
     AI_MCP_TOOL_DENIED = "evidentia.mcp.tool_denied"
 
+    # v0.9.0 P1: POA&M (Plan-of-Action-and-Milestones) lifecycle events.
+    # Emitted by the POA&M store + CLI/REST/OSCAL surfaces (P2) on every
+    # state transition that an auditor would expect to see in the audit
+    # trail. The vocabulary matches the FedRAMP POA&M Template Completion
+    # Guide v3.0 + NIST SP 800-53A Rev 5 Appendix F lifecycle states.
+    #
+    # Event field shape (in addition to the canonical run_id +
+    # timestamp + outcome fields):
+    #   - poam_id: ControlGap.id of the POA&M item being acted on
+    #   - control_id: framework + control_id pair for cross-reference
+    #   - milestone_id: present on _MILESTONE_REACHED only; identifies
+    #     the specific Milestone whose state changed
+    #   - prior_state / new_state: present on _UPDATED + _CLOSED +
+    #     _VERIFIED; captures the transition for audit-trail diffing
+    POAM_CREATED = "evidentia.poam.created"
+    """Fired when a POA&M item lands in the store for the first time
+    (typically via ``evidentia poam create --from-gap-report <path>``
+    in v0.9.0 P2). Captures the operator + the source gap report +
+    the auto-generated milestone schedule (if any)."""
+
+    POAM_UPDATED = "evidentia.poam.updated"
+    """Fired on every persisted edit to a POA&M item that ISN'T a
+    state-transition (description fixes, evidence_ref updates, tag
+    additions). State transitions emit the more specific verbs
+    below (_MILESTONE_REACHED, _OVERDUE, _CLOSED, _VERIFIED)."""
+
+    POAM_MILESTONE_REACHED = "evidentia.poam.milestone_reached"
+    """Fired when a single milestone's status transitions to
+    COMPLETED. Distinct from POAM_CLOSED (the whole POA&M closing)
+    because a multi-milestone POA&M can have several milestones
+    completed before the overall POA&M is verified and closed.
+    Carries the milestone_id + prior_state + new_state."""
+
+    POAM_OVERDUE = "evidentia.poam.overdue"
+    """Fired by the cycle-calendar query path (v0.9.0 P3 CONMON
+    integration) OR by an explicit operator-set transition to the
+    OVERDUE state. The derived-overdue case (target_date < today
+    + status in {PLANNED, IN_PROGRESS}) emits this event WITHOUT
+    persisting the OVERDUE state — it's a query-time attention
+    signal. The operator-set case persists status=OVERDUE and
+    emits this event from save_poam."""
+
+    POAM_CLOSED = "evidentia.poam.closed"
+    """Fired when the LAST open milestone on a POA&M item transitions
+    to COMPLETED, or when the operator explicitly marks the POA&M
+    as fully remediated via ``ControlGap.status = REMEDIATED``.
+    Pairs with POAM_VERIFIED to bracket the auditor sign-off cycle."""
+
+    POAM_VERIFIED = "evidentia.poam.verified"
+    """Fired when an auditor (or the operator on the auditor's
+    behalf, with appropriate provenance) confirms a closed POA&M.
+    Terminal — no further events fire on the same POA&M unless a
+    NEW gap is filed referencing it."""
+
     # Retention + WORM lifecycle events (v0.7.12 P1) — audit-trail
     # actions on records under retention metadata. The PURGED variant
     # serves as the canonical legal-counsel-defensible artifact for

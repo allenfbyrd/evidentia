@@ -208,6 +208,47 @@ trust for stdio) is the prerequisite for using CIMD as an AuthZ
 control. See `evidentia_mcp.scope` module docstring +
 `docs/threat-model.md` for the full posture.
 
+### `evidentia.poam.*` — Plan-of-Action-and-Milestones lifecycle (v0.9.0 P1)
+
+Fired by the POA&M store + CLI/REST/OSCAL surfaces (P2) on every
+state transition that an auditor would expect to see in the audit
+trail. The vocabulary matches the FedRAMP POA&M Template Completion
+Guide v3.0 + NIST SP 800-53A Rev 5 Appendix F lifecycle states.
+
+| Action | When emitted |
+|---|---|
+| `evidentia.poam.created` | A POA&M item lands in the store for the first time (typically via `evidentia poam create --from-gap-report <path>` in v0.9.0 P2). |
+| `evidentia.poam.updated` | A persisted edit to a POA&M item that ISN'T a state transition (description fix, evidence_ref edit, tag addition). |
+| `evidentia.poam.milestone_reached` | A single milestone's status transitions to COMPLETED. Distinct from `closed` because a multi-milestone POA&M can have several milestones reach completion before the overall POA&M is verified. |
+| `evidentia.poam.overdue` | Either operator-set status=OVERDUE (persisted) OR derived overdue at query time (target_date < today + status in {PLANNED, IN_PROGRESS}; not persisted). |
+| `evidentia.poam.closed` | The LAST open milestone on a POA&M transitions to COMPLETED, OR the operator marks `ControlGap.status = REMEDIATED`. |
+| `evidentia.poam.verified` | An auditor (or operator on auditor's behalf with provenance) confirms a closed POA&M. Terminal — no further events on the same POA&M unless a NEW gap is filed referencing it. |
+
+Common evidentia-extension fields across the family:
+
+| Field | Type | Purpose |
+|---|---|---|
+| `evidentia.poam_id` | `str` (UUID) | `ControlGap.id` of the POA&M item being acted on. |
+| `evidentia.control_id` | `str` | The framework + control_id pair (e.g., `nist-800-53-rev5:AC-2`) for cross-reference to the underlying gap. |
+| `evidentia.milestone_id` | `str` (UUID) \| absent | Present on `milestone_reached`; identifies the specific milestone whose state changed. |
+| `evidentia.prior_state` | `POAMState` value \| absent | Present on `updated` + `closed` + `verified` + `milestone_reached`; the state BEFORE the transition. |
+| `evidentia.new_state` | `POAMState` value \| absent | Present alongside `prior_state`; the state AFTER the transition. |
+
+State-transition validity is enforced by
+`evidentia_core.poam.state.is_valid_transition` — backward
+transitions (e.g., `COMPLETED → IN_PROGRESS`) are programmatically
+forbidden. An operator who needs to re-open work files a NEW
+milestone with a fresh `target_date`; the audit trail captures the
+re-open as a NEW `created` event, never an `updated` rewind.
+
+`overdue` events have special handling: the persisted-status case
+fires from `save_poam` like the other transitions, but the
+derived-overdue case (the cycle-calendar query path; v0.9.0 P3
+CONMON integration) fires from the query path WITHOUT mutating the
+persisted record. An auditor reading the audit log sees both, and
+can differentiate by inspecting whether `prior_state` is present
+(persisted transition) or absent (derived attention signal).
+
 ## `GenerationContext` — AI output provenance
 
 Every artifact emitted by `evidentia-ai` (currently `RiskStatement`
