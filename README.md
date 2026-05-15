@@ -148,6 +148,47 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.9.0 (May 2026)** — *Federal compliance — POA&M lifecycle +
+CONMON cycle calendar + walk-through-as-validation*. First minor
+of the v0.9.x line. Opens the federal-compliance theme reserved
+at v0.8.7 cycle-close. Lands operator-facing surfaces auditors
+expect in any regulated-industry GRC tool: Plan-of-Action-and-
+Milestones tracking + Continuous Monitoring cycle calendar.
+**Phase 1** — POA&M data layer: `POAMState` 5-state enum
+(planned / in_progress / overdue / completed / verified)
+aligned to FedRAMP POA&M Template Completion Guide v3.0 + NIST
+SP 800-53A Rev 5 Appendix F; forward-only state transitions;
+`Milestone` Pydantic record; `ControlGap.poam_milestones`
+optional list (default-empty for v0.7.x + v0.8.x backward-compat);
+new `evidentia_core.poam` sub-package (state.py + milestone.py);
+new `evidentia_core.poam_store` JSON file-store mirroring
+v0.7.9 vendor_store; 6 new EventActions.
+**Phase 2** — `evidentia poam` CLI (7 verbs: create from gap
+report / list / show / update / milestone add|update / delete /
+calendar); `/api/poam/*` FastAPI router (8 endpoints);
+`evidentia_core.oscal.poam_exporter.gap_report_to_oscal_poam()`
+emitting OSCAL 1.1.2 plan-of-action-and-milestones JSON with
+SHA-256 back-matter integrity (mirrors v0.7.0 finding-resource
+embedding). Default severity-filter is CRITICAL + HIGH per FedRAMP
+§3.1 auditor-default; `--all` opts into the full set.
+**Phase 3** — `evidentia_core.conmon` pure-function library
+with 7 bundled cadences (NIST 800-53 CA-7 monthly + FedRAMP
+ConMon × 3 + CMMC L2 triennial + DoD RMF annual + OCC 2026-13a
+model-risk annual); `evidentia conmon` CLI (list / next /
+check); 2 new EventActions. No daemon — operators poll.
+**Plus** new operator runbooks (`docs/poam-runbook.md` +
+`docs/conmon-runbook.md`); 14-item Step 5.A refinement batch
+(UUID canonicalization in poam_store + vendor_store via
+`str(UUID(id))` preventing duplicate-records-per-alias +
+non-conformant OSCAL UUID emit; `_enum_value` extracted to
+`evidentia_core.models.common`; stale-doc refreshes across
+governance + config + generation_context references).
+**15th consecutive PROCEED-CLEAN** of v0.7.x → v0.8.x → v0.9.x
+line. **2583 tests passing / 17 skipped across 227 source files;
+mypy strict 0/0; ruff clean.** Phase 4 walk-through deferred to
+v0.9.1 per §31.A POA&M-first / walk-through-as-validation
+posture.
+
 **v0.8.7 (May 2026)** — *Final v0.8.x wrap-up*. Single focused
 session closing the v0.8.6 P3 CLI deferral + backfilling
 v0.8.6 cycle-close artifacts deferred during single-session

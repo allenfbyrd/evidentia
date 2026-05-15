@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-05-15
+
 **Theme**: *Federal compliance — POA&M lifecycle + CONMON cycle
 calendar + walk-through-as-validation.* First minor of the
 v0.9.x line. Opens the federal-compliance theme reserved at
@@ -134,6 +136,43 @@ Milestones tracking + Continuous Monitoring cycle calendar.
   now goes through `typer.echo()` rather than `rich`'s
   `Console.print()` — fixes terminal-width wrapping that
   corrupted JSON in CliRunner output.
+- **/pre-release-review v4 Pre-tag Step 5.A 14-item batch**
+  (commit `ceab880`):
+  - **UUID canonicalization** in `poam_store` + `vendor_store`
+    `_validate_id_shape` — returns `str(UUID(id))` so brace-
+    wrapped / URN-prefixed / hex-no-hyphens alias forms
+    collapse to canonical form before filename composition.
+    Prevents duplicate-records-per-alias + non-conformant
+    OSCAL UUID emit. 8 new regression tests
+    (`TestUuidCanonicalization` across both stores).
+  - **`enum_value` defensive helper** extracted to
+    `evidentia_core.models.common` — single source of truth
+    for the `use_enum_values=True` duality; removes
+    triplicated inline copies.
+  - `evidentia poam create --from-gap-report` wraps malformed
+    `gap.id` in try/except so one bad gap doesn't crash the
+    materialize loop (surfaces yellow warning per-gap).
+  - Cleanup: `GapStatus` + `timedelta` promoted to module-
+    level imports; trivial `_add_days` wrapper inlined;
+    unused `ConmonStatusLiteral` deleted; `out: dict[str, Any]`
+    annotation removes 2 `type: ignore` directives.
+  - `docs/log-schema.md` POA&M `overdue` event docs tightened
+    — events fire ONLY on operator-set transitions; derived-
+    overdue surfaces in `poam calendar` output but does NOT
+    emit per-cycle audit (cross-references CONMON's opposite
+    choice with design rationale).
+  - `docs/capability-matrix.md` v0.9.0 snapshot test-count
+    corrections (P2 + P3 carry-forward stats).
+  - Autouse `_isolated_conmon_registry` test fixture replaces
+    per-test `try/finally` cleanup in `test_conmon/test_calendar.py`.
+  - `test_current_cycle_does_not_emit_event` strengthened
+    with `caplog` assertion — pins the absence-of-events
+    invariant the log-schema doc promises.
+  - Stale-doc refresh: `governance/__init__.py` "Future
+    v0.7.10" → "Shipped surfaces:"; `evidentia/config.py`
+    "v0.5.0 deprecation" → "no deprecation scheduled";
+    `generation_context` "tightened in v0.8" → "no
+    deprecation scheduled; v1.0 may revisit."
 
 ### Notes
 

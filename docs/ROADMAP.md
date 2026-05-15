@@ -1019,23 +1019,77 @@ consecutive).
 - Standing-rule keyword sweep clean across the v0.8.7-cycle
   commits
 
-## v0.9.0 — Federal compliance — PLANNED
+## v0.9.0 — Federal compliance — SHIPPED
 
-After v0.8.7 ships, the v0.9.0 cycle opens with the federal-
-compliance theme per the 2026-04-28 §10 Q4 lock-in.
+v0.9.0 SHIPPED 2026-05-15 — first minor of the v0.9.x line.
+Opens the federal-compliance theme per the 2026-04-28 §10 Q4
+lock-in.
 
-Theme reserved for federal-compliance capability work informed by
-domain-expert input on FedRAMP / FISMA / NIST 800-53 (CA-5 / CA-7 /
-significant-change request) workflows. Likely scope candidates:
-OSCAL POA&M (Plan of Action and Milestones) emit + auto-generation
-from gap-analysis findings, manageable POA&M tracking primitives
-(state model + milestones + cycle-diff), CONMON (Continuous
-Monitoring) cycle calendar — read-only library + CLI listing
-upcoming monthly / quarterly / annual control cadence per
-framework. Walk-through with the contributing domain expert
-scheduled before v0.9.0 scope-lock to confirm which surfaces +
-which scenario library to test against. Plan file lands during
-the v0.8.0 cycle. ~3 month ship target after v0.8.0 ships.
+**Phase 1 — POA&M data layer + state model**: `POAMState`
+5-state enum (planned / in_progress / overdue / completed /
+verified) aligned to FedRAMP POA&M Template Completion Guide
+v3.0 + NIST SP 800-53A Rev 5 Appendix F. Forward-only state
+transitions; backward transitions programmatically blocked to
+preserve auditor-defensible monotonic progress. `Milestone`
+Pydantic record + `ControlGap.poam_milestones` optional list
+(default-empty for v0.7.x + v0.8.x backward-compat). New
+`evidentia_core.poam` sub-package + `evidentia_core.poam_store`
+JSON file-store mirroring v0.7.9 vendor_store (atomic-write +
+UUID-shape ID gate + `validate_within` path-traversal defense +
+`EVIDENTIA_POAM_STORE_DIR` env override). 6 new EventActions.
+
+**Phase 2 — POA&M CLI + REST + OSCAL emit**: `evidentia poam`
+Typer subcommand group (7 verbs: create / list / show / update /
+milestone add|update / delete / calendar). `/api/poam/*`
+FastAPI router (8 endpoints) mirroring v0.7.9 TPRM router shape
++ v0.7.8 F-V08-DAST-3 error-normalization. NEW
+`evidentia_core.oscal.poam_exporter.gap_report_to_oscal_poam()`
+emits OSCAL 1.1.2 plan-of-action-and-milestones JSON; each
+`ControlGap` → one (observation, risk, poam-item) triple with
+UUID cross-references; milestones as tracking-entries under
+`risks[].remediations[]`; back-matter SHA-256 integrity mirrors
+v0.7.0 finding-resource embedding. Default severity-filter is
+CRITICAL + HIGH per FedRAMP §3.1 auditor-default.
+
+**Phase 3 — CONMON cycle calendar (read-only)**:
+`evidentia_core.conmon` pure-function library with 7 bundled
+cadences (NIST 800-53 CA-7 monthly + FedRAMP ConMon × 3 +
+CMMC L2 triennial + DoD RMF annual + OCC 2026-13a model-risk
+annual). `evidentia conmon` CLI (3 verbs: list / next / check).
+2 new EventActions. NO DAEMON — operators poll; the
+`evidentia conmon watch` live-trigger daemon is reserved for
+v1.0 per §31.1.
+
+**Step 5.A 14-item refinement batch** (commit `ceab880`):
+UUID canonicalization in `poam_store` + `vendor_store` prevents
+duplicate-records-per-alias + non-conformant OSCAL UUID emit;
+`_enum_value` extracted to `evidentia_core.models.common`;
+stale-doc refreshes across governance + config + generation_context
+references.
+
+15th consecutive PROCEED-CLEAN of v0.7.x → v0.8.x → v0.9.x line.
+2583 tests / 17 skipped / 227 source files / mypy strict 0/0 /
+ruff clean. Pre-release-review v4 Pre-tag full 7-step
+clearance + 3-invocation /security-review (diff-scoped +
+per-subsystem + final-gate) all CLEAR.
+
+**Phase 4 — Walk-through-as-validation**: deferred to v0.9.1
+per §31.A POA&M-first / walk-through-as-validation posture.
+v0.8.6 §29 P2 R3 single-rater κ probe inconclusive carry-
+forward acknowledged; domain-expert walk-through becomes the
+v0.9.1 reservation. v0.9.0 ships regardless.
+
+## v0.9.1 — Walk-through-driven refinement — PLANNED
+
+After v0.9.0 ships, the v0.9.1 cycle opens with the deferred
+Phase 4 walk-through (`docs/v0.9.0-plan.md` §"Phase 4 — Walk-
+through-as-validation"). Scope candidates: federal-SI scenario
+rows in `capability-matrix.md`; Cohen's Kappa recompute on the
+v0.8.5 DFAH calibration corpus with a domain-expert second
+rater (closes the v0.8.6 §29 P2 R3 mitigation acceptance); any
+walk-through-surfaced POA&M / CONMON shape adjustments; CONMON
+REST router parity with the POA&M router pattern if operator
+demand surfaces. Plan file lands at v0.9.1 cycle-open.
 
 ## v0.7.0+ — Quality signals, more integrations, UI polish
 
