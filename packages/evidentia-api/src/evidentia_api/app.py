@@ -266,6 +266,9 @@ def create_app(
         model_risk as model_risk_router,
     )
     from evidentia_api.routers import (
+        poam as poam_router,
+    )
+    from evidentia_api.routers import (
         risks as risks_router,
     )
     from evidentia_api.routers import (
@@ -296,6 +299,7 @@ def create_app(
     app.include_router(
         model_risk_router.router, prefix="/api", tags=["model-risk"]
     )
+    app.include_router(poam_router.router, prefix="/api", tags=["poam"])
 
     # Static SPA mount — everything that isn't /api/* falls through to index.html.
     _mount_spa(app)

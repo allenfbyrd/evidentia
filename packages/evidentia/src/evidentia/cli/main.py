@@ -24,6 +24,7 @@ from evidentia.cli import init as init_cmd
 from evidentia.cli import integrations as integrations_cmd
 from evidentia.cli import model_risk as model_risk_cmd
 from evidentia.cli import oscal as oscal_cmd
+from evidentia.cli import poam as poam_cmd
 from evidentia.cli import retention as retention_cmd
 from evidentia.cli import risk as risk_cmd
 from evidentia.cli import tprm as tprm_cmd
@@ -81,6 +82,14 @@ app.add_typer(
     retention_cmd.app,
     name="retention",
     help="Audit chain-of-custody — retention metadata + WORM (v0.7.11 P0).",
+)
+app.add_typer(
+    poam_cmd.app,
+    name="poam",
+    help=(
+        "Plan-of-Action-and-Milestones — federal-compliance "
+        "remediation tracking (v0.9.0 P2)."
+    ),
 )
 app.add_typer(
     eval_cmd.app,
