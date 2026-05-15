@@ -249,6 +249,42 @@ persisted record. An auditor reading the audit log sees both, and
 can differentiate by inspecting whether `prior_state` is present
 (persisted transition) or absent (derived attention signal).
 
+### `evidentia.conmon.*` — Continuous Monitoring cycle calendar (v0.9.0 P3)
+
+Fired by the CONMON CLI/REST query paths when an operator query
+identifies a due or overdue cycle. The cadence library
+(`evidentia_core.conmon.calendar`) is pure-function; audit emit
+happens at the query layer, not in the library, so a given cycle
+can be "due" multiple times in a row without multiplying audit
+records — operators only emit when they actively query the
+calendar.
+
+| Action | When emitted |
+|---|---|
+| `evidentia.conmon.cycle_due` | A CONMON cycle is within the operator-configured due-soon window (default 14 days). |
+| `evidentia.conmon.cycle_overdue` | A CONMON cycle's next-due date is in the past relative to the query date. Auditor-visible signal that the organization is behind on its monitoring obligations. |
+
+Both events carry the following evidentia-extension fields:
+
+| Field | Type | Purpose |
+|---|---|---|
+| `evidentia.cadence_slug` | `str` | The `ConmonCadence.slug` identifying the cycle (e.g., `nist-800-53-rev5-ca7`, `fedramp-conmon-annual`). Stable across releases. |
+| `evidentia.framework` | `str` | The framework identifier (e.g., `nist-800-53-rev5`, `fedramp-rev5-mod`, `cmmc-v2`). |
+| `evidentia.activity` | `str` | The activity within the framework (e.g., `continuous-monitoring`, `poam-update`, `security-assessment`). |
+| `evidentia.last_completed` | `str` (ISO-8601 date) | The anchor date the next-due was computed from. |
+| `evidentia.next_due` | `str` (ISO-8601 date) | The computed next-due date. |
+| `evidentia.days_until_due` | `int` | Days from query date to next-due; negative for overdue. |
+
+**Current cycles** (`next_due > today + window_days`) do NOT emit
+events. The absence of an event is itself an auditor signal: no
+attention needed for that cycle this query.
+
+Cadence-slug stability is the audit-trail integrity property — an
+auditor reviewing six months of CONMON events can rely on the slug
+to consistently identify the cycle even as the bundled cadence
+catalog grows. Slug changes require a new entry alongside the old
+(append-only), never a rename.
+
 ## `GenerationContext` — AI output provenance
 
 Every artifact emitted by `evidentia-ai` (currently `RiskStatement`

@@ -214,6 +214,33 @@ class EventAction(str, Enum):
     Terminal — no further events fire on the same POA&M unless a
     NEW gap is filed referencing it."""
 
+    # v0.9.0 P3: CONMON (Continuous Monitoring) cycle-calendar events.
+    # Emitted by the CONMON CLI/REST query paths when an operator
+    # query identifies a due or overdue cycle. The cadence library
+    # (evidentia_core.conmon.calendar) is pure-function; audit
+    # emit happens at the query layer, not in the library, so a
+    # given cycle can be "due" multiple times in a row without
+    # multiplying audit records — operators only emit when they
+    # actively query the calendar.
+    #
+    # Event field shape (in addition to canonical run_id + timestamp
+    # + outcome):
+    #   - cadence_slug: ConmonCadence.slug identifying the cycle
+    #   - framework: ConmonCadence.framework
+    #   - activity: ConmonCadence.activity
+    #   - last_completed: ISO-8601 date string of the anchor
+    #   - next_due: ISO-8601 date string of the computed next-due
+    #   - days_until_due (optional): negative for overdue
+    CONMON_CYCLE_DUE = "evidentia.conmon.cycle_due"
+    """Fired when a CONMON cycle is within the operator-configured
+    due-soon window (default 14 days from query date). Surfaces in
+    operator dashboards alongside POA&M attention buckets."""
+
+    CONMON_CYCLE_OVERDUE = "evidentia.conmon.cycle_overdue"
+    """Fired when a CONMON cycle's next-due date is in the past
+    relative to the query date. Auditor-visible signal that an
+    organization is behind on its monitoring obligations."""
+
     # Retention + WORM lifecycle events (v0.7.12 P1) — audit-trail
     # actions on records under retention metadata. The PURGED variant
     # serves as the canonical legal-counsel-defensible artifact for

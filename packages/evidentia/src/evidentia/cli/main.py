@@ -16,6 +16,7 @@ from rich.table import Table
 
 from evidentia.cli import catalog as catalog_cmd
 from evidentia.cli import collect as collect_cmd
+from evidentia.cli import conmon as conmon_cmd
 from evidentia.cli import eval as eval_cmd
 from evidentia.cli import explain as explain_cmd
 from evidentia.cli import gap as gap_cmd
@@ -89,6 +90,14 @@ app.add_typer(
     help=(
         "Plan-of-Action-and-Milestones — federal-compliance "
         "remediation tracking (v0.9.0 P2)."
+    ),
+)
+app.add_typer(
+    conmon_cmd.app,
+    name="conmon",
+    help=(
+        "Continuous Monitoring cycle calendar — read-only "
+        "library for assessment + reporting cadences (v0.9.0 P3)."
     ),
 )
 app.add_typer(

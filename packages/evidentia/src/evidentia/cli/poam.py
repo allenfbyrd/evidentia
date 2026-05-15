@@ -377,7 +377,7 @@ def poam_list(
         poams = [p for p in poams if p.gap_severity in wanted]
 
     if output_json:
-        console.print(
+        typer.echo(
             json.dumps(
                 [json.loads(p.model_dump_json()) for p in poams],
                 indent=2,
@@ -403,7 +403,7 @@ def poam_show(
     """Show a single POA&M item in detail."""
     poam = _load_poam_or_exit(poam_id)
     if output_json:
-        console.print(poam.model_dump_json(indent=2))
+        typer.echo(poam.model_dump_json(indent=2))
         return
     _render_poam_show(poam)
 
@@ -894,7 +894,7 @@ def poam_calendar(
         }
         out["window_days"] = window_days  # type: ignore[assignment]
         out["today"] = today.isoformat()  # type: ignore[assignment]
-        console.print(json.dumps(out, indent=2))
+        typer.echo(json.dumps(out, indent=2))
         return
 
     overdue_count = len(buckets["overdue"])
