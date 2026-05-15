@@ -195,7 +195,10 @@ class TestConmonCheck:
         assert len(body["due_soon"]) == 1
 
     def test_current_cycle_does_not_emit_event(
-        self, runner: CliRunner, tmp_path: Path
+        self,
+        runner: CliRunner,
+        tmp_path: Path,
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         state_file = tmp_path / "state.yaml"
         # Anchor 2026-05-01 + annual → next-due 2027-05-01; far future
@@ -203,22 +206,36 @@ class TestConmonCheck:
             "fedramp-conmon-annual: 2026-05-01\n",
             encoding="utf-8",
         )
-        result = runner.invoke(
-            app,
-            [
-                "conmon",
-                "check",
-                "--last-completed-file",
-                str(state_file),
-                "--today",
-                "2026-05-08",
-                "--json",
-            ],
-        )
+        # caplog with the audit logger name so per-cycle DUE/OVERDUE
+        # emits would surface. The absence-of-events invariant the
+        # log-schema doc promises requires this stricter assertion —
+        # JSON output buckets being empty does NOT prove zero audit
+        # records fired (v0.9.0 P5 F-V90-5 strengthening).
+        with caplog.at_level("INFO", logger="evidentia.cli.conmon"):
+            result = runner.invoke(
+                app,
+                [
+                    "conmon",
+                    "check",
+                    "--last-completed-file",
+                    str(state_file),
+                    "--today",
+                    "2026-05-08",
+                    "--json",
+                ],
+            )
         assert result.exit_code == 0
         body = json.loads(result.output)
         assert body["overdue"] == []
         assert body["due_soon"] == []
+        # No CONMON_CYCLE_DUE or CONMON_CYCLE_OVERDUE events fired.
+        captured_actions = [
+            getattr(r, "ecs_record", {}).get("event", {}).get("action")
+            for r in caplog.records
+            if r.name == "evidentia.cli.conmon"
+        ]
+        assert "evidentia.conmon.cycle_due" not in captured_actions
+        assert "evidentia.conmon.cycle_overdue" not in captured_actions
 
     def test_unknown_slug_warned_not_errored(
         self, runner: CliRunner, tmp_path: Path

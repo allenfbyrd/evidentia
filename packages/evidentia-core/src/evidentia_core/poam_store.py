@@ -38,6 +38,23 @@ CRUD surface:
     record was actually removed, ``False`` if the well-formed ID had
     no record on disk
 
+Operational constraints:
+
+- **Single-writer per record**: Concurrent ``save_poam`` calls on
+  the same ``poam.id`` last-writer-wins via ``os.replace``. The
+  read-modify-write step inside ``save_poam`` (parse prior file →
+  refresh stale ``Milestone.updated_at`` → write) is NOT
+  serialized; multi-writer deployments must serialize at the
+  application layer (e.g., the API server's request handler) OR
+  accept that interleaved writes may produce non-deterministic
+  ``updated_at`` refreshes. Single-writer is the documented mode
+  and matches the v0.7.9 vendor_store invariant.
+- **Indicative scale ceiling**: tested cleanly through O(10^3)
+  POA&M items. For larger registers, consider migrating to a
+  SQLite-backed store via the v0.8.0 P0.4 ``StorageBackend``
+  plugin contract. ``list_poams`` reads every JSON file on every
+  call (no caching layer); at scale this becomes the hot path.
+
 Path-traversal protection mirrors gap_store + vendor_store via
 :func:`evidentia_core.security.paths.validate_within`. The shape
 check on the ID rejects anything that isn't a canonical UUID hex
@@ -77,8 +94,8 @@ class InvalidPoamIdError(ValueError):
     """
 
 
-def _validate_id_shape(poam_id: str) -> None:
-    """Reject IDs that aren't a canonical UUID string.
+def _validate_id_shape(poam_id: str) -> str:
+    """Validate a candidate POA&M ID and return its canonical form.
 
     Accepts any UUID variant (v1/v3/v4/v5) — :func:`new_id` stamps
     v4 by default, but a record imported from an external POA&M
@@ -86,9 +103,20 @@ def _validate_id_shape(poam_id: str) -> None:
     we reject is anything that isn't UUID-shaped at all (path-
     traversal segments, empty strings, raw integers, etc.) so the
     resolved file path can never escape the store directory.
+
+    **Canonicalization (v0.9.0 P5 F-V90-15)**: Python's :class:`UUID`
+    parser accepts four lexical forms of the same semantic UUID:
+    canonical hyphenated, brace-wrapped ``{...}``, URN-prefixed
+    ``urn:uuid:...``, and hex-without-hyphens (32-char). Without
+    canonicalization, the same logical UUID can produce distinct
+    filenames in the store + non-conformant OSCAL ``uuid`` emit.
+    This function returns ``str(UUID(poam_id))`` — the canonical
+    lowercase hyphenated form. Callers MUST use the returned value
+    for filename composition + persisted-id rewriting, not the raw
+    input string.
     """
     try:
-        UUID(poam_id)
+        return str(UUID(poam_id))
     except (ValueError, AttributeError, TypeError) as exc:
         raise InvalidPoamIdError(
             f"Invalid POA&M ID format (expected UUID string): {poam_id!r}"
@@ -132,7 +160,15 @@ def save_poam(
     valid JSON in place — never a half-written file that
     :func:`list_poams` would have to silently skip.
     """
-    _validate_id_shape(poam.id)
+    # Canonicalize before path composition + rewrite poam.id so
+    # the persisted record, OSCAL emit, and audit-event payloads
+    # all agree on the canonical lowercase hyphenated form
+    # (v0.9.0 P5 F-V90-15). Concurrent-save invariant: this store
+    # is single-writer per record; multi-writer deployments must
+    # serialize at the application layer.
+    canonical_id = _validate_id_shape(poam.id)
+    if poam.id != canonical_id:
+        poam.id = canonical_id
     store = get_poam_store_dir(poam_store_dir)
     store.mkdir(parents=True, exist_ok=True)
 
@@ -142,7 +178,7 @@ def save_poam(
     # keeps its prior timestamp. This is opportunistic — if there's
     # no on-disk version, we don't refresh (the milestone's
     # default_factory already stamped utc_now at construction).
-    candidate = store / f"{poam.id}.json"
+    candidate = store / f"{canonical_id}.json"
     out_path = validate_within(candidate, store)
     if out_path.is_file():
         try:
@@ -161,7 +197,7 @@ def save_poam(
                 exc,
             )
 
-    tmp_path = store / f"{poam.id}.json.tmp"
+    tmp_path = store / f"{canonical_id}.json.tmp"
     tmp_path.write_text(poam.model_dump_json(indent=2), encoding="utf-8")
     os.replace(tmp_path, out_path)
     logger.debug("Saved POA&M record (atomic): %s", out_path)
@@ -182,9 +218,9 @@ def load_poam_by_id(
     resolved-path violation (which the shape check should already
     have rejected — the path check is belt-and-suspenders).
     """
-    _validate_id_shape(poam_id)
+    canonical_id = _validate_id_shape(poam_id)
     store = get_poam_store_dir(poam_store_dir)
-    candidate = store / f"{poam_id}.json"
+    candidate = store / f"{canonical_id}.json"
     path = validate_within(candidate, store)
     if not path.is_file():
         return None
@@ -281,9 +317,9 @@ def delete_poam(
     the well-formed ID had no file on disk. Raises
     :class:`InvalidPoamIdError` on shape violation.
     """
-    _validate_id_shape(poam_id)
+    canonical_id = _validate_id_shape(poam_id)
     store = get_poam_store_dir(poam_store_dir)
-    candidate = store / f"{poam_id}.json"
+    candidate = store / f"{canonical_id}.json"
     path = validate_within(candidate, store)
     if not path.is_file():
         return False

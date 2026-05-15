@@ -220,7 +220,7 @@ Guide v3.0 + NIST SP 800-53A Rev 5 Appendix F lifecycle states.
 | `evidentia.poam.created` | A POA&M item lands in the store for the first time (typically via `evidentia poam create --from-gap-report <path>` in v0.9.0 P2). |
 | `evidentia.poam.updated` | A persisted edit to a POA&M item that ISN'T a state transition (description fix, evidence_ref edit, tag addition). |
 | `evidentia.poam.milestone_reached` | A single milestone's status transitions to COMPLETED. Distinct from `closed` because a multi-milestone POA&M can have several milestones reach completion before the overall POA&M is verified. |
-| `evidentia.poam.overdue` | Either operator-set status=OVERDUE (persisted) OR derived overdue at query time (target_date < today + status in {PLANNED, IN_PROGRESS}; not persisted). |
+| `evidentia.poam.overdue` | Fired on operator-set status=OVERDUE transitions only (e.g., `milestone update --status overdue`). Derived overdue (target_date < today + status in {PLANNED, IN_PROGRESS}) surfaces in `poam calendar` output + dashboard widgets but does NOT emit per-cycle audit events — operators who need an audit record per surfaced derived-overdue must explicitly transition status via the milestone-update verb. Keeps the audit log low-noise. |
 | `evidentia.poam.closed` | The LAST open milestone on a POA&M transitions to COMPLETED, OR the operator marks `ControlGap.status = REMEDIATED`. |
 | `evidentia.poam.verified` | An auditor (or operator on auditor's behalf with provenance) confirms a closed POA&M. Terminal — no further events on the same POA&M unless a NEW gap is filed referencing it. |
 
@@ -241,18 +241,24 @@ forbidden. An operator who needs to re-open work files a NEW
 milestone with a fresh `target_date`; the audit trail captures the
 re-open as a NEW `created` event, never an `updated` rewind.
 
-`overdue` events have special handling: the persisted-status case
-fires from `save_poam` like the other transitions, but the
-derived-overdue case (the cycle-calendar query path; v0.9.0 P3
-CONMON integration) fires from the query path WITHOUT mutating the
-persisted record. An auditor reading the audit log sees both, and
-can differentiate by inspecting whether `prior_state` is present
-(persisted transition) or absent (derived attention signal).
+`overdue` events fire ONLY on operator-set status=OVERDUE
+transitions (via the `milestone update --status overdue` verb).
+Derived overdue (target_date < today + status in {PLANNED,
+IN_PROGRESS}) is surfaced in `poam calendar` CLI / `GET
+/api/poam/calendar` output + dashboard widgets but does NOT emit
+per-cycle audit records. This keeps the audit log low-noise:
+operators who need a per-surfaced-overdue record must explicitly
+transition the milestone state. The CONMON cycle calendar (below)
+takes the OPPOSITE choice — `evidentia.conmon.cycle_overdue` fires
+per surfaced cycle from the `conmon check` query path because the
+CONMON cadences represent organization-wide assessment events
+rather than per-record state.
 
 ### `evidentia.conmon.*` — Continuous Monitoring cycle calendar (v0.9.0 P3)
 
-Fired by the CONMON CLI/REST query paths when an operator query
-identifies a due or overdue cycle. The cadence library
+Fired by the CONMON CLI query path (REST surface deferred to
+v0.9.1 if walk-through identifies operator demand) when an
+operator query identifies a due or overdue cycle. The cadence library
 (`evidentia_core.conmon.calendar`) is pure-function; audit emit
 happens at the query layer, not in the library, so a given cycle
 can be "due" multiple times in a row without multiplying audit

@@ -8,7 +8,9 @@ public API so existing external consumers — and anyone who imported from
 
 Internal callers (CLI modules) have been updated to import directly from
 ``evidentia_core.config``. External users should migrate at their
-convenience; a deprecation may follow in v0.5.0 but is not yet scheduled.
+convenience; no deprecation is currently scheduled. The v0.5.0 target
+once tentatively planned for the shim's removal has passed without
+removal; absent breaking-change pressure, the shim stays indefinitely.
 """
 
 from __future__ import annotations

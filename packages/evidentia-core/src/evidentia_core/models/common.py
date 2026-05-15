@@ -32,6 +32,26 @@ def current_version() -> str:
     return __version__
 
 
+def enum_value(v: object) -> str:
+    """Return ``.value`` if v is a real enum, else cast to str.
+
+    Defensive helper for the :class:`EvidentiaModel`
+    ``use_enum_values=True`` duality: Pydantic-deserialized enum
+    fields round-trip as their raw string values after
+    :meth:`BaseModel.model_validate_json`, but freshly-constructed
+    Pydantic models carry the real enum instance at field-access
+    time. The ``hasattr(v, "value")`` check covers both shapes —
+    callers can pass either form without distinguishing.
+
+    Introduced in v0.9.0 P5 (single-source-of-truth extraction;
+    deduplicates triplicated copies in ``cli/poam.py`` +
+    ``routers/poam.py`` + ``oscal/poam_exporter.py``). Earlier
+    inline duplicates in ``oscal/exporter.py`` use the same
+    pattern and can migrate to this helper in a future cleanup.
+    """
+    return v.value if hasattr(v, "value") else str(v)
+
+
 class EvidentiaModel(BaseModel):
     """Base model for all Evidentia objects.
 

@@ -28,9 +28,8 @@ templates; runtime registration shadows them per-process.
 from __future__ import annotations
 
 import calendar as stdlib_calendar
-from datetime import date
+from datetime import date, timedelta
 from enum import Enum
-from typing import Literal
 
 from pydantic import Field
 
@@ -326,17 +325,10 @@ def derive_status(
         )
     if next_due_date < today:
         return CycleAttentionState.OVERDUE
-    horizon: date = _add_days(today, window_days)
+    horizon = today + timedelta(days=window_days)
     if next_due_date <= horizon:
         return CycleAttentionState.DUE_SOON
     return CycleAttentionState.CURRENT
-
-
-def _add_days(anchor: date, days: int) -> date:
-    """Add ``days`` to ``anchor`` using stdlib timedelta."""
-    from datetime import timedelta
-
-    return anchor + timedelta(days=days)
 
 
 __all__: list[str] = [
@@ -351,7 +343,3 @@ __all__: list[str] = [
     "next_due",
     "register_cadence",
 ]
-
-
-# Type alias used by the CLI for the ``status`` literal type
-ConmonStatusLiteral = Literal["current", "due_soon", "overdue"]

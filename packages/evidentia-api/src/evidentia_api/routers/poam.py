@@ -34,6 +34,7 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 from evidentia_core.audit import EventAction, EventOutcome, get_logger
+from evidentia_core.models.common import enum_value as _enum_value
 from evidentia_core.models.gap import (
     ControlGap,
     GapSeverity,
@@ -55,15 +56,6 @@ from pydantic import BaseModel, Field
 
 router = APIRouter()
 _log = get_logger("evidentia.api.poam")
-
-
-def _enum_value(v: object) -> str:
-    """Return ``.value`` if v is a real enum, else cast to str.
-
-    Matches the defensive pattern in cli/poam.py + the exporter; see
-    that docstring for the use_enum_values=True rationale.
-    """
-    return v.value if hasattr(v, "value") else str(v)
 
 
 # ── helpers ────────────────────────────────────────────────────────

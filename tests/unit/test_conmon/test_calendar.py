@@ -18,6 +18,24 @@ from evidentia_core.conmon import (
     register_cadence,
 )
 
+
+@pytest.fixture(autouse=True)
+def _isolated_conmon_registry() -> object:
+    """Snapshot + restore the process-local cadence registry per test.
+
+    ``register_cadence`` writes to a module-level ``_REGISTRY``.
+    Without isolation, a test that registers a custom cadence would
+    pollute sibling tests. This fixture takes a copy before the test
+    and restores it after — replaces the v0.9.0 P3 per-test
+    try/finally cleanup pattern with a single autouse fixture.
+    """
+    import evidentia_core.conmon.calendar as cal
+
+    snapshot = dict(cal._REGISTRY)
+    yield
+    cal._REGISTRY.clear()
+    cal._REGISTRY.update(snapshot)
+
 # ── bundled cadence catalog ────────────────────────────────────────
 
 
@@ -95,14 +113,9 @@ class TestRegisterCadence:
             description="Internal review cycle.",
         )
         register_cadence(custom)
-        try:
-            assert get_cadence("custom-org-monthly") is not None
-            assert custom in list_cadences()
-        finally:
-            # Clean up — registry is process-local but we don't
-            # want pollution across tests.
-            import evidentia_core.conmon.calendar as cal
-            cal._REGISTRY.pop("custom-org-monthly", None)
+        assert get_cadence("custom-org-monthly") is not None
+        assert custom in list_cadences()
+        # Cleanup handled by the autouse _isolated_conmon_registry fixture.
 
 
 # ── next_due ───────────────────────────────────────────────────────
@@ -124,12 +137,9 @@ class TestNextDue:
             description="Test.",
         )
         register_cadence(custom)
-        try:
-            result = next_due("test-quarterly", date(2026, 1, 15))
-            assert result == date(2026, 4, 15)
-        finally:
-            import evidentia_core.conmon.calendar as cal
-            cal._REGISTRY.pop("test-quarterly", None)
+        result = next_due("test-quarterly", date(2026, 1, 15))
+        assert result == date(2026, 4, 15)
+        # Cleanup handled by the autouse _isolated_conmon_registry fixture.
 
     def test_annual_adds_twelve_months(self) -> None:
         result = next_due(

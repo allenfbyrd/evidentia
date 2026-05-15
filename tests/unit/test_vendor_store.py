@@ -269,3 +269,66 @@ class TestDeleteVendor:
         assert delete_vendor(v_a.id, vendor_store_dir=tmp_path) is True
         # v_b still present
         assert load_vendor_by_id(v_b.id, vendor_store_dir=tmp_path) is not None
+
+
+# ── UUID canonicalization (v0.9.0 P5 F-V90-15 carry-back) ──────────
+
+
+class TestUuidCanonicalization:
+    """UUID-alias normalization prevents duplicate vendor records.
+
+    Carries v0.9.0 P5 F-V90-15 back to the v0.7.9 precedent template.
+    Python's :class:`uuid.UUID` accepts 4 lexical forms of the same
+    semantic UUID; canonicalization at the trust boundary keeps the
+    persisted record + filename + downstream consumers consistent.
+    """
+
+    CANONICAL = "12345678-1234-5678-9abc-1234567890ab"
+    BRACE_WRAPPED = "{12345678-1234-5678-9abc-1234567890ab}"
+    URN_PREFIXED = "urn:uuid:12345678-1234-5678-9abc-1234567890ab"
+    HEX_NO_HYPHENS = "12345678123456789abc1234567890ab"
+
+    def test_alias_forms_collapse_to_single_record(
+        self, tmp_path: Path
+    ) -> None:
+        v1 = _make_vendor()
+        v1.id = self.CANONICAL
+        save_vendor(v1, vendor_store_dir=tmp_path)
+        v2 = _make_vendor()
+        v2.id = self.BRACE_WRAPPED
+        save_vendor(v2, vendor_store_dir=tmp_path)
+        # Single file on disk; filename is canonical form.
+        assert len(list(tmp_path.glob("*.json"))) == 1
+        assert (tmp_path / f"{self.CANONICAL}.json").is_file()
+
+    def test_save_rewrites_vendor_id_to_canonical(
+        self, tmp_path: Path
+    ) -> None:
+        v = _make_vendor()
+        v.id = self.URN_PREFIXED
+        save_vendor(v, vendor_store_dir=tmp_path)
+        assert v.id == self.CANONICAL
+        loaded = load_vendor_by_id(self.CANONICAL, vendor_store_dir=tmp_path)
+        assert loaded is not None
+        assert loaded.id == self.CANONICAL
+
+    def test_load_accepts_alias_forms(self, tmp_path: Path) -> None:
+        v = _make_vendor()
+        v.id = self.CANONICAL
+        save_vendor(v, vendor_store_dir=tmp_path)
+        for alias in (
+            self.CANONICAL,
+            self.BRACE_WRAPPED,
+            self.URN_PREFIXED,
+            self.HEX_NO_HYPHENS,
+        ):
+            loaded = load_vendor_by_id(alias, vendor_store_dir=tmp_path)
+            assert loaded is not None, f"alias {alias!r} did not resolve"
+            assert loaded.id == self.CANONICAL
+
+    def test_delete_canonicalizes_input(self, tmp_path: Path) -> None:
+        v = _make_vendor()
+        v.id = self.CANONICAL
+        save_vendor(v, vendor_store_dir=tmp_path)
+        assert delete_vendor(self.BRACE_WRAPPED, vendor_store_dir=tmp_path)
+        assert not (tmp_path / f"{self.CANONICAL}.json").is_file()

@@ -215,7 +215,9 @@ class EventAction(str, Enum):
     NEW gap is filed referencing it."""
 
     # v0.9.0 P3: CONMON (Continuous Monitoring) cycle-calendar events.
-    # Emitted by the CONMON CLI/REST query paths when an operator
+    # Emitted by the CONMON CLI query path when an operator
+    # (REST surface deferred to v0.9.1 if walk-through identifies
+    # operator demand; v0.9.0 ships CLI only per §31.1)
     # query identifies a due or overdue cycle. The cadence library
     # (evidentia_core.conmon.calendar) is pure-function; audit
     # emit happens at the query layer, not in the library, so a

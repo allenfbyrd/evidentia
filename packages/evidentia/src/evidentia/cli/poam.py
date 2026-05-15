@@ -58,9 +58,11 @@ from __future__ import annotations
 import json
 from datetime import date, datetime
 from pathlib import Path
+from typing import Any
 
 import typer
 from evidentia_core.audit import EventAction, EventOutcome, get_logger
+from evidentia_core.models.common import enum_value as _enum_value
 from evidentia_core.models.gap import (
     ControlGap,
     GapAnalysisReport,
@@ -90,17 +92,6 @@ console = Console()
 _log = get_logger("evidentia.cli.poam")
 
 # ── helpers ────────────────────────────────────────────────────────
-
-
-def _enum_value(v: object) -> str:
-    """Return ``.value`` if v is a real enum, else cast to str.
-
-    Pydantic's ``use_enum_values=True`` means loaded model fields are
-    raw strings, but freshly-constructed enum literals carry the enum
-    member directly. The hasattr check covers both shapes — used
-    consistently across the POA&M CLI's audit-event emit paths.
-    """
-    return v.value if hasattr(v, "value") else str(v)
 
 
 def _parse_date_or_exit(value: str | None, flag: str) -> date | None:
@@ -292,18 +283,41 @@ def poam_create(
     materialized = 0
     skipped_existing = 0
     skipped_severity = 0
+    skipped_malformed = 0
     for gap in report.gaps:
         if not _gap_passes_severity_filter(gap, materialize_all):
             skipped_severity += 1
             continue
+        # Skip gaps whose id field cannot pass the UUID-shape gate
+        # rather than crash the whole materialization loop. A
+        # malformed gap.id usually indicates a hand-edited or
+        # foreign-produced gap report; warn so the operator can
+        # spot it without losing the other materializations.
         try:
             existing = load_poam_by_id(gap.id)
-        except InvalidPoamIdError:
-            existing = None  # shouldn't happen — gap.id is UUID-shaped
+        except InvalidPoamIdError as exc:
+            console.print(
+                f"[yellow]Warning:[/yellow] skipping gap "
+                f"{gap.framework}:{gap.control_id} with malformed id "
+                f"{gap.id!r}: {exc}"
+            )
+            skipped_malformed += 1
+            continue
         if existing is not None and not overwrite:
             skipped_existing += 1
             continue
-        save_poam(gap)
+        try:
+            save_poam(gap)
+        except InvalidPoamIdError as exc:
+            # Defensive — the load_poam_by_id check above should have
+            # surfaced this already, but the save path also validates.
+            console.print(
+                f"[yellow]Warning:[/yellow] skipping gap "
+                f"{gap.framework}:{gap.control_id} with malformed id "
+                f"{gap.id!r}: {exc}"
+            )
+            skipped_malformed += 1
+            continue
         materialized += 1
         _log.info(
             action=EventAction.POAM_CREATED,
@@ -319,12 +333,18 @@ def poam_create(
             },
         )
 
+    malformed_phrase = (
+        f", {skipped_malformed} skipped (malformed gap.id)"
+        if skipped_malformed
+        else ""
+    )
     console.print(
         f"[green]POA&M materialization complete:[/green] "
         f"{materialized} created, {skipped_existing} skipped "
         f"(already exist; pass --overwrite to replace), "
         f"{skipped_severity} skipped (severity filter; pass --all "
         f"to include)"
+        f"{malformed_phrase}"
     )
 
 
@@ -360,7 +380,10 @@ def poam_list(
 
     # Filter on status (default: open work only)
     if not show_all:
-        open_statuses = {GapStatus.OPEN, GapStatus.IN_PROGRESS}
+        # Use raw values for consistency with the routers/poam.py
+        # filter pattern (both EvidentiaModel fields round-trip
+        # through use_enum_values=True as strings).
+        open_statuses = {GapStatus.OPEN.value, GapStatus.IN_PROGRESS.value}
         poams = [p for p in poams if p.status in open_statuses]
 
     # Filter on severity
@@ -875,7 +898,7 @@ def poam_calendar(
     }
 
     if output_json:
-        out = {
+        out: dict[str, Any] = {
             bucket: [
                 {
                     "milestone_id": ms.id,
@@ -892,8 +915,8 @@ def poam_calendar(
             ]
             for bucket, milestones in buckets.items()
         }
-        out["window_days"] = window_days  # type: ignore[assignment]
-        out["today"] = today.isoformat()  # type: ignore[assignment]
+        out["window_days"] = window_days
+        out["today"] = today.isoformat()
         typer.echo(json.dumps(out, indent=2))
         return
 

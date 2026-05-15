@@ -70,8 +70,8 @@ class InvalidVendorIdError(ValueError):
     """
 
 
-def _validate_id_shape(vendor_id: str) -> None:
-    """Reject IDs that aren't a canonical UUID string.
+def _validate_id_shape(vendor_id: str) -> str:
+    """Validate a candidate vendor ID and return its canonical form.
 
     Accepts any UUID variant (v1/v3/v4/v5) — the v0.7.9 P0.1.1
     Vendor model stamps v4 via :func:`new_id`, but any record
@@ -80,9 +80,19 @@ def _validate_id_shape(vendor_id: str) -> None:
     isn't UUID-shaped at all (path-traversal segments, empty
     strings, raw integers, etc.) so the resolved file path can
     never escape the store directory.
+
+    **Canonicalization (v0.9.0 P5 F-V90-15)**: Python's :class:`UUID`
+    parser accepts four lexical forms of the same semantic UUID:
+    canonical hyphenated, brace-wrapped, URN-prefixed, and hex-
+    without-hyphens. Without canonicalization, the same logical
+    UUID can produce distinct filenames in the store + non-
+    conformant emit downstream. This function returns
+    ``str(UUID(vendor_id))`` — the canonical lowercase hyphenated
+    form. Callers MUST use the returned value for filename
+    composition + persisted-id rewriting, not the raw input.
     """
     try:
-        UUID(vendor_id)
+        return str(UUID(vendor_id))
     except (ValueError, AttributeError, TypeError) as exc:
         raise InvalidVendorIdError(
             f"Invalid vendor ID format (expected UUID string): {vendor_id!r}"
@@ -125,7 +135,13 @@ def save_vendor(
     never a half-written file that :func:`list_vendors` would have
     to silently skip.
     """
-    _validate_id_shape(vendor.id)
+    # Canonicalize before path composition + rewrite vendor.id so
+    # the persisted record + downstream consumers (OSCAL emit etc.)
+    # all agree on the canonical lowercase hyphenated form
+    # (v0.9.0 P5 F-V90-15 carry-back to v0.7.9 precedent).
+    canonical_id = _validate_id_shape(vendor.id)
+    if vendor.id != canonical_id:
+        vendor.id = canonical_id
     store = get_vendor_store_dir(vendor_store_dir)
     store.mkdir(parents=True, exist_ok=True)
 
@@ -139,9 +155,9 @@ def save_vendor(
     # constructed from a controlled f-string, the validate_within
     # check defends against future regressions (e.g., if the
     # shape gate is relaxed to accept ULIDs alongside UUIDs).
-    candidate = store / f"{vendor.id}.json"
+    candidate = store / f"{canonical_id}.json"
     out_path = validate_within(candidate, store)
-    tmp_path = store / f"{vendor.id}.json.tmp"
+    tmp_path = store / f"{canonical_id}.json.tmp"
     tmp_path.write_text(vendor.model_dump_json(indent=2), encoding="utf-8")
     os.replace(tmp_path, out_path)
     logger.debug("Saved vendor record (atomic): %s", out_path)
@@ -162,9 +178,9 @@ def load_vendor_by_id(
     resolved-path violation (which the shape check should already
     have rejected — the path check is belt-and-suspenders).
     """
-    _validate_id_shape(vendor_id)
+    canonical_id = _validate_id_shape(vendor_id)
     store = get_vendor_store_dir(vendor_store_dir)
-    candidate = store / f"{vendor_id}.json"
+    candidate = store / f"{canonical_id}.json"
     path = validate_within(candidate, store)
     if not path.is_file():
         return None
@@ -230,9 +246,9 @@ def delete_vendor(
     the well-formed ID had no file on disk. Raises
     :class:`InvalidVendorIdError` on shape violation.
     """
-    _validate_id_shape(vendor_id)
+    canonical_id = _validate_id_shape(vendor_id)
     store = get_vendor_store_dir(vendor_store_dir)
-    candidate = store / f"{vendor_id}.json"
+    candidate = store / f"{canonical_id}.json"
     path = validate_within(candidate, store)
     if not path.is_file():
         return False

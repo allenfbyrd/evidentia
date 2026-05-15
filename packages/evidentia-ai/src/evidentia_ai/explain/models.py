@@ -72,11 +72,15 @@ class PlainEnglishExplanation(BaseModel):
     generation_context: GenerationContext | None = Field(
         default=None,
         description=(
-            "v0.7.1+ AI provenance block. Optional in v0.7.x to preserve "
-            "deserialization compat with cached pre-v0.7.1 explanations and "
-            "v0.7.0 PlainEnglishExplanation payloads; will be tightened to "
-            "required in v0.8 with a deprecation cycle. NOT minted on cache "
-            "hits \u2014 the cached value (if any) is preserved verbatim. See "
+            "v0.7.1+ AI provenance block. Optional to preserve "
+            "deserialization compat with cached pre-v0.7.1 explanations "
+            "and v0.7.0 PlainEnglishExplanation payloads. The v0.8 "
+            "target once planned for tightening to required has passed "
+            "without action; no deprecation is currently scheduled \u2014 "
+            "the field stays optional until cached payloads age out, "
+            "after which a v1.0 cycle may revisit the tightening. "
+            "NOT minted on cache hits \u2014 the cached value (if any) "
+            "is preserved verbatim. See "
             "``evidentia_core.audit.provenance.GenerationContext``."
         ),
     )

@@ -15,9 +15,12 @@ Public surface:
     across the vendor + model-risk inventories into a Markdown
     distribution report
 
-Future v0.7.10 sub-slices may extend this module with
-``EffectiveChallenge`` primitives (P1.5 G2) and KRI / KPI / KGI
-metric schemas (P1.5 G3+).
+Shipped surfaces in this module:
+
+- :class:`EffectiveChallenge` + :class:`ChallengeOutcome` (v0.7.10 P1.5 G2)
+- :class:`Metric` + :class:`MetricKind` + :class:`MetricObservation`
+  + :class:`MetricStatus` (v0.7.10 P1.5 G3)
+- :class:`Workflow` + workflow_store primitives (v0.7.11)
 """
 
 from __future__ import annotations

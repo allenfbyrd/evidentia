@@ -31,7 +31,7 @@ Bundled cadences (v0.9.0 P3 baseline; operator-extensible via
 
 Pure functions; no I/O; no persistence side-effects. Audit-trail
 emit (``EventAction.CONMON_CYCLE_DUE`` /
-``EventAction.CONMON_CYCLE_OVERDUE``) happens at the CLI/REST
+``EventAction.CONMON_CYCLE_OVERDUE``) happens at the CLI
 layer when queries identify due/overdue cycles — not in this
 library, which only computes the dates.
 """

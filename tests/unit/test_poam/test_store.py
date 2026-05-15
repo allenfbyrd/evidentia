@@ -209,6 +209,79 @@ class TestInvalidIds:
             load_poam_by_id("../bad", poam_store_dir=tmp_path)
 
 
+# ── UUID canonicalization (v0.9.0 P5 F-V90-15) ─────────────────────
+
+
+class TestUuidCanonicalization:
+    """UUID-alias normalization prevents duplicate records on disk.
+
+    Python's :class:`uuid.UUID` parser accepts 4 lexical forms of the
+    same semantic UUID. Without canonicalization, the same logical
+    UUID could produce distinct filenames in the store. The fix
+    canonicalizes at the trust boundary via ``str(UUID(id))``.
+    """
+
+    CANONICAL = "12345678-1234-5678-9abc-1234567890ab"
+    BRACE_WRAPPED = "{12345678-1234-5678-9abc-1234567890ab}"
+    URN_PREFIXED = "urn:uuid:12345678-1234-5678-9abc-1234567890ab"
+    HEX_NO_HYPHENS = "12345678123456789abc1234567890ab"
+
+    def test_alias_forms_collapse_to_single_record(
+        self, tmp_path: Path
+    ) -> None:
+        # Save with the canonical form.
+        p1 = _make_poam()
+        p1.id = self.CANONICAL
+        save_poam(p1, poam_store_dir=tmp_path)
+        # Save the same logical UUID with brace-wrapped form.
+        p2 = _make_poam()
+        p2.id = self.BRACE_WRAPPED
+        save_poam(p2, poam_store_dir=tmp_path)
+        # Should be a single file on disk (the brace form overwrote
+        # the canonical record).
+        assert len(list(tmp_path.glob("*.json"))) == 1
+        # Filename is the canonical form, not the brace-wrapped form.
+        assert (tmp_path / f"{self.CANONICAL}.json").is_file()
+        assert not (tmp_path / f"{self.BRACE_WRAPPED}.json").is_file()
+
+    def test_save_rewrites_poam_id_to_canonical(
+        self, tmp_path: Path
+    ) -> None:
+        p = _make_poam()
+        p.id = self.BRACE_WRAPPED
+        save_poam(p, poam_store_dir=tmp_path)
+        # The in-memory object now carries the canonical id.
+        assert p.id == self.CANONICAL
+        # And the persisted record's id field matches.
+        loaded = load_poam_by_id(self.CANONICAL, poam_store_dir=tmp_path)
+        assert loaded is not None
+        assert loaded.id == self.CANONICAL
+
+    def test_load_accepts_alias_forms(self, tmp_path: Path) -> None:
+        p = _make_poam()
+        p.id = self.CANONICAL
+        save_poam(p, poam_store_dir=tmp_path)
+        # All 4 forms should resolve to the same on-disk record.
+        for alias in (
+            self.CANONICAL,
+            self.BRACE_WRAPPED,
+            self.URN_PREFIXED,
+            self.HEX_NO_HYPHENS,
+        ):
+            loaded = load_poam_by_id(alias, poam_store_dir=tmp_path)
+            assert loaded is not None, f"alias {alias!r} did not resolve"
+            assert loaded.id == self.CANONICAL
+
+    def test_delete_canonicalizes_input(self, tmp_path: Path) -> None:
+        p = _make_poam()
+        p.id = self.CANONICAL
+        save_poam(p, poam_store_dir=tmp_path)
+        # Delete using a non-canonical alias.
+        assert delete_poam(self.BRACE_WRAPPED, poam_store_dir=tmp_path)
+        # File is gone.
+        assert not (tmp_path / f"{self.CANONICAL}.json").is_file()
+
+
 # ── list_poams ─────────────────────────────────────────────────────
 
 

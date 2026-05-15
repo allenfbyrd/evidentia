@@ -73,27 +73,17 @@ from collections.abc import Callable
 from typing import Any
 from uuid import uuid4
 
+from evidentia_core.models.common import enum_value as _enum_value
 from evidentia_core.models.gap import (
     ControlGap,
     GapAnalysisReport,
     GapSeverity,
+    GapStatus,
     Milestone,
 )
 from evidentia_core.oscal.digest import digest_bytes, format_digest
 
 EVIDENTIA_OSCAL_NS = "https://evidentia.dev/oscal"
-
-
-def _enum_value(v: object) -> str:
-    """Return ``.value`` if the input is a real enum, else cast to str.
-
-    Defensive helper matching the exporter.py pattern: EvidentiaModel
-    has ``use_enum_values=True`` so Pydantic-deserialized enum fields
-    round-trip as strings, but freshly-constructed Pydantic models
-    can still carry real enum instances at field-access time. The
-    hasattr check covers both shapes.
-    """
-    return v.value if hasattr(v, "value") else str(v)
 
 
 # ── public surface ─────────────────────────────────────────────────
@@ -417,8 +407,6 @@ def _gap_status_to_risk_status(gap: ControlGap) -> str:
     OSCAL risk-status enum: open / investigating / remediating /
     deviation-requested / deviation-approved / closed.
     """
-    from evidentia_core.models.gap import GapStatus
-
     mapping: dict[str, str] = {
         GapStatus.OPEN.value: "open",
         GapStatus.IN_PROGRESS.value: "investigating",
