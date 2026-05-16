@@ -447,3 +447,144 @@ class TestConmonMarkCompleted:
         )
         assert result.exit_code == 1
         assert "--when" in result.output
+
+
+# ── watch alerting flag validation (v0.9.3 P1.2) ──────────────────
+
+
+class TestConmonWatchAlertingFlags:
+    """Validate the watch command's alerting flag pre-checks.
+
+    We test the eager validation that happens BEFORE the poll loop
+    starts — these tests don't require running the daemon. Full
+    daemon-loop alerting integration is covered by the unit tests
+    in test_alerting.py.
+    """
+
+    def test_smtp_host_without_sender_errors(
+        self,
+        runner: CliRunner,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("EVIDENTIA_SMTP_PASSWORD", "p")
+        state_file = tmp_path / "state.yaml"
+        dedup_file = tmp_path / "dedup.json"
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "watch",
+                "--state-file",
+                str(state_file),
+                "--alert-dedup-file",
+                str(dedup_file),
+                "--smtp-host",
+                "smtp.example.com",
+                # Missing --smtp-sender and --smtp-recipient
+            ],
+        )
+        assert result.exit_code != 0
+        assert "--smtp-sender" in result.output
+
+    def test_smtp_host_without_password_errors(
+        self,
+        runner: CliRunner,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # Explicitly clear the env var to test the error path.
+        monkeypatch.delenv("EVIDENTIA_SMTP_PASSWORD", raising=False)
+        state_file = tmp_path / "state.yaml"
+        dedup_file = tmp_path / "dedup.json"
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "watch",
+                "--state-file",
+                str(state_file),
+                "--alert-dedup-file",
+                str(dedup_file),
+                "--smtp-host",
+                "smtp.example.com",
+                "--smtp-sender",
+                "from@example.com",
+                "--smtp-recipient",
+                "to@example.com",
+            ],
+        )
+        assert result.exit_code != 0
+        assert "SMTP password" in result.output
+
+    def test_webhook_without_secret_errors(
+        self,
+        runner: CliRunner,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.delenv("EVIDENTIA_WEBHOOK_SECRET", raising=False)
+        state_file = tmp_path / "state.yaml"
+        dedup_file = tmp_path / "dedup.json"
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "watch",
+                "--state-file",
+                str(state_file),
+                "--alert-dedup-file",
+                str(dedup_file),
+                "--webhook-url",
+                "https://hooks.example.com/in",
+            ],
+        )
+        assert result.exit_code != 0
+        assert "webhook" in result.output.lower()
+
+    def test_alerting_without_dedup_file_errors(
+        self,
+        runner: CliRunner,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("EVIDENTIA_WEBHOOK_SECRET", "s")
+        state_file = tmp_path / "state.yaml"
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "watch",
+                "--state-file",
+                str(state_file),
+                "--webhook-url",
+                "https://hooks.example.com/in",
+                # Missing --alert-dedup-file
+            ],
+        )
+        assert result.exit_code != 0
+        assert "--alert-dedup-file" in result.output
+
+    def test_no_password_value_flag(self, runner: CliRunner) -> None:
+        # Defense in depth — verify that --smtp-password / --webhook-
+        # secret value flags are NOT registered. Rich truncates long
+        # flag names in --help output so we test by trying to use the
+        # flags directly (should error with "no such option").
+        for forbidden in ("--smtp-password", "--webhook-secret"):
+            result = runner.invoke(
+                app,
+                [
+                    "conmon",
+                    "watch",
+                    "--state-file",
+                    "/tmp/state.yaml",
+                    forbidden,
+                    "anything",
+                ],
+            )
+            assert result.exit_code != 0
+            assert (
+                "no such option" in result.output.lower()
+                or "unexpected" in result.output.lower()
+                or "got unexpected" in result.output.lower()
+            )

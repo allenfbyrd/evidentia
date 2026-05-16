@@ -47,14 +47,19 @@ import typer
 from evidentia_core.audit import EventAction, EventOutcome, get_logger
 from evidentia_core.conmon import (
     DEFAULT_POLL_INTERVAL_SECONDS,
+    DEFAULT_SUPPRESSION_HOURS,
     MIN_POLL_INTERVAL_SECONDS,
+    AlertChannel,
+    AlertDeduper,
     CycleAttentionState,
     DaemonConfig,
     derive_status,
     get_cadence,
     list_cadences,
+    make_alert_handler,
     mark_completed,
     next_due,
+    resolve_secret,
     run_daemon,
 )
 from rich.console import Console
@@ -438,6 +443,75 @@ def conmon_check(
 # ── watch (v0.9.3 P1.1 — poll daemon) ─────────────────────────────
 
 
+def _build_alert_channels(
+    smtp_host: str | None,
+    smtp_port: int,
+    smtp_username: str | None,
+    smtp_password_file: Path | None,
+    smtp_sender: str | None,
+    smtp_recipients: list[str] | None,
+    webhook_url: str | None,
+    webhook_secret_file: Path | None,
+) -> list[AlertChannel]:
+    """Construct AlertChannel instances from operator-supplied flags.
+
+    Returns an empty list if no alerting flags are set — the daemon
+    runs without alerts, emitting only audit events. Caller decides
+    whether that's acceptable for the operator's posture.
+    """
+    channels: list[AlertChannel] = []
+
+    if smtp_host is not None:
+        # All SMTP flags are required together once host is set.
+        if smtp_sender is None or not smtp_recipients:
+            raise typer.BadParameter(
+                "--smtp-host requires --smtp-sender and at least "
+                "one --smtp-recipient"
+            )
+        password = resolve_secret(
+            smtp_password_file,
+            "EVIDENTIA_SMTP_PASSWORD",
+            "SMTP password",
+        )
+        # Lazy import: keeps the core CLI lean for non-alerting usage.
+        from evidentia_integrations.alerting import (
+            SMTPAlertChannel,
+            SMTPConfig,
+        )
+
+        channels.append(
+            SMTPAlertChannel(
+                SMTPConfig(
+                    host=smtp_host,
+                    port=smtp_port,
+                    username=smtp_username or "",
+                    password=password,
+                    sender=smtp_sender,
+                    recipients=smtp_recipients,
+                )
+            )
+        )
+
+    if webhook_url is not None:
+        secret = resolve_secret(
+            webhook_secret_file,
+            "EVIDENTIA_WEBHOOK_SECRET",
+            "webhook HMAC secret",
+        )
+        from evidentia_integrations.alerting import (
+            WebhookAlertChannel,
+            WebhookConfig,
+        )
+
+        channels.append(
+            WebhookAlertChannel(
+                WebhookConfig(url=webhook_url, secret=secret)
+            )
+        )
+
+    return channels
+
+
 @app.command("watch")
 def conmon_watch(
     state_file: Path = typer.Option(
@@ -474,6 +548,91 @@ def conmon_watch(
             "Overdue cycles always surface regardless of this window."
         ),
     ),
+    alert_dedup_file: Path | None = typer.Option(
+        None,
+        "--alert-dedup-file",
+        file_okay=True,
+        dir_okay=False,
+        help=(
+            "Path to alerting deduplication state file (JSON). "
+            "Required when any --smtp-* or --webhook-* flag is set. "
+            "Prevents the same (slug, state) from re-alerting on "
+            "every poll within the suppression window."
+        ),
+    ),
+    alert_suppression_hours: float = typer.Option(
+        DEFAULT_SUPPRESSION_HOURS,
+        "--alert-suppression-hours",
+        min=0.0,
+        help=(
+            f"Suppression window per (slug, state). Default: "
+            f"{DEFAULT_SUPPRESSION_HOURS}h. Set to 0 to alert on "
+            f"every detection (useful for testing; never in prod)."
+        ),
+    ),
+    # ── SMTP alerting ─────────────────────────────────────────────
+    smtp_host: str | None = typer.Option(
+        None,
+        "--smtp-host",
+        help="SMTP server hostname. Enables SMTP alerting when set.",
+    ),
+    smtp_port: int = typer.Option(
+        587,
+        "--smtp-port",
+        min=1,
+        max=65535,
+        help="SMTP server port. Default: 587 (STARTTLS submission).",
+    ),
+    smtp_username: str | None = typer.Option(
+        None,
+        "--smtp-username",
+        help="SMTP auth username. Omit for unauthenticated relays.",
+    ),
+    smtp_password_file: Path | None = typer.Option(
+        None,
+        "--smtp-password-file",
+        file_okay=True,
+        dir_okay=False,
+        help=(
+            "Path to file containing SMTP password. Resolution "
+            "precedence: this flag > EVIDENTIA_SMTP_PASSWORD env. "
+            "CLI value flags for passwords are not accepted."
+        ),
+    ),
+    smtp_sender: str | None = typer.Option(
+        None,
+        "--smtp-sender",
+        help="From: address. Required when --smtp-host is set.",
+    ),
+    smtp_recipients: list[str] | None = typer.Option(
+        None,
+        "--smtp-recipient",
+        help=(
+            "To: address (repeatable). At least one required when "
+            "--smtp-host is set."
+        ),
+    ),
+    # ── Webhook alerting ──────────────────────────────────────────
+    webhook_url: str | None = typer.Option(
+        None,
+        "--webhook-url",
+        help=(
+            "HTTPS webhook URL. POSTs signed JSON payload on each "
+            "alert. Enables webhook alerting when set."
+        ),
+    ),
+    webhook_secret_file: Path | None = typer.Option(
+        None,
+        "--webhook-secret-file",
+        file_okay=True,
+        dir_okay=False,
+        help=(
+            "Path to file containing webhook HMAC-SHA256 secret. "
+            "Resolution precedence: this flag > "
+            "EVIDENTIA_WEBHOOK_SECRET env. CLI value flags for "
+            "secrets are not accepted."
+        ),
+    ),
 ) -> None:
     """Long-running poll daemon for CONMON cycle attention-state.
 
@@ -485,6 +644,11 @@ def conmon_watch(
     Lifecycle audit events bracket the run:
     :attr:`EventAction.CONMON_DAEMON_STARTED` at boot,
     :attr:`EventAction.CONMON_DAEMON_STOPPED` at graceful shutdown.
+
+    Optional alerting (v0.9.3 P1.2): set ``--smtp-host`` and/or
+    ``--webhook-url`` to dispatch alerts on due-soon / overdue
+    transitions. Alerts are deduplicated per (slug, state) within
+    ``--alert-suppression-hours`` (default 24h).
 
     Graceful shutdown: SIGINT (Ctrl+C) and SIGTERM trigger the
     shutdown event. The daemon finishes the current poll cycle,
@@ -498,6 +662,37 @@ def conmon_watch(
         poll_interval_seconds=poll_interval_seconds,
         window_days=window_days,
     )
+
+    # Construct alerting channels. Errors here surface as
+    # typer.BadParameter / ValueError before the daemon starts.
+    try:
+        channels = _build_alert_channels(
+            smtp_host=smtp_host,
+            smtp_port=smtp_port,
+            smtp_username=smtp_username,
+            smtp_password_file=smtp_password_file,
+            smtp_sender=smtp_sender,
+            smtp_recipients=smtp_recipients,
+            webhook_url=webhook_url,
+            webhook_secret_file=webhook_secret_file,
+        )
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    deduper: AlertDeduper | None = None
+    handler = None
+    if channels:
+        if alert_dedup_file is None:
+            console.print(
+                "[red]Error:[/red] --alert-dedup-file required when "
+                "any --smtp-* or --webhook-* flag is set"
+            )
+            raise typer.Exit(code=1)
+        deduper = AlertDeduper.from_hours(
+            alert_dedup_file, alert_suppression_hours
+        )
+        handler = make_alert_handler(channels, deduper=deduper)
 
     shutdown = threading.Event()
 
@@ -514,14 +709,25 @@ def conmon_watch(
         # SIGTERM is POSIX-only; Windows uses other mechanisms.
         signal.signal(signal.SIGTERM, _handle_signal)
 
+    alerting_note = (
+        f" alerting={len(channels)} channel(s) "
+        f"(suppression={alert_suppression_hours}h)"
+        if channels
+        else " no alerting"
+    )
     console.print(
         f"[green]CONMON daemon starting[/green] (poll every "
         f"{poll_interval_seconds}s; window={window_days}d; "
-        f"state-file={state_file})"
+        f"state-file={state_file};{alerting_note})"
     )
     console.print("[dim]Press Ctrl+C for graceful shutdown.[/dim]")
 
-    run_daemon(config, shutdown_event=shutdown)
+    run_daemon(
+        config,
+        on_due_soon=handler,
+        on_overdue=handler,
+        shutdown_event=shutdown,
+    )
 
     console.print("[green]CONMON daemon stopped cleanly.[/green]")
 

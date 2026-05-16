@@ -41,6 +41,13 @@ library, which only computes the dates.
 
 from __future__ import annotations
 
+from evidentia_core.conmon.alerting import (
+    DEFAULT_SUPPRESSION_HOURS,
+    AlertChannel,
+    AlertDeduper,
+    make_alert_handler,
+    resolve_secret,
+)
 from evidentia_core.conmon.calendar import (
     BUNDLED_CADENCES,
     CONMON_FREQUENCIES,
@@ -71,7 +78,10 @@ __all__ = [
     "BUNDLED_CADENCES",
     "CONMON_FREQUENCIES",
     "DEFAULT_POLL_INTERVAL_SECONDS",
+    "DEFAULT_SUPPRESSION_HOURS",
     "MIN_POLL_INTERVAL_SECONDS",
+    "AlertChannel",
+    "AlertDeduper",
     "CadenceFrequency",
     "ConmonCadence",
     "CycleAttentionState",
@@ -83,10 +93,12 @@ __all__ = [
     "get_cadence",
     "list_cadences",
     "load_state_file",
+    "make_alert_handler",
     "mark_completed",
     "next_due",
     "poll_once",
     "register_cadence",
+    "resolve_secret",
     "run_daemon",
     "save_state_file",
 ]

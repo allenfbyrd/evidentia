@@ -272,6 +272,28 @@ class EventAction(str, Enum):
     the previous last_completed value (or null on first mark) to
     enable cycle-by-cycle reconciliation."""
 
+    # CONMON alerting events (v0.9.3 P1.2) — emitted when the daemon
+    # dispatches or suppresses an alert via the operator-configured
+    # alerting channels (SMTP + webhook reference impls in
+    # evidentia_integrations.alerting). Dedup state lives in the
+    # daemon's state file under a reserved key so operators
+    # inspecting one file see both anchor dates + dedup history.
+    #   evidentia.alert payload:
+    #   - cadence_slug: ConmonCadence.slug
+    #   - state: "due_soon" | "overdue"
+    #   - channel: "smtp" | "webhook" | custom-name
+    #   - suppression_window_hours: int (for SUPPRESSED only)
+    CONMON_ALERT_DISPATCHED = "evidentia.conmon.alert_dispatched"
+    """Fired per (channel, cycle) pair when an alert is successfully
+    dispatched. Auditors can reconstruct the alert flow from the
+    audit log alone — no need to inspect the channel's outbox."""
+
+    CONMON_ALERT_SUPPRESSED = "evidentia.conmon.alert_suppressed"
+    """Fired when an alert would have been dispatched but the
+    deduplication window suppressed it. Auditors can verify the
+    daemon isn't spamming operators without missing genuine
+    transitions."""
+
     # Retention + WORM lifecycle events (v0.7.12 P1) — audit-trail
     # actions on records under retention metadata. The PURGED variant
     # serves as the canonical legal-counsel-defensible artifact for
