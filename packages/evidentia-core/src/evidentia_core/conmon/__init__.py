@@ -73,6 +73,12 @@ from evidentia_core.conmon.daemon import (
     run_daemon,
     save_state_file,
 )
+from evidentia_core.conmon.health import (
+    FrameworkHealth,
+    HealthReport,
+    compute_health,
+    health_from_state_file,
+)
 
 __all__ = [
     "BUNDLED_CADENCES",
@@ -88,9 +94,13 @@ __all__ = [
     "CycleHandler",
     "CycleObservation",
     "DaemonConfig",
+    "FrameworkHealth",
+    "HealthReport",
     "PollResult",
+    "compute_health",
     "derive_status",
     "get_cadence",
+    "health_from_state_file",
     "list_cadences",
     "load_state_file",
     "make_alert_handler",

@@ -294,6 +294,13 @@ class EventAction(str, Enum):
     daemon isn't spamming operators without missing genuine
     transitions."""
 
+    CONMON_HEALTH_REPORT_GENERATED = "evidentia.conmon.health_report_generated"
+    """Fired when ``evidentia conmon health`` or
+    ``GET /api/conmon/health`` produces a report. Payload includes
+    the overall health score + per-framework counts so auditors can
+    reconstruct the operator's CONMON posture at any historical
+    point from the audit log alone."""
+
     # Retention + WORM lifecycle events (v0.7.12 P1) — audit-trail
     # actions on records under retention metadata. The PURGED variant
     # serves as the canonical legal-counsel-defensible artifact for

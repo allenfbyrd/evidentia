@@ -588,3 +588,116 @@ class TestConmonWatchAlertingFlags:
                 or "unexpected" in result.output.lower()
                 or "got unexpected" in result.output.lower()
             )
+
+
+# ── health (v0.9.3 P1.3) ──────────────────────────────────────────
+
+
+class TestConmonHealth:
+    """`evidentia conmon health` CLI verb."""
+
+    def test_basic_table_output(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        state_file = tmp_path / "state.yaml"
+        state_file.write_text(
+            "nist-800-53-rev5-ca7: 2025-01-01\n"
+            "fedramp-conmon-poam: 2026-05-10\n",
+            encoding="utf-8",
+        )
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "health",
+                "--state-file",
+                str(state_file),
+                "--today",
+                "2026-05-15",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "CONMON health" in result.output
+        assert "nist-800-53-rev5" in result.output
+        assert "fedramp-rev5-mod" in result.output
+
+    def test_json_output(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        state_file = tmp_path / "state.yaml"
+        state_file.write_text(
+            "nist-800-53-rev5-ca7: 2026-05-10\n", encoding="utf-8"
+        )
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "health",
+                "--state-file",
+                str(state_file),
+                "--today",
+                "2026-05-15",
+                "--json",
+            ],
+        )
+        assert result.exit_code == 0
+        body = json.loads(result.output)
+        assert body["total_cycles"] == 1
+        assert body["overall_health_score"] == 1.0
+
+    def test_emits_audit_event(
+        self,
+        runner: CliRunner,
+        tmp_path: Path,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        state_file = tmp_path / "state.yaml"
+        state_file.write_text(
+            "nist-800-53-rev5-ca7: 2026-05-10\n", encoding="utf-8"
+        )
+        with caplog.at_level("INFO", logger="evidentia.cli.conmon"):
+            result = runner.invoke(
+                app,
+                [
+                    "conmon",
+                    "health",
+                    "--state-file",
+                    str(state_file),
+                    "--today",
+                    "2026-05-15",
+                ],
+            )
+        assert result.exit_code == 0
+        actions = [
+            getattr(r, "ecs_record", {}).get("event", {}).get("action")
+            for r in caplog.records
+        ]
+        assert "evidentia.conmon.health_report_generated" in actions
+
+    def test_framework_filter(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        state_file = tmp_path / "state.yaml"
+        state_file.write_text(
+            "nist-800-53-rev5-ca7: 2026-05-10\n"
+            "fedramp-conmon-poam: 2026-05-10\n",
+            encoding="utf-8",
+        )
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "health",
+                "--state-file",
+                str(state_file),
+                "--today",
+                "2026-05-15",
+                "--framework",
+                "nist-800-53-rev5",
+                "--json",
+            ],
+        )
+        assert result.exit_code == 0
+        body = json.loads(result.output)
+        assert len(body["frameworks"]) == 1
+        assert body["frameworks"][0]["framework"] == "nist-800-53-rev5"

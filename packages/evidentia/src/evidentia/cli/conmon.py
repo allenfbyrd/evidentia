@@ -55,6 +55,7 @@ from evidentia_core.conmon import (
     DaemonConfig,
     derive_status,
     get_cadence,
+    health_from_state_file,
     list_cadences,
     make_alert_handler,
     mark_completed,
@@ -792,3 +793,151 @@ def conmon_mark_completed(
         )
     if cadence.citation:
         console.print(f"  [dim]Citation: {cadence.citation}[/dim]")
+
+
+# ── health (v0.9.3 P1.3) ──────────────────────────────────────────
+
+
+@app.command("health")
+def conmon_health(
+    state_file: Path = typer.Option(
+        ...,
+        "--state-file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help=(
+            "YAML mapping {cadence_slug: ISO-8601-date} of last-"
+            "completed dates. Same schema as `evidentia conmon "
+            "check --last-completed-file`."
+        ),
+    ),
+    today_override: str | None = typer.Option(
+        None,
+        "--today",
+        help=(
+            "Override 'today' for deterministic snapshots "
+            "(YYYY-MM-DD). Omit for real-time reports."
+        ),
+    ),
+    window_days: int = typer.Option(
+        14,
+        "--window-days",
+        min=0,
+        help="Due-soon window in days. Default: 14.",
+    ),
+    framework: str | None = typer.Option(
+        None,
+        "--framework",
+        "-f",
+        help=(
+            "Restrict report to a single framework "
+            "(e.g., nist-800-53-rev5)."
+        ),
+    ),
+    output_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit machine-readable JSON instead of a rich table.",
+    ),
+) -> None:
+    """Aggregate CONMON cycle health by framework.
+
+    Produces per-framework counts of cycles in each attention bucket
+    (current / due_soon / overdue) plus a health-score percentage
+    (current + due_soon / total). Emits
+    :attr:`EventAction.CONMON_HEALTH_REPORT_GENERATED` so the
+    audit log captures the snapshot.
+    """
+    today_parsed = _parse_date_or_exit(today_override, "--today")
+    today: date = today_parsed if today_parsed is not None else date.today()
+
+    report = health_from_state_file(
+        state_file,
+        today=today,
+        window_days=window_days,
+        framework_filter=framework,
+    )
+
+    _log.info(
+        action=EventAction.CONMON_HEALTH_REPORT_GENERATED,
+        outcome=EventOutcome.SUCCESS,
+        message=(
+            f"CONMON health report generated: "
+            f"{report.total_cycles} cycle(s) across "
+            f"{len(report.frameworks)} framework(s); "
+            f"overall_health_score={report.overall_health_score:.2f}"
+        ),
+        evidentia={
+            "today": today.isoformat(),
+            "window_days": window_days,
+            "framework_filter": framework,
+            "total_cycles": report.total_cycles,
+            "total_overdue": report.total_overdue,
+            "total_due_soon": report.total_due_soon,
+            "total_current": report.total_current,
+            "overall_health_score": report.overall_health_score,
+            "framework_count": len(report.frameworks),
+        },
+    )
+
+    if output_json:
+        typer.echo(json.dumps(report.to_dict(), indent=2))
+        return
+
+    if not report.frameworks:
+        console.print(
+            "[yellow]No tracked cycles produced a health report.[/yellow]"
+        )
+        if report.unknown_slugs:
+            console.print(
+                f"  [dim]({len(report.unknown_slugs)} unknown slug(s): "
+                f"{', '.join(report.unknown_slugs)})[/dim]"
+            )
+        return
+
+    table = Table(
+        title=(
+            f"CONMON health as of {today.isoformat()} "
+            f"(window={window_days}d)"
+        ),
+        title_style="bold cyan",
+    )
+    table.add_column("Framework", style="bold")
+    table.add_column("Total", justify="right")
+    table.add_column("Current", justify="right", style="green")
+    table.add_column("Due soon", justify="right", style="yellow")
+    table.add_column("Overdue", justify="right", style="red")
+    table.add_column("Health", justify="right")
+    for fh in report.frameworks:
+        score_style = (
+            "green" if fh.health_score >= 0.95
+            else "yellow" if fh.health_score >= 0.80
+            else "red"
+        )
+        table.add_row(
+            fh.framework,
+            str(fh.total),
+            str(fh.current),
+            str(fh.due_soon),
+            str(fh.overdue),
+            f"[{score_style}]{fh.health_score:.0%}[/{score_style}]",
+        )
+    console.print(table)
+
+    overall_style = (
+        "green" if report.overall_health_score >= 0.95
+        else "yellow" if report.overall_health_score >= 0.80
+        else "red"
+    )
+    console.print(
+        f"\n[bold]Overall:[/bold] {report.total_cycles} cycle(s); "
+        f"score [{overall_style}]"
+        f"{report.overall_health_score:.0%}[/{overall_style}]"
+    )
+    if report.unknown_slugs:
+        console.print(
+            f"[dim]Unknown slugs ({len(report.unknown_slugs)}): "
+            f"{', '.join(report.unknown_slugs)}[/dim]"
+        )
