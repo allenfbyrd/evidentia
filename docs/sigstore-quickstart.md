@@ -248,7 +248,7 @@ Actions workflow used to sign:
 
 ```bash
 cosign verify ghcr.io/polycentric-labs/evidentia:v0.7.5 \
-  --certificate-identity-regexp 'https://github\.com/polycentric-labs/evidentia/\.github/workflows/release\.yml@refs/tags/v.*' \
+  --certificate-identity-regexp 'https://github\.com/Polycentric-Labs/evidentia/\.github/workflows/release\.yml@refs/tags/v.*' \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
 ```
 
@@ -266,7 +266,7 @@ via:
 
 ```bash
 gh attestation verify oci://ghcr.io/polycentric-labs/evidentia:v0.7.5 \
-  -R polycentric-labs/evidentia
+  -R Polycentric-Labs/evidentia
 ```
 
 This validates the build provenance predicate (workflow run id,

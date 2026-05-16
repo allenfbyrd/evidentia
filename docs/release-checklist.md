@@ -405,11 +405,11 @@ introduced this practice retroactively.
       [`docs/v0.7.3-plan.md`](v0.7.3-plan.md)):
       ```bash
       gh attestation verify dist/evidentia_core-X.Y.Z-py3-none-any.whl \
-          -R polycentric-labs/evidentia
+          -R Polycentric-Labs/evidentia
       ```
       Expect `Loaded digest sha256:... ` and `OK`. The same command
       also validates the CycloneDX SBOM's attestation
-      (`gh attestation verify evidentia-sbom.cdx.json -R polycentric-labs/evidentia`).
+      (`gh attestation verify evidentia-sbom.cdx.json -R Polycentric-Labs/evidentia`).
       Pre-v0.7.3 releases (v0.7.0/v0.7.1/v0.7.2) return HTTP 404
       because they emit only the PEP 740 publish predicate; only
       v0.7.3+ releases carry the SLSA build-provenance predicate
@@ -431,7 +431,7 @@ introduced this practice retroactively.
       validates the OIDC identity binding (release.yml@refs/tags/v*):
       ```bash
       cosign verify ghcr.io/polycentric-labs/evidentia:vX.Y.Z \
-          --certificate-identity-regexp 'https://github\.com/polycentric-labs/evidentia/\.github/workflows/release\.yml@refs/tags/v.*' \
+          --certificate-identity-regexp 'https://github\.com/Polycentric-Labs/evidentia/\.github/workflows/release\.yml@refs/tags/v.*' \
           --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
       ```
       Expect "Verified OK" + the certificate identity URL printed.
@@ -439,7 +439,7 @@ introduced this practice retroactively.
       — independent of cosign, validates the build-provenance predicate:
       ```bash
       gh attestation verify oci://ghcr.io/polycentric-labs/evidentia:vX.Y.Z \
-          -R polycentric-labs/evidentia
+          -R Polycentric-Labs/evidentia
       ```
       Expect "verified" + the workflow run id matching the release.
 - [ ] **(v0.7.5+) Tag and `:latest` resolve to same digest** — sanity

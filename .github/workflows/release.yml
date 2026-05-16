@@ -197,7 +197,7 @@ jobs:
       # artifacts. Stored under
       # https://github.com/polycentric-labs/evidentia/attestations and
       # verified by consumers via:
-      #   gh attestation verify dist/<wheel> -R polycentric-labs/evidentia
+      #   gh attestation verify dist/<wheel> -R Polycentric-Labs/evidentia
       # This is the SLSA path; the PEP 740 path
       # (`pypi-attestations verify pypi`) continues to work
       # independently via pypa/gh-action-pypi-publish below.
@@ -283,7 +283,7 @@ jobs:
   # OIDC signing + SLSA L3 build provenance attestation for the image
   # digest. Mirrors the publish-pypi pattern above so a single release
   # workflow run covers wheels + SBOM + image under one OIDC identity
-  # binding (polycentric-labs/evidentia/release.yml@refs/tags/v*) and one
+  # binding (Polycentric-Labs/evidentia/release.yml@refs/tags/v*) and one
   # GitHub Release.
   #
   # Design choice (Option A): the v0.7.5-plan.md C1 row originally
@@ -308,7 +308,7 @@ jobs:
       #   token exchange for actions/attest-build-provenance.
       id-token: write
       # attestations: write — store the SLSA build-provenance attestation
-      #   under repos/polycentric-labs/evidentia/attestations so consumers can
+      #   under repos/Polycentric-Labs/evidentia/attestations so consumers can
       #   verify via `gh attestation verify oci://ghcr.io/...`.
       attestations: write
       # packages: write — push to ghcr.io under the github.repository_owner
@@ -491,7 +491,7 @@ jobs:
         with:
           # subject-name MUST be the registry-qualified image without a
           # tag; subject-digest is the sha256 from the build step. The
-          # attestation lands at repos/polycentric-labs/evidentia/attestations
+          # attestation lands at repos/Polycentric-Labs/evidentia/attestations
           # keyed on this digest, which `gh attestation verify oci://...`
           # then resolves on the consumer side.
           subject-name: ghcr.io/polycentric-labs/evidentia
@@ -520,7 +520,7 @@ jobs:
 
             ```bash
             cosign verify ghcr.io/polycentric-labs/evidentia:${{ steps.version.outputs.tag }} \
-              --certificate-identity-regexp 'https://github\.com/polycentric-labs/evidentia/\.github/workflows/release\.yml@refs/tags/v.*' \
+              --certificate-identity-regexp 'https://github\.com/Polycentric-Labs/evidentia/\.github/workflows/release\.yml@refs/tags/v.*' \
               --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
             ```
 
@@ -528,7 +528,7 @@ jobs:
 
             ```bash
             gh attestation verify oci://ghcr.io/polycentric-labs/evidentia:${{ steps.version.outputs.tag }} \
-              -R polycentric-labs/evidentia
+              -R Polycentric-Labs/evidentia
             ```
 
             See [docs/sigstore-quickstart.md](https://github.com/polycentric-labs/evidentia/blob/main/docs/sigstore-quickstart.md)

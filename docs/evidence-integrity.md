@@ -172,7 +172,7 @@ image:
 
 ```bash
 cosign verify ghcr.io/polycentric-labs/evidentia:v0.8.0 \
-  --certificate-identity-regexp='^https://github.com/polycentric-labs/evidentia/' \
+  --certificate-identity-regexp='^https://github.com/Polycentric-Labs/evidentia/' \
   --certificate-oidc-issuer=https://token.actions.githubusercontent.com
 ```
 
@@ -251,7 +251,7 @@ pypi-attestations verify pypi --repository \
 
 # Verify the container image
 cosign verify ghcr.io/polycentric-labs/evidentia:v0.8.0 \
-  --certificate-identity-regexp='^https://github.com/polycentric-labs/evidentia/' \
+  --certificate-identity-regexp='^https://github.com/Polycentric-Labs/evidentia/' \
   --certificate-oidc-issuer=https://token.actions.githubusercontent.com
 
 # Verify a Sigstore-signed AR
