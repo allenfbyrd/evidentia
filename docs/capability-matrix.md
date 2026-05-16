@@ -1419,7 +1419,7 @@ and acceptance criteria for v0.9.1 + v1.0 gate.
 
 | # | Persona | Goal | Evidentia surfaces | Expected outcome |
 |---|---------|------|--------------------|------------------|
-| FS-1 | CSP compliance engineer | Prepare monthly ConMon deliverables for the AO | `evidentia conmon check`, `evidentia poam list --status in_progress`, `GET /api/conmon/check`, `GET /api/poam/items` | Overdue + due-soon cadences surfaced; POA&M items with updated status ready for submission |
+| FS-1 | CSP compliance engineer | Prepare monthly ConMon deliverables for the AO | `evidentia conmon check`, `evidentia poam list --status in_progress`, `POST /api/conmon/check`, `GET /api/poam/items` | Overdue + due-soon cadences surfaced; POA&M items with updated status ready for submission |
 | FS-2 | CSP compliance engineer | Generate OSCAL POA&M from gap analysis | `evidentia gap-analyze --framework nist-800-53-rev5`, `evidentia poam create --from-gap-report`, `gap_report_to_oscal_poam()` | OSCAL 1.1.2 plan-of-action-and-milestones JSON with SHA-256 back-matter integrity; CRITICAL + HIGH findings materialized |
 | FS-3 | 3PAO assessor | Verify evidence integrity for annual assessment | `evidentia oscal verify`, `evidentia eval verify`, Sigstore signature validation | Cryptographic chain from gap-report through risk-statement through OSCAL export is verifiable; tamper-evidence working |
 | FS-4 | ISSO (Information System Security Officer) | Track POA&M lifecycle through remediation | `evidentia poam update`, `evidentia poam milestone add/update`, POA&M state machine (planned→in_progress→completed→verified) | Forward-only state transitions enforced; milestones track incremental progress; attention-state bucketing (overdue/due-soon) surfaces urgency |

@@ -261,3 +261,14 @@ class TestCheck:
             json={"entries": []},
         )
         assert resp.status_code == 422
+
+    def test_over_100_entries_returns_422(self, api_client: TestClient) -> None:
+        entries = [
+            {"slug": "nist-800-53-rev5-ca7", "last_completed": "2026-01-01"}
+            for _ in range(101)
+        ]
+        resp = api_client.post(
+            "/api/conmon/check",
+            json={"entries": entries, "today": "2026-05-15"},
+        )
+        assert resp.status_code == 422

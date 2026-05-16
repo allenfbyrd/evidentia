@@ -67,6 +67,7 @@ class CheckEntry(BaseModel):
 class CheckRequest(BaseModel):
     entries: list[CheckEntry] = Field(
         min_length=1,
+        max_length=100,
         description="Cadence slug → last-completed-date pairs to check.",
     )
     today: date | None = Field(
