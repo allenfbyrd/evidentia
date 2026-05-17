@@ -1,0 +1,27 @@
+# Federal-SI walk-through CONMON state file (v0.9.4 P3.1).
+#
+# Slug -> ISO-8601 last-completed date. Uses real bundled cadences
+# (from ``evidentia conmon list``) mixed across attention buckets
+# relative to a 2026-05-18 reference "today":
+#
+#   - nist-800-53-rev5-ca7: monthly, last 2026-03-15
+#     → overdue (~33 days past) — auditor-visible failure
+#   - fedramp-conmon-poam: monthly, last 2026-04-29
+#     → due_soon (next-due 2026-05-29, 11 days ahead, within 14-day window)
+#   - fedramp-conmon-scans: monthly, last 2026-05-10
+#     → current (next-due 2026-06-10)
+#   - fedramp-conmon-annual: annual, last 2025-07-01
+#     → current (next-due 2026-07-01)
+#   - cmmc-l2-triennial: triennial, last 2024-08-01
+#     → current (next-due 2027-08-01)
+#   - dod-rmf-annual: annual, last 2025-09-01
+#     → current (next-due 2026-09-01)
+#   - occ-2026-13a-model-risk: annual, last 2025-10-15
+#     → current (next-due 2026-10-15)
+nist-800-53-rev5-ca7: 2026-03-15
+fedramp-conmon-poam: 2026-04-29
+fedramp-conmon-scans: 2026-05-10
+fedramp-conmon-annual: 2025-07-01
+cmmc-l2-triennial: 2024-08-01
+dod-rmf-annual: 2025-09-01
+occ-2026-13a-model-risk: 2025-10-15

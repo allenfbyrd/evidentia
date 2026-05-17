@@ -27,7 +27,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Protocol
@@ -136,18 +136,43 @@ class AlertDeduper:
 
     Operators can inspect the state file directly; the daemon
     re-reads it each call so external edits propagate.
+
+    Concurrency (v0.9.4 P1.1 closes F-V93-Q3 HIGH): by default
+    (``use_lock=False``) ``mark_dispatched`` does a non-atomic
+    read-modify-write on the state file. Pass ``use_lock=True`` to
+    serialize concurrent dispatchers via
+    :class:`evidentia_core.security.FileLock` on a sidecar
+    ``<state_file>.lock`` file. ``should_suppress`` is a read-only
+    check and remains unlocked (eventual consistency is acceptable
+    for "should I bother dispatching?" decisions).
     """
 
     state_file: Path
     suppression: timedelta
+    # v0.9.4 Step 5.A F-V94-Q7 closure: mark concurrency-control
+    # fields kw_only=True so legacy positional callers
+    # (state_file, suppression) can never accidentally bind values
+    # to use_lock / lock_timeout_seconds. Python 3.10+ dataclass
+    # kw_only field support.
+    use_lock: bool = field(default=False, kw_only=True)
+    lock_timeout_seconds: float = field(default=5.0, kw_only=True)
 
     @classmethod
-    def from_hours(cls, state_file: Path, hours: float) -> AlertDeduper:
+    def from_hours(
+        cls,
+        state_file: Path,
+        hours: float,
+        *,
+        use_lock: bool = False,
+        lock_timeout_seconds: float = 5.0,
+    ) -> AlertDeduper:
         if hours < 0:
             raise ValueError(f"suppression hours must be >= 0; got {hours}")
         return cls(
             state_file=state_file,
             suppression=timedelta(hours=hours),
+            use_lock=use_lock,
+            lock_timeout_seconds=lock_timeout_seconds,
         )
 
     def _load_state(self) -> dict[str, datetime]:
@@ -156,29 +181,41 @@ class AlertDeduper:
         try:
             raw = json.loads(self.state_file.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            # v0.9.3 F-V93-Q10 review fix: corrupted dedup state
-            # shouldn't block alerting (fail-open), but the original
-            # file is preserved as `.json.corrupt-<utc-iso>` and a
-            # WARNING audit event fires so operators see the loss of
-            # suppression history. Best-effort: if backup fails (e.g.,
-            # permission denied), fall through to the alert-anyway
-            # behavior so the daemon stays useful.
+            # v0.9.3 F-V93-Q10 closure: corrupted dedup state
+            # shouldn't block alerting (fail-open). v0.9.4 Step 5.A
+            # F-V94-Q5 closure: gate the backup-rename + audit-event
+            # on whether the backup file already exists, so concurrent
+            # dispatchers racing past a transient corruption don't
+            # both fire conflicting audit events (the second racer
+            # quietly observes the first racer's backup).
             backup_ts = datetime.now(tz=UTC).strftime("%Y%m%dT%H%M%SZ")
             backup_path = self.state_file.with_suffix(
                 f"{self.state_file.suffix}.corrupt-{backup_ts}"
             )
-            with contextlib.suppress(OSError):
+            # Best-effort rename; if a concurrent dispatcher already
+            # backed up this corruption window, our rename will fail
+            # (file gone) and we skip the audit event.
+            renamed = False
+            try:
                 self.state_file.rename(backup_path)
-            _log.warning(
-                action=EventAction.CONMON_ALERT_SUPPRESSED,
-                outcome=EventOutcome.FAILURE,
-                message=(
-                    f"alert dedup state {self.state_file} corrupted "
-                    f"({exc.__class__.__name__}); reset (backup: "
-                    f"{backup_path.name}). Suppression history lost; "
-                    f"next poll may re-alert on already-handled cycles."
-                ),
-            )
+                renamed = True
+            except OSError:
+                # Either backup_path exists (race lost) or the source
+                # was already moved by a concurrent caller. Either
+                # way: corruption already observed + handled.
+                pass
+            if renamed:
+                _log.warning(
+                    action=EventAction.CONMON_ALERT_SUPPRESSED,
+                    outcome=EventOutcome.FAILURE,
+                    message=(
+                        f"alert dedup state {self.state_file} corrupted "
+                        f"({exc.__class__.__name__}); reset (backup: "
+                        f"{backup_path.name}). Suppression history "
+                        f"lost; next poll may re-alert on already-"
+                        f"handled cycles."
+                    ),
+                )
             return {}
         out: dict[str, datetime] = {}
         for key, ts_str in raw.items():
@@ -194,15 +231,56 @@ class AlertDeduper:
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.state_file.with_suffix(self.state_file.suffix + ".tmp")
         serializable = {k: v.isoformat() for k, v in state.items()}
-        tmp.write_text(
-            json.dumps(serializable, indent=2, sort_keys=True),
-            encoding="utf-8",
-        )
-        tmp.replace(self.state_file)
+        try:
+            tmp.write_text(
+                json.dumps(serializable, indent=2, sort_keys=True),
+                encoding="utf-8",
+            )
+            tmp.replace(self.state_file)
+        except OSError:
+            # v0.9.4 Step 5.A F-V94-Q3 closure: clean up orphaned .tmp.
+            with contextlib.suppress(OSError):
+                tmp.unlink(missing_ok=True)
+            raise
 
     @staticmethod
     def _key(obs: CycleObservation) -> str:
         return f"{obs.cadence.slug}|{obs.state.value}"
+
+    def list_entries(
+        self, slug_filter: str | None = None
+    ) -> list[tuple[str, str, datetime]]:
+        """Return all dedup entries as ``(slug, state, last_dispatched)``
+        tuples, sorted by ``last_dispatched`` descending (newest first).
+
+        v0.9.4 P2.2: read-only helper for the ``evidentia conmon
+        dedup-list`` CLI verb. Pure read; does NOT mutate state.
+
+        Args:
+            slug_filter: Optional cadence-slug filter. Returns only
+                entries whose slug matches exactly. None returns all.
+
+        Returns:
+            List of (slug, state, last_dispatched_utc) tuples. Empty
+            list if the dedup file doesn't exist or has no entries.
+        """
+        state = self._load_state()
+        entries: list[tuple[str, str, datetime]] = []
+        for key, ts in state.items():
+            # Keys are "<slug>|<state>" per ``_key()``. Handle malformed
+            # keys defensively — they can't be observation-derived.
+            parts = key.split("|", 1)
+            if len(parts) != 2:
+                continue
+            slug, state_name = parts
+            if slug_filter is not None and slug != slug_filter:
+                continue
+            # Tolerate naive datetimes in stored state (legacy).
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=UTC)
+            entries.append((slug, state_name, ts))
+        entries.sort(key=lambda e: e[2], reverse=True)
+        return entries
 
     def should_suppress(
         self, obs: CycleObservation, now: datetime | None = None
@@ -226,21 +304,43 @@ class AlertDeduper:
         """Record that an alert was dispatched for this (slug, state).
         Caller invokes this AFTER a successful channel.dispatch().
 
-        Single-writer contract (v0.9.3 F-V93-Q3 review note): this
-        method does a read-modify-write on the dedup state file
-        without taking a file lock. Concurrent callers may clobber
-        each other's mark entries (last-writer-wins). The expected
-        deployment model is one daemon process per state file —
-        matches the precedent set by ``poam_store`` (v0.9.0) and
-        ``vendor_store`` (v0.7.9). Operators running multiple
-        daemons against shared state should partition by slug
-        prefix or wire a higher-level lock.
+        Concurrency (v0.9.4 P1.1 closes F-V93-Q3 HIGH):
+
+        By default (``use_lock=False`` on the AlertDeduper instance)
+        this method does a non-atomic read-modify-write on the dedup
+        state file. Concurrent dispatchers may clobber each other's
+        mark entries (last-writer-wins). The expected deployment
+        model is one daemon process per state file — matches the
+        precedent set by ``poam_store`` (v0.9.0) and ``vendor_store``
+        (v0.7.9).
+
+        When the operator constructs ``AlertDeduper(..., use_lock=
+        True)`` (typically via the CLI ``--state-lock`` flag), the
+        read-modify-write is wrapped in a
+        :class:`evidentia_core.security.FileLock` on a sidecar
+        ``<state_file>.lock`` file. Concurrent dispatchers serialize
+        cleanly.
         """
-        state = self._load_state()
-        state[self._key(obs)] = (
-            now if now is not None else datetime.now(tz=UTC)
-        )
-        self._save_state(state)
+
+        def _do_mark() -> None:
+            state = self._load_state()
+            state[self._key(obs)] = (
+                now if now is not None else datetime.now(tz=UTC)
+            )
+            self._save_state(state)
+
+        if self.use_lock:
+            from evidentia_core.security import FileLock
+
+            lock_path = self.state_file.with_suffix(
+                self.state_file.suffix + ".lock"
+            )
+            with FileLock(
+                lock_path, timeout_seconds=self.lock_timeout_seconds
+            ):
+                _do_mark()
+        else:
+            _do_mark()
 
 
 # ── handler factory ───────────────────────────────────────────────

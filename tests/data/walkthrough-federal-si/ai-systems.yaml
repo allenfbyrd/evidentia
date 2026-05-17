@@ -1,0 +1,20 @@
+# Federal-SI walk-through: high-risk AI system fixture (v0.9.4 P3.1).
+#
+# AISystemDescriptor for a resume-screening LLM used in federal-SI
+# HR workflows. Lands in EU AI Act tier HIGH per Annex III
+# (employment domain).
+#
+# Used by docs/walkthrough-federal-si.md Step 3.
+name: federal-si-resume-screener
+purpose: |
+  LLM-assisted resume scoring for federal Systems Integrator (SI)
+  procurement evaluations. Scores candidate resumes against
+  contract-officer-supplied criteria; surfaces top-N to human
+  reviewer with rationale. Final hire/reject decision remains
+  with the contracting officer.
+annex_iii_domain: employment
+decision_role: advisory
+affects_natural_persons: true
+interacts_with_natural_persons: false
+generates_synthetic_content: false
+is_prohibited_practice: false

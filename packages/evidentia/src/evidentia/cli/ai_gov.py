@@ -63,6 +63,7 @@ _log = get_logger("evidentia.cli.ai_gov")
 def _load_descriptor(path: Path) -> AISystemDescriptor:
     """Load + validate an AISystemDescriptor from a YAML file."""
     import yaml as yaml_mod
+    from pydantic import ValidationError
 
     try:
         raw = yaml_mod.safe_load(path.read_text(encoding="utf-8")) or {}
@@ -77,9 +78,12 @@ def _load_descriptor(path: Path) -> AISystemDescriptor:
         )
         raise typer.Exit(code=1)
 
+    # v0.9.4 P1.4 F-V93-Q14: narrow except to (ValidationError, ValueError)
+    # so genuinely unexpected errors crash to a stack trace instead of
+    # being swallowed as "invalid descriptor".
     try:
         return AISystemDescriptor.model_validate(raw)
-    except Exception as exc:
+    except (ValidationError, ValueError) as exc:
         console.print(f"[red]Error:[/red] invalid descriptor: {exc}")
         raise typer.Exit(code=1) from exc
 
@@ -366,3 +370,168 @@ def ai_gov_show(
         typer.echo(entry.model_dump_json(indent=2))
         return
     _render_registry_entry(entry)
+
+
+# ── update (v0.9.4 P2.3) ──────────────────────────────────────────
+
+
+@app.command("update")
+def ai_gov_update(
+    system_id: str = typer.Argument(..., help="System ID (UUID)."),
+    owner: str | None = typer.Option(
+        None,
+        "--owner",
+        help="New responsible person or team. Unchanged if omitted.",
+    ),
+    provider: str | None = typer.Option(
+        None,
+        "--provider",
+        help="New vendor/in-house team. Unchanged if omitted.",
+    ),
+    deployment_status: str | None = typer.Option(
+        None,
+        "--deployment-status",
+        help=(
+            "New lifecycle status: proposed / in_development / pilot "
+            "/ production / retired. Unchanged if omitted."
+        ),
+    ),
+) -> None:
+    """Update fields on an existing AI system registry entry.
+
+    v0.9.4 P2.3: wires the ``AI_SYSTEM_UPDATED`` EventAction that
+    was reserved in v0.9.3 but never fired from the CLI. Fields not
+    passed are left unchanged (partial-update semantics).
+    """
+    from evidentia_core.ai_governance import DeploymentStatus
+
+    store = AIRegistryStore()
+    try:
+        entry = store.load(system_id)
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if entry is None:
+        console.print(
+            f"[red]Error:[/red] no registered AI system with ID "
+            f"{system_id!r}"
+        )
+        raise typer.Exit(code=1)
+
+    # Validate deployment-status upfront (matches v0.9.3 F-V93-Q8 pattern).
+    deployment_status_enum: DeploymentStatus | None = None
+    if deployment_status is not None:
+        try:
+            deployment_status_enum = DeploymentStatus(deployment_status)
+        except ValueError:
+            console.print(
+                f"[red]Error:[/red] unknown deployment-status "
+                f"{deployment_status!r}. Valid: "
+                f"{', '.join(s.value for s in DeploymentStatus)}"
+            )
+            raise typer.Exit(code=1) from None
+
+    # Build update payload — only changed fields.
+    updates: dict[str, object] = {}
+    if owner is not None:
+        updates["owner"] = owner
+    if provider is not None:
+        updates["provider"] = provider
+    if deployment_status_enum is not None:
+        updates["deployment_status"] = deployment_status_enum
+
+    if not updates:
+        console.print(
+            "[yellow]No fields to update[/yellow] — pass at least one "
+            "of --owner / --provider / --deployment-status"
+        )
+        raise typer.Exit(code=1)
+
+    updated = entry.model_copy(update=updates)
+    store.save(updated)
+
+    _log.info(
+        action=EventAction.AI_SYSTEM_UPDATED,
+        outcome=EventOutcome.SUCCESS,
+        message=(
+            f"AI system {entry.descriptor.name!r} updated "
+            f"(system_id={system_id}; fields={sorted(updates.keys())})"
+        ),
+        evidentia={
+            "system_id": system_id,
+            "descriptor_name": entry.descriptor.name,
+            "changed_fields": sorted(updates.keys()),
+        },
+    )
+
+    console.print(
+        f"[green]Updated[/green] AI system "
+        f"[bold]{entry.descriptor.name}[/bold]"
+    )
+    _render_registry_entry(updated)
+
+
+# ── retire (v0.9.4 P2.3) ──────────────────────────────────────────
+
+
+@app.command("retire")
+def ai_gov_retire(
+    system_id: str = typer.Argument(..., help="System ID (UUID)."),
+) -> None:
+    """Retire a registered AI system (sets deployment_status=retired).
+
+    v0.9.4 P2.3: wires the ``AI_SYSTEM_RETIRED`` EventAction from
+    the CLI surface (was previously only fired by the REST DELETE
+    path). Unlike ``ai-gov delete <id>``, this PRESERVES the entry
+    so historical audits can still see the system's classification
+    + ownership history.
+    """
+    from evidentia_core.ai_governance import DeploymentStatus
+
+    store = AIRegistryStore()
+    try:
+        entry = store.load(system_id)
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if entry is None:
+        console.print(
+            f"[red]Error:[/red] no registered AI system with ID "
+            f"{system_id!r}"
+        )
+        raise typer.Exit(code=1)
+
+    if entry.deployment_status == DeploymentStatus.RETIRED:
+        console.print(
+            f"[yellow]Already retired[/yellow]: AI system "
+            f"[bold]{entry.descriptor.name}[/bold] is already in "
+            f"deployment_status=retired"
+        )
+        return
+
+    retired = entry.model_copy(
+        update={"deployment_status": DeploymentStatus.RETIRED}
+    )
+    store.save(retired)
+
+    _log.info(
+        action=EventAction.AI_SYSTEM_RETIRED,
+        outcome=EventOutcome.SUCCESS,
+        message=(
+            f"AI system {entry.descriptor.name!r} retired "
+            f"(system_id={system_id})"
+        ),
+        evidentia={
+            "system_id": system_id,
+            "descriptor_name": entry.descriptor.name,
+            "previous_status": str(entry.deployment_status),
+            "retirement_kind": "lifecycle",
+        },
+    )
+
+    console.print(
+        f"[green]Retired[/green] AI system "
+        f"[bold]{entry.descriptor.name}[/bold] (entry preserved for audit)"
+    )

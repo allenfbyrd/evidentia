@@ -1,0 +1,18 @@
+# Federal-SI walk-through: minimal-risk AI system fixture (v0.9.4 P3.1).
+#
+# AISystemDescriptor for an internal email-classifier — minimal EU
+# AI Act risk; no Annex III domain; no natural-person impact.
+#
+# Used by docs/walkthrough-federal-si.md Step 3 as the "compare a
+# high-risk vs low-risk system" demo.
+name: federal-si-internal-email-classifier
+purpose: |
+  Internal automation that classifies inbound contractor email
+  into routing buckets (RFP-response, status-update, technical-
+  question, administrative). Routes to operator queue; no
+  natural-person impact; no outbound communications generated.
+decision_role: advisory
+affects_natural_persons: false
+interacts_with_natural_persons: false
+generates_synthetic_content: false
+is_prohibited_practice: false

@@ -453,6 +453,8 @@ def _build_alert_channels(
     smtp_recipients: list[str] | None,
     webhook_url: str | None,
     webhook_secret_file: Path | None,
+    webhook_allow_plaintext: bool = False,
+    webhook_allow_private_network: bool = False,
 ) -> list[AlertChannel]:
     """Construct AlertChannel instances from operator-supplied flags.
 
@@ -506,7 +508,12 @@ def _build_alert_channels(
 
         channels.append(
             WebhookAlertChannel(
-                WebhookConfig(url=webhook_url, secret=secret)
+                WebhookConfig(
+                    url=webhook_url,
+                    secret=secret,
+                    allow_plaintext=webhook_allow_plaintext,
+                    allow_private_network=webhook_allow_private_network,
+                )
             )
         )
 
@@ -634,6 +641,56 @@ def conmon_watch(
             "secrets are not accepted."
         ),
     ),
+    webhook_allow_plaintext: bool = typer.Option(
+        False,
+        "--webhook-allow-plaintext",
+        help=(
+            "Permit http:// (cleartext) webhook URLs. Default off "
+            "rejects cleartext to prevent payload + HMAC-header "
+            "leakage to on-path attackers. v0.9.4 P1.2 closes "
+            "F-V93-S2 MEDIUM (CWE-918 SSRF)."
+        ),
+    ),
+    webhook_allow_private_network: bool = typer.Option(
+        False,
+        "--webhook-allow-private-network",
+        help=(
+            "Permit webhook URLs resolving to loopback / RFC1918 / "
+            "link-local / reserved IP ranges. Default off prevents "
+            "SSRF + cloud-metadata-service exfiltration "
+            "(169.254.169.254 IAM-credential leak vector). Opt in for "
+            "legitimate on-host proxies or on-cluster receivers. "
+            "v0.9.4 P1.2 closes F-V93-S2 MEDIUM (CWE-918)."
+        ),
+    ),
+    # ── Concurrency hardening (v0.9.4 P1.1) ───────────────────────
+    state_lock: bool = typer.Option(
+        False,
+        "--state-lock",
+        help=(
+            "Acquire sidecar file locks (<state-file>.lock and "
+            "<alert-dedup-file>.lock) around read-modify-write "
+            "cycles. Opt-in (default off) preserves v0.9.3 "
+            "single-writer perf path. Use when multiple processes "
+            "(automation + human; multiple daemon instances against "
+            "shared state) may race. Closes v0.9.3 F-V93-Q3 HIGH."
+        ),
+    ),
+    # ── Daemon health visibility (v0.9.4 P2.1) ────────────────────
+    status_file: Path | None = typer.Option(
+        None,
+        "--status-file",
+        file_okay=True,
+        dir_okay=False,
+        help=(
+            "JSON sidecar path the daemon writes after each poll "
+            "cycle (last_poll_at, outcome, tracked_cadence_count, "
+            "uptime). Pairs with GET /api/conmon/daemon-status "
+            "for operator health-check visibility. Configure the "
+            "server with EVIDENTIA_CONMON_DAEMON_STATUS_FILE=<same "
+            "path>. Default off."
+        ),
+    ),
 ) -> None:
     """Long-running poll daemon for CONMON cycle attention-state.
 
@@ -662,6 +719,7 @@ def conmon_watch(
         state_file=state_file,
         poll_interval_seconds=poll_interval_seconds,
         window_days=window_days,
+        status_file=status_file,
     )
 
     # Construct alerting channels. Errors here surface as
@@ -676,6 +734,8 @@ def conmon_watch(
             smtp_recipients=smtp_recipients,
             webhook_url=webhook_url,
             webhook_secret_file=webhook_secret_file,
+            webhook_allow_plaintext=webhook_allow_plaintext,
+            webhook_allow_private_network=webhook_allow_private_network,
         )
     except ValueError as exc:
         console.print(f"[red]Error:[/red] {exc}")
@@ -691,7 +751,9 @@ def conmon_watch(
             )
             raise typer.Exit(code=1)
         deduper = AlertDeduper.from_hours(
-            alert_dedup_file, alert_suppression_hours
+            alert_dedup_file,
+            alert_suppression_hours,
+            use_lock=state_lock,
         )
         handler = make_alert_handler(channels, deduper=deduper)
 
@@ -757,6 +819,18 @@ def conmon_mark_completed(
             "if it does not exist."
         ),
     ),
+    state_lock: bool = typer.Option(
+        False,
+        "--state-lock",
+        help=(
+            "Acquire a sidecar file lock on <state-file>.lock around "
+            "the read-modify-write cycle. Opt-in (default off) preserves "
+            "v0.9.3 single-writer perf path. Use when multiple "
+            "processes (automation + human; multiple CI jobs) may mark "
+            "completion against the same state file. Closes "
+            "v0.9.3 F-V93-Q3 HIGH (race-condition)."
+        ),
+    ),
 ) -> None:
     """Record a CONMON cycle completion in the state file.
 
@@ -769,7 +843,9 @@ def conmon_mark_completed(
     assert parsed_when is not None
 
     try:
-        previous = mark_completed(state_file, slug, parsed_when)
+        previous = mark_completed(
+            state_file, slug, parsed_when, use_lock=state_lock
+        )
     except ValueError as exc:
         console.print(f"[red]Error:[/red] {exc}")
         console.print(
@@ -941,3 +1017,106 @@ def conmon_health(
             f"[dim]Unknown slugs ({len(report.unknown_slugs)}): "
             f"{', '.join(report.unknown_slugs)}[/dim]"
         )
+
+
+# ── dedup-list (v0.9.4 P2.2) ──────────────────────────────────────
+
+
+@app.command("dedup-list")
+def conmon_dedup_list(
+    alert_dedup_file: Path = typer.Option(
+        ...,
+        "--alert-dedup-file",
+        exists=False,
+        file_okay=True,
+        dir_okay=False,
+        help=(
+            "Path to the alert deduplication state file written by "
+            "the conmon watch daemon. Missing file yields empty result."
+        ),
+    ),
+    slug: str | None = typer.Option(
+        None,
+        "--slug",
+        help="Optional cadence-slug filter (exact match).",
+    ),
+    suppression_hours: float = typer.Option(
+        DEFAULT_SUPPRESSION_HOURS,
+        "--suppression-hours",
+        min=0.0,
+        help=(
+            f"Suppression window used for the 'remaining' column. "
+            f"Should match the daemon's --alert-suppression-hours. "
+            f"Default: {DEFAULT_SUPPRESSION_HOURS}."
+        ),
+    ),
+    output_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit JSON instead of a rich table.",
+    ),
+) -> None:
+    """Inspect the alert-dedup state file.
+
+    Lists (cadence_slug, state, last_dispatched_at,
+    suppression_remaining_minutes) tuples sorted by
+    ``last_dispatched_at`` descending. Useful for "why didn't I get
+    an alert?" debugging — entries within the suppression window
+    are intentionally not re-alerted.
+    """
+    from datetime import UTC, datetime, timedelta
+
+    deduper = AlertDeduper.from_hours(alert_dedup_file, suppression_hours)
+    entries = deduper.list_entries(slug_filter=slug)
+    now = datetime.now(tz=UTC)
+    window = timedelta(hours=suppression_hours)
+
+    if output_json:
+        rows = []
+        for s, st, ts in entries:
+            remaining_seconds = max(
+                0.0, (ts + window - now).total_seconds()
+            )
+            rows.append(
+                {
+                    "cadence_slug": s,
+                    "state": st,
+                    "last_dispatched_at": ts.isoformat(),
+                    "suppression_remaining_minutes": round(
+                        remaining_seconds / 60.0, 1
+                    ),
+                }
+            )
+        typer.echo(json.dumps(rows, indent=2))
+        return
+
+    if not entries:
+        console.print("[dim]No dedup entries found.[/dim]")
+        if slug is not None:
+            console.print(
+                f"[dim](filtered to slug={slug!r}; try without --slug "
+                f"to confirm)[/dim]"
+            )
+        return
+
+    table = Table(title=f"Alert dedup state — {alert_dedup_file}")
+    table.add_column("Slug", style="cyan")
+    table.add_column("State", style="yellow")
+    table.add_column("Last dispatched (UTC)")
+    table.add_column("Suppression remaining", justify="right")
+
+    for s, st, ts in entries:
+        remaining_seconds = (ts + window - now).total_seconds()
+        if remaining_seconds <= 0:
+            remaining_label = "[dim]elapsed[/dim]"
+        else:
+            remaining_minutes = remaining_seconds / 60.0
+            if remaining_minutes >= 60:
+                remaining_label = f"{remaining_minutes / 60:.1f}h"
+            else:
+                remaining_label = f"{remaining_minutes:.1f}m"
+        table.add_row(s, st, ts.isoformat(), remaining_label)
+
+    console.print(table)
+    console.print(f"\n[dim]{len(entries)} entry/entries.[/dim]")
+
