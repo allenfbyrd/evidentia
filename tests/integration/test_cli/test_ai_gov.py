@@ -169,3 +169,157 @@ class TestRegisterListShow:
         )
         assert result.exit_code == 1
         assert "no registered" in result.output.lower()
+
+
+# ── v0.9.4 P2.3: update + retire verbs ──────────────────────────────
+
+
+def _register_and_get_id(
+    runner: CliRunner, descriptor_yaml: Path
+) -> str:
+    """Helper: register an AI system + return its system_id."""
+    result = runner.invoke(
+        app,
+        [
+            "ai-gov",
+            "register",
+            "--descriptor",
+            str(descriptor_yaml),
+            "--provider",
+            "acme-ai",
+            "--owner",
+            "hr-team",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    import re
+
+    match = re.search(r"system_id:\s*([0-9a-f-]{36})", result.output)
+    assert match is not None, (
+        f"could not find system_id in {result.output}"
+    )
+    return match.group(1)
+
+
+class TestUpdate:
+    def test_update_owner(
+        self,
+        runner: CliRunner,
+        descriptor_yaml: Path,
+        isolated_registry: Path,
+    ) -> None:
+        system_id = _register_and_get_id(runner, descriptor_yaml)
+        result = runner.invoke(
+            app,
+            ["ai-gov", "update", system_id, "--owner", "new-owner-team"],
+        )
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+        assert "new-owner-team" in result.output
+
+    def test_update_deployment_status_with_validation(
+        self,
+        runner: CliRunner,
+        descriptor_yaml: Path,
+        isolated_registry: Path,
+    ) -> None:
+        system_id = _register_and_get_id(runner, descriptor_yaml)
+        # Valid value
+        result = runner.invoke(
+            app,
+            [
+                "ai-gov",
+                "update",
+                system_id,
+                "--deployment-status",
+                "production",
+            ],
+        )
+        assert result.exit_code == 0
+
+        # Invalid value → upfront friendly error
+        result = runner.invoke(
+            app,
+            [
+                "ai-gov",
+                "update",
+                system_id,
+                "--deployment-status",
+                "banana",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "unknown deployment-status" in result.output.lower()
+
+    def test_no_fields_provided_errors(
+        self,
+        runner: CliRunner,
+        descriptor_yaml: Path,
+        isolated_registry: Path,
+    ) -> None:
+        system_id = _register_and_get_id(runner, descriptor_yaml)
+        result = runner.invoke(app, ["ai-gov", "update", system_id])
+        assert result.exit_code == 1
+        assert "No fields to update" in result.output
+
+    def test_update_missing_id(
+        self, runner: CliRunner, isolated_registry: Path
+    ) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "ai-gov",
+                "update",
+                "11111111-1111-4111-8111-111111111111",
+                "--owner",
+                "x",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "no registered" in result.output.lower()
+
+
+class TestRetire:
+    def test_retire_preserves_entry(
+        self,
+        runner: CliRunner,
+        descriptor_yaml: Path,
+        isolated_registry: Path,
+    ) -> None:
+        system_id = _register_and_get_id(runner, descriptor_yaml)
+        result = runner.invoke(app, ["ai-gov", "retire", system_id])
+        assert result.exit_code == 0
+        assert "Retired" in result.output
+
+        show_result = runner.invoke(
+            app, ["ai-gov", "show", system_id, "--json"]
+        )
+        assert show_result.exit_code == 0
+        body = json.loads(show_result.output)
+        assert body["deployment_status"] == "retired"
+
+    def test_retire_already_retired_idempotent(
+        self,
+        runner: CliRunner,
+        descriptor_yaml: Path,
+        isolated_registry: Path,
+    ) -> None:
+        system_id = _register_and_get_id(runner, descriptor_yaml)
+        runner.invoke(app, ["ai-gov", "retire", system_id])
+        result = runner.invoke(app, ["ai-gov", "retire", system_id])
+        assert result.exit_code == 0
+        assert "Already retired" in result.output
+
+    def test_retire_missing_id(
+        self, runner: CliRunner, isolated_registry: Path
+    ) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "ai-gov",
+                "retire",
+                "11111111-1111-4111-8111-111111111111",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "no registered" in result.output.lower()
