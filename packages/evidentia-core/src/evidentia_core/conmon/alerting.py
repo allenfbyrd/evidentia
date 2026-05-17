@@ -223,6 +223,41 @@ class AlertDeduper:
     def _key(obs: CycleObservation) -> str:
         return f"{obs.cadence.slug}|{obs.state.value}"
 
+    def list_entries(
+        self, slug_filter: str | None = None
+    ) -> list[tuple[str, str, datetime]]:
+        """Return all dedup entries as ``(slug, state, last_dispatched)``
+        tuples, sorted by ``last_dispatched`` descending (newest first).
+
+        v0.9.4 P2.2: read-only helper for the ``evidentia conmon
+        dedup-list`` CLI verb. Pure read; does NOT mutate state.
+
+        Args:
+            slug_filter: Optional cadence-slug filter. Returns only
+                entries whose slug matches exactly. None returns all.
+
+        Returns:
+            List of (slug, state, last_dispatched_utc) tuples. Empty
+            list if the dedup file doesn't exist or has no entries.
+        """
+        state = self._load_state()
+        entries: list[tuple[str, str, datetime]] = []
+        for key, ts in state.items():
+            # Keys are "<slug>|<state>" per ``_key()``. Handle malformed
+            # keys defensively — they can't be observation-derived.
+            parts = key.split("|", 1)
+            if len(parts) != 2:
+                continue
+            slug, state_name = parts
+            if slug_filter is not None and slug != slug_filter:
+                continue
+            # Tolerate naive datetimes in stored state (legacy).
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=UTC)
+            entries.append((slug, state_name, ts))
+        entries.sort(key=lambda e: e[2], reverse=True)
+        return entries
+
     def should_suppress(
         self, obs: CycleObservation, now: datetime | None = None
     ) -> bool:

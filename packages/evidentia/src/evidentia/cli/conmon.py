@@ -1017,3 +1017,106 @@ def conmon_health(
             f"[dim]Unknown slugs ({len(report.unknown_slugs)}): "
             f"{', '.join(report.unknown_slugs)}[/dim]"
         )
+
+
+# ── dedup-list (v0.9.4 P2.2) ──────────────────────────────────────
+
+
+@app.command("dedup-list")
+def conmon_dedup_list(
+    alert_dedup_file: Path = typer.Option(
+        ...,
+        "--alert-dedup-file",
+        exists=False,
+        file_okay=True,
+        dir_okay=False,
+        help=(
+            "Path to the alert deduplication state file written by "
+            "the conmon watch daemon. Missing file yields empty result."
+        ),
+    ),
+    slug: str | None = typer.Option(
+        None,
+        "--slug",
+        help="Optional cadence-slug filter (exact match).",
+    ),
+    suppression_hours: float = typer.Option(
+        DEFAULT_SUPPRESSION_HOURS,
+        "--suppression-hours",
+        min=0.0,
+        help=(
+            f"Suppression window used for the 'remaining' column. "
+            f"Should match the daemon's --alert-suppression-hours. "
+            f"Default: {DEFAULT_SUPPRESSION_HOURS}."
+        ),
+    ),
+    output_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit JSON instead of a rich table.",
+    ),
+) -> None:
+    """Inspect the alert-dedup state file.
+
+    Lists (cadence_slug, state, last_dispatched_at,
+    suppression_remaining_minutes) tuples sorted by
+    ``last_dispatched_at`` descending. Useful for "why didn't I get
+    an alert?" debugging — entries within the suppression window
+    are intentionally not re-alerted.
+    """
+    from datetime import UTC, datetime, timedelta
+
+    deduper = AlertDeduper.from_hours(alert_dedup_file, suppression_hours)
+    entries = deduper.list_entries(slug_filter=slug)
+    now = datetime.now(tz=UTC)
+    window = timedelta(hours=suppression_hours)
+
+    if output_json:
+        rows = []
+        for s, st, ts in entries:
+            remaining_seconds = max(
+                0.0, (ts + window - now).total_seconds()
+            )
+            rows.append(
+                {
+                    "cadence_slug": s,
+                    "state": st,
+                    "last_dispatched_at": ts.isoformat(),
+                    "suppression_remaining_minutes": round(
+                        remaining_seconds / 60.0, 1
+                    ),
+                }
+            )
+        typer.echo(json.dumps(rows, indent=2))
+        return
+
+    if not entries:
+        console.print("[dim]No dedup entries found.[/dim]")
+        if slug is not None:
+            console.print(
+                f"[dim](filtered to slug={slug!r}; try without --slug "
+                f"to confirm)[/dim]"
+            )
+        return
+
+    table = Table(title=f"Alert dedup state — {alert_dedup_file}")
+    table.add_column("Slug", style="cyan")
+    table.add_column("State", style="yellow")
+    table.add_column("Last dispatched (UTC)")
+    table.add_column("Suppression remaining", justify="right")
+
+    for s, st, ts in entries:
+        remaining_seconds = (ts + window - now).total_seconds()
+        if remaining_seconds <= 0:
+            remaining_label = "[dim]elapsed[/dim]"
+        else:
+            remaining_minutes = remaining_seconds / 60.0
+            if remaining_minutes >= 60:
+                remaining_label = f"{remaining_minutes / 60:.1f}h"
+            else:
+                remaining_label = f"{remaining_minutes:.1f}m"
+        table.add_row(s, st, ts.isoformat(), remaining_label)
+
+    console.print(table)
+    console.print(f"\n[dim]{len(entries)} entry/entries.[/dim]")
+

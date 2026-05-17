@@ -718,3 +718,125 @@ class TestConmonHealth:
         body = json.loads(result.output)
         assert len(body["frameworks"]) == 1
         assert body["frameworks"][0]["framework"] == "nist-800-53-rev5"
+
+
+# ── v0.9.4 P2.2: conmon dedup-list ─────────────────────────────────
+
+
+class TestConmonDedupList:
+    """``evidentia conmon dedup-list`` — operator-facing read of the
+    alert-dedup state file."""
+
+    def test_missing_file_returns_empty(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "dedup-list",
+                "--alert-dedup-file",
+                str(tmp_path / "missing.json"),
+            ],
+        )
+        assert result.exit_code == 0
+        assert "No dedup entries" in result.output
+
+    def test_lists_entries_table_output(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        import json as _json
+
+        dedup_file = tmp_path / "dedup.json"
+        dedup_file.write_text(
+            _json.dumps(
+                {
+                    "nist-800-53-rev5-ca7|overdue": "2026-05-17T12:00:00+00:00",
+                    "fedramp-conmon-poam|due_soon": "2026-05-17T13:00:00+00:00",
+                }
+            )
+        )
+
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "dedup-list",
+                "--alert-dedup-file",
+                str(dedup_file),
+            ],
+        )
+        assert result.exit_code == 0
+        # Use _normalize since rich truncates long slugs in narrow
+        # terminals on CI runners (same fragility class as v0.9.3
+        # TestConmonWatchAlertingFlags). Check for a shorter
+        # substring that won't be truncated.
+        out = _normalize(result.output)
+        assert "nist-800-53-rev5-c" in out  # may truncate trailing "a7"
+        assert "fedramp-conmon-poam" in out
+        assert "overdue" in out
+        assert "due_soon" in out
+
+    def test_slug_filter(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        import json as _json
+
+        dedup_file = tmp_path / "dedup.json"
+        dedup_file.write_text(
+            _json.dumps(
+                {
+                    "nist-800-53-rev5-ca7|overdue": "2026-05-17T12:00:00+00:00",
+                    "fedramp-conmon-poam|due_soon": "2026-05-17T13:00:00+00:00",
+                }
+            )
+        )
+
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "dedup-list",
+                "--alert-dedup-file",
+                str(dedup_file),
+                "--slug",
+                "fedramp-conmon-poam",
+                "--json",
+            ],
+        )
+        assert result.exit_code == 0
+        rows = json.loads(result.output)
+        assert len(rows) == 1
+        assert rows[0]["cadence_slug"] == "fedramp-conmon-poam"
+
+    def test_json_output_shape(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        import json as _json
+
+        dedup_file = tmp_path / "dedup.json"
+        dedup_file.write_text(
+            _json.dumps(
+                {
+                    "nist-800-53-rev5-ca7|overdue": "2026-05-17T12:00:00+00:00",
+                }
+            )
+        )
+
+        result = runner.invoke(
+            app,
+            [
+                "conmon",
+                "dedup-list",
+                "--alert-dedup-file",
+                str(dedup_file),
+                "--json",
+            ],
+        )
+        assert result.exit_code == 0
+        rows = json.loads(result.output)
+        assert len(rows) == 1
+        assert rows[0]["cadence_slug"] == "nist-800-53-rev5-ca7"
+        assert rows[0]["state"] == "overdue"
+        assert "last_dispatched_at" in rows[0]
+        assert "suppression_remaining_minutes" in rows[0]
