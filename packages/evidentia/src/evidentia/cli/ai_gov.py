@@ -63,6 +63,7 @@ _log = get_logger("evidentia.cli.ai_gov")
 def _load_descriptor(path: Path) -> AISystemDescriptor:
     """Load + validate an AISystemDescriptor from a YAML file."""
     import yaml as yaml_mod
+    from pydantic import ValidationError
 
     try:
         raw = yaml_mod.safe_load(path.read_text(encoding="utf-8")) or {}
@@ -77,9 +78,12 @@ def _load_descriptor(path: Path) -> AISystemDescriptor:
         )
         raise typer.Exit(code=1)
 
+    # v0.9.4 P1.4 F-V93-Q14: narrow except to (ValidationError, ValueError)
+    # so genuinely unexpected errors crash to a stack trace instead of
+    # being swallowed as "invalid descriptor".
     try:
         return AISystemDescriptor.model_validate(raw)
-    except Exception as exc:
+    except (ValidationError, ValueError) as exc:
         console.print(f"[red]Error:[/red] invalid descriptor: {exc}")
         raise typer.Exit(code=1) from exc
 

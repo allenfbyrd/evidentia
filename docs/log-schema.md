@@ -320,8 +320,45 @@ that redacts:
 - Generic `password=`, `token=`, `api_key=`, `secret=`, `credential=` shapes ≥8 chars
 - JWTs (three base64url segments separated by dots)
 
-Matched strings are replaced with `[REDACTED]`. The scrubber is a
-safety net — collectors are responsible for keeping secrets out of
+Matched strings are replaced with `[REDACTED]`.
+
+### Filesystem path disclosure caveat (v0.9.4 P1.4 F-V93-S9)
+
+The scrubber redacts secret-like strings but does NOT scrub
+operator-supplied filesystem paths. Several lifecycle events emit
+absolute paths as structured-field values, which can leak deployment-
+environment topology to a SIEM operator (or an attacker who exfiltrates
+SIEM data).
+
+Audit events carrying paths:
+
+- `evidentia.conmon.daemon_started` / `daemon_stopped` — payload
+  includes `state_file=<absolute path>` (operator-supplied via
+  `--state-file`).
+- `evidentia.conmon.cycle_marked_completed` — message text references
+  the state-file path.
+- `evidentia.config.loaded` — emits the resolved config-file path.
+- `evidentia.collect.*` — collectors that write evidence to disk emit
+  the output path in event payloads.
+
+On typical Linux daemon deployments, paths like
+`/etc/evidentia/state.yaml` are benign topology disclosure. For
+environments where the path itself is sensitive (operator username in
+`/home/<sensitive-username>/evidentia/`, customer-tenant ID in
+`/var/lib/evidentia/<tenant-id>/`), operators SHOULD scrub paths
+before SIEM ingestion:
+
+- Logstash / Vector / fluent-bit: add a path-redaction transform
+  using a regex like `s|/home/[^/]+/|/home/[REDACTED]/|g`
+- ECS log shipper: configure `path_pattern` redaction in the indexer
+
+This is intentional design — auditors investigating a specific event
+often need the exact path. The opt-in scrub belongs at the SIEM
+ingestion layer where operators control the trust boundary, not in
+the daemon's emission layer.
+
+The base scrubber stays at the message-string layer:
+collectors are responsible for keeping secrets out of
 structured field values (not logged as strings).
 
 ## Trace correlation

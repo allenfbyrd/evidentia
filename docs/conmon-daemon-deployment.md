@@ -229,6 +229,33 @@ on Ctrl+Break, the service-manager-issued stop request). SIGINT
 sends the equivalent of SIGINT to the daemon's process group,
 which triggers the graceful shutdown path.
 
+### Note on Windows shutdown latency (v0.9.4 P1.4 F-V93-Q12)
+
+The daemon polls via `shutdown_event.wait(timeout=<poll_interval>)`
+on POSIX where the signal handler reliably interrupts the wait.
+On Windows, signal delivery during a blocking
+`threading.Event.wait()` is sometimes deferred until the next
+iteration check — meaning **Ctrl+C / SC stop may take up to one
+`--poll-interval` second to react**.
+
+Operator implications:
+
+- A 3600s default poll interval means up to 60 minutes for a clean
+  Windows shutdown.
+- For interactive use (Ctrl+C during operator testing) consider
+  setting `--poll-interval 60` to bound shutdown latency.
+- For production deployments on Windows where fast shutdown
+  matters (e.g., during patch-Tuesday reboots), wire the daemon
+  through a service manager (sc.exe pattern above) that uses
+  `WAIT_HINT` to communicate to the OS that termination is in
+  progress; the service manager then waits up to that hint before
+  hard-killing the process tree.
+
+Future work (reserved for v1.0+ if operator demand surfaces):
+async-friendly shutdown via a separate watchdog thread that polls
+the shutdown event on a tighter 1s cadence and force-interrupts
+the daemon thread independently of the poll-cycle wait.
+
 ## Credential injection (P1.2 forward-looking)
 
 When the v0.9.3 P1.2 alerting flags are wired (SMTP, webhook),

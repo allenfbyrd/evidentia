@@ -199,13 +199,18 @@ class WebhookAlertChannel:
             hashlib.sha256,
         ).hexdigest()
 
+        # v0.9.4 P1.4 F-V93-Q11: User-Agent tracks evidentia_core
+        # version dynamically (was hardcoded "v0.9.3" string).
+        import evidentia_core
+
+        user_agent = f"evidentia-conmon-daemon/{evidentia_core.__version__}"
         request = urllib.request.Request(
             url=self._config.url,
             data=body,
             method="POST",
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "evidentia-conmon-daemon/v0.9.3",
+                "User-Agent": user_agent,
                 "X-Evidentia-Timestamp": timestamp,
                 "X-Evidentia-Signature": f"sha256={signature}",
             },
