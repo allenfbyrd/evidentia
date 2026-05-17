@@ -80,7 +80,7 @@ class TestWebhookAlertChannel:
         body = request_arg.data
         timestamp = request_arg.headers["X-evidentia-timestamp"]
         signature_header = request_arg.headers["X-evidentia-signature"]
-        signed_material = f"{timestamp}.".encode("utf-8") + body
+        signed_material = f"{timestamp}.".encode() + body
         expected = hmac.new(
             b"shared-secret", signed_material, hashlib.sha256
         ).hexdigest()
