@@ -159,6 +159,43 @@ Direct-push ship workflow per the post-v0.9.4 lesson.
   explicitly names the trust assumption.
 - **SIGINT race window documented** (F-V93-S6 closure) in
   `evidentia conmon watch` CLI docstring.
+- **Step 5.A inline-fix batch** (formal pre-release-review session;
+  3 MEDIUM operator-visible accuracy fixes surfaced by the v0.9.5
+  Q3 2026 quarterly research resync):
+  - **F-V95-F1**: `docs/walkthrough-federal-si.md` FedRAMP RFC-0024
+    deadline updated to Nov 1 2027 (Class D / High-impact only;
+    per NOTICE-0009 March 25 2026); supersedes the original
+    Sept 30 2026 program-wide deadline. Added FedRAMP CR26
+    consolidated rules context (effective July 1 2026; mandatory
+    Jan 1 2027) + EU AI Act Annex III deferral to Dec 2 2027 per
+    the Omnibus political agreement May 7 2026 + CMMC Phase 2
+    enforcement Nov 10 2026.
+  - **F-V95-F2**: `docs/positioning-and-value.md` §5.5 commercial-
+    landscape Eramba row corrected — Eramba still ships
+    Community Edition (free, on-premise) + paid Enterprise tier.
+    The v0.7.8 baseline claim that "Eramba shifted to closed-
+    source application Q1 2026" was inaccurate (verified
+    2026-05-18 via direct WebFetch of eramba.org).
+  - **F-V95-F3**: `docs/positioning-and-value.md` §12.1 + §15
+    Phil Venables affiliation updated from "Google Cloud
+    strategic security advisor" to "Partner at Ballistic
+    Ventures (departed Google Cloud CISO role March 2025)".
+    Verified via direct LinkedIn WebFetch on 2026-05-18.
+- **Positioning doc Q3 2026 quarterly resync** —
+  `docs/positioning-and-value.md` version-history entry expanded
+  to a substantive Q3 2026 quarterly resync entry (~6 weeks
+  ahead of the July target) capturing material findings from 6
+  parallel research streams + a calling-agent direct codebase
+  walk (replaced Stream 7 hallucination per the v0.7.8 lesson).
+  Surfaces FedRAMP CR26, Mini Shai-Hulud supply-chain attack
+  (May 11 2026; reinforces PEP 740 + SLSA L3 + Sigstore
+  narrative), Optro / Drata / Vanta "agentic GRC" convergence
+  (Evidentia counter-positions with "deterministic, auditable,
+  OSS-native"), and 8 new directly-relevant academic citations
+  (Marino & Lane arXiv 2601.04474 "Computational Compliance" =
+  seed citation; de la Chica arXiv 2605.14744 "Mechanical
+  Enforcement" validates Evidentia's stub-trace dual-path
+  architecture).
 
 ### Deprecated
 
