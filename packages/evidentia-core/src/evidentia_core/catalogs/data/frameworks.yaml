@@ -361,7 +361,7 @@ frameworks:
 - id: eu-ai-act
   name: EU AI Act (Regulation 2024/1689)
   version: Regulation (EU) 2024/1689
-  tier: D
+  tier: A
   category: control
   path: international/eu-ai-act.json
   source_url: Official Journal of the European Union — EU AI Act (regulation text)
