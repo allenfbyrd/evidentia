@@ -28,19 +28,37 @@ from __future__ import annotations
 import pytest
 
 
-def _have_schemathesis() -> bool:
+def _schemathesis_loader() -> object | None:
+    """Resolve the schemathesis ASGI loader across 3.x and 4.x.
+
+    Schemathesis 3.x exposes ``schemathesis.from_asgi(...)``.
+    Schemathesis 4.x moved this to ``schemathesis.openapi.from_asgi(...)``
+    and the surrounding API surface shifted. Returns the callable
+    when available; returns ``None`` otherwise so the test can
+    skip cleanly.
+    """
     try:
-        import schemathesis  # noqa: F401
-        return True
+        import schemathesis
     except ImportError:
-        return False
+        return None
+    # 3.x path: top-level from_asgi.
+    if hasattr(schemathesis, "from_asgi"):
+        return schemathesis.from_asgi
+    # 4.x path: openapi submodule from_asgi.
+    if hasattr(schemathesis, "openapi") and hasattr(
+        schemathesis.openapi, "from_asgi"
+    ):
+        return schemathesis.openapi.from_asgi
+    return None
 
 
 pytestmark = pytest.mark.skipif(
-    not _have_schemathesis(),
+    _schemathesis_loader() is None,
     reason=(
-        "schemathesis not installed; run `uv sync --all-packages` "
-        "(dev-deps include it)"
+        "schemathesis ASGI loader not found (neither 3.x "
+        "`schemathesis.from_asgi` nor 4.x `schemathesis.openapi."
+        "from_asgi`). Install dev-deps via `uv sync --all-packages` "
+        "and verify the installed major version."
     ),
 )
 
@@ -54,13 +72,24 @@ def test_openapi_schema_is_loadable() -> None:
     Real fuzz tests build on this — once the schema loads cleanly,
     operation-by-operation property tests follow.
     """
-    import schemathesis
     from evidentia_api.app import create_app
 
+    loader = _schemathesis_loader()
+    assert loader is not None  # pytestmark already gated this
     app = create_app(offline=True)
-    # Schemathesis 3.x API: from_asgi(...).
-    schema = schemathesis.from_asgi("/api/openapi.json", app)
+    # 3.x: ``schemathesis.from_asgi(path, app)``;
+    # 4.x: ``schemathesis.openapi.from_asgi(path, app=app)`` — the
+    # callable invocation form is compatible across both as
+    # positional args.
+    schema = loader("/api/openapi.json", app)
     assert schema is not None
-    # Sanity: at least one operation discovered.
-    operations = list(schema.get_all_operations())
+    # Sanity: at least one operation discovered. 3.x exposes
+    # `.get_all_operations()`; 4.x exposes `.operations` or
+    # iteration. Try both defensively.
+    if hasattr(schema, "get_all_operations"):
+        operations = list(schema.get_all_operations())
+    elif hasattr(schema, "operations"):
+        operations = list(schema.operations)
+    else:
+        operations = list(schema)
     assert len(operations) > 0

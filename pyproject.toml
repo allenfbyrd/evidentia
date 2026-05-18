@@ -166,6 +166,14 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# v0.9.5 P1.2: tests/dast/ is opt-in. Default pytest runs skip
+# the DAST suite (Schemathesis + Playwright); operators invoke
+# explicitly via `pytest tests/dast/` after the dev-deps + the
+# `playwright install` browser download. CI test.yml runs the
+# default collection and SHOULD NOT include DAST per the
+# README scope. See `tests/dast/README.md` for the per-suite
+# invocation guidance.
+addopts = "--ignore=tests/dast"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
