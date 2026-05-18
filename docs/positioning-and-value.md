@@ -1102,6 +1102,18 @@ All 5: shipped content in last 90 days (verified Feb-Apr 2026 activity); cover O
 - JSONSchemaBench (arXiv 2501.10868): https://hf.co/papers/2501.10868
 - Document Screenshot Embedding (arXiv 2406.11251): https://hf.co/papers/2406.11251
 
+**v0.9.5 Q3 2026 quarterly resync additions** (Stream 4 — 8 directly-relevant papers Feb-May 2026):
+
+- Marino & Lane — "Computational Compliance for AI Regulation: Blueprint for a New Research Domain" (arXiv 2601.04474, Jan 8 2026): https://arxiv.org/abs/2601.04474 — **seed citation** for the v0.9.5+ "OSS-native reference implementation for computational compliance" frame
+- Cilla Ugarte, Patricio, Berlanga, Molina — "Making AI Compliance Evidence Machine-Readable" (arXiv 2604.13767, April 15 2026): https://arxiv.org/abs/2604.13767 — direct OSCAL+AI parallel to Evidentia's `gap_report_to_oscal_poam()` + back-matter SHA-256 integrity
+- Khatchadourian — DFAH v2 revision (arXiv 2601.15322 rev v2 March 7 2026): https://arxiv.org/abs/2601.15322 — Evidentia's `evidentia_ai.eval` v0.9.6 alignment target
+- Khatchadourian & Franco — "LLM Output Drift: Cross-Provider Validation & Mitigation for Financial Workflows" (arXiv 2511.07585, Nov 10 2025): https://arxiv.org/abs/2511.07585 — empirical support for Evidentia's multi-provider LiteLLM design
+- de la Chica Rodríguez & Martí-González — "Mechanical Enforcement for LLM Governance" (arXiv 2605.14744, May 14 2026): https://arxiv.org/abs/2605.14744 — **empirically validates Evidentia's deterministic-stub-trace fallback architecture** ("mechanical primitives outside the interpretive loop"; 73% reduction in uninformative deferrals; MCC 0.43→0.88)
+- Sigdel & Baral — "Guardrails as Infrastructure: Policy-First Control for Tool-Orchestrated Workflows" (arXiv 2603.18059, March 18 2026): https://arxiv.org/abs/2603.18059 — Sigdel-Baral compatible benchmark methodology candidate for Evidentia's MCP CIMD scope-enforcement testing
+- Rashie & Rashi — "Type-Checked Compliance: Deterministic Guardrails for Agentic Financial Systems Using Lean 4" (arXiv 2604.01483, April 1 2026): https://arxiv.org/abs/2604.01483 — long-horizon v1.0+ reservation (formally-verified compliance kernel)
+- IBM AI Risk Atlas (arXiv 2503.05780): https://arxiv.org/abs/2503.05780 — multi-framework crosswalk prior art
+- CompliBench LLM-judge benchmark (arXiv 2604.12312, April 14 2026): https://arxiv.org/abs/2604.12312 — methodologically aligned with Evidentia's DFAH (small fine-tuned judge beats SOTA frontier models)
+
 ### 15.5 Industry voices
 
 - Phil Venables: https://www.philvenables.com
