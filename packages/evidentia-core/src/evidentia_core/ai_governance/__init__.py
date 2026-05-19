@@ -26,8 +26,17 @@ from evidentia_core.ai_governance.classification import (
     NISTAIRMFFunction,
     classify,
 )
+from evidentia_core.ai_governance.fips199 import (
+    FIPS199Categorization,
+    FIPS199Impact,
+)
+from evidentia_core.ai_governance.omb_m_24_10 import (
+    OMBImpactCategory,
+    triggers_minimum_practices,
+)
 from evidentia_core.ai_governance.registry import (
     AISystemRegistryEntry,
+    ATOReference,
     DeploymentStatus,
 )
 from evidentia_core.ai_governance.registry_store import (
@@ -40,10 +49,15 @@ __all__ = [
     "AISystemClassification",
     "AISystemDescriptor",
     "AISystemRegistryEntry",
+    "ATOReference",
     "AnnexIIIDomain",
     "DeploymentStatus",
     "EUAIActTier",
+    "FIPS199Categorization",
+    "FIPS199Impact",
     "NISTAIRMFFunction",
+    "OMBImpactCategory",
     "classify",
     "get_default_registry_store",
+    "triggers_minimum_practices",
 ]

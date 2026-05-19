@@ -37,6 +37,7 @@ from typing import Any
 
 from evidentia_core.catalogs.loader import _extract_prose, _parse_oscal_control
 from evidentia_core.models.catalog import CatalogControl, ControlCatalog
+from evidentia_core.oscal._version import OSCAL_SCHEMA_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -422,7 +423,7 @@ def catalog_to_oscal_json(catalog: ControlCatalog) -> dict[str, Any]:
             "metadata": {
                 "title": catalog.framework_name,
                 "version": catalog.version,
-                "oscal-version": "1.1.2",
+                "oscal-version": OSCAL_SCHEMA_VERSION,
             },
             "groups": [
                 {"title": family, "controls": ctrls}

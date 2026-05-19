@@ -13,6 +13,55 @@
 
 ---
 
+## Re-validation snapshot — 2026-05-18 (v0.9.6 SHIPPED)
+
+v0.9.6 SHIPPED at tag `v0.9.6`. Comprehensive ~3-week scope
+compressed into a focused session per the v0.9.5 cycle-close
+lock-in. **21st consecutive PROCEED-CLEAN** of the v0.7.x →
+v0.8.x → v0.9.x line.
+
+**New public surfaces (10)**:
+
+| # | Surface | Layer | Notes |
+|---|---|---|---|
+| 1 | `evidentia.cli._rbac.require_role_cli(action)` | CLI library | Typer decorator mirroring FastAPI `require_role`. Gates by env-var-driven identity + policy file. Exit code 77 on deny. |
+| 2 | `evidentia.cli._rbac_lifecycle` (singleton + override) | CLI library | Process-lifetime policy + identity. `EVIDENTIA_RBAC_POLICY_FILE` + `EVIDENTIA_RBAC_IDENTITY` env vars + `--rbac-identity` global flag. |
+| 3 | `evidentia_core.evidence_store` (WORM append-only) | Library | Per-lineage directory layout; `EvidenceWORMViolation` on overwrite; canonical UUID validation. |
+| 4 | `evidentia_core.evidence_store_worm.mirror_to_worm` / `fetch_from_worm` | Library | Cloud-WORM mirror composing with `WORMBackend` ABC; record-id `<lineage>_v<version>`. |
+| 5 | `evidentia evidence save / history / show` | CLI | 3 new verbs; `save` write-gated, others read-gated by RBAC. JSON + human output. |
+| 6 | `evidentia_core.ai_governance.fips199.FIPS199Categorization` | Library | High-water-mark validator per FIPS PUB 199 §3; auto-computes `overall` from C/I/A. |
+| 7 | `evidentia_core.ai_governance.omb_m_24_10.OMBImpactCategory` | Library | OMB M-24-10 §5(b) category enum + `triggers_minimum_practices()` helper. |
+| 8 | `evidentia_core.ai_governance.scr.SCRForm` + `emit_scr_form` + `classify_change` | Library | FedRAMP SCR template + auto-classifier (Routine / Adaptive / Transformative) + JSON / MD writers. |
+| 9 | `evidentia ai-gov categorize-fips / set-omb-impact / update --emit-scr / update --ssp-reference` | CLI | New verbs + flags for federal-tier AI-gov ops. |
+| 10 | 4 new CONMON MCP tools (`conmon_list_cadences`, `conmon_next_due`, `conmon_check_state`, `conmon_health`) | MCP | First-mover claim per v0.9.5 Q3 2026 quarterly resync. Gated by existing v0.8.6 CIMD scope enforcement. |
+
+**Other v0.9.6 surfaces**:
+
+- `OSCAL_SCHEMA_VERSION` single-source-of-truth constant + bump
+  to `"1.2.1"` + observation type rename
+  (`"finding"` → `"implementation-issue"`).
+- mypy strict gate extended to all 7 evidentia-* packages: **256
+  source files clean** (was 223 of 247 at v0.9.5).
+- 6 new EventActions: `EVIDENCE_VERSION_PERSISTED`,
+  `EVIDENCE_WORM_VIOLATION_BLOCKED`, `EVIDENCE_LINEAGE_QUERIED`,
+  `AI_SYSTEM_FIPS_CATEGORIZED`, `AI_SYSTEM_OMB_CLASSIFIED`,
+  `AI_SYSTEM_SCR_EMITTED`.
+
+**Adversarial-probe taxonomy (7 vectors, all PASSED)**:
+
+1. **WORM overwrite** — re-save same lineage+version → `EvidenceWORMViolation`; no `.tmp` left behind.
+2. **Path traversal** — `lineage_id="../../etc"` → `InvalidEvidenceIdError` BEFORE path resolution.
+3. **RBAC bypass** — `EVIDENTIA_RBAC_IDENTITY` unset + `default_role=deny` → exit code 77.
+4. **CIMD scope bypass** — operator on v0.9.5 CIMD registry tries `conmon_*` → tool default-rejected.
+5. **FIPS validator bypass** — `overall=LOW` while one objective is `HIGH` → `ValidationError` (high-water-mark mismatch).
+6. **SCR auto-classify gaming** — flip `OMB_impact` from None → IMPACTING → routine (not transformative; first-time population shouldn't trigger spurious SCR).
+7. **OSCAL schema drift** — pre-v0.9.6 client expecting `types: ["finding"]` → graceful fail with the rename documented in `_version.py`.
+
+**Test count + source-file trajectory**: 3018 tests / 17 skipped /
+234 source files / mypy strict 256 of 256.
+
+---
+
 ## Re-validation snapshot — 2026-05-08 (v0.9.0 SHIPPED)
 
 v0.9.0 SHIPPED (tag `v0.9.0` at commit TBD). **First minor of

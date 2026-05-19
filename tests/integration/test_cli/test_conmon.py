@@ -170,7 +170,7 @@ class TestConmonCheck:
             [
                 "conmon",
                 "check",
-                "--last-completed-file",
+                "--state-file",
                 str(state_file),
                 "--today",
                 "2026-05-08",
@@ -198,7 +198,7 @@ class TestConmonCheck:
             [
                 "conmon",
                 "check",
-                "--last-completed-file",
+                "--state-file",
                 str(state_file),
                 "--today",
                 "2026-05-08",
@@ -234,7 +234,7 @@ class TestConmonCheck:
                 [
                     "conmon",
                     "check",
-                    "--last-completed-file",
+                    "--state-file",
                     str(state_file),
                     "--today",
                     "2026-05-08",
@@ -267,7 +267,7 @@ class TestConmonCheck:
             [
                 "conmon",
                 "check",
-                "--last-completed-file",
+                "--state-file",
                 str(state_file),
                 "--today",
                 "2026-05-08",
@@ -291,7 +291,7 @@ class TestConmonCheck:
             [
                 "conmon",
                 "check",
-                "--last-completed-file",
+                "--state-file",
                 str(state_file),
                 "--today",
                 "2026-05-08",
@@ -313,7 +313,7 @@ class TestConmonCheck:
             [
                 "conmon",
                 "check",
-                "--last-completed-file",
+                "--state-file",
                 str(state_file),
                 "--today",
                 "2026-05-08",
@@ -335,7 +335,7 @@ class TestConmonCheck:
             [
                 "conmon",
                 "check",
-                "--last-completed-file",
+                "--state-file",
                 str(state_file),
                 "--today",
                 "2026-05-08",
@@ -357,7 +357,7 @@ class TestConmonCheck:
             [
                 "conmon",
                 "check",
-                "--last-completed-file",
+                "--state-file",
                 str(state_file),
                 "--today",
                 "2026-05-08",

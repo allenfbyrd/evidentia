@@ -27,6 +27,15 @@ infrastructure layer underneath**: composable, embeddable, and built on the
 open standards (OSCAL) that the entire federal compliance stack is moving
 toward in 2026.
 
+**The moat trinity (v0.9.6 sharpened framing — May 2026)**: Evidentia's
+durable differentiation against the wave of "agentic GRC" launches in
+Q1 2026 collapses to three compounding moats — **OSCAL emission +
+DFAH / PRT determinism + cryptographic CIMD provenance**. The
+positioning posture explicitly does NOT chase "agentic" vocabulary;
+the leading frame is **"deterministic, auditable, OSS-native
+compliance engineering."** See [`docs/positioning-and-value.md`](docs/positioning-and-value.md)
+§6.1.A + §6.1.B for the full counter-positioning rationale.
+
 It's the only OSS tool today that combines **all** of the following in one package:
 
 - **OSCAL-native end-to-end** — ingests NIST OSCAL catalogs, emits OSCAL

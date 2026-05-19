@@ -13,7 +13,7 @@ Top-level structure produced:
     metadata:                 # standard OSCAL metadata block
       title
       version
-      oscal-version: "1.1.2"
+      oscal-version: "1.2.1"  # v0.9.6 P4.2
       last-modified
       parties: [organization]
     import-ssp:               # required by schema; placeholder href
@@ -81,6 +81,7 @@ from evidentia_core.models.gap import (
     GapStatus,
     Milestone,
 )
+from evidentia_core.oscal._version import OSCAL_SCHEMA_VERSION
 from evidentia_core.oscal.digest import digest_bytes, format_digest
 
 EVIDENTIA_OSCAL_NS = "https://evidentia.dev/oscal"
@@ -149,7 +150,7 @@ def gap_report_to_oscal_poam(
                 "title": f"POA&M: {report.organization}",
                 "last-modified": now_iso,
                 "version": report.evidentia_version,
-                "oscal-version": "1.1.2",
+                "oscal-version": OSCAL_SCHEMA_VERSION,
                 "parties": [
                     {
                         "uuid": str(uuid4()),

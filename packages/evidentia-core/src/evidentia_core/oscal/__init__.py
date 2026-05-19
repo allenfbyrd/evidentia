@@ -9,8 +9,16 @@ v0.7.0 adds evidence chain of custody:
 - :mod:`.digest` — SHA-256 helpers for finding / file hashing
 - :mod:`.signing` — GPG detached-signature support (subprocess-based)
 - :mod:`.verify` — orchestrated integrity checks on signed AR documents
+
+v0.9.6 adds :data:`OSCAL_SCHEMA_VERSION` — single source of truth for
+the schema version emitted in all OSCAL output (catalog / profile /
+assessment-results / plan-of-action-and-milestones / SSP). Bumping
+this constant + the assessment-results observation type rename
+(handled inline in :mod:`.exporter`) is sufficient to migrate
+between adjacent OSCAL minor versions.
 """
 
+from evidentia_core.oscal._version import OSCAL_SCHEMA_VERSION
 from evidentia_core.oscal.digest import (
     DIGEST_ALGO,
     digest_bytes,
@@ -72,6 +80,7 @@ from evidentia_core.oscal.verify import (
 __all__ = [
     "DIGEST_ALGO",
     "EVIDENTIA_OSCAL_NS",
+    "OSCAL_SCHEMA_VERSION",
     "DigestCheck",
     "GPGError",
     "GPGNotAvailableError",

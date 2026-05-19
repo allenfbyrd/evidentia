@@ -396,12 +396,33 @@ def ai_gov_update(
             "/ production / retired. Unchanged if omitted."
         ),
     ),
+    ssp_reference: str | None = typer.Option(
+        None,
+        "--ssp-reference",
+        help=(
+            "v0.9.6 P3: URI / handle for the System Security Plan. "
+            "Unchanged if omitted."
+        ),
+    ),
+    emit_scr: Path | None = typer.Option(
+        None,
+        "--emit-scr",
+        help=(
+            "v0.9.6 P3: write a Significant Change Request form pair "
+            "(JSON + Markdown) at <PATH>.json + <PATH>.md after the "
+            "update completes. Category auto-detected from the diff "
+            "(routine_recurring / adaptive / transformative)."
+        ),
+    ),
 ) -> None:
     """Update fields on an existing AI system registry entry.
 
     v0.9.4 P2.3: wires the ``AI_SYSTEM_UPDATED`` EventAction that
     was reserved in v0.9.3 but never fired from the CLI. Fields not
     passed are left unchanged (partial-update semantics).
+
+    v0.9.6 P3: optional ``--emit-scr`` writes a FedRAMP-compatible
+    Significant Change Request form alongside the update.
     """
     from evidentia_core.ai_governance import DeploymentStatus
 
@@ -440,11 +461,14 @@ def ai_gov_update(
         updates["provider"] = provider
     if deployment_status_enum is not None:
         updates["deployment_status"] = deployment_status_enum
+    if ssp_reference is not None:
+        updates["ssp_reference"] = ssp_reference
 
     if not updates:
         console.print(
             "[yellow]No fields to update[/yellow] — pass at least one "
-            "of --owner / --provider / --deployment-status"
+            "of --owner / --provider / --deployment-status / "
+            "--ssp-reference"
         )
         raise typer.Exit(code=1)
 
@@ -459,6 +483,39 @@ def ai_gov_update(
     merged = {**entry.model_dump(mode="python"), **updates}
     updated = type(entry).model_validate(merged)
     store.save(updated)
+
+    # v0.9.6 P3: optional SCR emit on the diff between prior + updated.
+    if emit_scr is not None:
+        from evidentia_core.ai_governance.scr import emit_scr_form
+
+        scr_form = emit_scr_form(prior=entry, new=updated)
+        emit_scr.parent.mkdir(parents=True, exist_ok=True)
+        json_path = emit_scr.with_suffix(".json")
+        md_path = emit_scr.with_suffix(".md")
+        json_path.write_text(
+            scr_form.model_dump_json(indent=2), encoding="utf-8"
+        )
+        md_path.write_text(scr_form.to_markdown(), encoding="utf-8")
+        _log.info(
+            action=EventAction.AI_SYSTEM_SCR_EMITTED,
+            outcome=EventOutcome.SUCCESS,
+            message=(
+                f"SCR form ({scr_form.category}) emitted for system "
+                f"{system_id} → {json_path}, {md_path}"
+            ),
+            evidentia={
+                "system_id": system_id,
+                "scr_id": scr_form.scr_id,
+                "category": scr_form.category,
+                "json_path": str(json_path),
+                "md_path": str(md_path),
+            },
+        )
+        console.print(
+            f"[green]SCR emitted[/green] "
+            f"([bold]{scr_form.category}[/bold]) → "
+            f"{json_path}, {md_path}"
+        )
 
     _log.info(
         action=EventAction.AI_SYSTEM_UPDATED,
@@ -543,4 +600,174 @@ def ai_gov_retire(
     console.print(
         f"[green]Retired[/green] AI system "
         f"[bold]{entry.descriptor.name}[/bold] (entry preserved for audit)"
+    )
+
+
+# ── categorize-fips (v0.9.6 P3) ───────────────────────────────────
+
+
+@app.command("categorize-fips")
+def ai_gov_categorize_fips(
+    system_id: str = typer.Argument(..., help="System ID (UUID)."),
+    confidentiality: str = typer.Option(
+        ...,
+        "--confidentiality",
+        "-c",
+        help="FIPS 199 confidentiality impact: low / moderate / high.",
+    ),
+    integrity: str = typer.Option(
+        ...,
+        "--integrity",
+        "-i",
+        help="FIPS 199 integrity impact: low / moderate / high.",
+    ),
+    availability: str = typer.Option(
+        ...,
+        "--availability",
+        "-a",
+        help="FIPS 199 availability impact: low / moderate / high.",
+    ),
+    rationale: str | None = typer.Option(
+        None,
+        "--rationale",
+        help=(
+            "Optional free-text justification linking the impact "
+            "ratings to underlying information types per NIST SP "
+            "800-60."
+        ),
+    ),
+) -> None:
+    """Set FIPS 199 categorization on an AI system registry entry (v0.9.6 P3).
+
+    The high-water-mark overall impact is auto-computed from the
+    three per-objective ratings per FIPS 199 §3.
+    """
+    from evidentia_core.ai_governance import (
+        FIPS199Categorization,
+        FIPS199Impact,
+    )
+
+    store = AIRegistryStore()
+    try:
+        entry = store.load(system_id)
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if entry is None:
+        console.print(
+            f"[red]Error:[/red] no registered AI system with ID "
+            f"{system_id!r}"
+        )
+        raise typer.Exit(code=1)
+
+    try:
+        cat = FIPS199Categorization(
+            confidentiality_impact=FIPS199Impact(confidentiality.lower()),
+            integrity_impact=FIPS199Impact(integrity.lower()),
+            availability_impact=FIPS199Impact(availability.lower()),
+            rationale=rationale,
+        )
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    updated = entry.model_copy(update={"fips_199_categorization": cat})
+    store.save(updated)
+
+    _log.info(
+        action=EventAction.AI_SYSTEM_FIPS_CATEGORIZED,
+        outcome=EventOutcome.SUCCESS,
+        message=(
+            f"FIPS 199 categorized AI system {entry.descriptor.name!r} "
+            f"as {cat.overall} (C={cat.confidentiality_impact}, "
+            f"I={cat.integrity_impact}, A={cat.availability_impact})"
+        ),
+        evidentia={
+            "system_id": system_id,
+            "confidentiality": str(cat.confidentiality_impact),
+            "integrity": str(cat.integrity_impact),
+            "availability": str(cat.availability_impact),
+            "overall": str(cat.overall),
+        },
+    )
+
+    # Output uses the persisted string values (matches YAML / JSON
+    # serialization). Pydantic ``use_enum_values=True`` on
+    # EvidentiaModel means cat.overall is already a string after
+    # the validator runs, but we coerce defensively for the f-string.
+    overall_str = (
+        cat.overall.value
+        if isinstance(cat.overall, FIPS199Impact)
+        else str(cat.overall)
+    )
+    console.print(
+        f"[green]FIPS 199 categorized[/green] [bold]{entry.descriptor.name}[/bold] "
+        f"→ overall=[cyan]{overall_str}[/cyan] "
+        f"(C={cat.confidentiality_impact}, I={cat.integrity_impact}, "
+        f"A={cat.availability_impact})"
+    )
+
+
+# ── set-omb-impact (v0.9.6 P3) ────────────────────────────────────
+
+
+@app.command("set-omb-impact")
+def ai_gov_set_omb_impact(
+    system_id: str = typer.Argument(..., help="System ID (UUID)."),
+    category: str = typer.Option(
+        ...,
+        "--category",
+        help=(
+            "OMB M-24-10 §5(b) category: rights_impacting / "
+            "safety_impacting / rights_and_safety_impacting / "
+            "neither."
+        ),
+    ),
+) -> None:
+    """Set OMB M-24-10 impact category on an AI system entry (v0.9.6 P3)."""
+    from evidentia_core.ai_governance import OMBImpactCategory
+
+    store = AIRegistryStore()
+    try:
+        entry = store.load(system_id)
+    except ValueError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if entry is None:
+        console.print(
+            f"[red]Error:[/red] no registered AI system with ID "
+            f"{system_id!r}"
+        )
+        raise typer.Exit(code=1)
+
+    try:
+        omb_cat = OMBImpactCategory(category.lower())
+    except ValueError:
+        console.print(
+            f"[red]Error:[/red] unknown OMB category {category!r}. "
+            f"Valid: {', '.join(c.value for c in OMBImpactCategory)}"
+        )
+        raise typer.Exit(code=1) from None
+
+    updated = entry.model_copy(update={"omb_impact": omb_cat})
+    store.save(updated)
+
+    _log.info(
+        action=EventAction.AI_SYSTEM_OMB_CLASSIFIED,
+        outcome=EventOutcome.SUCCESS,
+        message=(
+            f"OMB M-24-10 classified AI system "
+            f"{entry.descriptor.name!r} as {omb_cat}"
+        ),
+        evidentia={
+            "system_id": system_id,
+            "omb_impact": str(omb_cat),
+        },
+    )
+
+    console.print(
+        f"[green]OMB M-24-10[/green] classified [bold]{entry.descriptor.name}[/bold] "
+        f"→ [cyan]{omb_cat.value}[/cyan]"
     )

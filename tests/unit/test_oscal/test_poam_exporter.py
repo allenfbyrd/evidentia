@@ -76,7 +76,9 @@ class TestTopLevelShape:
         doc = gap_report_to_oscal_poam(report)
         metadata = doc["plan-of-action-and-milestones"]["metadata"]
         assert "Acme Corp" in metadata["title"]
-        assert metadata["oscal-version"] == "1.1.2"
+        # v0.9.6 P4.2: schema bumped from 1.1.2 to 1.2.1 via the
+        # `OSCAL_SCHEMA_VERSION` single-source-of-truth constant.
+        assert metadata["oscal-version"] == "1.2.1"
 
     def test_import_ssp_block_present(self) -> None:
         report = _make_report([_make_gap()])

@@ -13,11 +13,13 @@ Subcommand structure:
     evidentia conmon next <slug> --last-completed YYYY-MM-DD
         # Compute the next-due date for a specific cadence.
 
-    evidentia conmon check --last-completed-file <path> [--today Y] [--window-days N] [--json]
+    evidentia conmon check --state-file <path> [--today Y] [--window-days N] [--json]
         # Read a YAML mapping of {cadence_slug: last_completed_date}
         # and report due-soon + overdue cycles via derive_status.
         # Fires CONMON_CYCLE_DUE / CONMON_CYCLE_OVERDUE events for
         # each cycle that surfaces.
+        # v0.9.6 P1.4: `--last-completed-file` accepted as deprecated
+        # alias (DeprecationWarning emitted; removal target v1.0).
 
     evidentia conmon watch --state-file <path> [--poll-interval N] [--window-days N]
         # v0.9.3 P1.1: long-running poll daemon. Re-reads the state
@@ -40,6 +42,7 @@ import json
 import signal
 import sys
 import threading
+import warnings
 from datetime import date
 from pathlib import Path
 
@@ -260,17 +263,32 @@ def conmon_next(
 
 @app.command("check")
 def conmon_check(
-    last_completed_file: Path = typer.Option(
-        ...,
-        "--last-completed-file",
+    state_file: Path | None = typer.Option(
+        None,
+        "--state-file",
         exists=True,
         file_okay=True,
         dir_okay=False,
         readable=True,
         help=(
             "YAML mapping {cadence_slug: ISO-8601-date} of last-"
-            "completed dates per cycle. Unknown slugs are warned "
-            "(not errored)."
+            "completed dates per cycle. Canonical flag (v0.9.6 "
+            "P1.4 normalized name; matches `conmon watch`, "
+            "`conmon health`, and `conmon mark-completed`). "
+            "Unknown slugs are warned (not errored)."
+        ),
+    ),
+    last_completed_file: Path | None = typer.Option(
+        None,
+        "--last-completed-file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help=(
+            "DEPRECATED v0.9.6: use --state-file. This name is "
+            "retained for a 6-month deprecation window; removal "
+            "target = v1.0. Emits a DeprecationWarning when set."
         ),
     ),
     today_override: str | None = typer.Option(
@@ -304,10 +322,37 @@ def conmon_check(
     NOT emit audit events — the absence of events is itself an
     auditor signal (no attention needed).
     """
+    # v0.9.6 P1.4: resolve which flag the operator supplied.
+    # Both-set is a user-error; neither-set is also a user-error.
+    # Old flag emits DeprecationWarning so CI logs surface the
+    # migration ask before v1.0 removal.
+    if state_file is not None and last_completed_file is not None:
+        console.print(
+            "[red]Error:[/red] cannot specify both --state-file "
+            "and --last-completed-file (the latter is deprecated; "
+            "use --state-file only)."
+        )
+        raise typer.Exit(code=2)
+    if last_completed_file is not None:
+        warnings.warn(
+            "--last-completed-file is deprecated in v0.9.6 and will "
+            "be removed in v1.0. Use --state-file instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        resolved_state_file = last_completed_file
+    elif state_file is not None:
+        resolved_state_file = state_file
+    else:
+        console.print(
+            "[red]Error:[/red] --state-file is required."
+        )
+        raise typer.Exit(code=2)
+
     today_parsed = _parse_date_or_exit(today_override, "--today")
     today: date = today_parsed if today_parsed is not None else date.today()
 
-    last_completed_map = _load_last_completed_map(last_completed_file)
+    last_completed_map = _load_last_completed_map(resolved_state_file)
 
     overdue: list[dict[str, str]] = []
     due_soon: list[dict[str, str]] = []
@@ -928,7 +973,7 @@ def conmon_health(
         help=(
             "YAML mapping {cadence_slug: ISO-8601-date} of last-"
             "completed dates. Same schema as `evidentia conmon "
-            "check --last-completed-file`."
+            "check --state-file`."
         ),
     ),
     today_override: str | None = typer.Option(

@@ -503,6 +503,59 @@ A genuinely new tier surfaced through v0.7.x. Capital concentrated in agentic-AI
 | 7 | **88 framework catalogs bundled** (95+ planned for v0.7.9 with FFIEC + OCC + SR 11-7 additions) | Vanta 35+ ([Vanta frameworks](https://www.vanta.com/products/additional-frameworks)), Drata 20+, Secureframe ~12, Sprinto 200+ (claim — but with documented uneven depth — see §6.4), Comp AI 25+ | OneTrust + ServiceNow + IBM cover hundreds via paid licensed regulatory libraries | N/A (trust center vendors don't ship catalogs) | RegScale claims 60+ (parity); CISO Assistant 130+ claimed (parity) |
 | 8 | **PCAOB AS 1105 5/5 capability alignment** (NEW v0.7.8 differentiator) | None publish 5/5 alignment | None | None | None |
 
+### 6.1.A The moat trinity (v0.9.6 sharpened framing — May 2026)
+
+The v0.9.5 Q3 2026 quarterly resync sharpened the differentiation
+story by collapsing the seven-vs-eight differentiator list into three
+concrete moats that compound rather than enumerate. **The moat trinity**:
+
+1. **OSCAL emission** — Evidentia is the only OSS GRC tool that
+   emits catalog / profile / assessment-results / plan-of-action-
+   and-milestones (v0.9.6 ships OSCAL 1.2.1 via the
+   `OSCAL_SCHEMA_VERSION` constant; trestle-compatible) **as
+   first-class output**, not via an exporter add-on. The Sept 30
+   2026 FedRAMP machine-readable mandate makes this the load-
+   bearing differentiator for federal-adjacent operators.
+2. **DFAH / PRT determinism** — auditor-defensible reproducibility
+   on every AI-generated artifact. Khatchadourian arXiv
+   2601.15322 (v2 March 2026) names this by exact terminology;
+   no commercial GRC vendor offers it. Validates the
+   v0.7.8-surfaced AI-feature-commoditization thesis: when every
+   incumbent ships "agentic" features, the differentiator
+   collapses into eval rigor + audit trails.
+3. **Cryptographic provenance (CIMD + Sigstore + PEP 740)** —
+   per-tool CIMD scope enforcement at the MCP protocol layer
+   (v0.8.5 P4) + Sigstore-signed eval output (v0.8.2) + PEP 740
+   attestations on every released wheel. The Mini Shai-Hulud
+   May 11 2026 supply-chain attack (400+ malicious package
+   versions across 170+ packages on npm + PyPI) is the
+   contemporary forcing function: operators NEED cryptographically
+   verifiable provenance on the GRC tool itself, not just on its
+   outputs.
+
+### 6.1.B Counter-positioning vs "agentic GRC" (v0.9.6 — May 2026)
+
+By May 2026 every credible incumbent shipped "agentic GRC" framing
+within ~60 days of each other: **Vanta Agentic Trust Platform**
+(March 19 2026 GA), **Drata Agentic TPRM** (March 2026), **Optro
+unified AI governance** (built on FairNow acquisition Oct 2025),
+**OneTrust Athena**, **Workiva Intelligent**, **Hyperproof AI
+Guided Experiences**, **Anecdotes** — all converged on the
+"agentic" vocabulary in the same quarter. **Drata's own May 11
+2026 essay "From Prompt Engineering to Harness Engineering"
+implicitly concedes the harder problem is verifiable harness,
+not agents** — directly validating Evidentia's DFAH + PRT + CIMD
+framing.
+
+**v0.9.6 positioning posture**: Evidentia explicitly does NOT
+chase "agentic" vocabulary. The leading frame is **"deterministic,
+auditable, OSS-native compliance engineering"** — same problem
+space, different value proposition. Operators evaluating GRC AI
+on regulatory-defensibility criteria (FedRAMP RFC-0024 +
+PCAOB AS 1105 + EU AI Act Article 15 transparency requirements)
+inherit the moat trinity as a "must-have" rather than a "nice-to-
+have."
+
 ### 6.2 Where Evidentia is at parity (don't oversell)
 
 - **AI-assisted control mapping** — Vanta AI Agent, SafeBase AI, RegScale all do this. Evidentia at parity, not advantage.
@@ -750,7 +803,8 @@ These are the gaps that will get a sales-eng on a Vanta/Drata bake-off to win, a
 - **MCP-served GRC data to general-purpose LLM clients** — **shipped April 2026**. Vanta remote MCP server (April 15 2026, public preview), Drata MCP server (RSAC 2026), Optro MCP server with role-based permissions + audit controls + role propagation from human-IAM into agent layer, IBM `compliance-trestle-mcp` (oscal-compass), AWS Labs `mcp-server-for-oscal` (FastMCP 2.6+, 12+ tools incl. `list_oscal_models`, `get_oscal_schema`, `query_oscal_documentation`, `list_catalog_controls`, `list_ssp_components`). **CIMD (Client ID Metadata Documents) is now shipped + default** in MCP 2025-11-25 spec — promoted from RFC, replacing Dynamic Client Registration; FastMCP ≥ 2.6, Microsoft C# SDK v1.0 (March 2026), Claude Code, Claude.ai, VS Code all live.
 - **First-mover MCP window status (May 2026)**:
   - **CLOSED** for OSCAL primitives — IBM trestle, AWS Labs, Vanta, Drata, Optro all live
-  - **WIDE OPEN** for: policy-as-code enforcement MCP, comprehensive vulnerability/SBOM MCP, third-party-risk MCP outside Vanta/Drata silos, HIPAA-specific MCP, **FFIEC/SR-11-7 MCP** (precise opening per v0.7.9 plan), continuous-compliance-monitoring MCP
+  - **CLAIMED at v0.9.6 (May 18 2026)**: **continuous-compliance-monitoring (CONMON) MCP**. Evidentia wraps the v0.9.3 in-process CONMON daemon as 4 MCP tools (`conmon_list_cadences`, `conmon_next_due`, `conmon_check_state`, `conmon_health`) on the existing `evidentia mcp serve` surface. Verified-unclaimed at the v0.9.5 Q3 2026 quarterly resync: existing OSCAL MCPs (oscal-compass, awslabs) are authoring-only; vendor MCPs (Vanta / Drata / Optro / ComplyAI) expose platform data only. The open-source CONMON-cadence lane is now occupied — first-mover lock established ahead of FedRAMP CR26 mandatory adoption (Jan 1 2027) and RFC-0024 stabilization (Nov 1 2027).
+  - **WIDE OPEN** for: policy-as-code enforcement MCP, comprehensive vulnerability/SBOM MCP, third-party-risk MCP outside Vanta/Drata silos, HIPAA-specific MCP, **FFIEC/SR-11-7 MCP** (precise opening per v0.7.9 plan)
 - **Anthropic Computer Use for browser-agent questionnaire completion** — being demoed; not yet GA in GRC products
 - **Multimodal evidence validation** (DSE / MMDocRAG papers) — Optro pre-fills questionnaires from SOC 2 PDFs (document understanding only); **no vendor does true vision-LLM screenshot validation**. Open opportunity.
 - **Determinism-replay for audit defensibility (DFAH)** — DFAH framework defines the problem (Khatchadourian March 2026); **NO commercial GRC vendor ships this**. Evidentia's v0.7.1 GenerationContext (model + temperature + prompt-hash + run-id) is the substrate; planned v0.8.0 `evidentia eval` is the affordance.

@@ -7,6 +7,153 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.6] - 2026-05-18
+
+**Theme**: *Federal expansion + WORM evidence versioning + CLI RBAC mirror
++ CONMON MCP first-mover + OSCAL 1.2.1 + mypy strict extension.*
+
+Closes the three v0.9.5 deferrals (WORM store-side enforcement,
+CLI RBAC mirror, federal-tier AI-gov fields), claims the
+CONMON MCP first-mover position verified-unclaimed at the
+v0.9.5 Q3 2026 quarterly resync, upgrades OSCAL emit to 1.2.1
+via a single-source-of-truth constant, and extends the mypy
+strict CI gate to cover all 7 evidentia-* packages (256 source
+files clean). Walk-through deferred to v0.9.7 per scope lock-in.
+
+### Added
+
+- **CLI RBAC enforcement (v0.9.6 P1)**: `require_role_cli(action)` Typer
+  decorator at `evidentia.cli._rbac` mirrors the FastAPI
+  `evidentia_api.rbac_dependency.require_role`. Shares the
+  `evidentia_core.rbac.check_permission` decision function + action
+  taxonomy (read / write / admin), so a single YAML policy applies
+  to both surfaces. Policy loaded once per process from
+  `EVIDENTIA_RBAC_POLICY_FILE`; identity from
+  `EVIDENTIA_RBAC_IDENTITY` env var or the new `--rbac-identity`
+  global flag. Denied invocations exit with code 77 (BSD
+  `EX_NOPERM`) so CI jobs can distinguish RBAC denial from generic
+  failure.
+- **Global `--rbac-identity` flag**: per-invocation identity
+  override on every `evidentia` command. Takes precedence over
+  `EVIDENTIA_RBAC_IDENTITY` env var.
+- **WORM-enforced evidence store (v0.9.6 P2)**: closes the v0.9.5
+  P3.2 deferral. `evidentia_core.evidence_store` ships
+  append-only enforcement at the store layer: `save_evidence()`
+  raises `EvidenceWORMViolation` when an existing `v<N>.json`
+  would be overwritten, suggesting the canonical recovery
+  (`EvidenceArtifact.new_version()` → `v<N+1>`). Storage layout
+  is one directory per lineage chain, one file per version.
+  `EVIDENTIA_EVIDENCE_STORE_DIR` env var + `platformdirs`
+  default. UUID canonicalization + path-traversal protection
+  mirror the v0.9.0 poam_store pattern.
+- **Cloud-WORM mirror adapter (v0.9.6 P2)**:
+  `evidentia_core.evidence_store_worm.mirror_to_worm()` +
+  `fetch_from_worm()` compose with the v0.7.11 `WORMBackend` ABC
+  (S3 Object Lock / Azure Immutable Blob / GCS Bucket Lock) for
+  regulator-grade chain-of-custody. Record-id format
+  `<lineage>_v<version>`; one immutable record per artifact
+  version with caller-supplied `RetentionMetadata`.
+- **`evidentia evidence` CLI (v0.9.6 P2)**: three new verbs gated
+  by RBAC — `save <yaml>` (write), `history <lineage_id>` (read),
+  `show <lineage_id> --version N` (read). Both human + `--json`
+  output. WORM violations surface with the canonical recovery
+  suggestion; bad YAML / schema violations exit 2 (CLI usage
+  error); missing-version exits 1 (functional failure).
+- **New EventActions (v0.9.6 P2)**: `EVIDENCE_VERSION_PERSISTED`,
+  `EVIDENCE_WORM_VIOLATION_BLOCKED`, `EVIDENCE_LINEAGE_QUERIED`.
+  Every persisted save, blocked overwrite, and lineage query
+  fires the corresponding audit event for FedRAMP AU-2 / AU-3 /
+  AU-9 + SOX §404 traceability.
+- **FIPS 199 categorization (v0.9.6 P3)**:
+  `evidentia_core.ai_governance.fips199.FIPS199Categorization`
+  Pydantic model + `FIPS199Impact` enum (LOW / MODERATE / HIGH).
+  High-water-mark validator enforces
+  `overall = max(C, I, A)` per FIPS PUB 199 §3.
+  `evidentia ai-gov categorize-fips <system-id>` CLI verb sets
+  the categorization on a registry entry; fires
+  `AI_SYSTEM_FIPS_CATEGORIZED` audit event.
+- **OMB M-24-10 impact categorization (v0.9.6 P3)**:
+  `evidentia_core.ai_governance.omb_m_24_10.OMBImpactCategory`
+  enum (rights / safety / both / neither) +
+  `triggers_minimum_practices()` helper.
+  `evidentia ai-gov set-omb-impact <system-id>` CLI verb;
+  fires `AI_SYSTEM_OMB_CLASSIFIED` audit event.
+- **Significant Change Request emit (v0.9.6 P3)**:
+  `evidentia_core.ai_governance.scr.SCRForm` Pydantic model
+  matching the FedRAMP Significant Change Form Template +
+  `emit_scr_form(prior, new)` diff function. Auto-classifies the
+  change as `routine_recurring` / `adaptive` / `transformative`
+  per NIST SP 800-37 Rev 2 §3.7 + FedRAMP Significant Change
+  Policies §4.1. JSON + Markdown writers for AO submission
+  packages. New `evidentia ai-gov update --emit-scr <PATH>` flag
+  writes `<PATH>.json` + `<PATH>.md`. Fires
+  `AI_SYSTEM_SCR_EMITTED` audit event.
+- **Federal-tier registry fields (v0.9.6 P3)**:
+  `AISystemRegistryEntry` extended with four Optional fields —
+  `fips_199_categorization`, `ato_reference` (new
+  `ATOReference` submodel: system name + Authorizing Official +
+  ATO date + expiry + letter URI), `ssp_reference` (System
+  Security Plan handle), `omb_impact` (OMB M-24-10 category).
+  All Optional → backward-compat with v0.9.3 – v0.9.5 entries.
+- **New EventActions (v0.9.6 P3)**:
+  `AI_SYSTEM_FIPS_CATEGORIZED`, `AI_SYSTEM_OMB_CLASSIFIED`,
+  `AI_SYSTEM_SCR_EMITTED`. Every federal-tier categorization
+  change fires the corresponding audit event so the SSP / ATO
+  / continuous-monitoring reviewer can trace inventory metadata
+  provenance.
+- **CONMON MCP first-mover (v0.9.6 P4.1)**: wraps the v0.9.3
+  in-process CONMON daemon as 4 new MCP tools on the existing
+  `evidentia mcp serve` surface — `conmon_list_cadences`,
+  `conmon_next_due`, `conmon_check_state`, `conmon_health`.
+  All gated by the existing v0.8.6 CIMD scope-enforcement; new
+  tool names default-rejected by v0.9.5 CIMD registries until
+  operators update scope. Verified-unclaimed at the v0.9.5 Q3
+  2026 quarterly resync (positioning-and-value.md line 1159):
+  existing OSCAL MCPs (oscal-compass, awslabs) are authoring-
+  only; vendor MCPs (Vanta / Drata / Optro / ComplyAI) expose
+  platform data only. First-mover lock established ahead of
+  FedRAMP CR26 mandatory adoption (Jan 1 2027).
+
+### Changed
+
+- **OSCAL 1.1.2 → 1.2.1 upgrade (v0.9.6 P4.2)**: schema-version
+  emit in catalog / profile / assessment-results / plan-of-
+  action-and-milestones metadata blocks bumped to 1.2.1 via the
+  new `evidentia_core.oscal.OSCAL_SCHEMA_VERSION` single-source-
+  of-truth constant. Aligns with `compliance-trestle 4.0.2`
+  (April 17 2026). The 1.2.0 release renamed observation
+  `types: ["finding"]` to `["implementation-issue"]` — handled
+  inline at the emit site in
+  `evidentia_core.oscal.exporter`. Test fixtures updated to
+  assert against the new version.
+- **mypy strict gate extended (v0.9.6 P4.3)**: CI workflow
+  `.github/workflows/test.yml` now runs mypy strict against all
+  7 evidentia-* Python packages (was 5). Adds coverage for
+  `evidentia-ai` (19 source files) and `evidentia-mcp` (now 6
+  source files including the v0.9.6 `py.typed` marker). Full
+  gate: **256/256 source files clean** with `--strict-optional`.
+  Phase 0.3 baseline had 14 surfaced errors; by the Phase 4.3
+  re-scout (post-P2 + P3 cross-package Pydantic surfaces and
+  workspace re-resolution), the count fell to 0.
+- **Positioning sharpened (v0.9.6 P4.4)**:
+  `docs/positioning-and-value.md` §6.1.A introduces the **moat
+  trinity** framing (OSCAL emission + DFAH / PRT determinism +
+  cryptographic CIMD provenance) and §6.1.B documents the
+  explicit counter-positioning vs the Q1 2026 wave of "agentic
+  GRC" launches. §11.2 records the CONMON MCP first-mover claim.
+  README adds a one-paragraph moat-trinity hook under "Why
+  Evidentia is different."
+
+### Changed
+
+- **`conmon check --state-file` (v0.9.6 P1.4)**: canonical flag
+  name aligned with `conmon watch`, `conmon health`,
+  `conmon mark-completed`. The previous name
+  `--last-completed-file` is retained as a deprecated alias that
+  emits `DeprecationWarning` when used. Removal target: **v1.0**
+  (6-month deprecation window). Specifying both flags simultaneously
+  exits with code 2.
+
 ## [0.9.5] - 2026-05-18
 
 **Theme**: *Walk-through-driven refinement + collaboration primitives + carry-over closure.*

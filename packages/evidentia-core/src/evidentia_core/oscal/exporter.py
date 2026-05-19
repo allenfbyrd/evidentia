@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from evidentia_core.models.gap import ControlGap, GapAnalysisReport
+from evidentia_core.oscal._version import OSCAL_SCHEMA_VERSION
 from evidentia_core.oscal.digest import digest_bytes, format_digest
 
 if TYPE_CHECKING:
@@ -168,7 +169,7 @@ def gap_report_to_oscal_ar(
                 "title": f"Gap Analysis: {report.organization}",
                 "last-modified": now_iso,
                 "version": report.evidentia_version,
-                "oscal-version": "1.1.2",
+                "oscal-version": OSCAL_SCHEMA_VERSION,
                 "parties": [
                     {
                         "uuid": str(uuid4()),
@@ -502,7 +503,13 @@ def _gap_to_observation(
         "title": f"Observation: {gap.control_id}",
         "description": gap.gap_description,
         "methods": ["EXAMINE"],
-        "types": ["finding"],
+        # v0.9.6 P4.2: OSCAL 1.2.0 renamed the observation type from
+        # "finding" to "implementation-issue". The semantic is
+        # unchanged ("this is a flagged compliance gap"); only the
+        # vocabulary token moved. Operators emitting OSCAL 1.1.x
+        # consumers can downgrade via the OSCAL_SCHEMA_VERSION
+        # constant + this token in lockstep.
+        "types": ["implementation-issue"],
         "subjects": [
             {
                 "subject-uuid": gap.id,

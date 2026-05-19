@@ -356,6 +356,28 @@ class EventAction(str, Enum):
     log itself is the only remaining record. Added v0.9.4 Step 5.A
     (F-V94-Q12) to disambiguate from the retire semantic."""
 
+    # ── Federal AI governance (v0.9.6 P3) ──
+    # FIPS 199 + OMB M-24-10 + SCR emit surfaces. Each writes one
+    # event to the audit log so the SSP / ATO / continuous-monitoring
+    # reviewer can trace the provenance of inventory metadata.
+    AI_SYSTEM_FIPS_CATEGORIZED = "evidentia.ai_governance.system_fips_categorized"
+    """Fired when FIPS 199 categorization is set or updated on an
+    AI system registry entry via ``evidentia ai-gov categorize-fips``
+    or ``ai-gov update``. Payload carries C / I / A ratings + the
+    high-water-mark overall."""
+
+    AI_SYSTEM_OMB_CLASSIFIED = "evidentia.ai_governance.system_omb_classified"
+    """Fired when OMB M-24-10 impact category is set or updated via
+    ``evidentia ai-gov set-omb-impact`` or ``ai-gov update``. Payload
+    carries the new category (rights_impacting / safety_impacting /
+    rights_and_safety_impacting / neither)."""
+
+    AI_SYSTEM_SCR_EMITTED = "evidentia.ai_governance.system_scr_emitted"
+    """Fired when a Significant Change Request form is emitted via
+    ``evidentia ai-gov update --emit-scr <path>``. Payload carries
+    the SCR category (routine_recurring / adaptive / transformative)
+    + the output path for cross-reference."""
+
     # Retention + WORM lifecycle events (v0.7.12 P1) — audit-trail
     # actions on records under retention metadata. The PURGED variant
     # serves as the canonical legal-counsel-defensible artifact for
@@ -370,6 +392,15 @@ class EventAction(str, Enum):
     RETENTION_LIFECYCLE_TRANSITIONED = "evidentia.retention.lifecycle_transitioned"
     RETENTION_RECORD_PURGED = "evidentia.retention.record_purged"
     RETENTION_GDPR_PURGE = "evidentia.retention.gdpr_purge"
+
+    # ── Evidence store WORM lineage (v0.9.6 P2) ──
+    # Closes the v0.9.5 P3.2 deferral: the v0.9.5 cycle shipped the
+    # EvidenceArtifact.version / lineage_id / predecessor_id data
+    # model + new_version() helper; v0.9.6 ships the WORM
+    # enforcement at the store layer + the audit trail for it.
+    EVIDENCE_VERSION_PERSISTED = "evidentia.evidence.version_persisted"
+    EVIDENCE_WORM_VIOLATION_BLOCKED = "evidentia.evidence.worm_violation_blocked"
+    EVIDENCE_LINEAGE_QUERIED = "evidentia.evidence.lineage_queried"
 
 
 class EventCategory(str, Enum):

@@ -166,6 +166,15 @@ jobs:
       # evidentia-ui directory is a Node/Vite project, not a Python
       # workspace member, and is covered by its own TypeScript strict
       # gate in the `frontend-test` job below.
+      # v0.9.6 P4.3: extended to evidentia-ai + evidentia-mcp. The
+      # Phase 0.3 scout reported 14 errors at v0.9.5 baseline; by the
+      # Phase 4.3 re-scout (after Phase 2 + Phase 3 surfaced new
+      # cross-package Pydantic models and the workspace re-resolved
+      # the typing cache), the error count fell to 0. Adding a
+      # `py.typed` marker to evidentia-mcp keeps consumers of the
+      # package seeing the type annotations downstream. The gate
+      # now covers all 7 evidentia-* packages (excluding evidentia-ui
+      # which is a TypeScript / Node workspace member).
       - name: Run mypy
         run: |
           uv run mypy \
@@ -174,6 +183,8 @@ jobs:
             packages/evidentia-api/src/evidentia_api \
             packages/evidentia-integrations/src/evidentia_integrations \
             packages/evidentia-collectors/src/evidentia_collectors \
+            packages/evidentia-ai/src/evidentia_ai \
+            packages/evidentia-mcp/src/evidentia_mcp \
             --strict-optional
 
   frontend-test:

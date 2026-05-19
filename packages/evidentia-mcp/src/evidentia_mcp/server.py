@@ -461,3 +461,211 @@ def _register_tools(
             ) from exc
         diff = compute_gap_diff(base=base_report, head=head_report)
         return diff.model_dump(mode="json")
+
+    # ── CONMON tools (v0.9.6 P4 — first-mover MCP wrap) ─────────
+    # Wraps the v0.9.3 CONMON daemon's read-only library surface as
+    # MCP tools. Verified-unclaimed at v0.9.5 Q3 2026 quarterly
+    # resync: existing OSCAL MCPs (oscal-compass, awslabs) are
+    # authoring-only; vendor MCPs (Vanta / Drata / Optro / ComplyAI)
+    # expose platform data only. The open-source CONMON-cadence
+    # lane is wide open until further notice.
+    #
+    # Tools are read-only (no daemon mutation; no state-file
+    # writes). Operators who want write semantics use the CLI verbs
+    # `conmon mark-completed` and `conmon watch`, which are gated
+    # by RBAC at the CLI layer (v0.9.6 P1).
+
+    @server.tool()
+    def conmon_list_cadences(
+        framework: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """List bundled continuous-monitoring cadences.
+
+        Args:
+            framework: Optional framework filter (e.g.,
+                ``fedramp-rev5-mod``). When omitted, lists all
+                bundled cadences across all frameworks.
+
+        Returns:
+            One entry per matching cadence with ``slug``,
+            ``framework``, ``activity``, ``frequency``, and
+            ``citation`` fields. Empty list if the filter excludes
+            all cadences.
+
+        v0.9.6 P4: shipped as part of the CONMON MCP first-mover
+        position. See ``docs/positioning-and-value.md`` §6 + §11
+        for the moat-trinity framing.
+        """
+        from evidentia_core.conmon import list_cadences
+
+        cadences = list_cadences(framework=framework)
+        return [c.model_dump(mode="json") for c in cadences]
+
+    @server.tool()
+    def conmon_next_due(
+        slug: str, last_completed: str
+    ) -> dict[str, Any]:
+        """Compute the next-due date for a single CONMON cadence.
+
+        Args:
+            slug: Cadence slug (e.g.,
+                ``nist-800-53-rev5-ca7``). Use ``conmon_list_cadences``
+                to discover valid slugs.
+            last_completed: ISO-8601 date (YYYY-MM-DD) of the most
+                recent cycle completion for this cadence.
+
+        Returns:
+            A dict with ``slug``, ``last_completed``, and ``next_due``
+            (ISO-8601 date).
+
+        Raises:
+            ValueError: ``slug`` is not a known cadence OR
+                ``last_completed`` is not a valid ISO-8601 date.
+        """
+        from datetime import date as _date
+
+        from evidentia_core.conmon import get_cadence, next_due
+
+        cadence = get_cadence(slug)
+        if cadence is None:
+            raise ValueError(
+                f"Unknown CONMON cadence slug: {slug!r}. Use "
+                "conmon_list_cadences to discover valid slugs."
+            )
+        try:
+            anchor = _date.fromisoformat(last_completed)
+        except ValueError as exc:
+            raise ValueError(
+                f"last_completed must be ISO-8601 date "
+                f"(YYYY-MM-DD); got {last_completed!r}: {exc}"
+            ) from exc
+        due = next_due(slug, anchor)
+        return {
+            "slug": slug,
+            "last_completed": anchor.isoformat(),
+            "next_due": due.isoformat(),
+        }
+
+    @server.tool()
+    def conmon_check_state(
+        state_file_path: str,
+        window_days: int = 14,
+    ) -> dict[str, Any]:
+        """Read a state-file + report attention-state per cadence.
+
+        Args:
+            state_file_path: Path to a YAML mapping of
+                ``{cadence_slug: ISO-8601-date}``. The file MUST
+                exist; the tool does NOT create it.
+            window_days: Due-soon window in days from today.
+                Default 14.
+
+        Returns:
+            A dict with ``overdue``, ``due_soon``, and ``current``
+            lists of cadences. Each entry carries the slug,
+            framework, activity, next_due date, and days_until_due.
+
+        Raises:
+            FileNotFoundError: ``state_file_path`` does not exist.
+            ValueError: state-file is not valid YAML / does not
+                parse as a mapping.
+        """
+        from datetime import date as _date
+
+        import yaml as yaml_mod
+        from evidentia_core.conmon import (
+            derive_status,
+            get_cadence,
+            next_due,
+        )
+
+        candidate = Path(state_file_path).expanduser()
+        if resolved_allow_root is not None:
+            path = validate_within(candidate, resolved_allow_root)
+        else:
+            path = candidate.resolve(strict=False)
+        if not path.exists():
+            raise FileNotFoundError(
+                f"State file not found: {path}"
+            )
+        try:
+            raw = yaml_mod.safe_load(path.read_text(encoding="utf-8")) or {}
+        except yaml_mod.YAMLError as exc:
+            raise ValueError(
+                f"Could not parse state file {path}: {exc}"
+            ) from exc
+        if not isinstance(raw, dict):
+            raise ValueError(
+                f"State file {path} must contain a mapping at top level"
+            )
+
+        today = _date.today()
+        overdue: list[dict[str, str]] = []
+        due_soon: list[dict[str, str]] = []
+        current: list[dict[str, str]] = []
+        for slug, anchor_str in raw.items():
+            cadence = get_cadence(slug)
+            if cadence is None:
+                continue  # unknown slugs surface in CLI, not here
+            try:
+                anchor = _date.fromisoformat(str(anchor_str))
+            except ValueError:
+                continue
+            due = next_due(slug, anchor)
+            state = derive_status(due, today, window_days=window_days)
+            row = {
+                "slug": slug,
+                "framework": cadence.framework,
+                "activity": cadence.activity,
+                "next_due": due.isoformat(),
+                "days_until_due": str((due - today).days),
+            }
+            if state.value == "overdue":
+                overdue.append(row)
+            elif state.value == "due_soon":
+                due_soon.append(row)
+            else:
+                current.append(row)
+        return {
+            "today": today.isoformat(),
+            "window_days": window_days,
+            "overdue": overdue,
+            "due_soon": due_soon,
+            "current": current,
+        }
+
+    @server.tool()
+    def conmon_health(state_file_path: str) -> dict[str, Any]:
+        """Return the CONMON health report for a state-file.
+
+        Args:
+            state_file_path: Path to a YAML mapping of
+                ``{cadence_slug: ISO-8601-date}``.
+
+        Returns:
+            The dict form of the v0.9.5 ``health_from_state_file``
+            report — overall posture + per-framework breakdown +
+            counts.
+
+        Raises:
+            FileNotFoundError: ``state_file_path`` does not exist.
+            ValueError: state-file is not valid YAML.
+        """
+        import dataclasses
+
+        from evidentia_core.conmon import health_from_state_file
+
+        candidate = Path(state_file_path).expanduser()
+        if resolved_allow_root is not None:
+            path = validate_within(candidate, resolved_allow_root)
+        else:
+            path = candidate.resolve(strict=False)
+        if not path.exists():
+            raise FileNotFoundError(
+                f"State file not found: {path}"
+            )
+        report = health_from_state_file(path)
+        # HealthReport is a frozen dataclass — convert via
+        # dataclasses.asdict for JSON-serializable output (mirrors
+        # the conmon-health CLI verb's JSON serialization path).
+        return dataclasses.asdict(report)

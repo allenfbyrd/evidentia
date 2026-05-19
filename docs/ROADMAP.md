@@ -1271,47 +1271,115 @@ P4.3 uv.lock regenerated atomically at version bump.
 **2862 tests / 17 skipped / mypy strict 0 / ~225 source files /
 ruff clean / pytest-randomly seed-sweep clean.**
 
-## v0.9.6 — Real-operator walk-through + WORM evidence versioning + CLI RBAC — PLANNED
+## v0.9.6 — Federal expansion + WORM + CLI RBAC + CONMON MCP first-mover — SHIPPED
 
-Closes the v0.9.5 deferred-for-v0.9.6 items. Estimated 2-3 week
-focused session matching the v0.9.4 cadence.
+Tag `v0.9.6` (2026-05-18). Comprehensive ~3-week scope compressed
+into a focused session per the v0.9.5 cycle-close lock-in (Allen's
+"Comprehensive ~2-3 weeks" + "Phase 0 verification gate first" +
+"CONMON MCP claim now" + "defer walk-through to v0.9.7" choices).
+**21st consecutive PROCEED-CLEAN** of the v0.7.x → v0.8.x → v0.9.x
+line.
 
-**Carry-over from v0.9.5 validation report**:
-- Real federal-SI domain-expert walk-through review (the v0.9.5
-  validation was AI-persona-driven; real-operator findings
-  layer on top).
-- FIPS 199 categorization + ATO-linkage + SSP-reference fields
-  on `AISystemRegistryEntry` (per OMB M-24-10 §5(a)
-  inventory format).
-- SCR (Significant Change Request) form emit on AI-system
-  lifecycle transitions (`evidentia ai-gov update`).
-- OMB M-24-10 Rights-Impacting / Safety-Impacting / Neither
-  categorization as first-class AI-gov field.
+**Phase 0 — pre-cycle verification (BLOCKING, all PASSED)**: OSCAL
+1.2.1 changelog confirmed schema-compatible with one observation
+type rename; OMB M-24-10 field set locked from agency compliance
+plans; mypy strict scout reported 0 errors post-cross-package
+re-resolution.
 
-**Append-only enforcement** (v0.9.5 P3.2 follow-up):
-- Evidence-store WORM integration enforcing append-only at the
-  store layer (refusing to overwrite a persisted artifact;
-  emits a new version automatically when an "update" is
-  attempted).
-- `evidentia evidence history <lineage_id>` CLI verb.
-- `evidentia evidence show <lineage_id> --version N` CLI verb.
+**Phase 1 — CLI RBAC + flag normalization**:
+- NEW `evidentia.cli._rbac.require_role_cli(action)` Typer decorator
+  mirroring `evidentia_api.rbac_dependency.require_role`. Shares
+  `evidentia_core.rbac.check_permission` + action taxonomy
+  (read / write / admin). Denial exits with code 77 (BSD
+  `EX_NOPERM`).
+- NEW `evidentia.cli._rbac_lifecycle` — process-lifetime singleton
+  loader. Env vars `EVIDENTIA_RBAC_POLICY_FILE` +
+  `EVIDENTIA_RBAC_IDENTITY` + new `--rbac-identity` global flag.
+- `conmon check --state-file` canonical; `--last-completed-file`
+  deprecated (DeprecationWarning; removal target v1.0).
 
-**CLI RBAC enforcement** (v0.9.5 P3.3 follow-up):
-- Mirror the FastAPI `require_role()` enforcement at the CLI
-  layer via a Typer dependency / shared decorator. Operators
-  configure `EVIDENTIA_RBAC_POLICY_FILE` + `EVIDENTIA_RBAC_
-  IDENTITY` (env-var-based identity for CLI) and the policy is
-  enforced before any verb dispatches.
+**Phase 2 — WORM evidence store + lineage CLI**:
+- NEW `evidentia_core.evidence_store` — append-only enforcement;
+  refuses overwrite of `<lineage>/v<N>.json`; raises
+  `EvidenceWORMViolation` with canonical recovery (call
+  `EvidenceArtifact.new_version()`). UUID canonicalization +
+  path-traversal protection.
+- NEW `evidentia_core.evidence_store_worm` — optional cloud-WORM
+  mirror composing with `WORMBackend` ABC (S3 / Azure / GCS).
+- NEW `evidentia evidence` CLI — `save` (write-gated) +
+  `history <lineage>` (read) + `show <lineage> --version N` (read).
+- 3 new EventActions: `EVIDENCE_VERSION_PERSISTED`,
+  `EVIDENCE_WORM_VIOLATION_BLOCKED`, `EVIDENCE_LINEAGE_QUERIED`.
 
-**CLI flag naming normalization**:
-- The `conmon check --last-completed-file` vs
-  `conmon health --state-file` vs `conmon watch --state-file`
-  inconsistency normalizes to a single `--state-file` flag
-  with a 6-month deprecation window on `--last-completed-file`.
+**Phase 3 — AI-gov federal expansion**:
+- NEW `evidentia_core.ai_governance.fips199` — `FIPS199Categorization`
+  Pydantic model + high-water-mark validator per FIPS PUB 199 §3.
+- NEW `evidentia_core.ai_governance.omb_m_24_10` — `OMBImpactCategory`
+  enum (rights / safety / both / neither) +
+  `triggers_minimum_practices()` helper.
+- NEW `evidentia_core.ai_governance.scr` — `SCRForm` matching
+  FedRAMP template + `classify_change()` (routine / adaptive /
+  transformative) + `emit_scr_form()` diff emitter + JSON / MD
+  writers.
+- Extended `AISystemRegistryEntry` with 4 Optional fields +
+  NEW `ATOReference` submodel.
+- NEW CLI verbs: `ai-gov categorize-fips`, `ai-gov set-omb-impact`,
+  `ai-gov update --ssp-reference`, `ai-gov update --emit-scr <path>`.
+- 3 new EventActions: `AI_SYSTEM_FIPS_CATEGORIZED`,
+  `AI_SYSTEM_OMB_CLASSIFIED`, `AI_SYSTEM_SCR_EMITTED`.
+
+**Phase 4 — MCP first-mover + OSCAL upgrade + mypy + positioning**:
+- **CONMON MCP first-mover CLAIMED**: 4 new tools on
+  `evidentia_mcp.server` (`conmon_list_cadences`,
+  `conmon_next_due`, `conmon_check_state`, `conmon_health`)
+  wrapping the v0.9.3 daemon. Verified-unclaimed at the v0.9.5
+  Q3 2026 quarterly resync; first-mover lock established ahead
+  of FedRAMP CR26 mandatory adoption (Jan 1 2027).
+- OSCAL 1.1.2 → 1.2.1 via single-source-of-truth
+  `OSCAL_SCHEMA_VERSION` constant + observation `types: ["finding"]`
+  → `["implementation-issue"]` at one emit site.
+- mypy strict gate extended to all 7 evidentia-* packages.
+  **256 source files clean** (was 223 of 247 at v0.9.5).
+- Positioning: §6.1.A moat trinity + §6.1.B counter-positioning
+  vs agentic GRC; README moat-trinity hook.
+
+**Phase 5 — Hygiene + validation + ship**:
+- Walk-through deferred to v0.9.7 per scope lock-in.
+- `docs/v0.9.6-plan.md` + `docs/v0.9.6-shipped.md` +
+  `docs/security-review-v0.9.6.md` all shipped per plan-first
+  discipline + v4 G7.
+
+**3018 tests / 17 skipped / mypy strict 256 of 256 source files /
+ruff clean / pytest-randomly seed-sweep clean.**
+
+## v0.9.7 — Real-operator walk-through + supply-chain hardening + carry-over closure — PLANNED
+
+Estimated 2-3 week focused session matching the v0.9.4 / v0.9.6
+cadence. Closes the v0.9.6 deferrals + the v0.9.5 walk-through
+deferral.
+
+**Carry-over from v0.9.6**:
+- Real federal-SI domain-expert walk-through review (no operator
+  sourced at v0.9.6 cycle-close; v0.9.5 AI-persona validation
+  remains baseline).
+- OSCAL Significant Change Notification standard alignment
+  (RFC-0007 / NOTICE-0009 March 2026 surfaced post-Phase 0.1).
+- CIMD scope-migration tooling for the new `conmon_*` MCP tools
+  (operator-facing helper closing F-V96-conmon-mcp-cimd-migration).
+- F-V96-worm-app-layer opt-in `EVIDENTIA_EVIDENCE_AUTO_MIRROR_WORM`
+  env var (closes the "operator forgot to wire mirroring" gap).
+
+**Walk-through scope** (v0.9.7-P2):
+- Apply the v0.9.5 AI-persona walk-through to FIPS 199 + OMB
+  + SCR surfaces shipped in v0.9.6 P3.
+- Source a real federal-SI procurement officer / domain expert
+  to walk through `docs/walkthrough-federal-si.md` extended with
+  Phase 6-8 (POA&M emit + OSCAL emit + SCR submission).
+- Capture findings in `docs/walkthrough-validation-v0.9.7.md`
+  per the v0.9.5 precedent.
 
 **Hygiene + supply chain**:
-- Backfill v0.9.1 + v0.9.2 security review docs if portfolio
-  polish remains valuable.
+- Backfill v0.9.1 + v0.9.2 security review docs (portfolio polish).
 - Codecov target audit + threshold confirmation.
 - uv.lock + Dependabot scheduled review.
 

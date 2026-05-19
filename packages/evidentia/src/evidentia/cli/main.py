@@ -19,6 +19,7 @@ from evidentia.cli import catalog as catalog_cmd
 from evidentia.cli import collect as collect_cmd
 from evidentia.cli import conmon as conmon_cmd
 from evidentia.cli import eval as eval_cmd
+from evidentia.cli import evidence as evidence_cmd
 from evidentia.cli import explain as explain_cmd
 from evidentia.cli import gap as gap_cmd
 from evidentia.cli import governance as governance_cmd
@@ -107,6 +108,14 @@ app.add_typer(
     help=(
         "AI governance — EU AI Act + NIST AI RMF classification "
         "+ AI system inventory (v0.9.3 P2)."
+    ),
+)
+app.add_typer(
+    evidence_cmd.app,
+    name="evidence",
+    help=(
+        "Evidence-artifact lineage commands — WORM-enforced "
+        "append-only versioning (v0.9.6 P2)."
     ),
 )
 app.add_typer(
@@ -200,6 +209,16 @@ def _global_options(
             "and CI systems that parse structured logs."
         ),
     ),
+    rbac_identity: str | None = typer.Option(
+        None,
+        "--rbac-identity",
+        help=(
+            "v0.9.6: identity string for CLI RBAC enforcement. "
+            "Overrides EVIDENTIA_RBAC_IDENTITY env var when set. "
+            "Policy is loaded from EVIDENTIA_RBAC_POLICY_FILE; "
+            "default policy is permissive (single-tenant admin)."
+        ),
+    ),
 ) -> None:
     """Global options applied to all commands."""
     level = logging.DEBUG if verbose else (logging.ERROR if quiet else logging.INFO)
@@ -244,6 +263,17 @@ def _global_options(
         logging.getLogger("evidentia.config").debug(
             "Loaded config from %s", cfg.source_path
         )
+
+    # v0.9.6 P1: thread the --rbac-identity flag through the
+    # process-lifetime singleton. Done last so any earlier error
+    # (config load, offline-guard set) surfaces independently of
+    # the RBAC layer.
+    if rbac_identity is not None:
+        from evidentia.cli._rbac_lifecycle import (
+            set_rbac_identity_override,
+        )
+
+        set_rbac_identity_override(rbac_identity)
 
 
 @app.command()

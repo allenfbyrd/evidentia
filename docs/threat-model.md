@@ -2505,6 +2505,113 @@ test-isolation bugs surfaced by the v0.9.5 P1.1 audit).
 **Zero new findings in v0.9.5 source code.** 20th consecutive
 PROCEED-CLEAN of v0.7.x → v0.8.x → v0.9.x line.
 
+## v0.9.6 attack-surface delta — Federal expansion + WORM + CLI RBAC + CONMON MCP first-mover (SHIPPED 2026-05-18 at tag `v0.9.6`)
+
+v0.9.6 expands four attack surfaces + closes one v0.9.5 deferral
+batch + claims one new external position (CONMON MCP first-mover).
+Net change: **3 NEW LOW/INFO findings** (all operator-visible +
+documented in module docstrings), **zero NEW HIGH or MEDIUM**.
+
+### Surface 1: CLI RBAC mirror (NEW v0.9.6 P1)
+
+Closes the v0.9.5 P3.3 deferral. The CLI now mirrors the FastAPI
+`require_role()` enforcement at the Typer-decorator layer via
+`evidentia.cli._rbac.require_role_cli(action)`. Identity sourced
+from `EVIDENTIA_RBAC_IDENTITY` env var (or the new
+`--rbac-identity` global flag); policy from
+`EVIDENTIA_RBAC_POLICY_FILE` loaded once per process. Denial
+exits with code 77 (BSD `EX_NOPERM`) so CI jobs can distinguish
+RBAC denial from generic failure.
+
+**F-V96-rbac-cli-trust** (INFO, NEW): CLI identity arrives via env
+var or flag with NO authentication step. RBAC at the CLI layer is
+an **authorization** model that assumes the surrounding environment
+(OS user, sudo policy, file permissions on the policy file)
+authenticates the operator. Operators MUST `chmod 0600` the policy
+file + own it with a dedicated service user. Documented in
+`evidentia.cli._rbac_lifecycle` module docstring.
+
+### Surface 2: WORM evidence store (NEW v0.9.6 P2)
+
+Closes the v0.9.5 P3.2 deferral. `evidentia_core.evidence_store`
+enforces append-only at the store layer: `save_evidence()` refuses
+to overwrite `<lineage>/v<N>.json`, raising `EvidenceWORMViolation`
+with the canonical recovery suggestion (call
+`EvidenceArtifact.new_version()`). Storage layout is one directory
+per lineage chain, one file per version. UUID canonicalization +
+`validate_within` path-traversal protection mirror the v0.9.0
+poam_store pattern.
+
+`evidentia_core.evidence_store_worm` adds an optional cloud-WORM
+mirror composing with the existing `WORMBackend` ABC (S3 Object
+Lock / Azure Immutable Blob / GCS Bucket Lock). Each version
+becomes one immutable record with caller-supplied
+`RetentionMetadata`.
+
+**F-V96-worm-app-layer** (LOW, accepted): application-layer WORM
+does NOT prevent a privileged operator from deleting JSON files via
+OS tools. For regulator-grade WORM, operators wire the cloud-WORM
+mirror. Documented in module docstring + accepted as the explicit
+upgrade path for FedRAMP AU-9 / SOX §404 / HIPAA §164.312(b).
+
+### Surface 3: AI-gov federal fields (NEW v0.9.6 P3)
+
+`AISystemRegistryEntry` extended with 4 Optional fields:
+`fips_199_categorization` (high-water-mark validator per FIPS PUB
+199 §3), `ato_reference` (new `ATOReference` submodel — system
+name + AO + ATO date + expiry + letter URI), `ssp_reference`
+(URI / handle), `omb_impact` (OMB M-24-10 §5(b) category). All
+Optional → backward-compat with v0.9.3-v0.9.5 entries.
+
+`evidentia_core.ai_governance.scr.SCRForm` ships the FedRAMP
+Significant Change Form Template field set. `emit_scr_form(prior,
+new)` diffs two registry entries + auto-classifies the change as
+Routine Recurring / Adaptive / Transformative per NIST SP 800-37
+Rev 2 §3.7 + FedRAMP Significant Change Policies §4.1. JSON + MD
+writers for AO submission packages.
+
+3 new EventActions: `AI_SYSTEM_FIPS_CATEGORIZED`,
+`AI_SYSTEM_OMB_CLASSIFIED`, `AI_SYSTEM_SCR_EMITTED`. Every
+federal-tier categorization change fires the corresponding audit
+event so the SSP / ATO / continuous-monitoring reviewer can trace
+inventory metadata provenance.
+
+### Surface 4: CONMON MCP first-mover (NEW v0.9.6 P4.1)
+
+4 new MCP tools on `evidentia_mcp.server` wrapping the v0.9.3
+in-process CONMON daemon's read-only library surface:
+`conmon_list_cadences`, `conmon_next_due`, `conmon_check_state`,
+`conmon_health`. All routed through the existing v0.8.6 CIMD
+scope-enforcement gate by virtue of the FastMCP tool-dispatch
+path.
+
+**F-V96-conmon-mcp-cimd-migration** (INFO, NEW): operators
+updating from v0.9.5 CIMD registries see the new `conmon_*` tools
+default-rejected until per-tool scope is granted. Documented in
+CHANGELOG migration note; regression-protected by the existing
+v0.8.6 CIMD scope-enforcement test surface.
+
+### Findings ledger summary
+
+| Severity | Count | Notes |
+|---|---|---|
+| CRITICAL | 0 | (no v0.9.6 source changes raised this severity) |
+| HIGH | 0 | (no v0.9.6 source changes raised this severity) |
+| MEDIUM | 0 NEW | (all v0.9.5 MEDIUMs already closed; 0 new in v0.9.6 source) |
+| LOW | 1 NEW | F-V96-worm-app-layer (accepted; cloud-WORM mirror is the documented upgrade path) |
+| INFO | 2 NEW | F-V96-rbac-cli-trust + F-V96-conmon-mcp-cimd-migration |
+
+**Zero new MEDIUM/HIGH/CRITICAL in v0.9.6 source code.** 21st
+consecutive PROCEED-CLEAN of v0.7.x → v0.8.x → v0.9.x line.
+
+### Cross-references
+
+- `docs/security-review-v0.9.6.md` — formal review artifact.
+- `docs/v0.9.6-plan.md` — phase-by-phase scope.
+- `docs/positioning-and-value.md` §6.1.A + §6.1.B + §11.2 —
+  v0.9.6 positioning sharpening (moat trinity + counter-positioning).
+- `docs/ROADMAP.md` — v0.9.6 SHIPPED + v0.9.7 PLANNED transitions.
+
 ---
 
 *First published v0.7.7 (2026-05). Origin: promoted from a
