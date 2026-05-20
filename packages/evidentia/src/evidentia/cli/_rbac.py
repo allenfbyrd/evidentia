@@ -32,11 +32,16 @@ from collections.abc import Callable
 from typing import Any, TypeVar
 
 import typer
-from evidentia_core.rbac import check_permission
+from evidentia_core.rbac import (
+    TenantRBACPolicy,
+    check_permission,
+    check_permission_multi_tenant,
+)
 from rich.console import Console
 
 from evidentia.cli._rbac_lifecycle import (
     get_rbac_identity,
+    get_rbac_identity_with_tenant_claim,
     get_rbac_policy,
 )
 
@@ -94,9 +99,30 @@ def require_role_cli(action: str) -> Callable[[F], F]:
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            identity = get_rbac_identity()
             policy = get_rbac_policy()
-            if not check_permission(identity, action, policy=policy):
+            # v0.9.8 P1.3: dispatch to the multi-tenant decision
+            # function when the operator's policy is multi-tenant.
+            # Combined identity merges --rbac-tenant / env-tenant
+            # into the identity string as ``<bare>@@<tenant>`` so
+            # ``check_permission_multi_tenant`` sees a uniform input.
+            if isinstance(policy, TenantRBACPolicy):
+                try:
+                    identity = get_rbac_identity_with_tenant_claim()
+                except ValueError as exc:
+                    _stderr_console.print(
+                        f"[bold red]RBAC config error[/bold red] {exc}"
+                    )
+                    sys.stderr.flush()
+                    raise typer.Exit(code=EXIT_CODE_RBAC_DENIED) from exc
+                granted = check_permission_multi_tenant(
+                    identity, action, policy=policy
+                )
+            else:
+                identity = get_rbac_identity()
+                granted = check_permission(
+                    identity, action, policy=policy
+                )
+            if not granted:
                 _stderr_console.print(
                     f"[bold red]Permission denied[/bold red] "
                     f"(action=[cyan]{action}[/cyan], "
@@ -106,7 +132,7 @@ def require_role_cli(action: str) -> Callable[[F], F]:
                     "[dim]Configure RBAC via "
                     "EVIDENTIA_RBAC_POLICY_FILE + "
                     "EVIDENTIA_RBAC_IDENTITY env vars, or "
-                    "--rbac-identity flag.[/dim]"
+                    "--rbac-identity / --rbac-tenant flags.[/dim]"
                 )
                 sys.stderr.flush()
                 raise typer.Exit(code=EXIT_CODE_RBAC_DENIED)

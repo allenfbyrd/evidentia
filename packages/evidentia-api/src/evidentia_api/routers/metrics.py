@@ -30,18 +30,19 @@ Operators can scrape this with ``prometheus.io`` directly OR
 ingest into Grafana Agent / OpenTelemetry Collector for
 metric forwarding.
 
-OPERATIONAL POSTURE (v0.8.0 review F-V08-S3): the endpoint is
-NOT auth-gated. Acceptable for the default localhost-bound
-deployment (`uvicorn --host 127.0.0.1`) where the same trust
-boundary already applies to ``/api/docs`` + ``/api/health``.
-For non-loopback bind (`--host 0.0.0.0`), operators MUST
-front the endpoint with reverse-proxy basic auth, mTLS, or a
-network-segregated scrape network — Prometheus exposition
-output reveals server fingerprint + operational telemetry
-that an attacker can use to time auth-spray attacks. v0.8.1
-will wire :class:`AuthProvider` plugin contract into the
-FastAPI dependency stack so this endpoint inherits the same
-auth requirement as ``/api/risks`` and other gated routers.
+OPERATIONAL POSTURE (v0.8.0 review F-V08-S3, resolved v0.8.1):
+when an :class:`AuthProvider` is configured, ``/api/metrics`` is
+auth-gated like every other ``/api/*`` route — :class:`~evidentia_api.
+auth_middleware.AuthProviderMiddleware` gates it and it is NOT in
+the ``UNAUTHENTICATED_PATHS`` allowlist. When no AuthProvider is
+configured (the v0.8.0 backward-compat default for localhost-bound
+deployments), the endpoint is reachable without a token — the same
+trust boundary that applies to ``/api/docs`` + ``/api/health``.
+For non-loopback bind (`--host 0.0.0.0`) operators MUST configure
+an AuthProvider AND/OR front the endpoint with reverse-proxy auth:
+Prometheus exposition output reveals server fingerprint +
+operational telemetry an attacker can use to time auth-spray
+attacks.
 """
 
 from __future__ import annotations

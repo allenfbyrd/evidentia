@@ -36,10 +36,13 @@ Cross-references:
 
 from evidentia_core.rbac.multi_tenant import (
     TENANT_CLAIM_SEPARATOR,
+    InvalidTenantIdError,
     TenantRBACPolicy,
     check_permission_multi_tenant,
     load_multi_tenant_policy_from_file,
+    load_rbac_policy_auto,
     resolve_tenant_from_identity,
+    validate_tenant_id,
 )
 from evidentia_core.rbac.policy import (
     DEFAULT_POLICY,
@@ -52,6 +55,7 @@ from evidentia_core.rbac.policy import (
 __all__ = [
     "DEFAULT_POLICY",
     "TENANT_CLAIM_SEPARATOR",
+    "InvalidTenantIdError",
     "RBACPolicy",
     "Role",
     "TenantRBACPolicy",
@@ -59,5 +63,7 @@ __all__ = [
     "check_permission_multi_tenant",
     "load_multi_tenant_policy_from_file",
     "load_policy_from_file",
+    "load_rbac_policy_auto",
     "resolve_tenant_from_identity",
+    "validate_tenant_id",
 ]

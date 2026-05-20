@@ -64,19 +64,73 @@ defaults to ``default_tenant``.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
+from evidentia_core.audit import EventAction, EventOutcome, get_logger
 from evidentia_core.models.common import EvidentiaModel
 from evidentia_core.rbac.policy import (
     ACTION_MIN_ROLE,
     RBACPolicy,
     Role,
+    load_policy_from_file,
 )
+
+_log = get_logger("evidentia.rbac.multi_tenant")
 
 #: Canonical tenant-claim separator in identity strings.
 TENANT_CLAIM_SEPARATOR = "@@"
+
+#: Pattern restricting tenant IDs to a safe slug shape.
+#:
+#: The canonical convention (per :class:`TenantRBACPolicy.tenants`
+#: docstring) is lowercase + hyphenated (``acme-corp``, ``globex-inc``).
+#: This pattern accepts the canonical form plus uppercase letters +
+#: underscores for operators with legacy naming conventions, while
+#: rejecting anything that could escape a filesystem path component
+#: (slashes, dots, NUL, etc.). v0.9.8 P1.6 enforces this at the
+#: storage-path layer to prevent a tenant-id-as-traversal-attack.
+_TENANT_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$")
+
+
+class InvalidTenantIdError(ValueError):
+    """Raised when a tenant id contains characters that could escape a path component."""
+
+
+def validate_tenant_id(tenant_id: str) -> str:
+    """Validate + return a tenant id as a safe filesystem path component (v0.9.8 P1.6).
+
+    Used by :mod:`evidentia_core.evidence_store` and
+    :mod:`evidentia_core.poam_store` to gate the tenant-scoped
+    path layout. The tenant id is rejected when:
+
+    - Empty / whitespace-only
+    - Longer than 63 characters (POSIX path-component soft limit)
+    - Contains any character outside ``[A-Za-z0-9_-]``
+    - Starts with a non-alphanumeric character (no leading hyphens /
+      underscores so the slug stays git-friendly + URL-safe)
+
+    Args:
+        tenant_id: Operator-supplied tenant slug.
+
+    Returns:
+        The same string, returned for convenience so callers can
+        chain :func:`validate_tenant_id` into a path construction.
+
+    Raises:
+        InvalidTenantIdError: When the id fails the format check.
+    """
+    if not isinstance(tenant_id, str) or not _TENANT_ID_PATTERN.match(
+        tenant_id
+    ):
+        raise InvalidTenantIdError(
+            f"Invalid tenant id {tenant_id!r}: must match "
+            f"{_TENANT_ID_PATTERN.pattern} (alphanumeric start, "
+            f"alphanumeric / hyphen / underscore body, max 63 chars)."
+        )
+    return tenant_id
 
 
 def resolve_tenant_from_identity(
@@ -155,11 +209,40 @@ class TenantRBACPolicy(EvidentiaModel):
             "the full sense; it is a slight in-tenant permissions "
             "widening. Most operators leave the field at "
             ":attr:`Role.DENY` until v1.0 wires the full semantic. "
-            "Cross-tenant admin should fire an audit event in v1.0 "
-            "(`RBAC_TENANT_BOUNDARY_CROSSED` reserved EventAction); "
-            "not yet implemented in v0.9.7."
+            "v0.9.8 P1.5 emits :attr:`EventAction.RBAC_TENANT_"
+            "BOUNDARY_CROSSED` on every escalation decision so SIEM "
+            "operators see the deterministic record (closes the "
+            "v0.9.7 reservation).\n\n"
+            "**v0.9.8 P1.4 (F-V98-04)** — constrained to "
+            ":attr:`Role.ADMIN` or :attr:`Role.DENY` only. A sub-admin "
+            "value (editor / reader) would, under the limited "
+            "semantic, let a target-tenant editor escalate to an "
+            "action the per-tenant check denied — a privilege-widening "
+            "footgun. The validator below rejects anything else."
         ),
     )
+
+    @field_validator("cross_tenant_admin_role")
+    @classmethod
+    def _restrict_cross_tenant_admin_role(cls, value: object) -> object:
+        """Reject sub-admin escalation roles (v0.9.8 P1.4 / F-V98-04).
+
+        The field is named ``cross_tenant_admin_role``; the only
+        meaningful settings are :attr:`Role.ADMIN` (enable the
+        v1.0-bound escalation scaffolding) or :attr:`Role.DENY`
+        (disable it — the safe default). A sub-admin value would be a
+        privilege-widening footgun under the v0.9.7 limited semantic,
+        so it is rejected at model-construction time.
+        """
+        role = value if isinstance(value, Role) else Role(value)
+        if role not in (Role.ADMIN, Role.DENY):
+            raise ValueError(
+                f"cross_tenant_admin_role must be 'admin' or 'deny'; "
+                f"got {role.value!r}. A sub-admin escalation role is a "
+                f"privilege-widening footgun under the v0.9.7 limited "
+                f"cross-tenant semantic (see F-V98-04)."
+            )
+        return value
 
     @classmethod
     def from_single_tenant_policy(
@@ -240,7 +323,22 @@ def check_permission_multi_tenant(
 
     # Cross-tenant admin escalation: only meaningful when policy
     # explicitly enables it (cross_tenant_admin_role != DENY).
-    if policy.cross_tenant_admin_role == Role.DENY:
+    #
+    # :class:`EvidentiaModel` sets ``use_enum_values=True``, so
+    # ``policy.cross_tenant_admin_role`` round-trips as the raw
+    # string (``'deny'`` / ``'admin'`` / etc.) rather than the
+    # :class:`Role` enum. Coerce once so the comparison + method
+    # calls below operate on enum instances. Closes a v0.9.7 latent
+    # bug where ``outranks_or_equal`` would raise ``AttributeError``
+    # on the string. The bug was never triggered in v0.9.7 because
+    # most operators leave the field at the default DENY (which
+    # short-circuits before any coercion is needed).
+    escalation_role = (
+        policy.cross_tenant_admin_role
+        if isinstance(policy.cross_tenant_admin_role, Role)
+        else Role(policy.cross_tenant_admin_role)
+    )
+    if escalation_role == Role.DENY:
         return False
     # v0.9.7 LIMITED IMPL — name vs behavior caveat:
     #
@@ -272,7 +370,37 @@ def check_permission_multi_tenant(
     # home policy independently; today's callers can still set the
     # field without breaking when v1.0 lands.
     home_role = tenant_policy.role_for(bare_identity)
-    return home_role.outranks_or_equal(policy.cross_tenant_admin_role)
+    escalation_granted = home_role.outranks_or_equal(escalation_role)
+    # v0.9.8 P1.5 — emit the audit event the v0.9.7 docstring
+    # reserved. Fires on every escalation DECISION (granted or
+    # denied via escalation degradation), so SIEM operators see a
+    # deterministic record per attempted boundary crossing.
+    #
+    # v0.9.8 P1.4 (F-V98-03): supply the structured `evidentia=`
+    # payload documented in EventAction.RBAC_TENANT_BOUNDARY_CROSSED
+    # so SIEM filters can pivot on the fields directly rather than
+    # regex-ing the human-readable message. Mirrors every other audit
+    # emitter (scope.py, poam.py, conmon.py, ai_gov.py).
+    _log.warning(
+        action=EventAction.RBAC_TENANT_BOUNDARY_CROSSED,
+        outcome=(
+            EventOutcome.SUCCESS
+            if escalation_granted
+            else EventOutcome.FAILURE
+        ),
+        message=(
+            f"Cross-tenant escalation {'granted' if escalation_granted else 'denied'} "
+            f"for identity {bare_identity!r} (claimed_tenant={tenant_claim!r}, "
+            f"action={action!r}, escalation_role={escalation_role.value!r})"
+        ),
+        evidentia={
+            "identity": bare_identity,
+            "claimed_tenant": tenant_claim,
+            "escalation_role": escalation_role.value,
+            "action": action,
+        },
+    )
+    return escalation_granted
 
 
 def load_multi_tenant_policy_from_file(path: Path) -> TenantRBACPolicy:
@@ -320,10 +448,63 @@ def load_multi_tenant_policy_from_file(path: Path) -> TenantRBACPolicy:
     return TenantRBACPolicy.model_validate(data)
 
 
+def load_rbac_policy_auto(path: Path) -> RBACPolicy | TenantRBACPolicy:
+    """Load an RBAC policy file, auto-detecting single- vs multi-tenant (v0.9.8 P1.4).
+
+    A YAML/JSON file with a top-level ``tenants:`` key is a multi-tenant
+    policy and loads as :class:`TenantRBACPolicy`; everything else loads
+    as a single-tenant :class:`RBACPolicy`.
+
+    This is the single detection point shared by BOTH RBAC enforcement
+    surfaces — the CLI process-lifetime loader
+    (:mod:`evidentia.cli._rbac_lifecycle`) and the FastAPI app
+    (:func:`evidentia_api.app.create_app`). Sharing it guarantees the
+    CLI and the REST API classify the same policy file identically;
+    a v0.9.8 pre-release review (finding F-V98-02) caught the API side
+    silently lacking the detection the CLI had.
+
+    Args:
+        path: Path to the policy file.
+
+    Returns:
+        :class:`TenantRBACPolicy` when the file has a ``tenants:`` key,
+        else :class:`RBACPolicy`. Callers branch on the type to dispatch
+        to :func:`check_permission_multi_tenant` vs
+        :func:`evidentia_core.rbac.check_permission`.
+
+    Raises:
+        FileNotFoundError: ``path`` does not exist.
+        ValueError: The file is not valid YAML/JSON, the top-level value
+            is not a mapping, or it fails the policy schema. Propagated
+            from the underlying single/multi loaders.
+    """
+    import yaml as yaml_mod
+
+    if not path.exists():
+        raise FileNotFoundError(f"RBAC policy file not found: {path}")
+    try:
+        data = yaml_mod.safe_load(path.read_text(encoding="utf-8"))
+    except yaml_mod.YAMLError as exc:
+        raise ValueError(
+            f"RBAC policy file {path} is not valid YAML/JSON: {exc}"
+        ) from exc
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"RBAC policy file {path} must be a mapping at top level; "
+            f"got {type(data).__name__}"
+        )
+    if "tenants" in data:
+        return load_multi_tenant_policy_from_file(path)
+    return load_policy_from_file(path)
+
+
 __all__ = [
     "TENANT_CLAIM_SEPARATOR",
+    "InvalidTenantIdError",
     "TenantRBACPolicy",
     "check_permission_multi_tenant",
     "load_multi_tenant_policy_from_file",
+    "load_rbac_policy_auto",
     "resolve_tenant_from_identity",
+    "validate_tenant_id",
 ]

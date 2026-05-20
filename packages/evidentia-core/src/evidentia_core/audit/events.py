@@ -402,6 +402,43 @@ class EventAction(str, Enum):
     EVIDENCE_WORM_VIOLATION_BLOCKED = "evidentia.evidence.worm_violation_blocked"
     EVIDENCE_LINEAGE_QUERIED = "evidentia.evidence.lineage_queried"
 
+    # ── Multi-tenant RBAC boundary crossing (v0.9.8 P1.5) ──
+    # Closes the v0.9.7 P2.3 docstring promise that
+    # ``check_permission_multi_tenant`` would emit an audit event on
+    # cross-tenant escalation. v0.9.7 shipped the EventAction
+    # reservation as a comment in `evidentia_core.rbac.multi_tenant`
+    # but did NOT fire the event; v0.9.8 wires the emit so SIEM
+    # operators see a deterministic record when an identity holding
+    # the policy's :attr:`cross_tenant_admin_role` is granted scope
+    # outside its claimed tenant.
+    #
+    # Payload (in addition to canonical run_id + timestamp + outcome):
+    #   - identity: the bare identity (without the ``@@<tenant>`` suffix)
+    #   - claimed_tenant: tenant from the identity's ``@@<claim>`` (or
+    #     None when no claim was present + default_tenant resolved)
+    #   - escalation_role: the policy's cross_tenant_admin_role at the
+    #     moment of decision
+    #   - action: the action string that triggered the check
+    #   - outcome: "success" when the escalation granted access;
+    #     "failure" when even the escalation denied
+    #
+    # Distinct from AUTH_* events: those gate the IDENTITY itself
+    # (authentication); this one gates a permission DECISION made
+    # AFTER identity is known. Pairs naturally with AI_MCP_TOOL_*
+    # events when the MCP scope-enforcement layer is upstream of the
+    # multi-tenant RBAC check (CIMD scope first, then per-tenant
+    # role; an attacker would need both gates to leak through).
+    RBAC_TENANT_BOUNDARY_CROSSED = "evidentia.rbac.tenant_boundary_crossed"
+    """Fired when :func:`evidentia_core.rbac.multi_tenant.
+    check_permission_multi_tenant` grants (or explicitly denies via
+    escalation-role degradation) access through the cross-tenant
+    admin path. v0.9.8 P1.5 closes the v0.9.7 docstring promise.
+    Auditors filtering on ``event.action:evidentia.rbac.tenant_
+    boundary_crossed`` see every escalation decision the policy
+    permitted — the absence of these events while
+    cross_tenant_admin_role != DENY is itself an audit signal that
+    no escalation has occurred."""
+
 
 class EventCategory(str, Enum):
     """ECS ``event.category`` values Evidentia uses.

@@ -165,20 +165,60 @@ def _validate_id_shape(candidate: str) -> str:
         ) from exc
 
 
-def get_evidence_store_dir(override: Path | None = None) -> Path:
+def get_evidence_store_dir(
+    override: Path | None = None,
+    *,
+    tenant: str | None = None,
+) -> Path:
     """Resolve the evidence store root directory.
 
-    Precedence:
+    Precedence (for the base path):
       1. Explicit ``override`` argument (CLI flag or test fixture)
       2. :data:`EVIDENCE_STORE_ENV_VAR` environment variable
       3. ``platformdirs.user_data_dir("evidentia") / "evidence_store"``
+
+    v0.9.8 P1.6: when ``tenant`` is supplied, the resolved base is
+    extended with ``tenants/<tenant>/`` so multi-tenant deployments
+    keep each tenant's evidence physically isolated on disk. The
+    tenant id is validated against
+    :func:`evidentia_core.rbac.validate_tenant_id` to gate any
+    path-traversal attempt via a maliciously-crafted id (slashes,
+    dots, etc. would otherwise climb out of the base).
+
+    The single-tenant call (``tenant=None``) preserves the v0.9.7
+    layout — operators with single-tenant deployments see ZERO
+    behavior change.
+
+    Args:
+        override: Optional explicit path that wins over env vars.
+        tenant: Optional tenant id. When supplied, appended as
+            ``tenants/<tenant>/`` to the resolved base. Validated
+            via :func:`evidentia_core.rbac.validate_tenant_id`.
+
+    Returns:
+        The resolved store-root path (tenant-scoped when ``tenant``
+        is non-None; v0.9.7-compatible otherwise).
+
+    Raises:
+        InvalidTenantIdError: When ``tenant`` is non-None but fails
+            the slug-format check.
     """
     if override is not None:
-        return Path(override).expanduser().resolve()
-    env = os.environ.get(EVIDENCE_STORE_ENV_VAR)
-    if env:
-        return Path(env).expanduser().resolve()
-    return Path(user_data_dir("evidentia", "Evidentia")) / "evidence_store"
+        base = Path(override).expanduser().resolve()
+    else:
+        env = os.environ.get(EVIDENCE_STORE_ENV_VAR)
+        if env:
+            base = Path(env).expanduser().resolve()
+        else:
+            base = (
+                Path(user_data_dir("evidentia", "Evidentia"))
+                / "evidence_store"
+            )
+    if tenant is None:
+        return base
+    from evidentia_core.rbac import validate_tenant_id
+
+    return base / "tenants" / validate_tenant_id(tenant)
 
 
 def _lineage_dir(
@@ -222,52 +262,42 @@ def _version_path(
 def _resolve_auto_mirror_backend() -> (
     tuple[object, object] | None
 ):
-    """Resolve the auto-mirror backend factory from env vars (v0.9.7 P1.1).
+    """Resolve the auto-mirror backend factory from env vars (v0.9.7 P1.1; v0.9.8 P2.2 delegates to factory_resolver).
 
     Returns ``None`` when :data:`EVIDENCE_AUTO_MIRROR_WORM_ENV_VAR`
     is unset / empty → no auto-mirror should run. Returns
     ``(backend, retention_metadata)`` otherwise.
 
+    v0.9.8 P2.2 (CR-V97-3 + CR-V97-1): delegates the dotted-path
+    resolution to :func:`evidentia_core.factory_resolver.resolve_factory`,
+    which adds (a) deduplication with the parallel MCP signer-factory
+    resolver in :mod:`evidentia_mcp.signatures` and (b) caching keyed
+    on the env-var values so the factory only runs once per process
+    lifetime (was: once per ``save_evidence`` call).
+
     Raises:
         RuntimeError: If the auto-mirror env var is set but the
-            factory env var is unset / unresolvable. The error
-            surfaces at first save (not server-start) so that
-            operators who never save evidence don't hit a
-            spurious config error.
+            factory env var is unset / unresolvable / returns the
+            wrong shape. The error surfaces at first save (not
+            server-start) so that operators who never save evidence
+            don't hit a spurious config error.
     """
-    if not os.environ.get(EVIDENCE_AUTO_MIRROR_WORM_ENV_VAR):
-        return None
-    factory_ref = os.environ.get(EVIDENCE_AUTO_MIRROR_BACKEND_ENV_VAR)
-    if not factory_ref:
-        raise RuntimeError(
-            f"{EVIDENCE_AUTO_MIRROR_WORM_ENV_VAR} is set but "
-            f"{EVIDENCE_AUTO_MIRROR_BACKEND_ENV_VAR} is empty. "
-            f"Format: 'module.submodule:callable_name'. The callable "
-            f"must return (backend, retention_metadata)."
-        )
-    if ":" not in factory_ref:
-        raise RuntimeError(
-            f"{EVIDENCE_AUTO_MIRROR_BACKEND_ENV_VAR}={factory_ref!r} "
-            f"must be of the form 'module.submodule:callable_name'"
-        )
-    import importlib
+    from evidentia_core.factory_resolver import resolve_factory
 
-    module_path, _, attr = factory_ref.partition(":")
-    try:
-        module = importlib.import_module(module_path)
-    except ImportError as exc:
+    result = resolve_factory(
+        EVIDENCE_AUTO_MIRROR_WORM_ENV_VAR,
+        EVIDENCE_AUTO_MIRROR_BACKEND_ENV_VAR,
+        purpose="WORM auto-mirror backend",
+    )
+    if result is None:
+        return None
+    if not isinstance(result, tuple) or len(result) != 2:
         raise RuntimeError(
-            f"Could not import {module_path!r} for auto-mirror "
-            f"backend factory: {exc}"
-        ) from exc
-    factory = getattr(module, attr, None)
-    if factory is None or not callable(factory):
-        raise RuntimeError(
-            f"{factory_ref!r} did not resolve to a callable in "
-            f"{module_path!r}"
+            f"WORM auto-mirror factory must return a "
+            f"(backend, retention_metadata) tuple; got {type(result).__name__}"
         )
-    result: tuple[object, object] = factory()
-    return result
+    typed_result: tuple[object, object] = result
+    return typed_result
 
 
 def save_evidence(

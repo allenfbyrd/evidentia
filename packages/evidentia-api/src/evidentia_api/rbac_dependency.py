@@ -1,4 +1,4 @@
-"""FastAPI dependency factory for opt-in RBAC enforcement (v0.9.5 P3.3).
+"""FastAPI dependency factory for opt-in RBAC enforcement (v0.9.5 P3.3; v0.9.8 P1.4 multi-tenant).
 
 Operators wire RBAC at the router or per-route level via the
 :func:`require_role` factory::
@@ -29,6 +29,21 @@ When no AuthProvider is configured (anonymous mode), the
 identity is None — combined with the default permissive policy,
 this maintains v0.9.4 backward-compat.
 
+v0.9.8 P1.4 — multi-tenant
+--------------------------
+
+Closes the v0.9.7 F-V97-multi-tenant-claim-spoofing INFO finding.
+When ``app.state.rbac_policy`` is a :class:`TenantRBACPolicy`, the
+dependency dispatches to :func:`check_permission_multi_tenant`. The
+tenant claim is extracted from the principal's ``@@<tenant>`` suffix
+— and only from there. Env vars + request headers are NOT honored
+on the FastAPI side, so an unauthenticated client cannot assert a
+tenant claim it doesn't actually hold. The principal string is set
+by :class:`AuthProviderMiddleware` from the result of
+:meth:`AuthProvider.authenticate`, which validates the credential
+against the operator's token / mTLS / SSO config — provenance is
+end-to-end from the credential to the RBAC decision.
+
 Threat-model boundary: RBAC does NOT replace authentication.
 Identity arrives from the AuthProvider; RBAC consumes it. If
 the AuthProvider is not configured, every request is anonymous
@@ -43,7 +58,9 @@ from typing import Any
 from evidentia_core.rbac import (
     DEFAULT_POLICY,
     RBACPolicy,
+    TenantRBACPolicy,
     check_permission,
+    check_permission_multi_tenant,
 )
 from fastapi import Depends, HTTPException, Request
 
@@ -51,14 +68,32 @@ from fastapi import Depends, HTTPException, Request
 def _get_request_identity(request: Request) -> str | None:
     """Extract the authenticated identity string from the request.
 
-    Reads ``request.state.identity`` if set by the AuthProvider
-    middleware. Returns ``None`` for anonymous requests (no
-    AuthProvider configured OR token rejected at middleware).
+    Resolution order:
+
+    1. ``request.state.auth_principal`` — set by
+       :class:`AuthProviderMiddleware` from
+       :attr:`AuthResult.principal` (v0.8.1 + v0.8.2 F-V81-S2).
+       This is the canonical authenticated-identity source.
+    2. ``request.state.identity`` — kept for backward compat with
+       any custom middleware that uses the v0.9.5 attribute name
+       (documented but never populated by the upstream middleware
+       — closes a latent attribute-name disconnect).
+    3. ``None`` — anonymous (no AuthProvider configured OR token
+       rejected at the middleware layer).
 
     Centralized here so the source-of-truth for "who is the
     caller?" is one function — the dependency below + future
     audit-logging hooks share the resolution.
+
+    v0.9.8 P1.4: the returned string may carry an embedded
+    ``@@<tenant>`` claim (the v0.9.7 multi-tenant convention).
+    Multi-tenant policy decisions consume it via
+    :func:`check_permission_multi_tenant`; single-tenant policy
+    decisions ignore the suffix.
     """
+    principal = getattr(request.state, "auth_principal", None)
+    if principal is not None:
+        return principal  # type: ignore[no-any-return]
     return getattr(request.state, "identity", None)
 
 
@@ -79,7 +114,12 @@ def require_role(action: str) -> Any:
         2. Resolves the per-app RBAC policy via
            ``request.app.state.rbac_policy`` (falls back to
            :data:`DEFAULT_POLICY` if unset).
-        3. Calls :func:`check_permission(identity, action, policy)`.
+        3. v0.9.8 P1.4: if the policy is a
+           :class:`TenantRBACPolicy`, calls
+           :func:`check_permission_multi_tenant` (which honors the
+           identity-embedded ``@@<tenant>`` claim). Otherwise calls
+           the single-tenant :func:`check_permission` — preserves
+           v0.9.5 + v0.9.6 behavior for non-multi-tenant deployments.
         4. Raises ``HTTPException(403)`` on deny; returns ``None``
            on allow (FastAPI dependency convention — return value
            is unused).
@@ -95,10 +135,22 @@ def require_role(action: str) -> Any:
 
     def _dependency(request: Request) -> None:
         identity = _get_request_identity(request)
-        policy: RBACPolicy = getattr(
+        policy: RBACPolicy | TenantRBACPolicy = getattr(
             request.app.state, "rbac_policy", DEFAULT_POLICY
         )
-        if not check_permission(identity, action, policy=policy):
+        # v0.9.8 P1.4: dispatch to multi-tenant when the operator's
+        # policy demands it. The principal carries any tenant claim
+        # as an ``@@<tenant>`` suffix; the multi-tenant decision
+        # function parses + applies it. Closes F-V97-multi-tenant-
+        # claim-spoofing by routing the claim through the
+        # authenticated principal, NOT through env vars or headers.
+        if isinstance(policy, TenantRBACPolicy):
+            granted = check_permission_multi_tenant(
+                identity, action, policy=policy
+            )
+        else:
+            granted = check_permission(identity, action, policy=policy)
+        if not granted:
             raise HTTPException(
                 status_code=403,
                 detail={

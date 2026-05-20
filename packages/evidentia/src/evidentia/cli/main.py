@@ -219,6 +219,17 @@ def _global_options(
             "default policy is permissive (single-tenant admin)."
         ),
     ),
+    rbac_tenant: str | None = typer.Option(
+        None,
+        "--rbac-tenant",
+        help=(
+            "v0.9.8: tenant claim for multi-tenant CLI RBAC. "
+            "Overrides EVIDENTIA_RBAC_TENANT env var when set. "
+            "Combined with --rbac-identity as <identity>@@<tenant> "
+            "at decision time. Ignored when the loaded policy is "
+            "single-tenant (no behavior change for v0.9.6 operators)."
+        ),
+    ),
 ) -> None:
     """Global options applied to all commands."""
     level = logging.DEBUG if verbose else (logging.ERROR if quiet else logging.INFO)
@@ -267,13 +278,19 @@ def _global_options(
     # v0.9.6 P1: thread the --rbac-identity flag through the
     # process-lifetime singleton. Done last so any earlier error
     # (config load, offline-guard set) surfaces independently of
-    # the RBAC layer.
+    # the RBAC layer. v0.9.8 P1.3 adds --rbac-tenant alongside.
     if rbac_identity is not None:
         from evidentia.cli._rbac_lifecycle import (
             set_rbac_identity_override,
         )
 
         set_rbac_identity_override(rbac_identity)
+    if rbac_tenant is not None:
+        from evidentia.cli._rbac_lifecycle import (
+            set_rbac_tenant_override,
+        )
+
+        set_rbac_tenant_override(rbac_tenant)
 
 
 @app.command()

@@ -123,20 +123,56 @@ def _validate_id_shape(poam_id: str) -> str:
         ) from exc
 
 
-def get_poam_store_dir(override: Path | None = None) -> Path:
+def get_poam_store_dir(
+    override: Path | None = None,
+    *,
+    tenant: str | None = None,
+) -> Path:
     """Resolve the POA&M store directory.
 
-    Precedence:
+    Precedence (for the base path):
       1. Explicit ``override`` argument (CLI flag or test fixture)
       2. ``EVIDENTIA_POAM_STORE_DIR`` environment variable
       3. Platform default via ``platformdirs.user_data_dir``
+
+    v0.9.8 P1.6: when ``tenant`` is supplied, the resolved base is
+    extended with ``tenants/<tenant>/`` so multi-tenant deployments
+    keep each tenant's POA&M items physically isolated on disk.
+    Mirrors the :func:`evidentia_core.evidence_store.get_evidence_store_dir`
+    pattern. The tenant id is validated via
+    :func:`evidentia_core.rbac.validate_tenant_id`; invalid ids raise
+    :class:`InvalidTenantIdError`.
+
+    The single-tenant call (``tenant=None``) preserves the v0.9.7
+    layout — operators with single-tenant deployments see ZERO
+    behavior change.
+
+    Args:
+        override: Optional explicit path that wins over env vars.
+        tenant: Optional tenant id. When supplied, appended as
+            ``tenants/<tenant>/`` to the resolved base.
+
+    Returns:
+        The resolved store-root path.
+
+    Raises:
+        InvalidTenantIdError: When ``tenant`` is non-None but fails
+            the slug-format check.
     """
     if override is not None:
-        return Path(override).expanduser().resolve()
-    env = os.environ.get(POAM_STORE_ENV_VAR)
-    if env:
-        return Path(env).expanduser().resolve()
-    return Path(user_data_dir("evidentia", "Evidentia")) / "poam_store"
+        base = Path(override).expanduser().resolve()
+    else:
+        env = os.environ.get(POAM_STORE_ENV_VAR)
+        base = (
+            Path(env).expanduser().resolve()
+            if env
+            else Path(user_data_dir("evidentia", "Evidentia")) / "poam_store"
+        )
+    if tenant is None:
+        return base
+    from evidentia_core.rbac import validate_tenant_id
+
+    return base / "tenants" / validate_tenant_id(tenant)
 
 
 def save_poam(

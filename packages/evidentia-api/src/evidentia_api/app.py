@@ -179,15 +179,22 @@ def create_app(
     # require_role() dependency can resolve it. When unset, the
     # default permissive policy (everyone=admin) preserves v0.9.4
     # backward-compat.
-    from evidentia_core.rbac import DEFAULT_POLICY, load_policy_from_file
+    #
+    # v0.9.8 P1.4 (finding F-V98-02): use the shared
+    # load_rbac_policy_auto so the API auto-detects a multi-tenant
+    # policy file (top-level ``tenants:`` key) exactly as the CLI does.
+    # Without this the API always loaded a single-tenant RBACPolicy and
+    # the multi-tenant dispatch in rbac_dependency.require_role was
+    # unreachable on the REST surface.
+    from evidentia_core.rbac import DEFAULT_POLICY, load_rbac_policy_auto
 
-    rbac_policy = DEFAULT_POLICY
+    rbac_policy: object = DEFAULT_POLICY
     rbac_policy_file_env = os.environ.get(
         "EVIDENTIA_RBAC_POLICY_FILE", ""
     ).strip()
     if rbac_policy_file_env:
         try:
-            rbac_policy = load_policy_from_file(Path(rbac_policy_file_env))
+            rbac_policy = load_rbac_policy_auto(Path(rbac_policy_file_env))
         except (FileNotFoundError, ValueError) as exc:
             logger.error(
                 "RBAC policy load failed (%s); falling back to default "

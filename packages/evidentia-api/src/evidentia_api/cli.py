@@ -62,9 +62,10 @@ def serve(
     if host not in ("127.0.0.1", "localhost", "::1"):
         logger.warning(
             "SECURITY: binding to %s exposes the web UI on your network. "
-            "Evidentia has no auth in v0.4.0 — anyone who can reach this "
-            "address can view and modify your gap reports. Bind to 127.0.0.1 "
-            "unless you know what you're doing.",
+            "Anyone who can reach this address can view and modify your "
+            "gap reports unless an AuthProvider is configured "
+            "(EVIDENTIA_API_AUTH_TOKEN_FILE) and a reverse proxy fronts "
+            "the bind. Bind to 127.0.0.1 unless you know what you're doing.",
             host,
         )
 

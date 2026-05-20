@@ -33,6 +33,7 @@ def _clean_rbac_state(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     monkeypatch.delenv("EVIDENTIA_RBAC_POLICY_FILE", raising=False)
     monkeypatch.delenv("EVIDENTIA_RBAC_IDENTITY", raising=False)
+    monkeypatch.delenv("EVIDENTIA_RBAC_TENANT", raising=False)
 
     from evidentia.cli._rbac_lifecycle import _reset_rbac_cache
 
@@ -184,6 +185,307 @@ class TestLifecycleIdentity:
         from evidentia.cli._rbac_lifecycle import get_rbac_identity
 
         assert get_rbac_identity() is None
+
+
+# ── v0.9.8 P1.3 — Multi-tenant lifecycle + decision dispatch ──────
+
+
+class TestLifecycleTenant:
+    """v0.9.8 P1.3 tenant resolution mirrors the identity precedence rules."""
+
+    def test_returns_none_when_unset(self) -> None:
+        from evidentia.cli._rbac_lifecycle import get_rbac_tenant
+
+        assert get_rbac_tenant() is None
+
+    def test_returns_env_var(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "acme-corp")
+
+        from evidentia.cli._rbac_lifecycle import get_rbac_tenant
+
+        assert get_rbac_tenant() == "acme-corp"
+
+    def test_override_wins_over_env(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "env-tenant")
+
+        from evidentia.cli._rbac_lifecycle import (
+            get_rbac_tenant,
+            set_rbac_tenant_override,
+        )
+
+        set_rbac_tenant_override("flag-tenant")
+        assert get_rbac_tenant() == "flag-tenant"
+
+    def test_combined_identity_no_tenant_returns_identity(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """No tenant override + plain identity → identity passes through."""
+        monkeypatch.setenv("EVIDENTIA_RBAC_IDENTITY", "alice@example.com")
+
+        from evidentia.cli._rbac_lifecycle import (
+            get_rbac_identity_with_tenant_claim,
+        )
+
+        assert (
+            get_rbac_identity_with_tenant_claim()
+            == "alice@example.com"
+        )
+
+    def test_combined_identity_with_tenant_appends_claim(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Tenant override + plain identity → ``alice@example.com@@acme-corp``."""
+        monkeypatch.setenv("EVIDENTIA_RBAC_IDENTITY", "alice@example.com")
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "acme-corp")
+
+        from evidentia.cli._rbac_lifecycle import (
+            get_rbac_identity_with_tenant_claim,
+        )
+
+        assert (
+            get_rbac_identity_with_tenant_claim()
+            == "alice@example.com@@acme-corp"
+        )
+
+    def test_combined_matching_embedded_and_override_passes(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Embedded claim + override agree → passes through."""
+        monkeypatch.setenv(
+            "EVIDENTIA_RBAC_IDENTITY", "alice@example.com@@acme-corp"
+        )
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "acme-corp")
+
+        from evidentia.cli._rbac_lifecycle import (
+            get_rbac_identity_with_tenant_claim,
+        )
+
+        assert (
+            get_rbac_identity_with_tenant_claim()
+            == "alice@example.com@@acme-corp"
+        )
+
+    def test_combined_conflicting_claims_raises(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Embedded ``@@acme`` + override ``globex`` → ValueError."""
+        monkeypatch.setenv(
+            "EVIDENTIA_RBAC_IDENTITY", "alice@example.com@@acme-corp"
+        )
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "globex")
+
+        from evidentia.cli._rbac_lifecycle import (
+            get_rbac_identity_with_tenant_claim,
+        )
+
+        with pytest.raises(ValueError, match="Conflicting tenant"):
+            get_rbac_identity_with_tenant_claim()
+
+    def test_combined_no_identity_returns_none(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """No identity + tenant set → still anonymous (None)."""
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "acme-corp")
+        # No EVIDENTIA_RBAC_IDENTITY.
+
+        from evidentia.cli._rbac_lifecycle import (
+            get_rbac_identity_with_tenant_claim,
+        )
+
+        assert get_rbac_identity_with_tenant_claim() is None
+
+
+class TestLifecycleMultiTenantPolicyDetection:
+    """:func:`get_rbac_policy` auto-detects single vs multi-tenant YAML."""
+
+    def test_single_tenant_yaml_loads_as_rbac_policy(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        from evidentia_core.rbac import RBACPolicy
+
+        policy_file = tmp_path / "single.yaml"
+        policy_file.write_text(
+            "identities:\n"
+            "  alice@example.com: admin\n"
+            "default_role: reader\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("EVIDENTIA_RBAC_POLICY_FILE", str(policy_file))
+
+        from evidentia.cli._rbac_lifecycle import get_rbac_policy
+
+        policy = get_rbac_policy()
+        assert isinstance(policy, RBACPolicy)
+
+    def test_multi_tenant_yaml_loads_as_tenant_policy(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        from evidentia_core.rbac import TenantRBACPolicy
+
+        policy_file = tmp_path / "multi.yaml"
+        policy_file.write_text(
+            "tenants:\n"
+            "  acme-corp:\n"
+            "    identities:\n"
+            "      alice@example.com: admin\n"
+            "    default_role: reader\n"
+            "default_tenant: acme-corp\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("EVIDENTIA_RBAC_POLICY_FILE", str(policy_file))
+
+        from evidentia.cli._rbac_lifecycle import get_rbac_policy
+
+        policy = get_rbac_policy()
+        assert isinstance(policy, TenantRBACPolicy)
+        assert policy.default_tenant == "acme-corp"
+
+
+class TestRequireRoleCLIMultiTenant:
+    """``require_role_cli`` dispatches multi-tenant when policy demands."""
+
+    def _wire_multi_tenant_policy(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        policy_file = tmp_path / "multi.yaml"
+        policy_file.write_text(
+            "tenants:\n"
+            "  acme-corp:\n"
+            "    identities:\n"
+            "      alice@example.com: admin\n"
+            "    default_role: deny\n"
+            "  globex:\n"
+            "    identities:\n"
+            "      bob@example.com: editor\n"
+            "    default_role: deny\n"
+            "default_tenant: acme-corp\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("EVIDENTIA_RBAC_POLICY_FILE", str(policy_file))
+
+    def test_alice_admin_in_acme_via_tenant_flag(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """alice@example.com w/ --rbac-tenant=acme-corp → admin granted."""
+        self._wire_multi_tenant_policy(tmp_path, monkeypatch)
+        monkeypatch.setenv("EVIDENTIA_RBAC_IDENTITY", "alice@example.com")
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "acme-corp")
+
+        from evidentia.cli._rbac import require_role_cli
+
+        called = []
+
+        @require_role_cli("admin")
+        def _action() -> str:
+            called.append(1)
+            return "ok"
+
+        result = _action()
+        assert result == "ok"
+        assert called == [1]
+
+    def test_alice_denied_in_globex_via_tenant_flag(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """alice@example.com w/ --rbac-tenant=globex → denied (not in globex)."""
+        self._wire_multi_tenant_policy(tmp_path, monkeypatch)
+        monkeypatch.setenv("EVIDENTIA_RBAC_IDENTITY", "alice@example.com")
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "globex")
+
+        from evidentia.cli._rbac import require_role_cli
+
+        @require_role_cli("write")
+        def _action() -> str:
+            return "ok"
+
+        with pytest.raises(typer.Exit) as exc_info:
+            _action()
+        assert exc_info.value.exit_code == 77  # EXIT_CODE_RBAC_DENIED
+
+    def test_embedded_claim_works_without_flag(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Identity-embedded claim works without --rbac-tenant."""
+        self._wire_multi_tenant_policy(tmp_path, monkeypatch)
+        monkeypatch.setenv(
+            "EVIDENTIA_RBAC_IDENTITY", "bob@example.com@@globex"
+        )
+
+        from evidentia.cli._rbac import require_role_cli
+
+        @require_role_cli("write")
+        def _action() -> str:
+            return "ok"
+
+        # bob is editor in globex → write granted.
+        assert _action() == "ok"
+
+    def test_conflicting_claims_exit_with_config_error(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Embedded ``@@acme`` + ``--rbac-tenant globex`` exits 77."""
+        self._wire_multi_tenant_policy(tmp_path, monkeypatch)
+        monkeypatch.setenv(
+            "EVIDENTIA_RBAC_IDENTITY", "alice@example.com@@acme-corp"
+        )
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "globex")
+
+        from evidentia.cli._rbac import require_role_cli
+
+        @require_role_cli("read")
+        def _action() -> str:
+            return "ok"
+
+        with pytest.raises(typer.Exit) as exc_info:
+            _action()
+        assert exc_info.value.exit_code == 77
+
+    def test_single_tenant_policy_ignores_tenant_flag(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Single-tenant policy + --rbac-tenant set → v0.9.6 behavior."""
+        policy_file = tmp_path / "single.yaml"
+        policy_file.write_text(
+            "identities:\n"
+            "  alice@example.com: admin\n"
+            "default_role: reader\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("EVIDENTIA_RBAC_POLICY_FILE", str(policy_file))
+        monkeypatch.setenv("EVIDENTIA_RBAC_IDENTITY", "alice@example.com")
+        # Tenant flag is set but should be IGNORED — single-tenant policy
+        # dispatches through the v0.9.5 check_permission path.
+        monkeypatch.setenv("EVIDENTIA_RBAC_TENANT", "acme-corp")
+
+        from evidentia.cli._rbac import require_role_cli
+
+        @require_role_cli("admin")
+        def _action() -> str:
+            return "ok"
+
+        # alice is admin in the single-tenant policy → granted.
+        # The tenant flag has no effect.
+        assert _action() == "ok"
 
 
 class TestLifecycleReset:
