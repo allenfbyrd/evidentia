@@ -77,9 +77,30 @@ v0.9.7 INFO findings are closed by v0.9.8 integration work.
   touched `oscal/sigstore.py`); triggers 1–3 did not (no new public
   API, no new source files, 332 LOC < 500).
 
-## 16-row pre-push gate
+## 16-row pre-push gate (Step 6.C)
 
-Completed at Step 6.C — see the table appended at gate execution.
+| # | Check | v0.9.8 outcome |
+|---|---|---|
+| 1 | Credential sweep of diff | PASS — 0 hits |
+| 2 | Claude-attribution in diff content | PASS — 1 hit, dispositioned false-positive: `docs/v0.9.8-plan.md:244` documents the standing no-attribution rule; it is not a commit trailer |
+| 3 | Commit-message attribution sweep | PASS — 0 hits across `v0.9.7..HEAD` (git metadata clean) |
+| 4 | `.gitignore` secret-store coverage | PASS — `.env*`, `*.pem/.key/.crt/.p12/.pfx`, `secrets/` all covered |
+| 5 | Tracked secret-store files | PASS — none tracked (the only filesystem hits are gitignored `.venv/` content) |
+| 6 | Test gate | PASS — 3250 passed / 14 skipped |
+| 7 | Type / lint gate | PASS — mypy strict clean (262 files / 7 packages); ruff clean |
+| 8 | Build sanity | PASS — 7 evidentia-* packages built at 0.9.8 (wheel + sdist); `twine check` all PASSED |
+| 9 | Identity | PASS — Allen Byrd / canonical noreply identity |
+| 10 | Branch sanity | PASS — `fix/mypy-v0.9.8`, 1 ahead / 0 behind `origin/main` |
+| 11 | Legacy secrets | PASS — only `CODECOV_TOKEN` (4 days old); no legacy `PYPI_API_TOKEN` |
+| 12 | Code-scanning alert delta | PASS — 0 open code-scanning alerts |
+| 13 | Container CVE scan (Trivy) | WARN-SKIP — `trivy` not installed; v0.9.8 changed no Dockerfile content; `release.yml` `container-build` covers the published image |
+| 14 | Vulnerability aging SLO | PASS — 0 HIGH/CRITICAL deps unpatched; the 2 open alerts are MEDIUM idna (stale alert — fix already on `main`) + LOW paramiko (documented v0.9.9 carry-forward) |
+| 15 | License / SCA enforcement | WARN-SKIP — `pip-licenses` not installed; no new third-party deps in the v0.9.8 source delta; Tier-C placeholder content not bundled in wheels |
+| 16 | Secret-rotation cadence | PARTIAL — repo secret `CODECOV_TOKEN` 4 days old (fresh); SSH-key age unverifiable (gh token lacks the `admin:public_key` scope) |
+
+Rows 13 / 15 / 16 degrade gracefully on absent optional tooling
+and a withheld gh scope — none touches the v0.9.8 delta's actual
+surface. Zero blocking findings.
 
 ## Cross-references
 
@@ -92,6 +113,14 @@ Completed at Step 6.C — see the table appended at gate execution.
 
 ## PROCEED-CLEAN gate verdict
 
-Finalized at Step 6.C after the 16-row pre-push gate. Provisional:
-both review passes returned PROCEED-CLEAN with zero unfixed
-CRITICAL / HIGH / MEDIUM findings.
+**PROCEED-CLEAN** for the v0.9.8 ship. Both review passes returned
+PROCEED-CLEAN; the 16-row pre-push gate carries zero blocking
+findings (3 rows WARN-degraded on absent tooling, none material to
+the delta). Zero unfixed CRITICAL / HIGH / MEDIUM. Both v0.9.7 INFO
+findings are closed by v0.9.8 integration work.
+
+**23rd consecutive PROCEED-CLEAN** of the v0.7.x → v0.8.x → v0.9.x
+line.
+
+The Step 7 post-tag verification outcome is appended after the
+`release.yml` run completes.
