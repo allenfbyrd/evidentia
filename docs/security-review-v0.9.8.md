@@ -122,5 +122,35 @@ findings are closed by v0.9.8 integration work.
 **23rd consecutive PROCEED-CLEAN** of the v0.7.x → v0.8.x → v0.9.x
 line.
 
-The Step 7 post-tag verification outcome is appended after the
-`release.yml` run completes.
+## Step 7 — post-tag verification
+
+`release.yml` run `26227600699` — conclusion **success**, ~4m05s
+tag-to-publish. Tag `v0.9.8` at commit `9b76417`.
+
+| Sub-step | Outcome |
+|---|---|
+| 7.1 `release.yml` completion | ✓ success |
+| 7.3 PEP 740 attestations | ✓ 7/7 packages verified (`pypi-attestations verify pypi`) |
+| 7.4 / 7.5 container | ✓ cosign keyless verify PASSED — Rekor transparency log + cert chain + SLSA provenance v1 predicate; image digest `sha256:5fef096853ff1eb60954f6d828fb7d231f2e009111972e31d1203e66ec38b510`. `gh attestation verify oci://` produced no output in this environment (tooling finickiness, not a verification failure); cosign is the authoritative container check |
+| 7.6 SBOM osv-scan | 181 packages; 2 transitive findings, both accepted (below) |
+| 7.8 fresh-venv install | ✓ `pip install evidentia[gui]==0.9.8` from PyPI; `evidentia version` → `Evidentia v0.9.8`; `catalog list` functional |
+| 7.9 GitHub Release notes | ✓ CHANGELOG `[0.9.8]` auto-populated; CycloneDX SBOM attached as a release asset |
+
+### Accepted findings (Step 7.6 osv-scan)
+
+| Advisory | Package | Severity | Disposition |
+|---|---|---|---|
+| CVE-2026-44405 / GHSA-r374-rxx8-8654 | `paramiko` 4.0.0 (transitive) | LOW (3.4) | **Carry-forward → v0.9.9** — the SHA-1 `rsakey.py` allowance; fixed upstream post-4.0.0 (`a448945`); deferred as its own focused major-version SSH-library bump |
+| PYSEC-2025-183 / CVE-2025-45768 | `pyjwt` 2.12.1 (transitive) | scored 7.0 — **DISPUTED** | **Accepted** — disputed by the pyjwt maintainer (HMAC key length is the calling application's choice, not a library flaw); no fix version exists (every release is flagged); `pyjwt` arrives transitively (`sigstore` / `mcp` / `msal` / `okta` / `pygithub` / `snowflake-connector-python`) and Evidentia exposes no operator-chosen-key JWT-minting surface. Operator-confirmed accept, 2026-05-21 |
+
+The pre-tag gate (Row 14) used Dependabot alerts, which suppress
+disputed CVEs; `osv-scanner` includes them. Follow-up for v0.9.9:
+add `osv-scanner --sbom` to the pre-push gate so transitive /
+disputed advisories surface pre-tag rather than post-tag.
+
+### Step 7 verdict
+
+**PROCEED-CLEAN confirmed post-tag.** The published PyPI + GHCR
+artifacts verify against their build provenance; the 2 osv-scan
+findings are accepted with rationale (0 unacked). v0.9.8 is
+SHIPPED.
