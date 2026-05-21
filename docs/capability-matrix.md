@@ -13,6 +13,39 @@
 
 ---
 
+## Re-validation snapshot — 2026-05-21 (v0.9.9 SHIPPED)
+
+v0.9.9 SHIPPED at tag `v0.9.9`. A focused supply-chain hygiene +
+pre-push gate-fidelity patch — no source or test code changed.
+
+**New public surfaces**: none. v0.9.9 changed dependency versions,
+the CI workflow, and supply-chain tooling only.
+
+**New build-time surface**:
+
+| # | Surface | Layer | Notes |
+|---|---|---|---|
+| 1 | `scripts/run_osv_scan.py` + `osv-scan` CI job | Tooling / CI | Generates the CycloneDX SBOM and scans it with osv-scanner; the CI job and `docs/release-checklist.md` Step 5 invoke one shared script. Build-time only — no runtime surface. |
+| 2 | `osv-scanner.toml` allowlist | Tooling | One accepted finding (pyjwt PYSEC-2025-183, disputed) with a reason + an `ignoreUntil` re-validation date. |
+
+**Adversarial-probe taxonomy**: not re-run — v0.9.9 added no product
+surface. The v0.9.8 7-vector probe set remains current. Supply-chain
+posture improved: paramiko CVE-2026-44405 (LOW) closed via
+`compliance-trestle` 4.0.3 → `paramiko` 5.0.0; the new
+`osv-scanner --sbom` gate surfaces transitive + disputed advisories
+pre-tag.
+
+**Test count + source-file trajectory**: 3250 tests / 14 skipped /
+261 source files / mypy strict 261 of 261 (7 packages). No source or
+test code changed. (The v0.9.8 snapshot reported 262 — a +1
+over-count; `git ls-files` confirms 261 tracked `.py` under
+`packages/*/src/`, and v0.9.9 added no package source files.)
+
+**Step 4 disposition**: no capability walk required — v0.9.9 is a
+supply-chain patch with zero new product capability surface.
+
+---
+
 ## Re-validation snapshot — 2026-05-21 (v0.9.8 SHIPPED)
 
 v0.9.8 SHIPPED at tag `v0.9.8`. v0.9.7 deferral closure + v1.0-prep

@@ -157,6 +157,18 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.9.9 (May 2026)** — *Supply-chain hygiene + pre-push gate
+fidelity*. A focused supply-chain patch — no source or test code
+changed. Closes `paramiko` CVE-2026-44405 (`compliance-trestle`
+4.0.3 pulls `paramiko` to 5.0.0, a dev-only transitive dependency);
+adds an `osv-scanner --sbom` pre-push gate wired into CI and the
+release checklist through one shared script, so transitive and
+disputed advisories surface before a tag; and clears the entire
+Dependabot PR queue (five grouped version-update PRs merged, three
+orphaned PRs closed). **3250 tests passing / 14 skipped across 261
+source files; mypy strict 0/0; ruff clean.** PyPI: 7 packages at
+0.9.9.
+
 **v0.9.8 (May 2026)** — *v0.9.7 deferral closure + v1.0-prep
 integration wiring*. Wires v0.9.7's data/decision-only primitives
 into live surfaces: multi-tenant RBAC enforced end-to-end across
@@ -672,7 +684,7 @@ compliance evidence to NIST 800-53 controls. Plus ServiceNow
 output integration carry-forward.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full version history
-(v0.1.0 through v0.9.8). For forward direction, see
+(v0.1.0 through v0.9.9). For forward direction, see
 [`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md) (the OSS-native AI
 moat — DFAH + PRT + MCP + plugin contracts) and
 [`docs/ROADMAP.md`](docs/ROADMAP.md) (everything else).

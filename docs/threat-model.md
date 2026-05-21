@@ -2793,6 +2793,62 @@ the operator's trust boundary, documented in the module.
 - `docs/capability-matrix.md` — v0.9.8 SHIPPED snapshot.
 - `docs/ROADMAP.md` — v0.9.8 SHIPPED transition.
 
+## v0.9.9 attack-surface delta — supply-chain hygiene + pre-push gate fidelity (SHIPPED 2026-05-21 at tag `v0.9.9`)
+
+v0.9.9 is a focused supply-chain patch. **No new product attack
+surface** — no source or test code changed. Net change: **0 NEW
+findings; 1 LOW carry-forward CLOSED.**
+
+### No new attack surface
+
+The cycle merged five grouped Dependabot version-update PRs, closed
+three orphaned PRs, added an `osv-scanner --sbom` CI / pre-tag gate,
+and bumped `compliance-trestle` to 4.0.3. The `osv-scan` job and
+`scripts/run_osv_scan.py` are build-time supply-chain tooling — they
+run in CI and pre-tag, never inside a deployed Evidentia process, and
+add no runtime surface, no network egress path, and no
+deserialization sink.
+
+### Surface-reducing changes
+
+- **paramiko CVE-2026-44405 (LOW) CLOSED** — `compliance-trestle`
+  4.0.2 → 4.0.3 pulls `paramiko` 4.0.0 → 5.0.0, past the `<= 4.0.0`
+  vulnerable range. `paramiko` is a dev-only transitive dependency
+  (via `compliance-trestle`, used for OSCAL round-trip tests); no
+  Evidentia code imports it, so the SHA-1 `rsakey.py` allowance was
+  never on a reachable path. Closed for completeness + supply-chain
+  hygiene.
+- **`osv-scanner --sbom` pre-push gate** — transitive and DISPUTED
+  advisories (which the Dependabot alert feed suppresses) now surface
+  before a release tag. This hardens the *release process*, not the
+  product: it shrinks the window in which a known-vulnerable
+  transitive dependency could ship undetected.
+
+### Accepted finding
+
+- **pyjwt PYSEC-2025-183 / CVE-2025-45768** — DISPUTED, no fix
+  exists; allowlisted in `osv-scanner.toml` with an `ignoreUntil`
+  re-validation date (2026-11-21). pyjwt is transitive-only and
+  Evidentia exposes no operator-chosen-key JWT-minting surface.
+  Carried unchanged from the v0.9.8 disposition.
+
+### Findings ledger summary
+
+| Severity | Count | Notes |
+|---|---|---|
+| CRITICAL / HIGH / MEDIUM | 0 | No new surface; no source code changed. |
+| LOW | 1 CLOSED | paramiko CVE-2026-44405 — closed via `compliance-trestle` 4.0.3. |
+| INFO | 0 | — |
+
+**Zero unfixed CRITICAL / HIGH / MEDIUM / LOW at v0.9.9 ship.**
+
+### Cross-references
+
+- `docs/security-review-v0.9.9.md` — formal review artifact.
+- `docs/v0.9.9-plan.md` — phase-by-phase scope.
+- `docs/capability-matrix.md` — v0.9.9 SHIPPED snapshot.
+- `docs/ROADMAP.md` — v0.9.9 SHIPPED transition.
+
 ---
 
 *First published v0.7.7 (2026-05). Origin: promoted from a

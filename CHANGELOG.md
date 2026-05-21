@@ -7,7 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.9.9 development branch._
+_No changes yet on the v0.9.10 development branch._
+
+## [0.9.9] - 2026-05-21
+
+**Theme**: *Supply-chain hygiene + pre-push gate fidelity* — closes
+the `paramiko` CVE carried forward from v0.9.8, adds an
+`osv-scanner --sbom` pre-push gate so transitive and disputed
+advisories surface before a tag rather than after it, and clears the
+entire Dependabot PR queue.
+
+A focused patch cycle, not a feature ship. The Dependabot queue is
+emptied (five grouped version-update PRs merged; three orphaned PRs
+from a removed `pip`/`uv-docker` config closed), the `osv-scanner`
+gate now runs in CI and pre-tag through one shared script, and
+`compliance-trestle` moves to 4.0.3 — which pulls `paramiko` to 5.0.0
+and closes CVE-2026-44405. 3250 tests pass; mypy strict is clean
+across 261 source files / 7 packages. No source or test code changed.
+
+### Added
+
+- **`osv-scanner --sbom` pre-push gate (v0.9.9)**: NEW
+  `scripts/run_osv_scan.py` generates the CycloneDX SBOM (the exact
+  command `release.yml` uses) and scans it with `osv-scanner`,
+  honouring an allowlist. NEW `osv-scan` job in
+  `.github/workflows/test.yml` and a matching Step 5 entry in
+  `docs/release-checklist.md` — both invoke the one shared script, so
+  the CI gate and the documented gate cannot drift. Closes the v0.9.8
+  gate-fidelity gap: the 16-row pre-push gate's Row 14 read Dependabot
+  alerts, which suppress DISPUTED CVEs, so a disputed `pyjwt` advisory
+  surfaced only post-tag. `osv-scanner` reports transitive and
+  disputed advisories the Dependabot alert feed omits.
+- **`osv-scanner.toml`**: NEW allowlist (repo root). One entry —
+  `pyjwt` PYSEC-2025-183 / CVE-2025-45768 (disputed, no fix exists) —
+  with a reason and an `ignoreUntil` re-validation date.
+
+### Changed
+
+- **Dependabot dependency bumps**: the `python-dev` group (ruff,
+  mypy, schemathesis, hypothesis, numpy, and other dev tooling), the
+  `npm-runtime` and `npm-dev` groups (`evidentia-ui`), the
+  `github-actions` group, and the Docker base-image digest — five
+  grouped version-update PRs, all CI-green, merged.
+- **Dependabot queue cleared**: three orphaned PRs targeting only
+  `docker/requirements.txt` via a `pip`/`uv-docker` ecosystem no
+  longer present in `.github/dependabot.yml` were closed.
+  `docker/requirements.txt` is regenerated from `uv.lock` at release
+  time (G4 Path 2), so they were superseded; `.github/dependabot.yml`
+  was audited and confirmed to have no coverage gap.
+
+### Security
+
+- **`paramiko` CVE-2026-44405 closed**: `compliance-trestle` 4.0.2 →
+  4.0.3 (within the existing `>=4.0,<5.0` dev constraint) pulls
+  `paramiko` 4.0.0 → 5.0.0, past the `<= 4.0.0` vulnerable range.
+  `paramiko` is a dev-only transitive dependency via
+  `compliance-trestle` (OSCAL round-trip tests); no Evidentia code
+  imports it. Carried forward from v0.9.8.
+- **`osv-scanner` SBOM gate** (see Added): transitive and disputed
+  advisories now surface pre-tag.
+
+### Deferred
+
+- **Federal-SI domain-expert walk-through** — deferred indefinitely
+  per the v1.0 master-plan resequencing (2026-05-21). The 0.9.x line
+  now iterates as many times as needed toward a solid product;
+  walk-throughs and the multi-reviewer peer review run after the
+  operator self-test + demo/pitch phase, and before v1.0.0. See
+  `docs/ROADMAP.md`.
 
 ## [0.9.8] - 2026-05-21
 

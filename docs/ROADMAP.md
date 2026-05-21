@@ -1,6 +1,6 @@
 # Evidentia roadmap
 
-**Last updated: v0.9.8 (May 2026).**
+**Last updated: v0.9.9 (May 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
 at the project root. Versions v0.3.0 through v0.7.16 + v0.8.0-v0.8.7
@@ -17,8 +17,13 @@ evidence store + CLI RBAC + CONMON MCP first-mover); v0.9.7 was the
 comprehensive v0.9.x close-out + v1.0 prep (api-stability NORMATIVE
 + multi-tenant RBAC + CIMD-signature groundwork). **v0.9.8 wires
 those primitives into live CLI, REST, MCP-dispatch, and storage
-surfaces** — the last v0.9.x ship before the v1.0 self-test and
-peer-review phase. See
+surfaces**; **v0.9.9 is a supply-chain hygiene + gate-fidelity
+patch** (paramiko CVE closure + an `osv-scanner --sbom` pre-push
+gate + a full Dependabot-queue clear). Per the v1.0 master-plan
+resequencing (2026-05-21), the v0.9.x line now iterates as many
+times as needed toward a solid product — the operator self-test
+and demo/pitch recording precede the walk-throughs and
+multi-reviewer peer review, which complete before v1.0.0. See
 [`v1.0-transition.md`](v1.0-transition.md) for the v1.0
 narrative and acceptance gates.
 
@@ -1475,6 +1480,44 @@ exists upstream — carried forward to v0.9.9 as its own focused
 SSH-library major bump).
 
 **3250 tests / 14 skipped / mypy strict 262 of 262 source files /
+ruff clean.**
+
+## v0.9.9 — Supply-chain hygiene + pre-push gate fidelity — SHIPPED
+
+Tag `v0.9.9` (2026-05-21). A focused supply-chain patch — no source
+or test code changed; dependency versions, CI workflow, supply-chain
+tooling, and docs only.
+
+**Phase 1 — Dependabot queue clearance**:
+- Five grouped version-update PRs merged (the `python-dev`,
+  `npm-runtime`, `npm-dev`, and `github-actions` groups + the Docker
+  base-image digest), all CI-green.
+- Three orphaned PRs closed — they targeted only
+  `docker/requirements.txt` via a `pip`/`uv-docker` Dependabot
+  ecosystem no longer present in `.github/dependabot.yml`; that file
+  is regenerated from `uv.lock` at release time (G4 Path 2), so the
+  PRs were superseded.
+- `.github/dependabot.yml` audited — coverage confirmed complete.
+
+**Phase 2 — `osv-scanner --sbom` pre-push gate**:
+- NEW `scripts/run_osv_scan.py` + `osv-scanner.toml` allowlist + an
+  `osv-scan` job in `.github/workflows/test.yml` + a Step 5 entry in
+  `docs/release-checklist.md`. CI and the documented gate invoke one
+  shared script. Closes the v0.9.8 gate-fidelity gap — the 16-row
+  pre-push gate's Row 14 read Dependabot alerts, which suppress
+  DISPUTED CVEs, so a disputed `pyjwt` advisory surfaced post-tag.
+
+**Phase 3 — paramiko CVE-2026-44405 closed**:
+- `compliance-trestle` 4.0.2 → 4.0.3 pulls `paramiko` 4.0.0 → 5.0.0,
+  past the `<= 4.0.0` vulnerable range. `paramiko` is a dev-only
+  transitive dependency (via `compliance-trestle`, OSCAL round-trip
+  tests); no Evidentia code imports it.
+
+**Deferred**: the federal-SI domain-expert walk-through — deferred
+indefinitely per the resequencing above; runs before v1.0.0, after
+the operator self-test + demo/pitch phase.
+
+**3250 tests / 14 skipped / mypy strict 261 of 261 source files /
 ruff clean.**
 
 ## v1.0 — Federal compliance shipped + API stability — RESERVED
