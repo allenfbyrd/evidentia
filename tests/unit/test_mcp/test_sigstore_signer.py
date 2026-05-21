@@ -108,13 +108,18 @@ def _patch_sigstore_for_signer(
     signing_ctx_instance = MagicMock(name="SigningContext-instance")
     signing_ctx_instance.signer.return_value = signer_context_mgr
     signing_ctx_class = MagicMock()
-    signing_ctx_class.production.return_value = signing_ctx_instance
+    signing_ctx_class.from_trust_config.return_value = signing_ctx_instance
 
     fake_oidc = MagicMock(
         detect_credential=detect_credential_mock,
         IdentityToken=identity_token_class,
     )
     fake_sign = MagicMock(SigningContext=signing_ctx_class)
+    # sigstore 4.x builds the SigningContext from a ClientTrustConfig.
+    # Mock sigstore.models so the signer path never imports the real
+    # module — its transitive rfc3161_client Rust extension cannot be
+    # re-initialized under pytest's sys.modules churn.
+    fake_models = MagicMock(ClientTrustConfig=MagicMock())
 
     return {
         "available": patch(
@@ -127,7 +132,11 @@ def _patch_sigstore_for_signer(
         ),
         "oidc_module": patch.dict(
             "sys.modules",
-            {"sigstore.oidc": fake_oidc, "sigstore.sign": fake_sign},
+            {
+                "sigstore.oidc": fake_oidc,
+                "sigstore.sign": fake_sign,
+                "sigstore.models": fake_models,
+            },
         ),
         "signer_instance": signer_instance,
         "detect_credential": detect_credential_mock,

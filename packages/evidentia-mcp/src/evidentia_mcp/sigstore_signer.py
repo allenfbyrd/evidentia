@@ -165,6 +165,7 @@ def make_sigstore_signer(
     _ensure_sigstore_available()
     _ensure_sigstore_online()
 
+    from sigstore.models import ClientTrustConfig
     from sigstore.oidc import IdentityToken, detect_credential
     from sigstore.sign import SigningContext
 
@@ -184,7 +185,7 @@ def make_sigstore_signer(
     else:
         token = IdentityToken(identity_token)
 
-    ctx = SigningContext.production()
+    ctx = SigningContext.from_trust_config(ClientTrustConfig.production())
 
     def _sign(payload: bytes) -> dict[str, str]:
         # Per-call signer context: Sigstore caches the Fulcio cert
