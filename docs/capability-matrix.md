@@ -13,6 +13,60 @@
 
 ---
 
+## Re-validation snapshot — 2026-05-21 (v0.9.8 SHIPPED)
+
+v0.9.8 SHIPPED at tag `v0.9.8`. v0.9.7 deferral closure + v1.0-prep
+integration wiring — reviewed across two passes (feature work +
+supply-chain / type-safety delta), both PROCEED-CLEAN.
+
+**New public surfaces**:
+
+| # | Surface | Layer | Notes |
+|---|---|---|---|
+| 1 | `--rbac-tenant` global CLI flag + tenant-aware policy auto-detection | CLI | Multi-tenant RBAC enforced at the CLI. |
+| 2 | FastAPI `require_role` tenant-claim-from-principal | REST | Tenant claim provenance-bound to the authenticated AuthProvider; closes F-V97-multi-tenant-claim-spoofing. |
+| 3 | Per-tenant POA&M + evidence store directory roots | Library | `validate_tenant_id` slug-gated; single-tenant layout unchanged. |
+| 4 | `EventAction.RBAC_TENANT_BOUNDARY_CROSSED` | Library | Audit event for cross-tenant attempts. |
+| 5 | `SignedToolOutput` at the FastMCP dispatch layer | MCP | Signature in `CallToolResult._meta`; tool output untouched. |
+| 6 | `evidentia_mcp.sigstore_signer` keyless signer / verifier factories | Library / MCP | In-tree Sigstore-keyless reference signer; closes F-V97-mcp-signer-trust. |
+| 7 | `evidentia_core.factory_resolver` | Library | Shared dotted-path factory resolver with env-var-keyed caching. |
+| 8 | `scripts/publish_hf_eval.py` + FedRAMP / CMMC eval-suite subsets | Tooling | HF Hub GRC eval suite; two-phase publish with a token-free `--dry-run`. |
+
+**Adversarial-probe taxonomy (7 vectors, all PASSED)**:
+
+1. **Cross-tenant claim spoofing** — the FastAPI tenant claim is
+   now derived from the authenticated principal; an operator-
+   asserted `@@<tenant>` no longer grants access. F-V97 closed.
+2. **MCP signature tampering** — the signature is additive in
+   `_meta`; a stripped / forged `_meta` fails verification and the
+   tool output itself is unaffected.
+3. **Sigstore signer key exposure** — the keyless Fulcio path
+   removes operator key material; air-gap mode refuses the network
+   path.
+4. **Tenant-id path traversal** — per-tenant store roots are
+   `validate_tenant_id` slug-gated; `../` and absolute paths are
+   rejected.
+5. **Factory-resolver injection** — `factory_resolver` inherits the
+   v0.9.7 dotted-path validation; unimportable / non-callable refs
+   raise structured errors.
+6. **sigstore 4.2.0 API drift** — the `SigningContext.production()`
+   removal was caught by the `--all-extras` mypy gate (now aligned
+   across CI + the release checklist) and migrated; the signing
+   path is verified.
+7. **Supply-chain CVE** — idna 3.11→3.15 closes CVE-2026-45409;
+   paramiko CVE-2026-44405 LOW carried forward to v0.9.9 with a
+   documented fix path.
+
+**Test count + source-file trajectory**: 3250 tests / 14 skipped /
+262 source files / mypy strict 262 of 262 (7 packages).
+
+**Step 4 disposition**: the v0.9.8 capability walk was completed in
+Pass 1 (feature-work review); the Pass 2 delta added zero new
+capability surface, so this snapshot consolidates Pass 1's surface
+inventory with the Pass 2 supply-chain / type-safety verification.
+
+---
+
 ## Re-validation snapshot — 2026-05-19 (v0.9.7 SHIPPED)
 
 v0.9.7 SHIPPED at tag `v0.9.7`. Comprehensive ~3-4 week scope

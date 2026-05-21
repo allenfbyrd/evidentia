@@ -2717,6 +2717,82 @@ consecutive PROCEED-CLEAN of v0.7.x → v0.8.x → v0.9.x line.
   quarterly-resync academic positioning sharpening.
 - `docs/ROADMAP.md` — v0.9.7 SHIPPED + v0.9.8 PLANNED transitions.
 
+## v0.9.8 attack-surface delta — v0.9.7 deferral closure + v1.0-prep integration wiring (SHIPPED 2026-05-21 at tag `v0.9.8`)
+
+v0.9.8 wires v0.9.7's multi-tenant-RBAC and CIMD-signature
+primitives into live CLI / REST / MCP-dispatch / storage surfaces,
+and clears a supply-chain + type-safety delta. Net change: **0 NEW
+unfixed findings**; both v0.9.7 INFO findings CLOSED; 1 in-cycle
+CRITICAL + 1 HIGH caught and fixed before tag.
+
+### Surface 1: Multi-tenant RBAC integration (NEW v0.9.8 P1.3-P1.6)
+
+The v0.9.7 `evidentia_core.rbac.multi_tenant` primitives are now
+enforced end-to-end: a `--rbac-tenant` CLI flag with tenant-aware
+policy auto-detection; the FastAPI `require_role` dependency derives
+the tenant claim from the authenticated principal; the POA&M and
+evidence stores gain per-tenant directory roots gated by a
+`validate_tenant_id` slug check; a new `RBAC_TENANT_BOUNDARY_CROSSED`
+audit event records cross-tenant attempts.
+
+**Closes F-V97-multi-tenant-claim-spoofing** — the tenant claim is
+now provenance-bound to the authenticated AuthProvider result, not
+operator-asserted env-var input. `cross_tenant_admin_role` is
+constrained to admin/deny to remove a sub-admin escalation foot-gun.
+
+### Surface 2: MCP dispatch-layer output signing (NEW v0.9.8 P1.1)
+
+`SignedToolOutput` is wired at the FastMCP tool-dispatch layer. The
+signature rides in the `CallToolResult._meta` block as additive
+provenance — tool content + structured output are returned
+unchanged, so the low-level server's output-schema validation still
+passes. A FastMCP-1.27 tuple-return contract mismatch (F-V98-01,
+CRITICAL) was caught + fixed in-cycle with real-FastMCP integration
+tests.
+
+### Surface 3: In-tree Sigstore-keyless MCP signer (NEW v0.9.8 P1.2)
+
+NEW `evidentia_mcp.sigstore_signer` — `make_sigstore_signer()` /
+`make_sigstore_verifier()` factories backed by short-lived Fulcio
+certificates tied to an OIDC identity.
+
+**Closes F-V97-mcp-signer-trust** — operator-managed key material is
+removed from the trust path. Air-gap mode is refused (Sigstore
+needs Fulcio + Rekor network access); the OIDC identity remains in
+the operator's trust boundary, documented in the module.
+
+### Surface 4: Supply-chain + type-safety delta
+
+- idna 3.11 → 3.15 closes CVE-2026-45409 (`uv.lock` +
+  `docker/requirements.txt`).
+- Three `SigningContext.production()` runtime breaks (sigstore 4.2.0
+  removed the classmethod) fixed in `oscal/sigstore.py` and
+  `evidentia_mcp/sigstore_signer.py` — pure API migration to
+  `from_trust_config(ClientTrustConfig.production())`, no
+  trust-model change.
+- The CI `mypy` gate now syncs `--all-extras`, closing the gap that
+  let type errors in optional-extra code paths (sigstore, psycopg)
+  go unverified.
+
+### Findings ledger summary
+
+| Severity | Count | Notes |
+|---|---|---|
+| CRITICAL | 1 caught / 0 unfixed | F-V98-01 (FastMCP tuple-return mismatch) — fixed in-cycle |
+| HIGH | 1 caught / 0 unfixed | F-V98-02 (multi-tenant policy not constructed) — fixed in-cycle |
+| MEDIUM | 0 unfixed | 3 MEDIUM/LOW batch fixed in-cycle |
+| LOW | 1 carry-forward | paramiko CVE-2026-44405 → v0.9.9 (documented fix path) |
+| INFO | 0 new; 2 CLOSED | F-V97-mcp-signer-trust + F-V97-multi-tenant-claim-spoofing |
+
+**Zero unfixed CRITICAL / HIGH / MEDIUM at v0.9.8 ship.**
+
+### Cross-references
+
+- `docs/security-review-v0.9.8.md` — formal review artifact.
+- `docs/v0.9.8-plan.md` — phase-by-phase scope.
+- `docs/capability-matrix.md` — v0.9.8 SHIPPED snapshot.
+- `docs/ROADMAP.md` — v0.9.8 SHIPPED transition.
+
 ---
 
 *First published v0.7.7 (2026-05). Origin: promoted from a
