@@ -1,19 +1,24 @@
 # Evidentia roadmap
 
-**Last updated: v0.9.5 (May 2026).**
+**Last updated: v0.9.8 (May 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
 at the project root. Versions v0.3.0 through v0.7.16 + v0.8.0-v0.8.7
-+ v0.9.0-v0.9.5 have shipped. **v0.9.0 opened the v0.9.x "federal
++ v0.9.0-v0.9.8 have shipped. **v0.9.0 opened the v0.9.x "federal
 compliance" line** with POA&M + CONMON read-only library; v0.9.1
 landed the Polycentric Labs org migration; v0.9.2 added the CONMON
 REST router + federal corpus + LLM rater + federal walk-through
 scenarios; v0.9.3 was the largest minor of the line — CONMON daemon
 (Theme A) + AI governance (Theme B); v0.9.4 was the consolidation
 pass closing deferred review items + the federal-SI walk-through
-opener. **v0.9.5 lands walk-through refinement (AI-persona-driven)
-+ collaboration-primitives groundwork** (POA&M ownership fields +
-append-only evidence versioning + RBAC). See
+opener; v0.9.5 landed walk-through refinement + collaboration-
+primitives groundwork; v0.9.6 brought the federal expansion (WORM
+evidence store + CLI RBAC + CONMON MCP first-mover); v0.9.7 was the
+comprehensive v0.9.x close-out + v1.0 prep (api-stability NORMATIVE
++ multi-tenant RBAC + CIMD-signature groundwork). **v0.9.8 wires
+those primitives into live CLI, REST, MCP-dispatch, and storage
+surfaces** — the last v0.9.x ship before the v1.0 self-test and
+peer-review phase. See
 [`v1.0-transition.md`](v1.0-transition.md) for the v1.0
 narrative and acceptance gates.
 
@@ -1078,7 +1083,7 @@ v0.8.6 §29 P2 R3 single-rater κ probe inconclusive carry-
 forward acknowledged; domain-expert walk-through becomes the
 v0.9.1 reservation. v0.9.0 ships regardless.
 
-## v0.9.1 — Walk-through-driven refinement — IN PROGRESS
+## v0.9.1 — Walk-through-driven refinement — SHIPPED
 
 Cycle opened 2026-05-15 after v0.9.0 ship. Plan file:
 [`docs/v0.9.1-plan.md`](v0.9.1-plan.md).
@@ -1425,40 +1430,52 @@ NORMATIVE promotion.
 **3092 tests / 17 skipped / mypy strict 258 of 258 source files /
 ruff clean.**
 
-## v0.9.8 — Walk-through validation + v0.9.7 deferral closure — PLANNED
+## v0.9.8 — v0.9.7 deferral closure + v1.0-prep integration wiring — SHIPPED
 
-Estimated 2-3 week focused session. Closes the v0.9.7 deferrals
-+ runs the multi-reviewer walk-through pass before v1.0 cycle-open.
+Tag `v0.9.8` (2026-05-21). Focused session wiring v0.9.7's
+data/decision-only primitives into live surfaces, closing the
+CR-V97 review polish, and clearing supply-chain + type-safety gaps
+caught during the pre-tag review.
 
-**Carry-over from v0.9.7**:
-- **Real federal-SI domain-expert walk-throughs** (multiple
-  reviewers per Allen's pre-v1.0 plan). Captured findings in
-  `docs/walkthrough-validation-v0.9.8.md`.
-- **Conference outreach prep** — DEF CON 34 AI Village (CFP open),
-  GovForward FedRAMP Summit (July 23 2026), Billington (Sept 8-10).
-  Talk-abstract drafts shipped in `docs/conference-outreach-2026.md`
-  for human review.
-- **HF Hub eval-suite publish** — promote scaffolding to actual HF
-  dataset card + loading script + expanded FedRAMP Rev 5 High +
-  CMMC L2 subsets.
-- **Backfill v0.9.1 + v0.9.2 security-review docs**.
+**Phase 1 — v0.9.7 deferral closure**:
+- **Multi-tenant RBAC integration** (P1.3-P1.6): NEW `--rbac-tenant`
+  CLI flag + tenant-aware policy auto-detection; FastAPI
+  `require_role` derives the tenant claim from the authenticated
+  principal (closes F-V97-multi-tenant-claim-spoofing); POA&M +
+  evidence stores gain per-tenant directory roots; NEW
+  `RBAC_TENANT_BOUNDARY_CROSSED` audit event; shared
+  `load_rbac_policy_auto`.
+- **MCP dispatch-layer signing** (P1.1): `SignedToolOutput` wired
+  at the FastMCP tool-dispatch path; the signature rides in
+  `CallToolResult._meta` as additive provenance.
+- **In-tree Sigstore-keyless MCP signer** (P1.2): NEW
+  `evidentia_mcp.sigstore_signer` (closes F-V97-mcp-signer-trust).
+- **HF Hub GRC eval suite** (P1.9): FedRAMP Rev 5 High + CMMC L2
+  corpus subsets + dataset card + `scripts/publish_hf_eval.py`;
+  combined corpus regenerated to 195 entries.
 
-**v1.0 partial-prep wiring**:
-- **FastMCP dispatch-layer auto-wrap of SignedToolOutput** (wires
-  the v0.9.7 P2.4 primitives at the tool-dispatch layer).
-- **Sigstore-keyless reference signer backend**
-  (`evidentia_mcp.signatures.sigstore_signer`).
-- **Multi-tenant RBAC CLI integration** — `--rbac-tenant` global
-  flag + tenant-aware policy loader auto-detection.
-- **Multi-tenant RBAC FastAPI integration** — tenant claim
-  extraction from AuthProvider + per-request tenant-policy
-  resolution.
+**Phase 2 — CR-V97 review polish**:
+- Shared `evidentia_core.factory_resolver` (CR-V97-3 de-duplication
+  + CR-V97-1 cached resolution).
+- `sign_tool_output()` canonical-JSON encoding via `default=str`
+  (CR-V97-4).
 
-**Hygiene + supply chain**:
-- Codecov audit at v0.9.8 baseline + bump to 87% if comfortably
-  above (v0.9.7 baseline was 85%+).
-- uv.lock + Dependabot scheduled review.
-- paramiko upstream patch re-check.
+**Phase 3 — supply-chain + type-safety**:
+- idna 3.11 → 3.15 (CVE-2026-45409).
+- Three `SigningContext.production()` runtime breaks fixed
+  (sigstore 4.2.0 API migration) + PostgreSQL collector type
+  narrowing.
+- The CI + release-checklist mypy gates aligned (`--all-extras` in
+  CI; `evidentia-mcp` in the checklist command) so extra-gated
+  type errors can no longer slip through.
+
+**Deferred**: federal-SI walk-through validation (folded into the
+v1.0 self-test phase); paramiko CVE-2026-44405 LOW (a fix now
+exists upstream — carried forward to v0.9.9 as its own focused
+SSH-library major bump).
+
+**3250 tests / 14 skipped / mypy strict 262 of 262 source files /
+ruff clean.**
 
 ## v1.0 — Federal compliance shipped + API stability — RESERVED
 

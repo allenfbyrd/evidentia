@@ -157,6 +157,20 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.9.8 (May 2026)** — *v0.9.7 deferral closure + v1.0-prep
+integration wiring*. Wires v0.9.7's data/decision-only primitives
+into live surfaces: multi-tenant RBAC enforced end-to-end across
+CLI, REST, and the POA&M / evidence stores; MCP tool outputs signed
+at the FastMCP dispatch layer with an in-tree Sigstore-keyless
+reference signer (`evidentia_mcp.sigstore_signer`); a shared
+`evidentia_core.factory_resolver`; and the FedRAMP Rev 5 High +
+CMMC L2 HF-Hub eval-suite subsets. Closes the CR-V97 review polish,
+the `F-V97-mcp-signer-trust` + `F-V97-multi-tenant-claim-spoofing`
+findings, three `SigningContext.production()` runtime breaks
+(sigstore 4.2.0 API migration), and the idna CVE-2026-45409 bump.
+**3250 tests passing / 14 skipped across 262 source files; mypy
+strict 0/0; ruff clean.** PyPI: 7 packages at 0.9.8.
+
 **v0.9.5 (May 2026)** — *Walk-through refinement + collaboration
 primitives + carry-over closure*. Closes 18 deferred review
 findings (7 v0.9.3 LOWs + 8 v0.9.4 LOWs + 2 INFOs + 1
@@ -658,7 +672,7 @@ compliance evidence to NIST 800-53 controls. Plus ServiceNow
 output integration carry-forward.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for the full version history
-(v0.1.0 through v0.7.15). For forward direction, see
+(v0.1.0 through v0.9.8). For forward direction, see
 [`docs/v0.8.0-plan.md`](docs/v0.8.0-plan.md) (the OSS-native AI
 moat — DFAH + PRT + MCP + plugin contracts) and
 [`docs/ROADMAP.md`](docs/ROADMAP.md) (everything else).

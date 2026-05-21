@@ -7,6 +7,113 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet on the v0.9.9 development branch._
+
+## [0.9.8] - 2026-05-21
+
+**Theme**: *v0.9.7 deferral closure + v1.0-prep integration wiring* —
+wires v0.9.7's data/decision-only primitives into live CLI, REST,
+MCP-dispatch, and storage surfaces, closes the CR-V97 review polish,
+and clears a class of supply-chain and type-safety gaps caught
+during the pre-tag review.
+
+Multi-tenant RBAC is now enforced end-to-end, and MCP tool outputs
+are signed at the FastMCP dispatch layer with an in-tree
+Sigstore-keyless reference signer. Three `SigningContext.production()`
+runtime breaks (sigstore 4.2.0 removed that API) were caught and
+fixed, and the two mypy gates that had missed them were aligned.
+3250 tests pass; mypy strict is clean across 262 source files / 7
+packages. Walk-through validation is deferred to the v1.0 self-test
+phase.
+
+### Added
+
+- **Multi-tenant RBAC integration (v0.9.8 P1.3–P1.6)**: completes
+  the v0.9.7 `evidentia_core.rbac.multi_tenant` primitives into live
+  surfaces. NEW global `--rbac-tenant` CLI flag with tenant-aware
+  policy auto-detection; the FastAPI `require_role` dependency now
+  derives the tenant claim from the authenticated principal, closing
+  **F-V97-multi-tenant-claim-spoofing** (no more operator-asserted
+  env-var tenant); the POA&M and evidence stores gain per-tenant
+  directory roots gated by a `validate_tenant_id` slug check. NEW
+  `EventAction.RBAC_TENANT_BOUNDARY_CROSSED` audit event. A shared
+  `load_rbac_policy_auto` lets the CLI and REST classify a policy
+  file identically; `cross_tenant_admin_role` is constrained to
+  admin/deny to remove a sub-admin escalation foot-gun.
+- **MCP tool-output signing at the dispatch layer (v0.9.8 P1.1)**:
+  wires the v0.9.7 `SignedToolOutput` primitives into the FastMCP
+  tool-dispatch path. The signature rides in the `CallToolResult`
+  `_meta` block as additive provenance — a tool's content and
+  structured output are returned unchanged, and the low-level
+  server's output-schema validation still passes.
+- **In-tree Sigstore-keyless MCP signer (v0.9.8 P1.2)**: NEW
+  `evidentia_mcp.sigstore_signer` — `make_sigstore_signer()` and
+  `make_sigstore_verifier()` factories that remove operator key
+  material from the trust path via short-lived Fulcio certificates
+  tied to an OIDC identity. Closes **F-V97-mcp-signer-trust**.
+- **Shared factory resolver (v0.9.8 P2.2)**: NEW
+  `evidentia_core.factory_resolver` extracts the duplicated
+  dotted-path factory-resolution logic (the WORM auto-mirror backend
+  and the MCP signer) into one module, with result caching keyed on
+  the gating + factory env-var values. Closes CR-V97-3
+  (de-duplication) and CR-V97-1 (the WORM factory is now resolved
+  once per process, not per save).
+- **HF Hub GRC eval suite (v0.9.8 P1.9)**: NEW FedRAMP Rev 5 High
+  and CMMC L2 calibration-corpus subsets (24 entries each), an HF
+  dataset card, and `scripts/publish_hf_eval.py` — a two-phase
+  publish script whose `--dry-run` path validates and assembles the
+  dataset with no token, leaving only the operator-run upload. The
+  combined corpus is regenerated to 195 entries.
+- **`docs/conference-outreach-2026.md`**: NEW — talk-abstract drafts
+  for the DEF CON AI Village, the GovForward FedRAMP Summit, and
+  Billington, for operator review and submission.
+- **`docs/security-review-v0.9.1.md` + `docs/security-review-v0.9.2.md`**:
+  NEW — backfilled review artifacts for the two v0.9.x releases that
+  predated the canonical per-release security-review doc.
+
+### Changed
+
+- **CI and release-checklist mypy gates aligned**: the CI `mypy` job
+  now syncs `--all-extras`. Previously it synced `--all-packages`
+  only, so optional-extra imports (`sigstore`, `psycopg`, …)
+  resolved as `Any` and every extra-gated code path went
+  type-unchecked; the release-checklist mypy command, conversely,
+  omitted `evidentia-mcp`. Both gates now type-check all 7 packages
+  with every extra installed.
+- **`sign_tool_output()` canonical-JSON encoding (CR-V97-4)**:
+  non-JSON-primitive payloads are now canonicalised via
+  `default=str`.
+- **`docs/api-stability.md`**: the EventAction example table now
+  references real enum members and adds the `RBAC_*` namespace row.
+
+### Fixed
+
+- **Sigstore signing restored on sigstore 4.2.0**: sigstore 4.2.0
+  removed the `SigningContext.production()` classmethod — a real
+  runtime break, not a typing nit — in both
+  `evidentia_core.oscal.sigstore.sign_file()` and the new
+  `evidentia_mcp.sigstore_signer`. Both were migrated to
+  `SigningContext.from_trust_config(ClientTrustConfig.production())`.
+- **PostgreSQL collector type narrowing**: the `str | None`
+  `_connection_uri` is asserted non-None before `psycopg.connect()`,
+  clearing the `evidentia-collectors` mypy gate.
+
+### Security
+
+- **idna 3.11 → 3.15 (CVE-2026-45409)**: bumps `idna` past the
+  vulnerable `< 3.15` range in both `uv.lock` and
+  `docker/requirements.txt`.
+
+### Deferred
+
+- **Federal-SI domain-expert walk-through validation** — folded into
+  the v1.0 master-plan self-test phase.
+- **`paramiko` CVE-2026-44405 (LOW)** — a fix now exists upstream
+  (paramiko 5.0.0, unblocked by `compliance-trestle` 4.0.3), but it
+  is a major-version SSH-library bump that warrants its own focused
+  verification rather than a release-day insert. Carried forward to
+  v0.9.9 as a documented LOW.
+
 ## [0.9.7] - 2026-05-19
 
 **Theme**: *Comprehensive v0.9.x close-out + v1.0 prep* — v0.9.6
