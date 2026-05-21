@@ -55,7 +55,7 @@ product attack surface:
 |---|---|---|
 | paramiko CVE-2026-44405 / GHSA-r374-rxx8-8654 | LOW | **CLOSED** — `compliance-trestle` 4.0.2 → 4.0.3 pulls `paramiko` 4.0.0 → 5.0.0, past the `<= 4.0.0` vulnerable range. `paramiko` is a dev-only transitive dependency (via `compliance-trestle`, OSCAL round-trip tests); no Evidentia code imports it. |
 | pyjwt PYSEC-2025-183 / CVE-2025-45768 | DISPUTED (scored 7.0) | **Accepted — now allowlisted.** Disputed by the pyjwt maintainer; no fix version exists. Transitive-only; Evidentia exposes no operator-chosen-key JWT-minting surface. Recorded in `osv-scanner.toml` with `ignoreUntil = 2026-11-21` to force re-validation. Unchanged from the v0.9.8 disposition. |
-| idna alert #17 (CVE-2026-45409) | MEDIUM | **STALE — auto-resolves.** `uv.lock` and `docker/requirements.txt` already pin `idna 3.15` (= the patched version, on `main` since v0.9.8). The open Dependabot alert is an auto-dismiss lag; the v0.9.9 push retriggers the dependency-graph scan. |
+| idna alert #17 (CVE-2026-45409) | MEDIUM | **Verified-stale.** `uv.lock` and `docker/requirements.txt` already pin `idna 3.15` (= `first_patched`, on `main` since v0.9.8). The alert remained `open` after the v0.9.9 push — GitHub's auto-dismiss triggers on a dependency-graph *change* that moves a package out of range, and `idna` did not change this cycle. Not a live vulnerability; see Step 7 for the post-tag disposition. |
 
 **Zero unfixed CRITICAL / HIGH / MEDIUM / LOW at v0.9.9 ship.**
 
@@ -155,4 +155,36 @@ line.
 
 ## Step 7 — post-tag verification
 
-_Pending — appended after `release.yml` completes for tag `v0.9.9`._
+`release.yml` run `26243446599` — conclusion **success** (both jobs:
+`Build and publish to PyPI` + `Build and publish container image to
+ghcr.io`). Tag `v0.9.9`.
+
+| Sub-step | Outcome |
+|---|---|
+| `release.yml` completion | ✓ success — publish-pypi + publish-container |
+| PEP 740 attestations | ✓ 7/7 wheels verified (`pypi-attestations verify pypi --repository https://github.com/Polycentric-Labs/evidentia`) |
+| Container — cosign keyless verify | ✓ Verified OK — Rekor transparency log + cert chain + SLSA provenance v1; image digest `sha256:2adc9e366a465577bd6ae9aa154c8de6a339f9346f9ee3e8327c67775df2c78e` |
+| SBOM osv-scan | ✓ the published GitHub-release SBOM (182 packages) — `No issues found`; the disputed pyjwt advisory is allowlisted in `osv-scanner.toml` |
+| Fresh-venv install | ✓ `evidentia[gui]==0.9.9` from PyPI; `evidentia version` → `Evidentia v0.9.9`; `catalog list` → 89 frameworks (the 7-package inter-version pin-trap resolved cleanly) |
+| GitHub Release notes | ✓ CHANGELOG `[0.9.9]` auto-populated (4932-byte body); CycloneDX SBOM attached as a release asset |
+| Code-scanning alerts | ✓ 0 open |
+| `tests` CI on the `main` push | ✓ success — including the NEW `osv-scan` job's first live run (osv-scanner v2.3.8) |
+
+### Dependabot alert disposition
+
+| Alert | Severity | Post-tag state |
+|---|---|---|
+| #9 paramiko CVE-2026-44405 | LOW | **`fixed`** — auto-resolved once the v0.9.9 push moved `paramiko` to 5.0.0 in `uv.lock`. |
+| #17 idna CVE-2026-45409 | MEDIUM | **`open` — verified-stale.** `idna 3.15` (= `first_patched`) is in `uv.lock`, `docker/requirements.txt`, and the published 0.9.9 wheels' resolved closure. The alert did not auto-resolve because the v0.9.9 push did not *change* `idna` (it has been 3.15 on `main` since v0.9.8); GitHub's auto-dismiss triggers on a dependency-graph change that moves a package out of range. Not a live vulnerability — the fix is shipped. Recommended action: a one-off manual dismissal (`gh api repos/Polycentric-Labs/evidentia/dependabot/alerts/17 -X PATCH -f state=dismissed -f dismissed_reason=inaccurate`), or leave it for GitHub's next periodic re-scan. |
+
+### Step 7 verdict
+
+**PROCEED-CLEAN confirmed post-tag.** The published PyPI + GHCR
+artifacts verify against their build provenance; the post-tag
+osv-scan of the published SBOM is clean; the fresh-venv install
+resolves all 7 inter-package pins to 0.9.9. The one open Dependabot
+alert (#17 idna) is verified-stale — the fix is shipped. v0.9.9 is
+SHIPPED.
+
+**24th consecutive PROCEED-CLEAN** of the v0.7.x → v0.8.x → v0.9.x
+line.
