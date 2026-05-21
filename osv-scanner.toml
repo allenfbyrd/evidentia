@@ -1,0 +1,21 @@
+# osv-scanner allowlist -- Evidentia supply-chain pre-push gate.
+#
+# Consumed by `scripts/run_osv_scan.py` via `osv-scanner --config`.
+# That one shared script runs the gate in CI (the `osv-scan` job in
+# .github/workflows/test.yml) and pre-tag (docs/release-checklist.md
+# Step 5), so the CI gate and its documented counterpart cannot drift.
+#
+# osv-scanner surfaces transitive + DISPUTED advisories that the
+# Dependabot alert feed suppresses (see the v0.9.8 gate-fidelity
+# lesson: a disputed pyjwt CVE surfaced only post-tag because the
+# 16-row gate's Row 14 read Dependabot alerts).
+#
+# Every [[IgnoredVulns]] entry MUST carry a `reason` traceable to a
+# security-review disposition. `ignoreUntil` forces re-validation:
+# once it lapses the gate fails until the entry is re-affirmed or
+# removed. osv-scanner also suppresses aliases of an ignored id.
+
+[[IgnoredVulns]]
+id = "PYSEC-2025-183"
+ignoreUntil = 2026-11-21
+reason = "pyjwt CVE-2025-45768: DISPUTED, no fix exists. The pyjwt maintainer disputes the advisory (HMAC key length is the calling application's choice, not a library defect); every pyjwt release is flagged, so there is no first_patched version. pyjwt reaches Evidentia only transitively (sigstore / mcp / msal / okta / pygithub / snowflake-connector-python) and Evidentia exposes no operator-chosen-key JWT-minting surface. Operator-confirmed accept 2026-05-21 (docs/security-review-v0.9.8.md); re-affirmed for v0.9.9. Re-validate by 2026-11-21."
