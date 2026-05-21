@@ -51,7 +51,7 @@ Before writing any code for a release:
 
 For every release (patch / minor / major):
 
-- [ ] Bump `version = "X.Y.Z"` in **all 7** pyproject.toml files:
+- [ ] Bump `version = "X.Y.Z"` in **all 8** pyproject.toml files:
   - `pyproject.toml` (workspace root)
   - `packages/evidentia/pyproject.toml`
   - `packages/evidentia-core/pyproject.toml`
@@ -59,6 +59,7 @@ For every release (patch / minor / major):
   - `packages/evidentia-collectors/pyproject.toml`
   - `packages/evidentia-integrations/pyproject.toml`
   - `packages/evidentia-api/pyproject.toml`
+  - `packages/evidentia-mcp/pyproject.toml`
 - [ ] Bump `"version": "X.Y.Z"` in `packages/evidentia-ui/package.json`.
 - [ ] **Bump inter-package dep pins** atomically. Pattern:
       `>=PREV.0,<X.0` → `>=X.0,<NEXT.0` across:
@@ -150,7 +151,8 @@ uv run --no-sync ruff check
 uv run --no-sync python -m mypy \
   packages/evidentia-core packages/evidentia-collectors \
   packages/evidentia-api packages/evidentia-ai \
-  packages/evidentia-integrations packages/evidentia
+  packages/evidentia-integrations packages/evidentia \
+  packages/evidentia-mcp
 uv run --no-sync python -m pytest -q --cov=packages
 uv build --all-packages
 uvx twine check dist/*

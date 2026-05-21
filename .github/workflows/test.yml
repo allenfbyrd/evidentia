@@ -154,7 +154,10 @@ jobs:
       - name: Sync workspace
         env:
           EVIDENTIA_SKIP_FRONTEND_BUILD: "1"
-        run: uv sync --all-packages
+        # --all-extras is required: without the optional extras
+        # installed, mypy resolves sigstore / psycopg / etc. as Any
+        # and silently skips type-checking every extra-gated path.
+        run: uv sync --all-extras --all-packages
 
       # v0.2.1: added advisory-only. v0.3.0: flipped to strict — mypy is
       # now a required check. Pydantic plugin enabled via [tool.mypy] in
