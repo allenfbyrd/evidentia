@@ -130,6 +130,7 @@ def sign_file(
         Path(bundle_path) if bundle_path else default_bundle_path(artifact)
     )
 
+    from sigstore.models import ClientTrustConfig
     from sigstore.oidc import IdentityToken, detect_credential
     from sigstore.sign import SigningContext
 
@@ -146,7 +147,7 @@ def sign_file(
         else:
             token = IdentityToken(identity_token)
 
-        ctx = SigningContext.production()
+        ctx = SigningContext.from_trust_config(ClientTrustConfig.production())
         with ctx.signer(token) as signer, artifact.open("rb") as fh:
             bundle = signer.sign_artifact(fh.read())
 

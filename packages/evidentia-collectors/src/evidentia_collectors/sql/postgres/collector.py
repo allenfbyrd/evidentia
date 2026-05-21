@@ -228,6 +228,8 @@ class PostgresCollector:
         kwargs: dict[str, Any] = {"autocommit": True}
         if self._password is not None:
             kwargs["password"] = self._password
+        # __init__ requires a URI unless a connection was injected.
+        assert self._connection_uri is not None
         try:
             self._connection = psycopg.connect(
                 self._connection_uri,
