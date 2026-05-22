@@ -128,6 +128,7 @@ def test_cross_framework_value_populated():
     ("csv", "csv"),
     ("markdown", "md"),
     ("oscal-ar", "json"),
+    ("sarif", "sarif"),
 ])
 def test_export_all_formats(tmp_path, fmt, ext):
     inv = load_inventory(FIXTURES / "sample-inventory.yaml")
@@ -141,7 +142,7 @@ def test_export_all_formats(tmp_path, fmt, ext):
     assert result.exists()
     assert result.stat().st_size > 0
 
-    # JSON outputs should be parseable
-    if ext == "json":
+    # JSON-based outputs should be parseable
+    if ext in ("json", "sarif"):
         data = json.loads(result.read_text(encoding="utf-8"))
         assert isinstance(data, dict)

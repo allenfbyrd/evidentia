@@ -1,6 +1,6 @@
 """Gap analysis report output formatters.
 
-Supports: JSON, CSV, Markdown, OSCAL Assessment Results.
+Supports: JSON, CSV, Markdown, OSCAL Assessment Results, SARIF.
 
 v0.7.0: the ``oscal-ar`` format optionally accepts a list of
 :class:`SecurityFinding` objects (``findings=``) to embed as hashed
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from evidentia_core.models.finding import SecurityFinding
     from evidentia_core.models.tprm import Vendor
 
-OutputFormat = Literal["json", "csv", "markdown", "oscal-ar"]
+OutputFormat = Literal["json", "csv", "markdown", "oscal-ar", "sarif"]
 
 
 def export_report(
@@ -48,7 +48,7 @@ def export_report(
     output_path:
         Destination file path.
     format:
-        One of ``json``, ``csv``, ``markdown``, ``oscal-ar``.
+        One of ``json``, ``csv``, ``markdown``, ``oscal-ar``, ``sarif``.
     findings:
         Optional :class:`SecurityFinding` list for the ``oscal-ar`` format.
         Each finding becomes a hashed OSCAL back-matter resource and is
@@ -94,6 +94,8 @@ def export_report(
             sigstore_bundle_path=sigstore_bundle_path,
             sigstore_identity_token=sigstore_identity_token,
         )
+    if format == "sarif":
+        return _export_sarif(report, path)
 
     raise ValueError(f"Unsupported format: {format}")
 
@@ -257,4 +259,18 @@ def _export_oscal_ar(
             identity_token=sigstore_identity_token,
         )
 
+    return path
+
+
+def _export_sarif(report: GapAnalysisReport, path: Path) -> Path:
+    """Export the gap report as a SARIF 2.1.0 log (v0.10.0).
+
+    Each ControlGap becomes a SARIF result, so gap analysis can run as
+    a CI gate — rendered in GitHub code scanning / GitLab security
+    dashboards, or consumed as a standalone SARIF artifact.
+    """
+    from evidentia_core.gap_analyzer.sarif import gap_report_to_sarif
+
+    sarif_log = gap_report_to_sarif(report)
+    path.write_text(json.dumps(sarif_log, indent=2), encoding="utf-8")
     return path
