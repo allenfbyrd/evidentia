@@ -64,6 +64,17 @@ worm-azure = [
 worm-gcs = [
     "google-cloud-storage>=2.18.0",
 ]
+# v0.10.0: OCSF (Open Cybersecurity Schema Framework) interop. The
+# evidentia_core.ocsf mapping layer converts SecurityFinding objects
+# to/from OCSF Compliance Finding objects. Gated behind an extra
+# because py-ocsf-models pulls `cryptography` — same slim-default-
+# install rationale as the `sigstore` extra above. The mapping module
+# lazy-imports py_ocsf_models and raises a helpful error if the extra
+# is absent (mirrors the collector extras pattern). Pinned to the
+# 0.9.x line: py-ocsf-models is pre-1.0, so a minor bump may break.
+ocsf = [
+    "py-ocsf-models>=0.9.0,<0.10.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/polycentric-labs/evidentia"

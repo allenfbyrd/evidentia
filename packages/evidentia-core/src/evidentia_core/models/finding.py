@@ -17,6 +17,20 @@ v0.7.0 schema upgrade:
   pre-v0.7.0 construction sites keep working; upgraded collectors
   (v0.7.0+) pass real context.
 
+v0.10.0 schema upgrade (OCSF alignment):
+
+- ``compliance_status: ComplianceStatus`` records the pass/fail
+  result of the checked control, mirroring the OCSF Compliance
+  Finding ``compliance.status`` field. Defaults to ``UNKNOWN`` so
+  pre-v0.10.0 construction sites (and collectors not yet migrated)
+  keep working without asserting a result.
+- ``remediation: str | None`` carries optional remediation guidance,
+  mapping to the OCSF Compliance Finding ``remediation.desc`` field.
+
+Both fields are additive and optional — v0.7.x / v0.8.x / v0.9.x
+serialized findings re-parse cleanly. See ``docs/v0.10.0-plan.md``
+for the OCSF mapping design.
+
 See :mod:`evidentia_core.audit.provenance` for the CollectionContext
 model and :class:`~evidentia_core.models.common.OLIRRelationship` for
 the relationship vocabulary.
@@ -48,6 +62,34 @@ class FindingStatus(str, Enum):
     ACTIVE = "active"
     RESOLVED = "resolved"
     SUPPRESSED = "suppressed"
+
+
+class ComplianceStatus(str, Enum):
+    """Compliance/posture result of the check a finding represents.
+
+    Distinct from :class:`FindingStatus`, which is the finding's
+    lifecycle state (active / resolved / suppressed).
+    ``ComplianceStatus`` answers a different question — did the checked
+    control pass or fail? — and mirrors the OCSF Compliance Finding
+    ``compliance.status`` field. Added v0.10.0 for OCSF alignment.
+    """
+
+    PASS = "pass"
+    """The control or check passed; the resource is compliant."""
+
+    FAIL = "fail"
+    """The control or check failed; the resource is non-compliant."""
+
+    WARNING = "warning"
+    """A non-fatal concern, short of an outright failure."""
+
+    NOT_APPLICABLE = "not_applicable"
+    """The control or check does not apply to the evaluated resource."""
+
+    UNKNOWN = "unknown"
+    """Result not determined — the default for findings from collectors
+    not yet migrated to set the status explicitly, and for
+    informational / inventory findings that do not represent a check."""
 
 
 def _synthetic_legacy_context() -> CollectionContext:
@@ -87,6 +129,32 @@ class SecurityFinding(EvidentiaModel):
     description: str
     severity: Severity
     status: FindingStatus = Field(default=FindingStatus.ACTIVE)
+    # v0.10.0 (OCSF alignment): compliance/posture result + remediation.
+    compliance_status: ComplianceStatus = Field(
+        default=ComplianceStatus.UNKNOWN,
+        description=(
+            "Pass/fail result of the control or check this finding "
+            "represents. Distinct from `status` (the active/resolved "
+            "lifecycle state). Mirrors the OCSF Compliance Finding "
+            "`compliance.status` field. Defaults to UNKNOWN: collectors "
+            "migrated in v0.10.0+ set this explicitly; pre-v0.10.0 "
+            "construction sites and not-yet-migrated collectors leave it "
+            "UNKNOWN rather than asserting a result. Most collectors "
+            "gather non-compliant items, but the vendor-risk collectors "
+            "also emit informational inventory findings, so UNKNOWN — "
+            "not FAIL — is the safe default."
+        ),
+    )
+    remediation: str | None = Field(
+        default=None,
+        description=(
+            "Optional human-readable remediation guidance. Maps to the "
+            "OCSF Compliance Finding `remediation.desc` field. Populated "
+            "by collectors where the source system supplies remediation "
+            "text (e.g. AWS Security Hub Remediation.Recommendation); "
+            "None when unavailable."
+        ),
+    )
     source_system: str = Field(description="E.g. 'aws-security-hub', 'github'")
     source_finding_id: str | None = Field(
         default=None,

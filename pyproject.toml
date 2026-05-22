@@ -101,6 +101,12 @@ dev = [
     # can run the DAST suite without separate install steps.
     "schemathesis>=4.19.0",
     "playwright>=1.50",
+    # v0.10.0: py-ocsf-models drives the OCSF mapping layer
+    # (evidentia_core.ocsf). It is an end-user extra
+    # (`evidentia-core[ocsf]`); mirrored here in dev-deps so the
+    # dev/CI venv runs the OCSF round-trip tests without activating
+    # the extra — same pattern as boto3 / azure / gcs above.
+    "py-ocsf-models>=0.9.0,<0.10.0",
 ]
 
 [tool.uv.sources]

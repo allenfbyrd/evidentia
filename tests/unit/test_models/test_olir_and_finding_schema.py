@@ -11,7 +11,7 @@ from evidentia_core.models.common import (
     ControlMapping,
     OLIRRelationship,
 )
-from evidentia_core.models.finding import SecurityFinding
+from evidentia_core.models.finding import ComplianceStatus, SecurityFinding
 from evidentia_core.models.migrations.v0_6_to_v0_7 import (
     is_legacy_finding_payload,
     load_legacy_finding,
@@ -226,3 +226,74 @@ def test_migrate_findings_json_array(tmp_path: Path) -> None:
     findings = migrate_findings_json(path)
     assert len(findings) == 3
     assert findings[1].control_ids == ["AC-1"]
+
+
+# ── v0.10.0 OCSF-alignment fields ────────────────────────────────────
+
+
+def test_compliance_status_values() -> None:
+    assert ComplianceStatus.PASS.value == "pass"
+    assert ComplianceStatus.FAIL.value == "fail"
+    assert ComplianceStatus.WARNING.value == "warning"
+    assert ComplianceStatus.NOT_APPLICABLE.value == "not_applicable"
+    assert ComplianceStatus.UNKNOWN.value == "unknown"
+    assert {s.value for s in ComplianceStatus} == {
+        "pass", "fail", "warning", "not_applicable", "unknown",
+    }
+
+
+def test_security_finding_compliance_status_defaults_to_unknown() -> None:
+    finding = SecurityFinding(
+        title="t", description="d", severity="high", source_system="aws-config",
+    )
+    assert finding.compliance_status == ComplianceStatus.UNKNOWN
+
+
+def test_security_finding_remediation_defaults_to_none() -> None:
+    finding = SecurityFinding(
+        title="t", description="d", severity="high", source_system="aws-config",
+    )
+    assert finding.remediation is None
+
+
+def test_security_finding_accepts_explicit_compliance_status() -> None:
+    finding = SecurityFinding(
+        title="t", description="d", severity="high", source_system="aws-config",
+        compliance_status=ComplianceStatus.FAIL,
+    )
+    assert finding.compliance_status == ComplianceStatus.FAIL
+
+
+def test_security_finding_accepts_remediation() -> None:
+    finding = SecurityFinding(
+        title="t", description="d", severity="high", source_system="aws-config",
+        remediation="Enable MFA on the root account.",
+    )
+    assert finding.remediation == "Enable MFA on the root account."
+
+
+def test_security_finding_round_trip_preserves_v010_fields() -> None:
+    finding = SecurityFinding(
+        title="t", description="d", severity="high", source_system="aws-config",
+        compliance_status=ComplianceStatus.FAIL,
+        remediation="Rotate the exposed key.",
+        collection_context=_make_context(),
+    )
+    restored = SecurityFinding.model_validate(finding.model_dump(mode="json"))
+    assert restored.compliance_status == ComplianceStatus.FAIL
+    assert restored.remediation == "Rotate the exposed key."
+
+
+def test_pre_v010_finding_json_parses_with_defaults() -> None:
+    """A v0.9.x-shaped findings JSON (no v0.10.0 fields) re-parses, with
+    compliance_status defaulting to UNKNOWN and remediation to None."""
+    pre_v010 = {
+        "id": "22222222-2222-2222-2222-222222222222",
+        "title": "Root account missing MFA",
+        "description": "d", "severity": "high", "status": "active",
+        "source_system": "aws-config",
+        "control_mappings": [],
+    }
+    finding = SecurityFinding.model_validate(pre_v010)
+    assert finding.compliance_status == ComplianceStatus.UNKNOWN
+    assert finding.remediation is None

@@ -926,15 +926,15 @@ wheels = [
 
 [[package]]
 name = "email-validator"
-version = "2.3.0"
+version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dnspython" },
     { name = "idna" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f5/22/900cb125c76b7aaa450ce02fd727f452243f2e91a61af068b40adba60ea9/email_validator-2.3.0.tar.gz", hash = "sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426", size = 51238, upload-time = "2025-08-26T13:09:06.831Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/48/ce/13508a1ec3f8bb981ae4ca79ea40384becc868bfae97fd1c942bb3a001b1/email_validator-2.2.0.tar.gz", hash = "sha256:cb690f344c617a714f22e66ae771445a1ceb46821152df8e165c5f9a364582b7", size = 48967, upload-time = "2024-06-20T11:30:30.034Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/15/545e2b6cf2e3be84bc1ed85613edd75b8aea69807a71c26f4ca6a9258e82/email_validator-2.3.0-py3-none-any.whl", hash = "sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4", size = 35604, upload-time = "2025-08-26T13:09:05.858Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/ee/bf0adb559ad3c786f12bcbc9296b3f5675f529199bef03e2df281fa1fadb/email_validator-2.2.0-py3-none-any.whl", hash = "sha256:561977c2d73ce3611850a06fa56b414621e0c8faa9d66f2611407d87465da631", size = 33521, upload-time = "2024-06-20T11:30:28.248Z" },
 ]
 
 [[package]]
@@ -1143,6 +1143,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+ocsf = [
+    { name = "py-ocsf-models" },
+]
 sigstore = [
     { name = "sigstore" },
 ]
@@ -1168,6 +1171,7 @@ requires-dist = [
     { name = "google-cloud-storage", marker = "extra == 'worm-gcs'", specifier = ">=2.18.0" },
     { name = "openpyxl", marker = "extra == 'xlsx'", specifier = ">=3.1" },
     { name = "platformdirs", specifier = ">=4.3" },
+    { name = "py-ocsf-models", marker = "extra == 'ocsf'", specifier = ">=0.9.0,<0.10.0" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "python-dateutil", specifier = ">=2.9" },
@@ -1177,7 +1181,7 @@ requires-dist = [
     { name = "tenacity", specifier = ">=9.0" },
     { name = "thefuzz", extras = ["speedup"], specifier = ">=0.22" },
 ]
-provides-extras = ["sigstore", "xlsx", "worm-s3", "worm-azure", "worm-gcs"]
+provides-extras = ["sigstore", "xlsx", "worm-s3", "worm-azure", "worm-gcs", "ocsf"]
 
 [[package]]
 name = "evidentia-integrations"
@@ -1261,6 +1265,7 @@ dev = [
     { name = "mypy" },
     { name = "numpy" },
     { name = "playwright" },
+    { name = "py-ocsf-models" },
     { name = "pydantic" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -1287,6 +1292,7 @@ dev = [
     { name = "mypy", specifier = ">=2.1.0" },
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "playwright", specifier = ">=1.50" },
+    { name = "py-ocsf-models", specifier = ">=0.9.0,<0.10.0" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
@@ -3368,6 +3374,20 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/4e/2c/c1547871be3790676e8868b38655496422f94f0978dfb66b74bdba2f1676/psycopg_binary-3.3.4-cp314-cp314-musllinux_1_2_riscv64.whl", hash = "sha256:6b9016b1714da4dd5ecaaa75b82098aa5a0b87854ce9b092e21c27c4ae23e014", size = 3946204, upload-time = "2026-05-01T23:31:39.626Z" },
     { url = "https://files.pythonhosted.org/packages/c4/b1/f6670f00fa7ea601584623f6c11602ab92117d83eaff885e0210f6de7418/psycopg_binary-3.3.4-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:47c656a8a7ba6eb0cff1801a4caaa9c8bdc12d03080e273aff1c8ac39971a77e", size = 4255811, upload-time = "2026-05-01T23:31:44.986Z" },
     { url = "https://files.pythonhosted.org/packages/eb/e6/5fff07a70d1f945ed90ae131c3bd76cab32beff7c58c6db15ad5820b6d1f/psycopg_binary-3.3.4-cp314-cp314-win_amd64.whl", hash = "sha256:c37e024c07308cd06cf3ec51bfd0e7f6157585a4d84d1bce4a7f5f7913719bf8", size = 3666849, upload-time = "2026-05-01T23:31:51.165Z" },
+]
+
+[[package]]
+name = "py-ocsf-models"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "email-validator" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/20/bf1dfe8981475527259dd69a4956600234c31895e90f4d17d1788b7c12fa/py_ocsf_models-0.9.0.tar.gz", hash = "sha256:9c41bc2f809a5e5554095931063cbb1bd04b3e3d35edb01d2c5f5bb8462aa3e2", size = 36543, upload-time = "2026-04-09T07:26:37.172Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8d/ba/8701e35854e1d809a632139ac0f0790d1012b947a8e27d428859a8e6a83c/py_ocsf_models-0.9.0-py3-none-any.whl", hash = "sha256:4496c1fcc7cd8fabea53cfb81d000e9a4d2808769236f8432290b3a215cb7ee6", size = 64353, upload-time = "2026-04-09T07:26:35.834Z" },
 ]
 
 [[package]]

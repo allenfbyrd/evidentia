@@ -1,0 +1,133 @@
+"""Tests for the v0.10.0 OCSF mapping layer (evidentia_core.ocsf)."""
+
+from __future__ import annotations
+
+import pytest
+
+pytest.importorskip("py_ocsf_models")
+
+from evidentia_core.models.common import (
+    ControlMapping,
+    OLIRRelationship,
+    Severity,
+)
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
+from evidentia_core.ocsf import (
+    OCSFMappingError,
+    finding_from_ocsf,
+    finding_to_ocsf,
+)
+
+
+def _rich_finding() -> SecurityFinding:
+    """A SecurityFinding with every mappable field populated."""
+    return SecurityFinding(
+        title="Root account missing MFA",
+        description="The AWS root account does not have MFA enabled.",
+        severity=Severity.HIGH,
+        status=FindingStatus.ACTIVE,
+        compliance_status=ComplianceStatus.FAIL,
+        remediation="Enable a hardware MFA device on the root account.",
+        source_system="aws-config",
+        source_finding_id="root-account-mfa-enabled:root",
+        resource_type="AWS::IAM::User",
+        resource_id="arn:aws:iam::123456789012:root",
+        resource_region="us-east-1",
+        control_mappings=[
+            ControlMapping(
+                framework="nist-800-53-rev5",
+                control_id="IA-2",
+                relationship=OLIRRelationship.SUBSET_OF,
+                justification="Root MFA is the canonical IA-2(1) scenario.",
+            ),
+            ControlMapping(
+                framework="nist-800-53-rev5",
+                control_id="AC-6",
+                relationship=OLIRRelationship.SUBSET_OF,
+                justification="Root is the maximum-privilege principal.",
+            ),
+        ],
+    )
+
+
+def test_to_ocsf_emits_compliance_finding_class() -> None:
+    ocsf = finding_to_ocsf(_rich_finding())
+    assert ocsf["class_uid"] == 2003
+    assert ocsf["category_uid"] == 2
+
+
+def test_to_ocsf_output_validates_against_py_ocsf_models() -> None:
+    from py_ocsf_models.events.findings.compliance_finding import ComplianceFinding
+
+    # The dict must re-validate cleanly as a real OCSF Compliance Finding.
+    ComplianceFinding.model_validate(finding_to_ocsf(_rich_finding()))
+
+
+def test_to_ocsf_maps_severity_and_compliance_status() -> None:
+    ocsf = finding_to_ocsf(_rich_finding())
+    assert ocsf["severity_id"] == 4  # SeverityID.High
+    assert ocsf["compliance"]["status_id"] == 3  # compliance StatusID.Fail
+    assert ocsf["compliance"]["standards"] == ["nist-800-53-rev5"]
+    assert sorted(ocsf["compliance"]["requirements"]) == ["AC-6", "IA-2"]
+
+
+def test_round_trip_preserves_finding_exactly() -> None:
+    original = _rich_finding()
+    restored = finding_from_ocsf(finding_to_ocsf(original))
+    assert restored == original
+
+
+def test_round_trip_preserves_olir_relationship_and_justification() -> None:
+    restored = finding_from_ocsf(finding_to_ocsf(_rich_finding()))
+    by_id = {m.control_id: m for m in restored.control_mappings}
+    assert by_id["IA-2"].relationship == OLIRRelationship.SUBSET_OF
+    assert by_id["IA-2"].justification.startswith("Root MFA")
+    assert by_id["AC-6"].relationship == OLIRRelationship.SUBSET_OF
+
+
+def test_round_trip_minimal_finding() -> None:
+    minimal = SecurityFinding(
+        title="t", description="d", severity=Severity.LOW, source_system="github",
+    )
+    restored = finding_from_ocsf(finding_to_ocsf(minimal))
+    assert restored == minimal
+    assert restored.compliance_status == ComplianceStatus.UNKNOWN
+
+
+def test_from_ocsf_ingests_third_party_compliance_finding() -> None:
+    """A native OCSF Compliance Finding with no evidentia block is
+    reconstructed best-effort from the standard OCSF fields."""
+    third_party = {
+        "activity_id": 1,
+        "category_uid": 2,
+        "class_uid": 2003,
+        "type_uid": 200301,
+        "time": 1_700_000_000_000,
+        "severity_id": 5,
+        "metadata": {
+            "version": "1.5.0",
+            "product": {"name": "SomeScanner", "vendor_name": "Acme"},
+        },
+        "finding_info": {"title": "Encryption disabled", "uid": "ext-1"},
+        "compliance": {
+            "status_id": 3,
+            "standards": ["cis-aws"],
+            "requirements": ["2.1.1"],
+        },
+    }
+    restored = finding_from_ocsf(third_party)
+    assert restored.title == "Encryption disabled"
+    assert restored.severity == Severity.CRITICAL
+    assert restored.compliance_status == ComplianceStatus.FAIL
+    assert restored.source_system == "SomeScanner"
+    assert restored.control_mappings[0].control_id == "2.1.1"
+    assert restored.control_mappings[0].framework == "cis-aws"
+
+
+def test_from_ocsf_rejects_invalid_input() -> None:
+    with pytest.raises(OCSFMappingError):
+        finding_from_ocsf({"not": "an ocsf compliance finding"})
