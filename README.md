@@ -742,8 +742,10 @@ moat — DFAH + PRT + MCP + plugin contracts) and
   priority scores, efficiency opportunities (controls that close gaps in 2+
   frameworks simultaneously), and a prioritized remediation roadmap.
 
-- **Four output formats:** JSON (canonical), CSV (flat), Markdown (human
-  review), and OSCAL Assessment Results (for audit handoff and tool interop).
+- **Five output formats:** JSON (canonical), CSV (flat), Markdown (human
+  review), OSCAL Assessment Results (for audit handoff and tool interop),
+  and SARIF 2.1.0 (`--format sarif`, v0.10.0 — runs gap analysis as a CI
+  gate, surfaced in GitHub code scanning and GitLab security dashboards).
 
 - **AI risk statement generator.** NIST SP 800-30 Rev 1 compliant risk
   statements from gaps + system context. Uses Instructor to enforce the

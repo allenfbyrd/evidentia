@@ -65,13 +65,14 @@ Adding optional fields (with defaults) is a minor-bump change.
 Renaming, removing, or changing the type of an existing field
 is a major-bump trigger.
 
-Frozen models (45+ classes across 17 modules; v0.9.7-confirmed):
+Frozen models (48+ classes across 18 modules; v0.10.0-confirmed):
 
 | Module | Key models |
 |--------|-----------|
 | `common.py` | `FrameworkMetadata`, `ControlMapping`, `EvidentiaModel` |
 | `control.py` | `Control`, `ControlFamily`, `ControlImplementation`, `ControlInventory`, `ControlStatus` |
 | `evidence.py` | `EvidenceArtifact`, `EvidenceBundle`, `EvidenceType`, `EvidenceSufficiency`. v0.9.5+ adds `EvidenceArtifact.version` / `lineage_id` / `predecessor_id` Optional fields + `new_version()` factory helper; these are now frozen. |
+| `finding.py` (v0.10.0+) | `SecurityFinding`, `FindingStatus`, `ComplianceStatus`. Frozen following the v0.10.0 OCSF-alignment evolution — field changes are additive-only. v0.10.0 added the `compliance_status` + `remediation` Optional fields. A `SecurityFinding` → `Finding` class rename is tracked for v0.10.1 and will go through the deprecation policy: the `SecurityFinding` name is kept as a re-export alias for ≥1 minor cycle. |
 | `gap.py` | `GapFinding`, `GapSeverity`, `GapAnalysisReport`, `ControlGap`, `Milestone`, `POAMState`. v0.9.5 adds `Milestone.owner` / `Milestone.reviewer` Optional fields; these are now frozen. |
 | `vendor.py` | `VendorProfile`, `VendorRiskTier` |
 | `vendor_finding.py` | `VendorFinding` |
@@ -233,6 +234,11 @@ from evidentia_core.ai_governance.scr import (
 
 # v0.9.6+ OSCAL schema version constant
 from evidentia_core.oscal import OSCAL_SCHEMA_VERSION
+
+# v0.10.0+ OCSF Compliance Finding interchange (needs the [ocsf] extra)
+from evidentia_core.ocsf import (
+    finding_to_ocsf, finding_from_ocsf, OCSFMappingError,
+)
 
 # AI features
 from evidentia_ai.risk_statements import RiskStatementGenerator
@@ -482,3 +488,4 @@ cycle.
 | DRAFT | 2026-05-16 | Initial authoring during v0.9.3 P5 |
 | DRAFT | 2026-05-18 | v0.9.4 – v0.9.5 surfaces inventoried (no doc edits yet) |
 | **NORMATIVE** | **2026-05-19** | **Promoted from DRAFT during v0.9.7 P2.1. v0.9.4 – v0.9.6 surfaces backfilled: evidence WORM store, AI-gov federal fields, FIPS 199 + OMB + SCR models, CONMON MCP tools, OSCAL_SCHEMA_VERSION constant, RBAC primitives, evidence_store env vars. MCP tool contract section + env-var public-contract section added. Pre-v1.0 binding semantics in force.** |
+| **NORMATIVE** | **2026-05-22** | **v0.10.0: `models/finding.py` joins the frozen-models table (`SecurityFinding`, `FindingStatus`, `ComplianceStatus`) following its additive OCSF-alignment evolution. New `evidentia_core.ocsf` library entry point (`finding_to_ocsf` / `finding_from_ocsf` / `OCSFMappingError`) added to §5. SARIF is a new `evidentia gap` output format — non-breaking per §3. See [ocsf-mapping.md](ocsf-mapping.md).** |

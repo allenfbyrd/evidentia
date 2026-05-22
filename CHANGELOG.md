@@ -7,7 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.9.10 development branch._
+**Theme**: *OCSF-aligned findings schema + SARIF CI-gate output* —
+opens the v0.10.x research-driven integration line. An OCSF-aligned
+normalized findings schema is the keystone that makes downstream
+integrations (Prowler, AWS Security Hub, Datadog, RegScale ingestion)
+cheap rather than bespoke; v0.10.0 lays that foundation and ships the
+first operator-visible payoff, SARIF emit for `evidentia gap`.
+
+### Added
+
+- **OCSF-aligned findings schema (v0.10.0)**: `SecurityFinding` gains
+  two additive, optional fields — `compliance_status` (new
+  `ComplianceStatus` enum: `pass` / `fail` / `warning` /
+  `not_applicable` / `unknown`, mirroring the OCSF Compliance Finding
+  `compliance.status` field) and `remediation` (optional remediation
+  text, mirroring OCSF `remediation.desc`). Both default safely
+  (`compliance_status` to `UNKNOWN`, `remediation` to `None`), so
+  v0.7.x–v0.9.x serialized findings re-parse cleanly.
+- **OCSF Compliance Finding mapping layer (v0.10.0)**: new
+  `evidentia_core.ocsf` package. `finding_to_ocsf` / `finding_from_ocsf`
+  convert `SecurityFinding` to and from the OCSF Compliance Finding
+  class (`class_uid` 2003), with a lossless round trip for
+  Evidentia-produced findings (the complete finding rides in the
+  OCSF-standard `unmapped` block, so OLIR control mappings and
+  `CollectionContext` provenance survive export/import). New optional
+  `ocsf` extra — `pip install 'evidentia-core[ocsf]'` — pulls
+  `py-ocsf-models`; the mapping module is its only importer, so the
+  default install stays slim and the core model is insulated from OCSF
+  schema churn. See [`docs/ocsf-mapping.md`](docs/ocsf-mapping.md).
+- **SARIF 2.1.0 output for `evidentia gap` (v0.10.0)**: `evidentia gap
+  analyze --format sarif` emits a SARIF 2.1.0 log so gap analysis can
+  run as a CI gate — surfaced in GitHub code scanning, GitLab MR
+  security dashboards, or any SARIF-aware viewer. Each `ControlGap`
+  becomes a SARIF result; each distinct control becomes a rule; stable
+  `partialFingerprints` track a gap across runs; physical + logical
+  locations keep results from being misattributed to source code. New
+  `evidentia_core.gap_analyzer.sarif` module.
+
+### Changed
+
+- **Pilot collectors populate the v0.10.0 fields**: the AWS, GitHub,
+  and Postgres collectors now set `compliance_status` per finding and
+  populate `remediation` where the source system supplies it (AWS
+  Security Hub `Remediation.Recommendation`, GitHub Dependabot advisory
+  data). The remaining collectors are unchanged — the schema evolution
+  is additive — and are tracked for v0.10.1.
+- **`docs/api-stability.md`**: `models/finding.py` joins the
+  frozen-models table (`SecurityFinding`, `FindingStatus`,
+  `ComplianceStatus`); the new `evidentia_core.ocsf` library entry
+  point is documented.
 
 ## [0.9.9] - 2026-05-21
 

@@ -1,0 +1,213 @@
+# OCSF Compliance Finding mapping
+
+> **Status**: NORMATIVE as of v0.10.0 (2026-05-22). Documents the
+> bidirectional mapping between Evidentia's native `SecurityFinding`
+> model and the OCSF **Compliance Finding** class.
+>
+> **Canonical location**: `docs/ocsf-mapping.md`
+> **Cross-references**: [v0.10.0-plan.md](v0.10.0-plan.md),
+> [integration-survey.md](integration-survey.md),
+> [api-stability.md](api-stability.md)
+
+---
+
+## 1. Why OCSF
+
+The [Open Cybersecurity Schema Framework](https://schema.ocsf.io) is
+the emerging vendor-neutral schema for security findings. Mapping
+Evidentia findings to and from OCSF makes downstream integrations
+cheap rather than bespoke: any OCSF-aware consumer (SIEMs, AWS
+Security Lake, Datadog, RegScale ingestion) can read Evidentia output
+through one adapter, and — once the v0.10.1 ingestion collector lands
+— any OCSF-emitting tool can be read *into* Evidentia the same way.
+
+Evidentia keeps its **own** Pydantic finding model. OCSF is an
+*interchange* format at the boundary, not the internal representation.
+The native model retains Evidentia's enrichment over OCSF — OLIR-typed
+control mappings and `CollectionContext` provenance — which the OCSF
+`compliance` object cannot natively express.
+
+## 2. Target class and version
+
+| Item | Value |
+|---|---|
+| OCSF class | **Compliance Finding** |
+| `class_uid` | `2003` |
+| `category_uid` | `2` (Findings) |
+| OCSF schema (current) | 1.8.0 (released 2026-03-18) |
+| `py-ocsf-models` version pinned | `>=0.9.0,<0.10.0` |
+| OCSF schema modelled by that library | 1.5.0 |
+
+The Compliance Finding class is **stable across OCSF 1.1+**, so the
+1.5.0-vs-1.8.0 gap is a version-label detail, not a functional one.
+The generic `security_finding` class was deprecated in OCSF 1.1;
+Compliance Finding is the semantically correct class for
+control-pass/fail findings.
+
+**Note on Prowler / AWS Security Hub.** Prowler emits the OCSF
+**Detection Finding** class, not Compliance Finding. The v0.10.0
+`finding_from_ocsf` direction targets Compliance Finding; the deferred
+v0.10.1 OCSF-ingestion collector adds a Detection Finding path.
+
+## 3. The `py-ocsf-models` dependency
+
+The OCSF representation comes from
+[`py-ocsf-models`](https://github.com/prowler-cloud/py-ocsf-models)
+(Apache-2.0, Pydantic, maintained by the Prowler team). It is an
+**optional** dependency, installed via the `ocsf` extra:
+
+```bash
+pip install 'evidentia-core[ocsf]'
+```
+
+`evidentia_core.ocsf.finding_mapping` is the **only** module that
+imports it. The core `evidentia_core.models.finding` model never does,
+so:
+
+- the default install stays slim (`py-ocsf-models` pulls in
+  `cryptography` and other transitive dependencies);
+- the core `SecurityFinding` model is insulated from OCSF schema churn
+  — only the mapping layer moves on an OCSF version bump.
+
+Calling `finding_to_ocsf` / `finding_from_ocsf` without the extra
+installed raises `OCSFMappingError` with an actionable install hint.
+
+## 4. Field mapping — `SecurityFinding` → OCSF
+
+`finding_to_ocsf(finding)` produces a JSON-ready `dict` conforming to
+the OCSF Compliance Finding class.
+
+| `SecurityFinding` field | OCSF Compliance Finding location |
+|---|---|
+| `id` | `finding_info.uid` |
+| `title` | `finding_info.title` |
+| `description` | `finding_info.desc`, `compliance.desc`, `message` |
+| `severity` | `severity_id` (+ `severity` string) |
+| `status` (`FindingStatus`) | `status_id` |
+| `compliance_status` (`ComplianceStatus`) | `compliance.status_id` |
+| `remediation` | `remediation.desc` (omitted when `None`) |
+| `source_system` | `finding_info.data_sources[]` |
+| `resource_type` | `resources[].type` |
+| `resource_id` | `resources[].uid` |
+| `resource_region` | `resources[].region` |
+| `control_mappings[].framework` | `compliance.standards[]` (deduplicated, sorted) |
+| `control_mappings[].control_id` | `compliance.requirements[]` |
+| `first_observed` | `finding_info.first_seen_time_dt`, `time`, `time_dt` |
+| `last_observed` | `finding_info.last_seen_time_dt` |
+| *(whole finding)* | `unmapped["evidentia"]` — see §6 |
+
+**OCSF envelope fields** (`class_uid`, `category_uid`, `class_name`,
+`category_name`, `activity_id`, `type_uid`, `metadata.product`) are
+**computed by the mapping layer**, not stored on `SecurityFinding`.
+`metadata.product` is fixed to Evidentia (`name`, `vendor_name`
+"Polycentric Labs", `version`).
+
+**Fields with no native OCSF home** — `source_finding_id`,
+`resource_account`, `resolved_at`, `collection_context`, `raw_data`,
+and the OLIR `relationship` + `justification` on each control mapping —
+are not lost: they ride in the `unmapped["evidentia"]` block (§6).
+
+### 4.1 Enum value mappings
+
+**Severity** → OCSF `severity_id`:
+
+| `Severity` | `severity_id` |
+|---|---|
+| `CRITICAL` | 5 |
+| `HIGH` | 4 |
+| `MEDIUM` | 3 |
+| `LOW` | 2 |
+| `INFORMATIONAL` | 1 |
+
+Inbound OCSF `severity_id` values with no Evidentia equivalent
+(`0` Unknown, `6` Fatal, `99` Other) fall back to `MEDIUM`.
+
+**ComplianceStatus** → OCSF `compliance.status_id`:
+
+| `ComplianceStatus` | `status_id` | OCSF name |
+|---|---|---|
+| `PASS` | 1 | Pass |
+| `WARNING` | 2 | Warning |
+| `FAIL` | 3 | Fail |
+| `UNKNOWN` | 0 | Unknown |
+| `NOT_APPLICABLE` | 99 | Other |
+
+OCSF has no "not applicable" compliance value, so `NOT_APPLICABLE`
+maps to `Other` (99). The exact Evidentia value still round-trips
+losslessly via the `unmapped` block.
+
+**FindingStatus** → OCSF `status_id`:
+
+| `FindingStatus` | `status_id` | OCSF name |
+|---|---|---|
+| `ACTIVE` | 1 | New |
+| `RESOLVED` | 4 | Resolved |
+| `SUPPRESSED` | 3 | Suppressed |
+
+## 5. Field mapping — OCSF → `SecurityFinding`
+
+`finding_from_ocsf(ocsf_dict)` is the inverse. It first validates the
+input as an OCSF Compliance Finding (`OCSFMappingError` on failure),
+then takes one of two paths:
+
+1. **Evidentia-produced input** — the `dict` carries an
+   `unmapped["evidentia"]` block. The original `SecurityFinding` is
+   reconstructed *exactly* from it (see §6).
+2. **Third-party input** — no `unmapped["evidentia"]` block. The
+   finding is rebuilt **best-effort** from native OCSF fields:
+   `finding_info` → id/title/description, `severity_id` → severity,
+   `compliance.status_id` → compliance_status, `compliance.standards` +
+   `compliance.requirements` → control mappings (with an
+   `OLIRRelationship.RELATED_TO` default and a justification noting the
+   OCSF provenance), `remediation.desc` → remediation.
+
+The v0.10.1 OCSF-ingestion collector refines path 2, including
+Detection Finding support.
+
+## 6. Round-trip fidelity
+
+The mapping guarantees:
+
+```python
+finding_from_ocsf(finding_to_ocsf(f)) == f
+```
+
+holds **exactly** for any Evidentia-produced finding.
+
+OCSF's `compliance` object cannot express Evidentia's OLIR-typed
+control mappings (relationship + justification) or its
+`CollectionContext` provenance. Rather than drop them, `finding_to_ocsf`
+stashes the *complete* finding — `finding.model_dump(mode="json")` —
+under the OCSF-standard `unmapped` field, namespaced as
+`unmapped["evidentia"]`. `finding_from_ocsf` restores from that block
+when present.
+
+This is a deliberate design choice: the native OCSF fields make the
+finding readable by *any* OCSF consumer, while the `unmapped` block
+makes the round trip lossless for Evidentia-to-Evidentia flows. A
+third-party OCSF consumer simply ignores `unmapped["evidentia"]`.
+
+## 7. API
+
+```python
+from evidentia_core.ocsf import (
+    finding_to_ocsf,    # SecurityFinding -> OCSF Compliance Finding dict
+    finding_from_ocsf,  # OCSF Compliance Finding dict -> SecurityFinding
+    OCSFMappingError,   # raised when the `ocsf` extra is absent or input is invalid
+)
+```
+
+Both functions are pure — no I/O, no global state. `finding_to_ocsf`
+returns a JSON-ready `dict` (serialize it however you like);
+`finding_from_ocsf` accepts a `dict` parsed from JSON.
+
+## 8. Deferred to v0.10.1+
+
+- The third-party **OCSF-ingestion collector** that wires
+  `finding_from_ocsf` to a file/API reader (Prowler, AWS Security Hub).
+  Requires a **Detection Finding** path — that is the class Prowler
+  emits.
+- Migrating the remaining ~11 collectors to populate `compliance_status`
+  and `remediation` explicitly (the 3 pilot collectors — AWS, GitHub,
+  Postgres — do so in v0.10.0).
+- An optional `evidentia collect --format ocsf` output mode.
