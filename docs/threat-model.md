@@ -2919,6 +2919,18 @@ extra never load it. The lazy-import surface raises a typed
 `OCSFMappingError` with an actionable install hint when called
 without the extra installed.
 
+### Fixed-in-cycle transitive CVE
+
+- **starlette 1.0.0 → 1.0.1** — closes PYSEC-2026-161 /
+  GHSA-86qp-5c8j-p5mr (missing Host header validation poisons
+  `request.url.path` → bypasses path-based security checks).
+  Starlette is a transitive dependency via `fastapi` (which Evidentia's
+  REST surface uses for `/api/*`) and `sse-starlette`. Surfaced by the
+  v4 Row 14 `osv-scanner --sbom` pre-push gate; fixed in-cycle by
+  `uv lock --upgrade-package starlette`. No Evidentia pin range
+  required to move (fastapi's pin already allows 1.0.1). Filed as
+  F-V100-S1 in `docs/security-review-v0.10.0.md`.
+
 ### Findings ledger summary
 
 | Severity | Count | Notes |

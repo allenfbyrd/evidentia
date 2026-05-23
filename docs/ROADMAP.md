@@ -1,28 +1,36 @@
 # Evidentia roadmap
 
-**Last updated: v0.9.9 (May 2026).**
+**Last updated: v0.10.0 (May 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
 at the project root. Versions v0.3.0 through v0.7.16 + v0.8.0-v0.8.7
-+ v0.9.0-v0.9.8 have shipped. **v0.9.0 opened the v0.9.x "federal
-compliance" line** with POA&M + CONMON read-only library; v0.9.1
-landed the Polycentric Labs org migration; v0.9.2 added the CONMON
-REST router + federal corpus + LLM rater + federal walk-through
-scenarios; v0.9.3 was the largest minor of the line — CONMON daemon
-(Theme A) + AI governance (Theme B); v0.9.4 was the consolidation
-pass closing deferred review items + the federal-SI walk-through
-opener; v0.9.5 landed walk-through refinement + collaboration-
-primitives groundwork; v0.9.6 brought the federal expansion (WORM
-evidence store + CLI RBAC + CONMON MCP first-mover); v0.9.7 was the
-comprehensive v0.9.x close-out + v1.0 prep (api-stability NORMATIVE
-+ multi-tenant RBAC + CIMD-signature groundwork). **v0.9.8 wires
-those primitives into live CLI, REST, MCP-dispatch, and storage
-surfaces**; **v0.9.9 is a supply-chain hygiene + gate-fidelity
-patch** (paramiko CVE closure + an `osv-scanner --sbom` pre-push
-gate + a full Dependabot-queue clear). Per the v1.0 master-plan
-resequencing (2026-05-21), the v0.9.x line now iterates as many
-times as needed toward a solid product — the operator self-test
-and demo/pitch recording precede the walk-throughs and
++ v0.9.0-v0.9.9 have shipped; v0.10.0 ships now. **v0.9.0 opened the
+v0.9.x "federal compliance" line** with POA&M + CONMON read-only
+library; v0.9.1 landed the Polycentric Labs org migration; v0.9.2
+added the CONMON REST router + federal corpus + LLM rater + federal
+walk-through scenarios; v0.9.3 was the largest minor of the line —
+CONMON daemon (Theme A) + AI governance (Theme B); v0.9.4 was the
+consolidation pass closing deferred review items + the federal-SI
+walk-through opener; v0.9.5 landed walk-through refinement +
+collaboration-primitives groundwork; v0.9.6 brought the federal
+expansion (WORM evidence store + CLI RBAC + CONMON MCP first-mover);
+v0.9.7 was the comprehensive v0.9.x close-out + v1.0 prep
+(api-stability NORMATIVE + multi-tenant RBAC + CIMD-signature
+groundwork); **v0.9.8 wired those primitives into live CLI, REST,
+MCP-dispatch, and storage surfaces**; **v0.9.9 was a supply-chain
+hygiene + gate-fidelity patch** (paramiko CVE closure + an
+`osv-scanner --sbom` pre-push gate + a full Dependabot-queue clear).
+**v0.10.0 opens the v0.10.x research-driven integration line**: the
+OCSF-aligned findings schema (the keystone identified by the
+2026-05-21 competitive/integration research pass), a bidirectional
+OCSF Compliance Finding mapping layer (`evidentia_core.ocsf`, behind
+the new `[ocsf]` extra), SARIF 2.1.0 output for `evidentia gap`
+(runs gap analysis as a CI gate, surfaced in GitHub code scanning +
+GitLab security dashboards), and 3 pilot collectors (AWS, GitHub,
+Postgres) populating the new fields. Per the v1.0 master-plan
+resequencing (2026-05-21), the v0.9.x and v0.10.x lines iterate as
+many times as needed toward a solid product — the operator
+self-test and demo/pitch recording precede the walk-throughs and
 multi-reviewer peer review, which complete before v1.0.0. See
 [`v1.0-transition.md`](v1.0-transition.md) for the v1.0
 narrative and acceptance gates.

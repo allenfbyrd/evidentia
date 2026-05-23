@@ -157,6 +157,27 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.10.0 (May 2026)** — *OCSF-aligned findings schema + SARIF
+CI-gate output*. Opens the v0.10.x research-driven integration line.
+Ships an additive normalized findings schema (`SecurityFinding` gains
+`compliance_status` + `remediation` Optional fields mirroring OCSF
+`compliance.status` + `remediation.desc`; new `ComplianceStatus`
+enum), a bidirectional **OCSF Compliance Finding mapping layer**
+(`evidentia_core.ocsf` — behind the new optional `[ocsf]` extra
+pulling `py-ocsf-models`; `finding_to_ocsf` / `finding_from_ocsf`
+with lossless round-trip for Evidentia-produced findings via the
+OCSF-standard `unmapped` block), **SARIF 2.1.0 output for
+`evidentia gap analyze --format sarif`** (each `ControlGap` → a
+SARIF result; stable `partialFingerprints` track gaps across runs;
+surfaces in GitHub code scanning + GitLab security dashboards), and
+3 pilot collectors (AWS, GitHub, Postgres) populating the new
+fields. `finding.py` joins the [`docs/api-stability.md`](docs/api-stability.md)
+frozen-models table. The remaining ~11 collectors + the third-party
+OCSF *ingestion* collector (incl. a Detection Finding path for
+Prowler / AWS Security Hub) are tracked for v0.10.1. **3292 tests
+passing / 17 skipped across 265 source files; mypy strict 0/0; ruff
+clean.** PyPI: 7 packages at 0.10.0.
+
 **v0.9.9 (May 2026)** — *Supply-chain hygiene + pre-push gate
 fidelity*. A focused supply-chain patch — no source or test code
 changed. Closes `paramiko` CVE-2026-44405 (`compliance-trestle`

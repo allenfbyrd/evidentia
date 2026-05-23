@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet on the v0.10.1 development branch._
+
+## [0.10.0] - 2026-05-22
+
 **Theme**: *OCSF-aligned findings schema + SARIF CI-gate output* —
 opens the v0.10.x research-driven integration line. An OCSF-aligned
 normalized findings schema is the keystone that makes downstream
