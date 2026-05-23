@@ -123,7 +123,13 @@ def test_convert_rejects_non_list_input(
         ],
     )
     assert result.exit_code == 1
-    assert "must be a JSON array" in result.output
+    # Rich's console renderer wraps the error message across lines on
+    # narrow CI terminals (caught by the v0.10.1 Linux pytest run —
+    # the literal substring split across "must \nbe a JSON array").
+    # Collapse whitespace before the substring check so the assertion
+    # is wrap-resistant.
+    normalized = " ".join(result.output.split())
+    assert "must be a JSON array" in normalized
 
 
 def test_collect_ocsf_emitted_event_action_exists() -> None:
