@@ -45,7 +45,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 from evidentia_core.plugins.collectors import (
     BaseSaaSCollector,
     SaaSAuthError,
@@ -563,6 +567,10 @@ class SecurityScorecardCollector(BaseSaaSCollector):
                 ),
                 severity=Severity.INFORMATIONAL,
                 status=FindingStatus.RESOLVED,
+                # v0.10.0: portfolio inventory is informational
+                # enumeration — passing-by-default per spec rules
+                # for vendor-risk SaaS dashboards.
+                compliance_status=ComplianceStatus.UNKNOWN,
                 source_system="securityscorecard",
                 source_finding_id=f"company-inventory:{domain}",
                 resource_type="securityscorecard-company",
@@ -599,6 +607,11 @@ class SecurityScorecardCollector(BaseSaaSCollector):
                     ),
                     severity=Severity.MEDIUM,
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: a low SSC score is a degraded security-
+                    # posture grade (not a hard failure on its own);
+                    # operator-attestable threshold → WARNING per
+                    # spec rules.
+                    compliance_status=ComplianceStatus.WARNING,
                     source_system="securityscorecard",
                     source_finding_id=f"company-low-score:{domain}",
                     resource_type="securityscorecard-company",

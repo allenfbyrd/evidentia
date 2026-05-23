@@ -33,7 +33,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 
 from evidentia_collectors.okta.mapping import (
     INACTIVE_ACCOUNT_MAPPINGS,
@@ -473,6 +477,9 @@ class OktaCollector:
                 ),
                 severity=Severity.INFORMATIONAL,
                 status=FindingStatus.ACTIVE,
+                # v0.10.0: a user inventory is informational evidence,
+                # not a pass/fail check.
+                compliance_status=ComplianceStatus.UNKNOWN,
                 source_system="okta",
                 source_finding_id=f"user-inventory:{context.source_system_id}",
                 resource_type="Okta::Org",
@@ -516,6 +523,10 @@ class OktaCollector:
                         else Severity.MEDIUM
                     ),
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: inactive privileged-eligible accounts
+                    # represent degraded posture (rotting credentials)
+                    # but not a hard gap — surface as WARNING.
+                    compliance_status=ComplianceStatus.WARNING,
                     source_system="okta",
                     source_finding_id=(
                         f"inactive-accounts:{context.source_system_id}"
@@ -579,6 +590,12 @@ class OktaCollector:
                     if admin_count > 5
                     else FindingStatus.RESOLVED
                 ),
+                # v0.10.0: excessive admin accounts (>5) represent a
+                # degraded least-privilege posture (WARNING); a small
+                # admin set passes the AC-6 check.
+                compliance_status=ComplianceStatus.WARNING
+                if admin_count > 5
+                else ComplianceStatus.PASS,
                 source_system="okta",
                 source_finding_id=(
                     f"admin-accounts:{context.source_system_id}"
@@ -660,6 +677,11 @@ class OktaCollector:
                     if enrollment_rate >= 0.95
                     else FindingStatus.ACTIVE
                 ),
+                # v0.10.0: enrollment rate < 95% fails the IA-2 MFA
+                # check; >= 95% passes.
+                compliance_status=ComplianceStatus.PASS
+                if enrollment_rate >= 0.95
+                else ComplianceStatus.FAIL,
                 source_system="okta",
                 source_finding_id=(
                     f"mfa-enrollment:{context.source_system_id}"
@@ -743,6 +765,11 @@ class OktaCollector:
                 status=(
                     FindingStatus.RESOLVED if strong else FindingStatus.ACTIVE
                 ),
+                # v0.10.0: weak password policy fails the IA-5 check;
+                # a strong policy passes.
+                compliance_status=ComplianceStatus.PASS
+                if strong
+                else ComplianceStatus.FAIL,
                 source_system="okta",
                 source_finding_id=(
                     f"password-policy:{context.source_system_id}"
@@ -816,6 +843,12 @@ class OktaCollector:
                     if rules_with_mfa < total_rules
                     else FindingStatus.RESOLVED
                 ),
+                # v0.10.0: sign-on rules not enforcing MFA fail the
+                # AC-3 access-enforcement check; all rules enforcing
+                # MFA passes.
+                compliance_status=ComplianceStatus.FAIL
+                if rules_with_mfa < total_rules
+                else ComplianceStatus.PASS,
                 source_system="okta",
                 source_finding_id=(
                     f"sign-on-policy:{context.source_system_id}"

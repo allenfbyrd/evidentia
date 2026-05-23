@@ -41,7 +41,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 
 from evidentia_collectors.snowflake.mapping import (
     GRANT_ACCOUNTADMIN_MAPPINGS,
@@ -509,6 +513,10 @@ class SnowflakeCollector:
                         ),
                         severity=Severity.INFORMATIONAL,
                         status=FindingStatus.RESOLVED,
+                        # v0.10.0: login-activity inventory is
+                        # informational evidence (AU-2 capture),
+                        # not a pass/fail check.
+                        compliance_status=ComplianceStatus.UNKNOWN,
                         source_system="snowflake",
                         source_finding_id=(
                             f"login-history-inventory:{user_name}"
@@ -548,6 +556,10 @@ class SnowflakeCollector:
                             ),
                             severity=Severity.LOW,
                             status=FindingStatus.ACTIVE,
+                            # v0.10.0: individual failed-login rows
+                            # are AC-7 evidence (substrate for review);
+                            # gating is operator-driven, so UNKNOWN.
+                            compliance_status=ComplianceStatus.UNKNOWN,
                             source_system="snowflake",
                             source_finding_id=(
                                 f"login-failed:{user_name}:"
@@ -653,6 +665,10 @@ class SnowflakeCollector:
                         ),
                         severity=Severity.INFORMATIONAL,
                         status=FindingStatus.RESOLVED,
+                        # v0.10.0: user inventory is informational
+                        # enumeration (AC-2 evidence), not a pass/fail
+                        # check.
+                        compliance_status=ComplianceStatus.UNKNOWN,
                         source_system="snowflake",
                         source_finding_id=f"user-inventory:{user_name}",
                         resource_type="snowflake-user",
@@ -689,6 +705,9 @@ class SnowflakeCollector:
                             ),
                             severity=Severity.MEDIUM,
                             status=FindingStatus.ACTIVE,
+                            # v0.10.0: a password-auth user without
+                            # MFA fails the IA-2(1) MFA check.
+                            compliance_status=ComplianceStatus.FAIL,
                             source_system="snowflake",
                             source_finding_id=f"mfa-disabled:{user_name}",
                             resource_type="snowflake-user",
@@ -723,6 +742,12 @@ class SnowflakeCollector:
                             ),
                             severity=Severity.LOW,
                             status=FindingStatus.ACTIVE,
+                            # v0.10.0: a disabled-but-retained account
+                            # is a confirmation reminder (verify
+                            # authorization + grants cleaned up);
+                            # operator-attestable, not a hard gap →
+                            # WARNING.
+                            compliance_status=ComplianceStatus.WARNING,
                             source_system="snowflake",
                             source_finding_id=(
                                 f"user-disabled:{user_name}"
@@ -755,6 +780,11 @@ class SnowflakeCollector:
                             ),
                             severity=Severity.LOW,
                             status=FindingStatus.ACTIVE,
+                            # v0.10.0: a never-logged-in account may
+                            # be a legit service principal OR a stale
+                            # account requiring disable per AC-2(3);
+                            # operator-attestable → WARNING.
+                            compliance_status=ComplianceStatus.WARNING,
                             source_system="snowflake",
                             source_finding_id=(
                                 f"user-never-logged-in:{user_name}"
@@ -851,6 +881,10 @@ class SnowflakeCollector:
                         ),
                         severity=Severity.INFORMATIONAL,
                         status=FindingStatus.RESOLVED,
+                        # v0.10.0: grant inventory is informational
+                        # enumeration (AC-3 + AC-6 evidence), not a
+                        # pass/fail check.
+                        compliance_status=ComplianceStatus.UNKNOWN,
                         source_system="snowflake",
                         source_finding_id=(
                             f"grant-inventory:{grantee}"
@@ -881,6 +915,10 @@ class SnowflakeCollector:
                             ),
                             severity=Severity.MEDIUM,
                             status=FindingStatus.ACTIVE,
+                            # v0.10.0: a privileged-role grant fails
+                            # the AC-6 least-privilege check pending
+                            # operator review per AC-6(7).
+                            compliance_status=ComplianceStatus.FAIL,
                             source_system="snowflake",
                             source_finding_id=(
                                 f"privileged-grant:{grantee}:{role}"
@@ -960,6 +998,10 @@ class SnowflakeCollector:
                         ),
                         severity=Severity.INFORMATIONAL,
                         status=FindingStatus.RESOLVED,
+                        # v0.10.0: network-policy inventory is
+                        # informational evidence (SC-7), not a
+                        # pass/fail check.
+                        compliance_status=ComplianceStatus.UNKNOWN,
                         source_system="snowflake",
                         source_finding_id=(
                             f"network-policy-inventory:{policy_name}"
@@ -1015,6 +1057,10 @@ class SnowflakeCollector:
                             ),
                             severity=Severity.MEDIUM,
                             status=FindingStatus.ACTIVE,
+                            # v0.10.0: no account-level network policy
+                            # fails the SC-7 boundary-protection
+                            # baseline.
+                            compliance_status=ComplianceStatus.FAIL,
                             source_system="snowflake",
                             source_finding_id=(
                                 "network-policy-none-assigned"
@@ -1149,6 +1195,10 @@ class SnowflakeCollector:
                                 ),
                                 severity=Severity.INFORMATIONAL,
                                 status=FindingStatus.RESOLVED,
+                                # v0.10.0: masking-policy inventory is
+                                # informational evidence (AC-3/SC-28),
+                                # not a pass/fail check.
+                                compliance_status=ComplianceStatus.UNKNOWN,
                                 source_system="snowflake",
                                 source_finding_id=(
                                     f"masking-policy:{fqn}"
@@ -1213,6 +1263,10 @@ class SnowflakeCollector:
                                 ),
                                 severity=Severity.INFORMATIONAL,
                                 status=FindingStatus.RESOLVED,
+                                # v0.10.0: row-access-policy inventory
+                                # is informational evidence (AC-3 +
+                                # AC-3(7)), not a pass/fail check.
+                                compliance_status=ComplianceStatus.UNKNOWN,
                                 source_system="snowflake",
                                 source_finding_id=(
                                     f"row-access-policy:{fqn}"
@@ -1300,6 +1354,10 @@ class SnowflakeCollector:
                 ),
                 severity=Severity.INFORMATIONAL,
                 status=FindingStatus.RESOLVED,
+                # v0.10.0: platform-managed keys are an SC-12 default
+                # fact (not queryable from inside Snowflake) —
+                # operator-attestable for BYOK, so UNKNOWN.
+                compliance_status=ComplianceStatus.UNKNOWN,
                 source_system="snowflake",
                 source_finding_id="key-rotation-platform-managed",
                 resource_type="snowflake-account",

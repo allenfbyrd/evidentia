@@ -32,7 +32,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 from evidentia_core.security.paths import (
     PathTraversalError,
     validate_within,
@@ -496,6 +500,12 @@ class SQLiteCollector:
                 status=(
                     FindingStatus.ACTIVE if gaps else FindingStatus.RESOLVED
                 ),
+                # v0.10.0: world-readable/world-writable file modes
+                # fail the AC-3 file-ACL check; restrictive permissions
+                # pass.
+                compliance_status=ComplianceStatus.FAIL
+                if gaps
+                else ComplianceStatus.PASS,
                 source_system="sqlite",
                 source_finding_id=f"file-acl:{self._database_path}",
                 resource_type="SQLite::File",
@@ -540,6 +550,9 @@ class SQLiteCollector:
                 ),
                 severity=Severity.MEDIUM,
                 status=FindingStatus.ACTIVE,
+                # v0.10.0: write privilege on the audit principal is a
+                # failed least-privilege check.
+                compliance_status=ComplianceStatus.FAIL,
                 source_system="sqlite",
                 source_finding_id=(
                     f"EVIDENTIA-WRITE-PRIV-DETECTED:{self._database_path}"
@@ -591,6 +604,10 @@ class SQLiteCollector:
                         if is_strong
                         else FindingStatus.ACTIVE
                     ),
+                    # v0.10.0: durability configuration is informational
+                    # evidence — the SC-28 check requires operator
+                    # judgement on whether the chosen mode meets policy.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="sqlite",
                     source_finding_id=(
                         f"durability:{self._database_path}"
@@ -648,6 +665,11 @@ class SQLiteCollector:
                     status=(
                         FindingStatus.RESOLVED if ok else FindingStatus.ACTIVE
                     ),
+                    # v0.10.0: integrity violations fail the SI-7
+                    # check; a clean integrity_check passes.
+                    compliance_status=ComplianceStatus.PASS
+                    if ok
+                    else ComplianceStatus.FAIL,
                     source_system="sqlite",
                     source_finding_id=f"integrity:{self._database_path}",
                     resource_type="SQLite::Database",
@@ -706,6 +728,12 @@ class SQLiteCollector:
                     if encrypted
                     else FindingStatus.ACTIVE
                 ),
+                # v0.10.0: encryption-extension detection is INCONCLUSIVE
+                # when negative (see BLIND_SPOT), so the SC-28 status is
+                # UNKNOWN regardless of probe outcome — positive matches
+                # alone aren't sufficient to certify the database is
+                # actually encrypted.
+                compliance_status=ComplianceStatus.UNKNOWN,
                 source_system="sqlite",
                 source_finding_id=(
                     f"encryption-extension:{self._database_path}"

@@ -32,7 +32,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 
 from evidentia_collectors.sql.mssql.mapping import (
     AUDIT_LOG_MAPPINGS,
@@ -466,6 +470,9 @@ class MSSQLCollector:
                 Severity.HIGH if probe["is_sysadmin"] else Severity.MEDIUM
             ),
             status=FindingStatus.ACTIVE,
+            # v0.10.0: write privilege on the audit principal is a
+            # failed least-privilege check.
+            compliance_status=ComplianceStatus.FAIL,
             source_system="mssql",
             source_finding_id=(
                 f"EVIDENTIA-WRITE-PRIV-DETECTED:{self._cached_user}@"
@@ -526,6 +533,9 @@ class MSSQLCollector:
                         else Severity.INFORMATIONAL
                     ),
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: a user/principal inventory is
+                    # informational evidence, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="mssql",
                     source_finding_id=f"user-inventory:{self._cached_db}",
                     resource_type="MSSQL::Server",
@@ -588,6 +598,12 @@ class MSSQLCollector:
                         if sysadmin_count > 2
                         else FindingStatus.RESOLVED
                     ),
+                    # v0.10.0: excessive sysadmin grants fail the AC-6
+                    # least-privilege check; a small (<=2) membership
+                    # passes.
+                    compliance_status=ComplianceStatus.FAIL
+                    if sysadmin_count > 2
+                    else ComplianceStatus.PASS,
                     source_system="mssql",
                     source_finding_id=(
                         f"sysadmin-membership:{self._cached_db}"
@@ -650,6 +666,11 @@ class MSSQLCollector:
                         if audit_enabled
                         else FindingStatus.ACTIVE
                     ),
+                    # v0.10.0: audit-disabled fails the AU-2 check;
+                    # at least one enabled audit passes.
+                    compliance_status=ComplianceStatus.PASS
+                    if audit_enabled
+                    else ComplianceStatus.FAIL,
                     source_system="mssql",
                     source_finding_id=(
                         f"server-audit:{self._cached_db}"
@@ -727,6 +748,11 @@ class MSSQLCollector:
                         if unencrypted_dbs
                         else FindingStatus.RESOLVED
                     ),
+                    # v0.10.0: unencrypted user databases fail the
+                    # SC-28 check; all-encrypted passes.
+                    compliance_status=ComplianceStatus.FAIL
+                    if unencrypted_dbs
+                    else ComplianceStatus.PASS,
                     source_system="mssql",
                     source_finding_id=(
                         f"tde-state:{self._cached_db}"
@@ -797,6 +823,12 @@ class MSSQLCollector:
                         if encrypted
                         else FindingStatus.ACTIVE
                     ),
+                    # v0.10.0: cleartext (encrypt_option != TRUE) fails
+                    # the SC-12 in-transit-encryption check; encrypted
+                    # passes.
+                    compliance_status=ComplianceStatus.PASS
+                    if encrypted
+                    else ComplianceStatus.FAIL,
                     source_system="mssql",
                     source_finding_id=(
                         f"tls-config:{self._cached_db}"
@@ -855,6 +887,9 @@ class MSSQLCollector:
                     ),
                     severity=Severity.INFORMATIONAL,
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: connection-limit settings are
+                    # informational evidence, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="mssql",
                     source_finding_id=(
                         f"connection-limits:{self._cached_db}"

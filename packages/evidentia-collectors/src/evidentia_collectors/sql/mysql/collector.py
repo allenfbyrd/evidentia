@@ -33,7 +33,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 
 from evidentia_collectors.sql.mysql.mapping import (
     AUDIT_LOG_MAPPINGS,
@@ -439,6 +443,9 @@ class MySQLCollector:
             ),
             severity=Severity.MEDIUM,
             status=FindingStatus.ACTIVE,
+            # v0.10.0: write privilege on the audit principal is a
+            # failed least-privilege check.
+            compliance_status=ComplianceStatus.FAIL,
             source_system="mysql",
             source_finding_id=(
                 f"EVIDENTIA-WRITE-PRIV-DETECTED:{self._cached_user}@"
@@ -499,6 +506,9 @@ class MySQLCollector:
                         else Severity.INFORMATIONAL
                     ),
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: a user/role inventory is informational
+                    # evidence, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="mysql",
                     source_finding_id=f"user-inventory:{self._cached_db}",
                     resource_type="MySQL::Server",
@@ -549,6 +559,9 @@ class MySQLCollector:
                     ),
                     severity=Severity.INFORMATIONAL,
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: a privilege-grant inventory is
+                    # informational evidence, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="mysql",
                     source_finding_id=f"privilege-grants:{self._cached_db}",
                     resource_type="MySQL::Server",
@@ -616,6 +629,11 @@ class MySQLCollector:
                 ),
                 severity=severity,
                 status=status,
+                # v0.10.0: audit-log gaps fail the AU-2/AU-3 check;
+                # a clean baseline passes.
+                compliance_status=ComplianceStatus.FAIL
+                if gaps
+                else ComplianceStatus.PASS,
                 source_system="mysql",
                 source_finding_id=f"audit-log:{self._cached_db}",
                 resource_type="MySQL::Server",
@@ -693,6 +711,11 @@ class MySQLCollector:
                 ),
                 severity=severity,
                 status=status,
+                # v0.10.0: crypto-config gaps fail the SC-12 check;
+                # a clean baseline passes.
+                compliance_status=ComplianceStatus.FAIL
+                if gaps
+                else ComplianceStatus.PASS,
                 source_system="mysql",
                 source_finding_id=f"crypto-config:{self._cached_db}",
                 resource_type="MySQL::Server",
@@ -759,6 +782,11 @@ class MySQLCollector:
                 ),
                 severity=severity,
                 status=status,
+                # v0.10.0: encryption-at-rest gaps fail the SC-28 check;
+                # a clean baseline passes.
+                compliance_status=ComplianceStatus.FAIL
+                if gaps
+                else ComplianceStatus.PASS,
                 source_system="mysql",
                 source_finding_id=f"encryption-at-rest:{self._cached_db}",
                 resource_type="MySQL::Server",
@@ -798,6 +826,9 @@ class MySQLCollector:
                 ),
                 severity=Severity.INFORMATIONAL,
                 status=FindingStatus.ACTIVE,
+                # v0.10.0: connection-limit settings are informational
+                # evidence, not a pass/fail check.
+                compliance_status=ComplianceStatus.UNKNOWN,
                 source_system="mysql",
                 source_finding_id=f"connection-limits:{self._cached_db}",
                 resource_type="MySQL::Server",

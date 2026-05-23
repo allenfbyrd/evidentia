@@ -36,7 +36,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 from evidentia_core.plugins.collectors import (
     BaseSaaSCollector,
     SaaSAuthError,
@@ -434,6 +438,10 @@ class DrataCollector(BaseSaaSCollector):
                 ),
                 severity=Severity.INFORMATIONAL,
                 status=FindingStatus.RESOLVED,
+                # v0.10.0: vendor inventory is informational
+                # enumeration — passing-by-default per spec rules
+                # for vendor-risk SaaS dashboards.
+                compliance_status=ComplianceStatus.UNKNOWN,
                 source_system="drata",
                 source_finding_id=f"vendor-inventory:{vendor_id}",
                 resource_type="drata-vendor",
@@ -462,6 +470,10 @@ class DrataCollector(BaseSaaSCollector):
                     ),
                     severity=Severity.MEDIUM,
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: Drata's HIGH/CRITICAL risk-level flag
+                    # is a failed vendor-risk-tier check pending
+                    # operator review per OCC 2013-29 §III.A.4.
+                    compliance_status=ComplianceStatus.FAIL,
                     source_system="drata",
                     source_finding_id=(
                         f"vendor-high-risk:{vendor_id}"

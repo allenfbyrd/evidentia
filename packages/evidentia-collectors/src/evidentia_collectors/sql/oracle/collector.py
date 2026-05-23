@@ -32,7 +32,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 
 from evidentia_collectors.sql.oracle.mapping import (
     AUDIT_LOG_MAPPINGS,
@@ -504,6 +508,9 @@ class OracleCollector:
                 else Severity.MEDIUM
             ),
             status=FindingStatus.ACTIVE,
+            # v0.10.0: write privilege on the audit principal is a
+            # failed least-privilege check.
+            compliance_status=ComplianceStatus.FAIL,
             source_system="oracle",
             source_finding_id=(
                 f"EVIDENTIA-WRITE-PRIV-DETECTED:{self._cached_user}@"
@@ -559,6 +566,9 @@ class OracleCollector:
                     ),
                     severity=Severity.INFORMATIONAL,
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: a user inventory is informational
+                    # evidence, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="oracle",
                     source_finding_id=f"user-inventory:{self._cached_db}",
                     resource_type="Oracle::Database",
@@ -623,6 +633,11 @@ class OracleCollector:
                         if len(non_system_dbas) > 2
                         else FindingStatus.RESOLVED
                     ),
+                    # v0.10.0: excessive DBA grants fail the AC-6
+                    # least-privilege check; a small (<=2) set passes.
+                    compliance_status=ComplianceStatus.FAIL
+                    if len(non_system_dbas) > 2
+                    else ComplianceStatus.PASS,
                     source_system="oracle",
                     source_finding_id=f"dba-role-grants:{self._cached_db}",
                     resource_type="Oracle::Role",
@@ -694,6 +709,12 @@ class OracleCollector:
                     status=(
                         FindingStatus.RESOLVED if ok else FindingStatus.ACTIVE
                     ),
+                    # v0.10.0: weak password policy (UNLIMITED lifetime
+                    # or missing verify function) fails the IA-5 check;
+                    # a configured policy passes.
+                    compliance_status=ComplianceStatus.PASS
+                    if ok
+                    else ComplianceStatus.FAIL,
                     source_system="oracle",
                     source_finding_id=(
                         f"password-policy:{self._cached_db}"
@@ -769,6 +790,12 @@ class OracleCollector:
                         if audit_active
                         else FindingStatus.ACTIVE
                     ),
+                    # v0.10.0: audit-disabled fails the AU-2 check;
+                    # any active audit trail (Unified or Traditional)
+                    # passes.
+                    compliance_status=ComplianceStatus.PASS
+                    if audit_active
+                    else ComplianceStatus.FAIL,
                     source_system="oracle",
                     source_finding_id=f"audit-config:{self._cached_db}",
                     resource_type="Oracle::Database",
@@ -846,6 +873,11 @@ class OracleCollector:
                         if tde_active
                         else FindingStatus.ACTIVE
                     ),
+                    # v0.10.0: TDE inactive fails the SC-28 check;
+                    # an open wallet or encrypted tablespaces pass.
+                    compliance_status=ComplianceStatus.PASS
+                    if tde_active
+                    else ComplianceStatus.FAIL,
                     source_system="oracle",
                     source_finding_id=f"tde-state:{self._cached_db}",
                     resource_type="Oracle::Database",
@@ -913,6 +945,12 @@ class OracleCollector:
                         if encryption_required
                         else FindingStatus.ACTIVE
                     ),
+                    # v0.10.0: cleartext network (encryption_server
+                    # UNSET/REJECTED) fails the SC-12 check; REQUIRED
+                    # or REQUESTED passes.
+                    compliance_status=ComplianceStatus.PASS
+                    if encryption_required
+                    else ComplianceStatus.FAIL,
                     source_system="oracle",
                     source_finding_id=(
                         f"network-encryption:{self._cached_db}"
@@ -967,6 +1005,9 @@ class OracleCollector:
                     ),
                     severity=Severity.INFORMATIONAL,
                     status=FindingStatus.ACTIVE,
+                    # v0.10.0: session-limit settings are informational
+                    # evidence, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="oracle",
                     source_finding_id=(
                         f"session-limits:{self._cached_db}"

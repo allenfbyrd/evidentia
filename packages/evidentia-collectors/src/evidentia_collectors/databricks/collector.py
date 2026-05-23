@@ -49,7 +49,11 @@ from evidentia_core.models.common import (
     current_version,
     utc_now,
 )
-from evidentia_core.models.finding import FindingStatus, SecurityFinding
+from evidentia_core.models.finding import (
+    ComplianceStatus,
+    FindingStatus,
+    SecurityFinding,
+)
 
 from evidentia_collectors.databricks.mapping import (
     CLUSTER_INIT_SCRIPT_MAPPINGS,
@@ -487,6 +491,9 @@ class DatabricksCollector:
                     ),
                     severity=Severity.INFORMATIONAL,
                     status=FindingStatus.RESOLVED,
+                    # v0.10.0: PAT inventory is informational
+                    # enumeration, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     resource_id=str(tok_id),
                     resource_type="Databricks::PAT",
                     raw_data={
@@ -521,6 +528,9 @@ class DatabricksCollector:
                         ),
                         severity=Severity.HIGH,
                         status=FindingStatus.ACTIVE,
+                        # v0.10.0: a PAT with no expiry fails the
+                        # AC-2(11) credential-rotation check.
+                        compliance_status=ComplianceStatus.FAIL,
                         resource_id=str(tok_id),
                         resource_type="Databricks::PAT",
                         raw_data={
@@ -559,6 +569,10 @@ class DatabricksCollector:
                             ),
                             severity=Severity.MEDIUM,
                             status=FindingStatus.ACTIVE,
+                            # v0.10.0: a PAT lifetime exceeding the
+                            # 90-day rotation threshold fails the
+                            # AC-2(11) check.
+                            compliance_status=ComplianceStatus.FAIL,
                             resource_id=str(tok_id),
                             resource_type="Databricks::PAT",
                             raw_data={
@@ -632,6 +646,9 @@ class DatabricksCollector:
                     ),
                     severity=Severity.INFORMATIONAL,
                     status=FindingStatus.RESOLVED,
+                    # v0.10.0: cluster inventory is informational
+                    # enumeration, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="databricks",
                     source_finding_id=f"databricks-cluster:{cluster_id}",
                     resource_id=str(cluster_id),
@@ -666,6 +683,9 @@ class DatabricksCollector:
                         ),
                         severity=Severity.MEDIUM,
                         status=FindingStatus.ACTIVE,
+                        # v0.10.0: an outdated cluster runtime fails
+                        # the SI-2 flaw-remediation check.
+                        compliance_status=ComplianceStatus.FAIL,
                         source_system="databricks",
                         source_finding_id=(
                             f"databricks-cluster-outdated-runtime"
@@ -709,6 +729,10 @@ class DatabricksCollector:
                         ),
                         severity=Severity.LOW,
                         status=FindingStatus.RESOLVED,
+                        # v0.10.0: init-script references are
+                        # informational (content not collectible from
+                        # this API surface — see BLIND_SPOT).
+                        compliance_status=ComplianceStatus.UNKNOWN,
                         source_system="databricks",
                         source_finding_id=(
                             f"databricks-cluster-init-scripts"
@@ -776,6 +800,9 @@ class DatabricksCollector:
                     ),
                     severity=Severity.INFORMATIONAL,
                     status=FindingStatus.RESOLVED,
+                    # v0.10.0: service principal inventory is
+                    # informational enumeration, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="databricks",
                     source_finding_id=f"databricks-sp:{sp_id}",
                     resource_id=str(sp_id),
@@ -811,6 +838,10 @@ class DatabricksCollector:
                         ),
                         severity=Severity.MEDIUM,
                         status=FindingStatus.ACTIVE,
+                        # v0.10.0: an inactive-but-enabled service
+                        # principal fails the AC-2(3) disable-inactive
+                        # check.
+                        compliance_status=ComplianceStatus.FAIL,
                         source_system="databricks",
                         source_finding_id=(
                             f"databricks-sp-inactive:{sp_id}"
@@ -877,6 +908,9 @@ class DatabricksCollector:
                     ),
                     severity=Severity.INFORMATIONAL,
                     status=FindingStatus.RESOLVED,
+                    # v0.10.0: secret-scope inventory is informational
+                    # enumeration, not a pass/fail check.
+                    compliance_status=ComplianceStatus.UNKNOWN,
                     source_system="databricks",
                     source_finding_id=f"databricks-secret-scope:{name}",
                     resource_id=str(name),
@@ -906,6 +940,9 @@ class DatabricksCollector:
                         ),
                         severity=Severity.INFORMATIONAL,
                         status=FindingStatus.RESOLVED,
+                        # v0.10.0: Azure Key Vault-backed scope is the
+                        # preferred SC-12 posture — passes the check.
+                        compliance_status=ComplianceStatus.PASS,
                         source_system="databricks",
                         source_finding_id=(
                             f"databricks-secret-scope-keyvault:{name}"
@@ -940,6 +977,11 @@ class DatabricksCollector:
                         ),
                         severity=Severity.LOW,
                         status=FindingStatus.RESOLVED,
+                        # v0.10.0: Databricks-backed scope works but
+                        # is below the preferred SC-12 posture
+                        # (KMS-backed) — surface as WARNING for high-
+                        # assurance environments.
+                        compliance_status=ComplianceStatus.WARNING,
                         source_system="databricks",
                         source_finding_id=(
                             f"databricks-secret-scope-databricks-"
