@@ -643,7 +643,7 @@ frameworks:
   version: v8.1 (2024)
   tier: C
   category: control
-  path: stubs/cis-controls-v8.1.json
+  path: stubs/cis-controls-v8.1.yaml
   source_url: Center for Internet Security (CIS)
   license: © Center for Internet Security. CIS Controls are freely available under CIS's terms; however, redistribution in catalog form requires CIS licensing. Ships as stub — download from cisecurity.org
     and import.

@@ -54,23 +54,27 @@ Value and effort are relative to Evidentia's current architecture.
 "Effort" assumes the §4.1 normalized-schema work is done first where
 noted.
 
-| # | Integration | What it gives Evidentia | Surface | Value | Effort |
-|---|---|---|---|---|---|
-| 1 | **OCSF findings ingestion** | One adapter ingests Prowler, Security Hub, Datadog, RegScale findings → control-gap evidence | OCSF JSON (`compliance` / `detection_finding` classes) | Very high | Med |
-| 2 | **AWS Security Hub / Audit Manager** | Live cloud posture as evidence; the dominant cloud compliance surface | REST API; native OCSF + ASFF export | Very high | Low–Med (after #1) |
-| 3 | **Prowler ingestion** | OSS CSPM, 500+ checks → instant evidence collector; OSS-ethos aligned | CLI emitting `json-ocsf` / SARIF | High | Low |
-| 4 | **SARIF emit** | Gap results surface in GitHub code scanning + GitLab MR security dashboards with zero glue | SARIF 2.1.0 JSON | High | Low |
-| 5 | **Trivy / Checkov ingestion** | IaC + vuln misconfig findings as control evidence | SARIF 2.1.0 (Trivy also ASFF) | High | Low (after #4) |
-| 6 | **RegScale interchange** | Bidirectional OSCAL exchange with a CONMON-on-OSCAL platform; partner-ecosystem play | REST API; native OSCAL + OCSF | High | Med |
-| 7 | **Lula (Defense Unicorns)** | Co-positioning in the federal/CI compliance-as-code niche; OSCAL artifact exchange | OSCAL artifacts; CLI; GitHub Action | High (federal) | Low–Med |
-| 8 | **Vanta / Drata API** | Push gap findings / pull evidence from the SOC 2 incumbents; reach the SMB market | REST APIs; OAuth apps; partner programs | Med–High | Med |
-| 9 | **ScubaGear / CISA SCuBA** | Ingest M365 baseline results mapped to 800-53 | JSON/CSV; SCuBA→800-53 crosswalk | Med (federal) | Low–Med |
-| 10 | **Azure Policy / GCP Security Command Center** | Cloud-native posture parity beyond AWS | Azure REST; GCP SCC API (normalize via OCSF) | Med | Med |
-| 11 | **Backstage scorecard plugin** | "Compliance score" tile in internal developer portals | Backstage frontend plugin + catalog JSON | Med | Med |
-| 12 | **MLflow / Hugging Face model cards** | AI-governance evidence: model provenance/cards as NIST AI RMF Map/Measure evidence | MLflow registry API; HF model-card YAML | Med (AI moat) | Med |
-| 13 | **OPA / Rego policy bundles** | Express control checks as Rego; consume OPA decision logs as evidence | OPA decision API; decision-log JSON | Med | Med |
-| 14 | **ServiceNow IRM / Archer** | Enterprise GRC system-of-record interchange | ServiceNow Table API; Archer REST | Med (enterprise) | High |
-| 15 | **Splunk / Datadog export** | Push compliance posture as events for SIEM dashboards | Splunk HEC; Datadog Events API | Low–Med | Low |
+> **SHIPPED column updated 2026-05-23** as v0.10.4 A5 deliverable —
+> tracks which integration opportunities have landed in the v0.10.x
+> patch line since the survey was compiled.
+
+| # | Integration | What it gives Evidentia | Surface | Value | Effort | Shipped |
+|---|---|---|---|---|---|---|
+| 1 | **OCSF findings ingestion** | One adapter ingests Prowler, Security Hub, Datadog, RegScale findings → control-gap evidence | OCSF JSON (`compliance` / `detection_finding` classes) | Very high | Med | ✅ **v0.10.1** — `evidentia collect ocsf --input <file-or-url>`; `finding_from_ocsf_detection` for class_uid 2004 (Prowler / Security Hub); 12 collectors populate `compliance_status` |
+| 2 | **AWS Security Hub / Audit Manager** | Live cloud posture as evidence; the dominant cloud compliance surface | REST API; native OCSF + ASFF export | Very high | Low–Med (after #1) | ⚠️ **Partial v0.10.1** — Security Hub findings ingestible via the OCSF Detection Finding path; native API collector not yet shipped |
+| 3 | **Prowler ingestion** | OSS CSPM, 500+ checks → instant evidence collector; OSS-ethos aligned | CLI emitting `json-ocsf` / SARIF | High | Low | ✅ **v0.10.1** — covered by the OCSF Detection Finding path (Prowler emits class_uid 2004 OCSF natively) |
+| 4 | **SARIF emit** | Gap results surface in GitHub code scanning + GitLab MR security dashboards with zero glue | SARIF 2.1.0 JSON | High | Low | ✅ **v0.10.0** — `evidentia gap analyze --format sarif`; CI-gate-ready |
+| 5 | **Trivy / Checkov ingestion** | IaC + vuln misconfig findings as control evidence | SARIF 2.1.0 (Trivy also ASFF) | High | Low (after #4) | ❌ — not yet; v0.11+ candidate |
+| 6 | **RegScale interchange** | Bidirectional OSCAL exchange with a CONMON-on-OSCAL platform; partner-ecosystem play | REST API; native OSCAL + OCSF | High | Med | ❌ — not yet; partner-engagement-gated |
+| 7 | **Lula (Defense Unicorns)** | Co-positioning in the federal/CI compliance-as-code niche; OSCAL artifact exchange | OSCAL artifacts; CLI; GitHub Action | High (federal) | Low–Med | ❌ — not yet; v1.1 federal-tier candidate |
+| 8 | **Vanta / Drata API** | Push gap findings / pull evidence from the SOC 2 incumbents; reach the SMB market | REST APIs; OAuth apps; partner programs | Med–High | Med | ⚠️ **Partial v0.10.1** — Vanta + Drata existing collectors gained `compliance_status` field; full bidirectional API exchange deferred to v0.11+ |
+| 9 | **ScubaGear / CISA SCuBA** | Ingest M365 baseline results mapped to 800-53 | JSON/CSV; SCuBA→800-53 crosswalk | Med (federal) | Low–Med | ❌ — not yet; v1.1 federal-tier candidate |
+| 10 | **Azure Policy / GCP Security Command Center** | Cloud-native posture parity beyond AWS | Azure REST; GCP SCC API (normalize via OCSF) | Med | Med | ❌ — not yet; v0.11+ candidate |
+| 11 | **Backstage scorecard plugin** | "Compliance score" tile in internal developer portals | Backstage frontend plugin + catalog JSON | Med | Med | ❌ — not yet |
+| 12 | **MLflow / Hugging Face model cards** | AI-governance evidence: model provenance/cards as NIST AI RMF Map/Measure evidence | MLflow registry API; HF model-card YAML | Med (AI moat) | Med | ⚠️ **Partial v0.9.x** — `AISystem` + `AISystemClassification` + Annex IV registry exists; MLflow / HF Hub direct ingest not yet wired |
+| 13 | **OPA / Rego policy bundles** | Express control checks as Rego; consume OPA decision logs as evidence | OPA decision API; decision-log JSON | Med | Med | ❌ — not yet; v0.11+ candidate |
+| 14 | **ServiceNow IRM / Archer** | Enterprise GRC system-of-record interchange | ServiceNow Table API; Archer REST | Med (enterprise) | High | ❌ — not yet; v1.1 enterprise-tier candidate |
+| 15 | **Splunk / Datadog export** | Push compliance posture as events for SIEM dashboards | Splunk HEC; Datadog Events API | Low–Med | Low | ✅ **v0.10.4** — `evidentia gap analyze --format ocsf` emits OCSF Compliance Finding array; SIEM-ready (Splunk/Datadog/Elastic all ingest OCSF) |
 
 **Deliberately not prioritized now:** OneTrust, AuditBoard/Optro,
 Hyperproof, Anecdotes — closed partner programs, enterprise-sales-gated
@@ -206,18 +210,48 @@ its vocabulary so Evidentia is legible to the practitioners adopting it.
 This is a positioning/documentation task, not an engineering one, and it
 costs almost nothing.
 
+✅ **SHIPPED v0.10.3** — see [`docs/gemara-mapping.md`](gemara-mapping.md)
+(NORMATIVE 13-row component-by-component mapping; Gemara v1.1.0
+2026-05-12 cited; adopters FINOS CCC + OpenSSF Security Baseline).
+
 ## 7. Suggested sequencing
 
+> **Sequencing status updated 2026-05-23** as v0.10.4 A5 deliverable.
+
 1. **OCSF normalized findings schema** (§4.1) — the keystone.
+   ✅ SHIPPED v0.10.0.
 2. **SARIF emit** (§4.2) — quick win, unblocks #4/#5 in §3.
+   ✅ SHIPPED v0.10.0.
 3. **Prowler + AWS Security Hub collectors** (§3 #2, #3) — first payoff
-   of the OCSF work.
+   of the OCSF work. ✅ SHIPPED v0.10.1 (via the OCSF Detection
+   Finding ingestion path; native Security Hub API collector
+   deferred).
 4. **YAML framework definitions** (§4.4) — broadens contribution.
+   ✅ SHIPPED v0.10.3.
 5. **Persona modes** (§4.5) — presentation-layer UX win.
+   🚫 Deferred to commercial-tier (v0.10.2 OSS-vs-paid lock-in:
+   generalist OSS skills only; persona-tied skills reserved for
+   future Pro/Federal tier).
 6. **MCP deepening + GRC Engineering Club plugin** (§4.3, §5).
+   ✅ SHIPPED v0.10.2 — MCP surface 8 → 12 tools; marketplace plugin
+   staged at `marketplace/grc-engineering-suite/plugins/evidentia/`
+   (upstream PR is a separate publishing action awaiting approval).
 7. **RegScale / Lula OSCAL interchange** (§3 #6, #7) — federal lane.
+   ❌ Deferred to v1.1 federal-tier.
 8. **Optional live-doc retrieval** (§4.6) and **plugin-contract
-   formalization** (§4.7).
+   formalization** (§4.7). ⚠️ §4.7 partially shipped via the v0.9.7
+   api-stability.md NORMATIVE promotion; live-doc retrieval still TBD.
+
+**Beyond the original sequence** (added since the May 21 baseline):
+
+- **`evidentia gap analyze --format ocsf`** (the symmetric counterpart
+  to the v0.10.0 SARIF emit + the v0.10.1 OCSF ingest) — gap output
+  flows into SIEMs / data lakes / OCSF-aware tooling. ✅ SHIPPED v0.10.4.
+- **F-V101-L1 SSRF hardening** (`--block-private-ips` on OCSF URL
+  mode) — defense-in-depth on the ingest collector. ✅ SHIPPED v0.10.2.
+- **YAML-format catalog support** (the §4.4 deliverable) — catalog
+  contribution barrier lowered via `_load_catalog_data` extension
+  dispatch + `iso-27017-2015.yaml` proof. ✅ SHIPPED v0.10.3.
 
 This sequence front-loads the structural change (OCSF) that makes
 everything after it cheap, and defers the items (enterprise GRC

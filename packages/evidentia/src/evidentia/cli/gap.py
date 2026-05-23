@@ -48,7 +48,7 @@ def analyze(
     format: str = typer.Option(
         "json",
         "--format",
-        help="Output format: json, csv, markdown, oscal-ar, sarif.",
+        help="Output format: json, csv, markdown, oscal-ar, sarif, ocsf.",
     ),
     show_efficiency_opportunities: bool = typer.Option(
         True,

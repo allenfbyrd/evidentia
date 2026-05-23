@@ -118,6 +118,22 @@ class TestServerBuild:
             "gap_diff",
         } <= registered
 
+    def test_verify_signed_artifact_tool_registered(self) -> None:
+        """v0.10.4 B3 — verify_signed_artifact is the 13th MCP tool
+        (12 from v0.10.2 + this one). Surfaces the supply-chain
+        verification moat to AI clients."""
+        import asyncio
+
+        server = build_server()
+        tools = asyncio.run(server.list_tools())
+        names = {t.name for t in tools}
+        assert "verify_signed_artifact" in names
+        # Description is the docstring's first paragraph; assert it
+        # mentions both signature kinds the wrapper handles.
+        tool = next(t for t in tools if t.name == "verify_signed_artifact")
+        assert tool.description is not None
+        assert "OSCAL" in tool.description
+
     def test_each_tool_has_a_description(self) -> None:
         """FastMCP renders the docstring as the MCP tool description."""
         # v0.8.1 F-V08-CR-4: public list_tools() API.

@@ -1,0 +1,204 @@
+# CIS Critical Security Controls v8.1 (2024) — Tier-C placeholder catalog.
+#
+# Authoritative control text is copyrighted by the Center for Internet
+# Security; only the IDs + titles + license metadata are bundled here.
+# Operators with a CIS Controls license should run
+#   evidentia catalog import --framework cis-controls-v8.1 --file <their-licensed-copy>
+# to override this placeholder with the authoritative text.
+#
+# v0.10.4 C3 worked example: this file was converted from the v0.7.x
+# JSON original to illustrate the YAML-format affordance (v0.10.3+).
+# See docs/contributing-a-catalog.md for the contributor recipe.
+# The JSON version is preserved in git history at the commit prior
+# to this conversion.
+
+framework_id: cis-controls-v8.1
+framework_name: "CIS Critical Security Controls v8.1"
+version: "v8.1 (2024)"
+source: "Center for Internet Security (CIS)"
+tier: C
+category: control
+placeholder: true
+
+# Top-level license metadata is repeated on each control (Pydantic
+# `CatalogControl.license_required` etc. are per-control fields, not
+# catalog-level inheritance). Listing the catalog-level fields here
+# documents the source-of-truth licensing posture.
+license_required: true
+license_terms: "© Center for Internet Security. CIS Controls are freely available under CIS's terms; however, redistribution in catalog form requires CIS licensing. Ships as stub — download from cisecurity.org and import."
+license_url: "https://www.cisecurity.org/controls"
+
+families:
+  - "CIS Controls"
+
+# The 18 CIS Critical Security Controls v8.1, grouped by Implementation
+# Group as published by CIS. Implementation Group is informational here
+# (Evidentia's CatalogControl has no IG field at v0.10.4); the comment
+# headers reflect CIS's own published grouping for browsing convenience.
+# All controls are Tier-C placeholders — the description string is the
+# bundled-Evidentia stub text, not the authoritative CIS body.
+controls:
+  # ── Implementation Group 1 (IG1) — foundational hygiene ─────────
+  - id: CIS.1
+    title: "Inventory and Control of Enterprise Assets"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.2
+    title: "Inventory and Control of Software Assets"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.3
+    title: "Data Protection"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.4
+    title: "Secure Configuration of Enterprise Assets and Software"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.5
+    title: "Account Management"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.6
+    title: "Access Control Management"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  # ── Implementation Group 2 (IG2) — risk-aware enterprises ───────
+  - id: CIS.7
+    title: "Continuous Vulnerability Management"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.8
+    title: "Audit Log Management"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.9
+    title: "Email and Web Browser Protections"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.10
+    title: "Malware Defenses"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.11
+    title: "Data Recovery"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.12
+    title: "Network Infrastructure Management"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.13
+    title: "Network Monitoring and Defense"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.14
+    title: "Security Awareness and Skills Training"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.15
+    title: "Service Provider Management"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  # ── Implementation Group 3 (IG3) — high-maturity organizations ──
+  - id: CIS.16
+    title: "Application Software Security"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.17
+    title: "Incident Response Management"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"
+
+  - id: CIS.18
+    title: "Penetration Testing"
+    description: "[Licensed content — see license_url for authoritative text.]"
+    family: "CIS Controls"
+    placeholder: true
+    tier: C
+    license_required: true
+    license_url: "https://www.cisecurity.org/controls"

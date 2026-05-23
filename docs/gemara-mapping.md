@@ -104,6 +104,39 @@ for the broader integration backlog.
   Evidentia plug into the broader OpenSSF compliance ecosystem
   without re-shaping its core model.
 
+## 5.A OCSF × Gemara cross-mapping (v0.10.4 C2 addendum)
+
+The v0.10.0 OCSF interop layer and the v0.10.3 Gemara mapping
+intersect cleanly. For a peer adopting both standards, the
+relationship table below pins exactly where Evidentia surfaces
+land in each:
+
+| Evidentia surface | OCSF class / role | Gemara component |
+|---|---|---|
+| `SecurityFinding` (frozen v0.10.0 model) | Compliance Finding (`class_uid 2003`) when `compliance_status` is set; Detection Finding (`class_uid 2004`) when source is a scanner | **Log: Audit** for the ingested event; **Log: Evaluation** if the finding carries a `compliance_status` derived from a control assessment |
+| `evidentia gap analyze --format ocsf` (v0.10.4 A2) | Array of Compliance Finding (`class_uid 2003`) | **Log: Evaluation** — gap-analysis results are control-evaluation events; each entry is a per-control evaluation outcome |
+| `evidentia collect ocsf --input <file-or-url>` (v0.10.1) | Either class accepted — Detection Finding is reshaped into a `SecurityFinding` via `finding_from_ocsf_detection` | **Log: Audit** (ingested scanner event) → flows into `Log: Evaluation` after control mapping |
+| `evidentia_core.ocsf.finding_to_ocsf` | Compliance Finding emit | **Log: Evaluation** serialization |
+| `evidentia_core.ocsf.finding_from_ocsf` | Compliance Finding ingest | **Log: Audit / Evaluation** ingest |
+| `SecurityFinding.control_mappings` (OLIR-typed per `evidentia_core.models.common.ControlMapping`) | `compliance.requirements` + `compliance.standards` | **Document: Mapping** — the relationship-typed crosswalk |
+| `SecurityFinding.remediation` (v0.10.0+) | `remediation.desc` | **Catalog: Guidance** (per-finding remediation text) |
+| `SecurityFinding.compliance_status` enum | `compliance.status_id` enum | **Log: Evaluation** outcome field |
+
+**Implication for FINOS CCC + OpenSSF Security Baseline adopters**:
+Evidentia outputs that go *out* as OCSF (v0.10.0 ingest, v0.10.4 emit)
+fit Gemara's `Logs/Audit + Logs/Evaluation` taxonomy directly — no
+intermediate transformation needed. An adopter ingesting Evidentia's
+`gap analyze --format ocsf` into their Gemara-aware pipeline lands
+the data in the right tier on first contact. Same for the reverse
+direction: Prowler / AWS Security Hub Detection Findings ingested
+via v0.10.1 land as `Log: Audit` entries upstream and are promoted
+to `Log: Evaluation` once the control-mapping crosswalk fires.
+
+This is the OCSF leg of the Gemara position: OCSF and Gemara are
+**complementary**, not competing — OCSF gives the wire-format
+schema, Gemara gives the taxonomy that names what each shape *is*.
+Evidentia speaks both natively.
+
 ## 6. Cross-references
 
 - Evidentia surfaces named above are documented in

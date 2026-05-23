@@ -68,13 +68,27 @@ The `manifest.py` model validates every field; malformed catalogs
 get caught by the existing `tests/unit/test_catalogs/test_all_bundled.py`
 suite (which parametrizes a smoke test per bundled framework).
 
-## Worked example — `iso-27017-2015.yaml` (v0.10.3 proof)
+## Worked examples
+
+### 7-control stub — `iso-27017-2015.yaml` (v0.10.3 proof)
 
 See `packages/evidentia-core/src/evidentia_core/catalogs/data/stubs/iso-27017-2015.yaml`
 for the first YAML catalog in the bundled set — a 7-control
 Tier-C cloud-services stub. The corresponding JSON equivalent was
 removed in v0.10.3; both formats produce identical
 `ControlCatalog` objects when loaded.
+
+### 18-control stub — `cis-controls-v8.1.yaml` (v0.10.4 C3 richer proof)
+
+See `packages/evidentia-core/src/evidentia_core/catalogs/data/stubs/cis-controls-v8.1.yaml`
+for a richer hand-authored example. The 18 CIS Critical Security
+Controls v8.1 are grouped by Implementation Group (IG1 / IG2 / IG3)
+using `# ── ... ──` comment headers — a pattern that's impossible in
+JSON. This demonstrates the actual contributor benefit of YAML for
+catalogs that need browsability beyond a flat control list.
+
+The 7-control vs 18-control pair lets contributors see both ends of
+the size spectrum the YAML format is intended to serve.
 
 ## When NOT to use YAML
 

@@ -220,6 +220,73 @@ def test_yaml_and_json_round_trip_preserves_multi_line_fields(
     assert "\n" in c_yaml.parameters["evidence_text"]
 
 
+# ── v0.10.4 A4 loader-helper choke-point lint ────────────────────
+
+
+def test_no_sibling_json_loads_or_yaml_safe_load_in_catalogs_module() -> None:
+    """v0.10.4 A4: mechanically enforces the v0.10.4 P1 invariant that
+    catalog file reads MUST go through ``_load_catalog_data``.
+
+    Walks every ``.py`` in ``evidentia_core.catalogs.*`` and asserts
+    that no module besides ``loader.py`` (where the helper itself
+    lives) calls ``json.loads(`` or ``yaml.safe_load(`` directly.
+    Catches the failure mode of a future contributor adding a new
+    catalog loader that bypasses the extension dispatch + non-mapping-
+    root rejection at the choke point.
+
+    Why a lint test and not a runtime check: the only way to catch
+    bypasses is at module-load time of every catalogs/* file, and
+    that's exactly what pytest collection does for free.
+    """
+    import re
+
+    catalogs_dir = (
+        Path(__file__).resolve().parents[3]
+        / "packages"
+        / "evidentia-core"
+        / "src"
+        / "evidentia_core"
+        / "catalogs"
+    )
+    forbidden_calls = re.compile(r"\b(json\.loads|yaml\.safe_load)\s*\(")
+    # The choke-point invariant applies to CATALOG FILE reads. Files
+    # whose explicit job is reading the manifest / framework-index
+    # (the YAML inventory OF catalogs, not the catalogs themselves)
+    # are out of scope and are listed here. Adding a file here is the
+    # documented escape hatch; do it only when the file genuinely
+    # reads non-catalog data.
+    allowlisted_non_catalog_loaders = {
+        # manifest.py reads `frameworks.yaml`, the registry index of
+        # bundled catalogs. The index itself is not a catalog file.
+        "manifest.py",
+        # user_dir.py reads operator-imported framework metadata
+        # (user-catalogs.yaml index), not the catalog payloads.
+        "user_dir.py",
+    }
+    violations: list[str] = []
+    for py_path in catalogs_dir.glob("*.py"):
+        if py_path.name == "loader.py":
+            # The choke point itself MUST call json.loads + yaml.safe_load.
+            continue
+        if py_path.name in allowlisted_non_catalog_loaders:
+            continue
+        if py_path.name.startswith("__"):
+            continue
+        text = py_path.read_text(encoding="utf-8")
+        for match in forbidden_calls.finditer(text):
+            line_no = text[: match.start()].count("\n") + 1
+            violations.append(
+                f"{py_path.name}:{line_no} calls {match.group(0)!r} directly; "
+                "use evidentia_core.catalogs.loader._load_catalog_data instead "
+                "(v0.10.4 P1 choke-point invariant)."
+            )
+
+    assert not violations, (
+        "v0.10.4 P1 choke-point invariant violated:\n  "
+        + "\n  ".join(violations)
+    )
+
+
 # ── v0.10.4 P3 framework_id collision guard ──────────────────────
 
 

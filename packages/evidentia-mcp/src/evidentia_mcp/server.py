@@ -828,3 +828,82 @@ def _register_tools(
         from evidentia_core.poam_store import list_poams
 
         return [p.model_dump(mode="json") for p in list_poams()]
+
+    @server.tool()
+    def verify_signed_artifact(
+        ar_path: str,
+        require_signature: bool = True,
+        expected_sigstore_identity: str | None = None,
+        expected_sigstore_issuer: str | None = None,
+    ) -> dict[str, Any]:
+        """Verify an OSCAL Assessment Result file's signatures + digests.
+
+        Wraps :func:`evidentia_core.oscal.verify.verify_ar_file` (v0.7.x+)
+        as an MCP-surface tool so AI clients (Claude Desktop, Claude
+        Code) can verify Evidentia-emitted OSCAL ARs end-to-end without
+        shelling out to the CLI. Exposes the supply-chain provenance
+        moat (Sigstore + GPG + back-matter SHA-256 digests) directly to
+        the operator's chat agent — Evidentia's competitive
+        differentiator §6.1.A moat trinity item 3.
+
+        Notes:
+        - Verifies in this order: back-matter SHA-256 digests, then
+          GPG ``.asc`` signature (if present), then Sigstore bundle
+          (``.sigstore.json`` if present). When ``require_signature``
+          is True (default), EITHER GPG OR Sigstore satisfies the
+          requirement.
+        - Production audit pipelines SHOULD set both
+          ``expected_sigstore_identity`` AND ``expected_sigstore_issuer``
+          to pin signer identity; otherwise the verifier falls back
+          to an UnsafeNoOp policy that accepts any signer (with a
+          structured warning surfaced in the returned report).
+        - Read-only — never mutates the artifact.
+
+        Args:
+            ar_path: Filesystem path to the ``.oscal-ar.json`` file.
+                Resolved against ``--allow-root`` when set.
+            require_signature: When True (default), absence of any
+                signature is a failure.
+            expected_sigstore_identity: Required signer identity (email
+                or OIDC subject) for Sigstore. Pair with
+                ``expected_sigstore_issuer``.
+            expected_sigstore_issuer: Required Sigstore identity issuer
+                (e.g., ``https://token.actions.githubusercontent.com``).
+
+        Returns:
+            JSON-serializable verification report — ``ar_path``,
+            ``digest_checks`` (list of per-back-matter-resource
+            digest outcomes), ``signature_valid``, ``signature_kind``
+            (``"gpg"`` / ``"sigstore"`` / ``None``), ``errors`` (list
+            of human-readable failure reasons), ``warnings``.
+
+        Raises:
+            FileNotFoundError: ``ar_path`` does not exist (or
+                resolves outside the bound ``--allow-root``).
+        """
+        import dataclasses
+
+        from evidentia_core.oscal.verify import verify_ar_file
+
+        candidate = Path(ar_path).expanduser()
+        if resolved_allow_root is not None:
+            path = validate_within(candidate, resolved_allow_root)
+        else:
+            path = candidate.resolve(strict=False)
+        if not path.exists():
+            raise FileNotFoundError(f"OSCAL AR file not found: {path}")
+        report = verify_ar_file(
+            path,
+            require_signature=require_signature,
+            expected_sigstore_identity=expected_sigstore_identity,
+            expected_sigstore_issuer=expected_sigstore_issuer,
+        )
+        # VerifyReport is a stdlib @dataclass (not Pydantic), so go
+        # through dataclasses.asdict + add the computed properties
+        # MCP consumers rely on for the pass/fail summary.
+        report_dict: dict[str, Any] = dataclasses.asdict(report)
+        report_dict["ar_path"] = str(report.ar_path)
+        report_dict["overall_valid"] = report.overall_valid
+        report_dict["digests_valid"] = report.digests_valid
+        report_dict["has_verification_surface"] = report.has_verification_surface
+        return report_dict

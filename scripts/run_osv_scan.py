@@ -40,10 +40,19 @@ import argparse
 import shutil
 import subprocess
 import sys
+import tomllib
+from datetime import date, timedelta
 from pathlib import Path
 
 SBOM_PATH = Path("evidentia-sbom.cdx.json")
 CONFIG_PATH = Path("osv-scanner.toml")
+
+# v0.10.4 B5: warn when any [[IgnoredVulns]] entry's `ignoreUntil` is
+# within this window of expiring. Picked at 30 days so a normal
+# 2-week release cadence has time to re-affirm or remove the entry
+# before the gate starts failing — without being so noisy that
+# entries 6+ months out generate alarm fatigue.
+_ALLOWLIST_EXPIRY_WARN_WINDOW = timedelta(days=30)
 
 # Cobra (osv-scanner's CLI framework) emits these when an invocation
 # form is wrong. Used to fall through to the next candidate form so the
@@ -121,6 +130,61 @@ def run_osv_scanner(sbom_path: Path, config_path: Path) -> int:
     return -2
 
 
+def check_allowlist_expiry(config_path: Path, today: date | None = None) -> list[str]:
+    """Inspect [[IgnoredVulns]] entries; return WARN strings for any
+    entry whose ``ignoreUntil`` is within ``_ALLOWLIST_EXPIRY_WARN_WINDOW``
+    of today (or already expired).
+
+    v0.10.4 B5 hygiene: surfaces stale allowlist entries earlier than
+    the actual gate failure. An expired entry is treated as a
+    one-line WARN because osv-scanner itself will fail the gate on
+    the next run after expiry — this is the early warning, not a
+    second gate. Returned strings are written to stderr by the
+    caller.
+    """
+    if today is None:
+        today = date.today()
+    if not config_path.is_file():
+        return []
+    try:
+        with config_path.open("rb") as fp:
+            data = tomllib.load(fp)
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        return [f"WARN: could not parse {config_path}: {exc!r}"]
+
+    warnings: list[str] = []
+    for entry in data.get("IgnoredVulns", []):
+        vuln_id = entry.get("id", "<unknown>")
+        ignore_until = entry.get("ignoreUntil")
+        if ignore_until is None:
+            warnings.append(
+                f"WARN: allowlist entry {vuln_id!r} has no ignoreUntil; "
+                "add a re-validation date (v0.10.4 B5 hygiene policy)."
+            )
+            continue
+        # tomllib parses TOML date literals to datetime.date.
+        if not isinstance(ignore_until, date):
+            warnings.append(
+                f"WARN: allowlist entry {vuln_id!r} ignoreUntil is not a "
+                f"date (got {type(ignore_until).__name__}); skipping expiry check."
+            )
+            continue
+        days_remaining = (ignore_until - today).days
+        if days_remaining < 0:
+            warnings.append(
+                f"WARN: allowlist entry {vuln_id!r} expired "
+                f"{-days_remaining} day(s) ago (ignoreUntil={ignore_until.isoformat()}). "
+                "osv-scanner will fail the gate; re-affirm or remove the entry."
+            )
+        elif timedelta(days=days_remaining) <= _ALLOWLIST_EXPIRY_WARN_WINDOW:
+            warnings.append(
+                f"WARN: allowlist entry {vuln_id!r} expires in {days_remaining} day(s) "
+                f"(ignoreUntil={ignore_until.isoformat()}). "
+                "Re-affirm by editing osv-scanner.toml before the gate starts failing."
+            )
+    return warnings
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -139,6 +203,11 @@ def main() -> int:
         help="Scan an existing --sbom file instead of regenerating it.",
     )
     args = parser.parse_args()
+
+    # v0.10.4 B5: surface expiring allowlist entries BEFORE running
+    # the gate so the warning isn't drowned by gate output.
+    for warning in check_allowlist_expiry(args.config):
+        print(warning, file=sys.stderr)
 
     if not args.skip_sbom_gen and not generate_sbom(args.sbom):
         print("ERROR: SBOM generation failed.", file=sys.stderr)

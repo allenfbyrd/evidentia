@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from evidentia_core.models.finding import SecurityFinding
     from evidentia_core.models.tprm import Vendor
 
-OutputFormat = Literal["json", "csv", "markdown", "oscal-ar", "sarif"]
+OutputFormat = Literal["json", "csv", "markdown", "oscal-ar", "sarif", "ocsf"]
 
 
 def export_report(
@@ -96,6 +96,8 @@ def export_report(
         )
     if format == "sarif":
         return _export_sarif(report, path)
+    if format == "ocsf":
+        return _export_ocsf(report, path)
 
     raise ValueError(f"Unsupported format: {format}")
 
@@ -273,4 +275,25 @@ def _export_sarif(report: GapAnalysisReport, path: Path) -> Path:
 
     sarif_log = gap_report_to_sarif(report)
     path.write_text(json.dumps(sarif_log, indent=2), encoding="utf-8")
+    return path
+
+
+def _export_ocsf(report: GapAnalysisReport, path: Path) -> Path:
+    """Export the gap report as an OCSF Compliance Finding JSON
+    array (v0.10.4 A2).
+
+    Each ControlGap becomes one OCSF Compliance Finding (class_uid
+    2003), suitable for SIEM ingest / data-lake landing zones. This
+    is the symmetric counterpart to the v0.10.1 ``evidentia collect
+    ocsf`` ingest verb — gap output now flows into the same OCSF
+    pipeline as collector-shaped findings.
+
+    Requires the ``[ocsf]`` extra (``pip install
+    'evidentia-core[ocsf]'``); raises :class:`OCSFMappingError`
+    otherwise.
+    """
+    from evidentia_core.gap_analyzer.ocsf import gap_report_to_ocsf_array
+
+    ocsf_array = gap_report_to_ocsf_array(report)
+    path.write_text(json.dumps(ocsf_array, indent=2), encoding="utf-8")
     return path
