@@ -7,7 +7,113 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.10.1 development branch._
+_No changes yet on the v0.10.2 development branch._
+
+## [0.10.1] - 2026-05-23
+
+**Theme**: *OCSF integration consolidation + close both v0.10.0
+pre-release-review findings*. v0.10.0 opened the v0.10.x line and
+left two known findings on the table; v0.10.1 closes both inline and
+ships the deferred third-party OCSF ingestion collector with a new
+Detection Finding mapping path (Prowler / AWS Security Hub emit
+Detection Finding, not Compliance Finding). Also completes the v0.10.0
+pilot pattern by extending `compliance_status` population to every
+remaining collector. Same-day patch — v0.10.0 published at 03:07 UTC,
+v0.10.1 ships ~the same day.
+
+### Added
+
+- **OCSF ingestion collector + Detection Finding path (v0.10.1)**:
+  new `evidentia_collectors.ocsf` package — `collect_ocsf_file(path)`
+  + `collect_ocsf_url(url)` ingest OCSF JSON and return
+  `list[SecurityFinding]`. Dispatches by `class_uid`: 2003 → the
+  v0.10.0 Compliance Finding path; 2004 → the new
+  `finding_from_ocsf_detection` Detection Finding path (synthesizes
+  `compliance_status` from `severity_id`; control_mappings start
+  empty for downstream enrichment). URL mode is HTTPS-only, no
+  redirects, 10s timeout, 50 MB body cap. New `[ocsf]` extra on
+  `evidentia-collectors` mirrors the per-vendor extras pattern.
+- **`evidentia collect ocsf --input <file-or-url>` CLI verb**: file
+  or HTTPS URL input; `--output` writes the converted SecurityFinding
+  JSON list. Closes the v0.10.0-deferred third-party ingestion
+  surface.
+- **`evidentia collect convert --input X --format ocsf` CLI verb**:
+  reverse direction — converts a SecurityFinding JSON list to an
+  OCSF Compliance Finding bundle. Pairs with `collect ocsf` for full
+  Evidentia ↔ OCSF round-trips. Currently only `--format ocsf`
+  supported; other values exit with code 2.
+- **`trust_unmapped: bool = True` kwarg on `finding_from_ocsf`**:
+  additive keyword-only parameter. Default `True` preserves the
+  v0.10.0 Evidentia-internal lossless round-trip; `False` ignores
+  the `unmapped["evidentia"]` block and rebuilds from native OCSF
+  fields only. The new ingestion collector uses `False`. Non-breaking
+  per api-stability §1.
+- **`Finding` class alias on `SecurityFinding`** (v0.10.1 rename):
+  literal class alias (`Finding = SecurityFinding`), aligned with
+  OCSF's "Finding" terminology. Both names refer to the same class
+  — no runtime difference, no JSON-shape change, `isinstance` works
+  either way. `SecurityFinding` retained ≥1 minor cycle per the
+  deprecation policy; target removal v1.0.0. See
+  [`docs/deprecation-calendar.md`](docs/deprecation-calendar.md).
+- **`EventAction.COLLECT_OCSF_EMITTED`**: append-only enum addition
+  (minor-safe per §2). Emitted by `collect convert --format ocsf`
+  after a successful write with the input path, output path,
+  finding count, and format in the audit event's evidentia object —
+  replayable.
+- **`docs/v0.10.2-plan.md`**: forward-looking next-release scope
+  (MCP-as-backend + GRC Engineering Club marketplace plugin +
+  optional F-V101-L1 SSRF hardening).
+- **`docs/security-review-v0.10.1.md`**: 5th canonical
+  pre-release-review deliverable.
+
+### Changed
+
+- **All 11 remaining collectors populate `compliance_status`
+  explicitly**: Okta + the other 4 SQL adapters (MySQL, MSSQL,
+  SQLite, Oracle) + Databricks + Snowflake + Vanta + Drata + BitSight
+  + SecurityScorecard. 67 `SecurityFinding(...)` sites across 11
+  modules; semantics per finding-type rules in
+  [`docs/v0.10.1-plan.md`](docs/v0.10.1-plan.md) §4 (gaps → FAIL,
+  inventory rows → UNKNOWN, vendor-risk degraded scores → WARNING,
+  Vanta/Drata categorical HIGH/CRITICAL → FAIL). Completes the
+  v0.10.0 pilot pattern across the full collector surface.
+- **`docs/api-stability.md`**: `finding.py` frozen-models row notes
+  the v0.10.1 `Finding` alias + v1.0.0 removal target for
+  `SecurityFinding`. Revision-history row for v0.10.1.
+- **`docs/ocsf-mapping.md`**: new §5.1 "trust_unmapped — the
+  third-party ingestion path" + new §7.A "Detection Finding
+  mapping" with the `severity_id → compliance_status` synthesis
+  table. §7 expanded with the new mapping function + ingestion
+  collector API.
+
+### Fixed
+
+- **F-V100-L1 (LOW, trust-boundary)**: closed by Phase 1's
+  `trust_unmapped` parameter. A malicious OCSF producer can no
+  longer impersonate Evidentia-native fields via the
+  `unmapped["evidentia"]` block — third-party ingestion paths pass
+  `False` and rebuild from native OCSF fields only. Adversarial
+  close-out test asserts a forged block is ignored.
+- **F-V100-M1 (MEDIUM, release tooling)**: closed by Phase 5's
+  workspace allowlist in `scripts/bump_version.py`. The pin
+  substitution regex now requires a workspace package name (read
+  from `[tool.uv.sources]`) to precede the version range, so
+  third-party pins with the same range shape (e.g.
+  `py-ocsf-models>=0.9.0,<0.10.0`) are left untouched on the next
+  minor bump. Dry-run on hypothetical `0.10.0 → 0.11.0` confirms.
+  6 new tests + the pre-existing `tests/unit/test_bump_version.py`
+  aligned to the new signature.
+
+### Security
+
+- v0.10.0 surfaced two findings (F-V100-L1 LOW, F-V100-M1 MEDIUM)
+  in its pre-release-review; both **closed inline in v0.10.1**.
+- v0.10.1 pre-release-review opens one new finding: **F-V101-L1
+  (LOW)** — SSRF surface on `collect ocsf` URL mode (no private-IP
+  block). Operator-driven, not attacker-controlled — there is no
+  untrusted URL input path. Accepted for v0.10.1; optional
+  `--block-private-ips` hardening tracked in
+  [`docs/v0.10.2-plan.md`](docs/v0.10.2-plan.md) Phase 3.
 
 ## [0.10.0] - 2026-05-22
 

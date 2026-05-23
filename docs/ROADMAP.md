@@ -1,10 +1,11 @@
 # Evidentia roadmap
 
-**Last updated: v0.10.0 (May 2026).**
+**Last updated: v0.10.1 (May 2026).**
 
 This roadmap synthesizes community feedback with the architecture plan
 at the project root. Versions v0.3.0 through v0.7.16 + v0.8.0-v0.8.7
-+ v0.9.0-v0.9.9 have shipped; v0.10.0 ships now. **v0.9.0 opened the
++ v0.9.0-v0.9.9 + v0.10.0 have shipped; v0.10.1 ships now (a same-day
+patch on v0.10.0 — both shipped 2026-05-23). **v0.9.0 opened the
 v0.9.x "federal compliance" line** with POA&M + CONMON read-only
 library; v0.9.1 landed the Polycentric Labs org migration; v0.9.2
 added the CONMON REST router + federal corpus + LLM rater + federal
@@ -27,7 +28,17 @@ OCSF Compliance Finding mapping layer (`evidentia_core.ocsf`, behind
 the new `[ocsf]` extra), SARIF 2.1.0 output for `evidentia gap`
 (runs gap analysis as a CI gate, surfaced in GitHub code scanning +
 GitLab security dashboards), and 3 pilot collectors (AWS, GitHub,
-Postgres) populating the new fields. Per the v1.0 master-plan
+Postgres) populating the new fields. **v0.10.1 consolidates the
+integration line** on the same calendar day as v0.10.0: closes both
+v0.10.0 pre-release-review findings (F-V100-L1 trust-boundary on
+the OCSF `unmapped["evidentia"]` block via a new
+`trust_unmapped=False` parameter; F-V100-M1 `bump_version.py`
+over-bumping third-party pins via a `[tool.uv.sources]` workspace
+allowlist), ships the deferred third-party OCSF *ingestion*
+collector with a Detection Finding path for Prowler / AWS Security
+Hub, extends `compliance_status` population to the remaining 11
+collectors, and introduces the `Finding` class-name alias plus
+`evidentia collect convert --format ocsf`. Per the v1.0 master-plan
 resequencing (2026-05-21), the v0.9.x and v0.10.x lines iterate as
 many times as needed toward a solid product — the operator
 self-test and demo/pitch recording precede the walk-throughs and

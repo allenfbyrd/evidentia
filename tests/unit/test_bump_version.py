@@ -17,7 +17,7 @@ from __future__ import annotations
 import importlib.util
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
 
@@ -56,7 +56,7 @@ class TestBumpPinRange:
     # generation deterministic without conflating with the F-V100-M1
     # behavior, which is covered in detail by
     # tests/unit/test_scripts/test_bump_version.py.
-    PKGS = ["evidentia-core"]
+    PKGS: ClassVar[list[str]] = ["evidentia-core"]
 
     def test_same_minor_patch_bump_tightens_lower_bound(
         self, bump: Any

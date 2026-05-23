@@ -157,6 +157,29 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.10.1 (May 2026)** — *OCSF integration consolidation + close
+both v0.10.0 review findings*. Same-day patch on v0.10.0 (v0.10.0
+published 03:07 UTC, v0.10.1 ships ~the same day). Closes
+**F-V100-L1** (trust-boundary on the OCSF `unmapped["evidentia"]`
+block — `finding_from_ocsf` gains a `trust_unmapped: bool = True`
+keyword-only parameter; the new ingestion collector passes
+`False`) and **F-V100-M1** (release-tooling — `scripts/
+bump_version.py` reads `[tool.uv.sources]` as the workspace
+allowlist so third-party pins like `py-ocsf-models>=0.9.0,<0.10.0`
+are no longer over-bumped). Ships the deferred third-party
+**OCSF ingestion collector** (`evidentia collect ocsf --input
+<file-or-url>` — HTTPS-only URL mode with size + timeout caps;
+Detection Finding path handles Prowler + AWS Security Hub output)
+and **`evidentia collect convert --format ocsf`** (SecurityFinding
+→ OCSF Compliance Finding bundle). Migrates the remaining 11
+collectors (Okta + 4 SQL adapters + Databricks + Snowflake +
+Vanta + Drata + BitSight + SecurityScorecard) to populate
+`compliance_status` per the v0.10.0 pilot pattern. Adds the
+`Finding` class-name alias on `SecurityFinding` (deprecation
+target: v1.0.0) and the `EventAction.COLLECT_OCSF_EMITTED`
+audit value. **3332 tests passing / 14 skipped across 267 source
+files; mypy strict 0/0; ruff clean.** PyPI: 7 packages at 0.10.1.
+
 **v0.10.0 (May 2026)** — *OCSF-aligned findings schema + SARIF
 CI-gate output*. Opens the v0.10.x research-driven integration line.
 Ships an additive normalized findings schema (`SecurityFinding` gains
