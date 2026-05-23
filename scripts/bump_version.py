@@ -30,12 +30,49 @@ import argparse
 import re
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 # Matches X.Y.Z and X.Y.Z.W (hot-fix versions per the v0.7.4 / v0.7.7.1
 # precedent: same-day patches that need to ride atop a tagged minor +
 # don't earn a fresh patch number).
 VERSION_RE = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?")
+
+
+def workspace_packages(pyproject_path: Path | None = None) -> list[str]:
+    """Read ``[tool.uv.sources]`` from the root ``pyproject.toml``.
+
+    Returns the package names that the monorepo declares as workspace
+    members — i.e. the only packages whose inter-package version pins
+    this script is allowed to touch.
+
+    **F-V100-M1 close-out (v0.10.1)**: the v0.10.0 ship surfaced
+    ``bump_version.py`` over-bumping the ``py-ocsf-models`` pin because
+    the prior substitution didn't distinguish inter-package pins from
+    third-party pins matching the same ``>=0.X.0,<0.Y.0`` shape. By
+    reading ``[tool.uv.sources]`` as the workspace allowlist, the
+    script substitutes pins only on names declared as
+    ``{ workspace = true }`` — third-party deps are left alone.
+
+    Returns an empty list if no root ``pyproject.toml`` exists OR if
+    the ``[tool.uv.sources]`` section is missing. Callers that
+    receive an empty list MUST skip the pin substitution rather than
+    falling back to a package-agnostic regex (which would re-introduce
+    F-V100-M1).
+    """
+    root = pyproject_path or Path("pyproject.toml")
+    if not root.exists():
+        return []
+    try:
+        data = tomllib.loads(root.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError:
+        return []
+    sources = data.get("tool", {}).get("uv", {}).get("sources", {})
+    return sorted(
+        name
+        for name, spec in sources.items()
+        if isinstance(spec, dict) and spec.get("workspace") is True
+    )
 
 
 def tracked_files() -> list[Path]:
@@ -67,24 +104,42 @@ def cur_parts_str(version: str) -> str:
     return f"{parts[0]}.{parts[1]}"
 
 
-def bump_pin_range(current: str, target: str) -> tuple[str, str]:
+def bump_pin_range(
+    current: str,
+    target: str,
+    packages: list[str],
+) -> tuple[str, str]:
     """Return (current-range-regex, next-range-replacement) for inter-package pin updates.
 
-    Pin convention (v0.7.12+): `>={target},<{M}.{m+1}.0` — tightens
+    Pin convention (v0.7.12+): ``>={target},<{M}.{m+1}.0`` — tightens
     the LOWER bound to the current release version, not the minor's
-    `.0`. This closes the v0.7.11 propagation foot-gun where pip
-    could resolve a cached `evidentia-core==0.7.10` against a
-    freshly-published `evidentia==0.7.11` because the loose
-    `>=0.7.0,<0.8.0` pin permitted ANY patch.
+    ``.0``. This closes the v0.7.11 propagation foot-gun where pip
+    could resolve a cached ``evidentia-core==0.7.10`` against a
+    freshly-published ``evidentia==0.7.11`` because the loose
+    ``>=0.7.0,<0.8.0`` pin permitted ANY patch.
 
-    The regex pattern matches any prior pin in the current
-    major.minor range — `>=0.7.\\d+(?:\\.\\d+)?,<0.8.0` — so the
-    fix also rewrites legacy `>=0.7.0,<0.8.0` pins on the first
-    post-fix bump.
+    **F-V100-M1 close-out (v0.10.1)**: the regex now **requires** one
+    of the workspace package names in ``packages`` to precede the
+    range. Third-party deps that happen to use the same range shape
+    (``py-ocsf-models>=0.9.0,<0.10.0``) are no longer matched, so
+    bumping ``0.9.9 -> 0.10.0`` doesn't over-bump them to
+    ``>=0.10.0,<0.11.0`` (unsatisfiable, breaks every fresh install).
 
-    Hot-fix versions (X.Y.Z.W per the v0.7.4 / v0.7.7.1
-    precedent) ride the major.minor of their parent release.
+    The capture group ``(?P<name>...)`` preserves the package name in
+    the replacement via the named back-reference ``\\g<name>``.
+
+    Hot-fix versions (X.Y.Z.W per the v0.7.4 / v0.7.7.1 precedent)
+    ride the major.minor of their parent release.
     """
+    if not packages:
+        # Defensive: empty allowlist means "no workspace members declared"
+        # — refuse to fall back to a package-agnostic pattern (which is
+        # exactly the F-V100-M1 bug). Callers must detect the empty
+        # list and skip the pin substitution.
+        raise ValueError(
+            "bump_pin_range called with empty workspace package list; "
+            "the F-V100-M1 fix requires an explicit allowlist."
+        )
     cur_parts = current.split(".")
     tgt_parts = target.split(".")
     cur_maj, cur_min = cur_parts[0], cur_parts[1]
@@ -92,11 +147,13 @@ def bump_pin_range(current: str, target: str) -> tuple[str, str]:
     # Cross-minor bump: match anything in the OLD minor range. Same-minor
     # bump: also match anything in the current minor (catches both
     # already-tightened pins and legacy loose ones).
+    name_alt = "|".join(re.escape(p) for p in packages)
     cur_range = (
-        rf">={cur_maj}\.{cur_min}\.\d+(?:\.\d+)?,"
+        rf"(?P<name>{name_alt})>="
+        rf"{cur_maj}\.{cur_min}\.\d+(?:\.\d+)?,"
         rf"<{cur_maj}\.{int(cur_min)+1}\.0"
     )
-    tgt_range = f">={target},<{tgt_maj}.{int(tgt_min)+1}.0"
+    tgt_range = rf"\g<name>>={target},<{tgt_maj}.{int(tgt_min)+1}.0"
     return cur_range, tgt_range
 
 
@@ -155,22 +212,15 @@ def main() -> int:
             print(f"Already at {args.to} - nothing to do.")
             return 0
 
-    cur_pin_pattern, tgt_pin = bump_pin_range(current, args.to)
-    # Replacements are (regex_pattern, replacement_text). Using regex
-    # with negative-lookaheads avoids substring traps like "0.7.7"
-    # matching inside "0.7.7.1" when bumping a hot-fix.
+    # v0.10.1 F-V100-M1 fix: read the workspace allowlist BEFORE
+    # building substitution patterns; refuse to over-bump third-party
+    # pins that happen to match the inter-package range shape.
+    packages = workspace_packages()
     cur_re = re.escape(current)
     nla = r"(?!\.\d)"  # negative-lookahead: not followed by .digit
     replacements: list[tuple[str, str]] = [
         (rf'version = "{cur_re}"{nla}', f'version = "{args.to}"'),
         (rf'"version": "{cur_re}"{nla}', f'"version": "{args.to}"'),
-        # v0.7.12 P0.5 closure: tighten inter-package pin lower bound
-        # to the current release version (not just the minor's .0).
-        # Closes the v0.7.11 PyPI propagation foot-gun where pip
-        # could resolve a cached `evidentia-core==<previous-patch>`
-        # against a freshly-published `evidentia==<this-patch>`
-        # because the loose `>=0.7.0,<0.8.0` pin permitted ANY patch.
-        (cur_pin_pattern, tgt_pin),
         # v0.7.7.1 trap: Dockerfile pinned to the current release as a
         # hardcoded literal. Without this replacement, the published
         # ghcr.io image installs the previous version inside even
@@ -178,9 +228,28 @@ def main() -> int:
         # by the v0.7.7 pre-release-review Step 7.5 container smoke.
         (rf'evidentia\[gui\]=={cur_re}{nla}', f'evidentia[gui]=={args.to}'),
     ]
+    if packages:
+        # v0.7.12 P0.5 closure (now v0.10.1 F-V100-M1-safe): tighten
+        # inter-package pin lower bound to the current release version.
+        # The pattern matches ONLY workspace member names from
+        # [tool.uv.sources] — third-party deps with the same range
+        # shape (e.g. py-ocsf-models>=0.9.0,<0.10.0) are left alone.
+        cur_pin_pattern, tgt_pin = bump_pin_range(current, args.to, packages)
+        replacements.append((cur_pin_pattern, tgt_pin))
+        pin_msg = (
+            f"  Inter-package pins ({len(packages)} workspace pkgs): "
+            f"<prior-range-in-{cur_parts_str(current)}> -> "
+            f">={args.to},<...next-minor..."
+        )
+    else:
+        pin_msg = (
+            "  Inter-package pins: SKIPPED (no [tool.uv.sources] "
+            "workspace allowlist found in root pyproject.toml; refusing "
+            "to fall back to package-agnostic regex per F-V100-M1)."
+        )
 
     print(f"Bump plan: {current} -> {args.to}")
-    print(f"  Inter-package pins: <prior-range-in-{cur_parts_str(current)}> -> {tgt_pin}")
+    print(pin_msg)
     print()
 
     files_changed = 0
