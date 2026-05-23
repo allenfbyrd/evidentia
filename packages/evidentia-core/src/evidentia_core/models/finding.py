@@ -258,3 +258,14 @@ class SecurityFinding(EvidentiaModel):
             control_ids: list[str] | None = None,
             **kwargs: Any,
         ) -> None: ...
+
+
+# v0.10.1 rename — ``Finding`` is the new canonical class name,
+# aligned with the OCSF "Finding" terminology (Compliance Finding,
+# Detection Finding). ``SecurityFinding`` is retained as a
+# backward-compatible alias for ≥ 1 minor cycle per the deprecation
+# policy in ``docs/api-stability.md``. Both names refer to the same
+# class — call sites can use either, JSON serialization is identical,
+# isinstance() checks against either name succeed. See
+# ``docs/deprecation-calendar.md`` for the removal timeline.
+Finding = SecurityFinding

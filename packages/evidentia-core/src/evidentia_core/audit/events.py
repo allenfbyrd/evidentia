@@ -52,6 +52,11 @@ class EventAction(str, Enum):
     COLLECT_COMPLETED = "evidentia.collect.completed"
     COLLECT_FAILED = "evidentia.collect.failed"
     COLLECT_ABORTED = "evidentia.collect.aborted"
+    # v0.10.1 — emitted after `evidentia collect convert --format ocsf`
+    # successfully writes an OCSF Compliance Finding bundle, so an
+    # auditor can replay the source-to-OCSF conversion from the audit
+    # trail (input path, output path, finding count).
+    COLLECT_OCSF_EMITTED = "evidentia.collect.ocsf_emitted"
 
     # Authentication events ─ tracks credential resolution at collection time.
     # Required by NIST SP 800-53 AU-2 (Event Logging) to identify the

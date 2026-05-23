@@ -1226,6 +1226,114 @@ def collect_ocsf(
     _write_findings(findings, output, title="OCSF ingest")
 
 
+@app.command("convert")
+def collect_convert(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        "-i",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help=(
+            "Path to a JSON file containing a list of SecurityFinding "
+            "objects (as produced by any `evidentia collect ...` command)."
+        ),
+    ),
+    format: str = typer.Option(
+        "ocsf",
+        "--format",
+        "-f",
+        help=(
+            "Output format. Currently only `ocsf` (OCSF Compliance Finding "
+            "bundle) is supported; future releases may add more."
+        ),
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Where to write the converted JSON. Default: stdout.",
+    ),
+) -> None:
+    """Convert SecurityFinding JSON to another format (v0.10.1).
+
+    Currently supports OCSF Compliance Finding output — pair with
+    `evidentia collect ocsf --input` for full Evidentia ↔ OCSF
+    round-trips. Each input finding is converted via
+    :func:`evidentia_core.ocsf.finding_to_ocsf` and the resulting list
+    of OCSF dicts is serialized as JSON.
+
+    Emits an ``EventAction.COLLECT_OCSF_EMITTED`` audit event after the
+    write succeeds.
+    """
+    if format != "ocsf":
+        console.print(
+            f"[red]Unsupported --format[/red] {format!r}. "
+            "v0.10.1 supports only `ocsf`."
+        )
+        raise typer.Exit(code=2)
+
+    try:
+        from evidentia_core.ocsf import OCSFMappingError, finding_to_ocsf
+    except ImportError as e:
+        console.print(
+            "[red]Error:[/red] OCSF conversion needs the optional ocsf extra. "
+            "Run [cyan]pip install 'evidentia-core[ocsf]'[/cyan]."
+        )
+        raise typer.Exit(code=1) from e
+
+    raw = json.loads(input_path.read_text(encoding="utf-8"))
+    if not isinstance(raw, list):
+        console.print(
+            f"[red]Error:[/red] {input_path} must be a JSON array of "
+            "SecurityFinding objects."
+        )
+        raise typer.Exit(code=1)
+
+    findings = [SecurityFinding.model_validate(item) for item in raw]
+    try:
+        ocsf_bundle = [finding_to_ocsf(f) for f in findings]
+    except OCSFMappingError as e:
+        console.print(f"[red]OCSF conversion failed:[/red] {e}")
+        raise typer.Exit(code=1) from e
+
+    payload = json.dumps(ocsf_bundle, indent=2, default=str)
+    if output is not None:
+        output.write_text(payload, encoding="utf-8")
+        console.print(
+            f"[green]Wrote {len(ocsf_bundle)} OCSF Compliance Finding(s) to[/green] {output}"
+        )
+    else:
+        console.print(payload)
+
+    # Audit emit — replayable record of the conversion (v0.10.1).
+    from evidentia_core.audit import (
+        EventAction,
+        EventCategory,
+        EventType,
+        get_logger,
+    )
+
+    _log = get_logger("evidentia.cli.collect.convert")
+    _log.info(
+        action=EventAction.COLLECT_OCSF_EMITTED,
+        message=(
+            f"Converted {len(ocsf_bundle)} SecurityFinding(s) to "
+            f"OCSF Compliance Finding bundle"
+        ),
+        category=[EventCategory.CONFIGURATION],
+        types=[EventType.INFO],
+        evidentia={
+            "input": str(input_path),
+            "output": str(output) if output else "stdout",
+            "count": len(ocsf_bundle),
+            "format": format,
+        },
+    )
+
+
 # ── rendering ────────────────────────────────────────────────────────────
 
 
