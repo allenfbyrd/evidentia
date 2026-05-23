@@ -33,7 +33,7 @@ inspection (same disposition as v0.9.8 + v0.9.9).
 |---|---|---|
 | 3 — commit re-test + 1-hop closure | The v0.10.0 changeset: 7 unpushed commits on `main` (`01df1f5` OCSF schema + mapping; `3ac011a` pilot collectors; `9f70721` SARIF; `abbd348` v0.10.0 docs; `5af2f11` research docs; `7615e39` README refresh; `8656e5c` positioning skip-by-reuse note). 10 importer files inspected via 1-hop closure on the touched modules. | PROCEED-CLEAN |
 | 4 — full surface walk (v4 tightened) | 4 new surfaces (OCSF mapping, SARIF emit, the 2 new `SecurityFinding` fields, the `[ocsf]` extra) + 5 modified collector files. 10 adversarial probes against the 2 new surfaces (PASS); the 8 unchanged subsystems re-validated via the full 3292-test suite. | PROCEED-CLEAN |
-| 6.C — final pre-tag pass | Pending (see §"16-row pre-push gate" below — filled at Step 6 entry). | TBD |
+| 6.C — final pre-tag pass | Full HEAD vs `v0.9.9` direct delta inspection; 16-row pre-push gate (filled below); 2 NEW MEDIUM findings caught + fixed in-place (F-V100-M1 + F-V100-S1). | PROCEED-CLEAN |
 
 ## Findings ledger
 
@@ -82,10 +82,50 @@ file inspection of the changeset.
 Triggers 2 + 3 fired; direct inspection covered both. No additional
 `/code-review`-derived findings beyond F-V100-L1.
 
-## 16-row pre-push gate (Step 6.C — filled at Step 6 entry)
+## 16-row pre-push gate (Step 6.C)
 
-_Filled by Step 6 when the 16-row gate runs against the final
-release-prep state (post-version-bump, post-CHANGELOG-rename)._
+| # | Check | v0.10.0 outcome |
+|---|---|---|
+| 1 | Credential pattern sweep of `v0.9.9..HEAD` diff | PASS — 0 hits |
+| 2 | Claude-attribution sweep of diff content | PASS — 0 hits |
+| 3 | Commit-message attribution sweep | PASS — 0 hits in `v0.9.9..HEAD` |
+| 4 | `.gitignore` secret-store coverage | PASS — `.env*` / `*.pem` / `*.key` / `*.crt` / `*.p12` / `*.pfx` / `secrets/` / `credentials.json` covered |
+| 5 | Tracked secret-shape files | PASS — only pre-existing `.env.example` placeholder |
+| 6 | Test gate | PASS — 3295 passed / 14 skipped |
+| 7 | Type/lint gate | PASS — mypy strict 0/0 across 265 source files (7 packages); ruff clean |
+| 8 | Build sanity | PASS — 7 wheels + 7 sdists at 0.10.0; `twine check` all PASSED |
+| 9 | Identity | PASS — `Allen Byrd <125306425+allenfbyrd@users.noreply.github.com>` |
+| 10 | Branch sanity | PASS — on `main`, 10 commits ahead of `origin/main` at chore(release) time |
+| 11 | Legacy long-lived secrets | PASS — only `CODECOV_TOKEN`; no legacy `PYPI_API_TOKEN` (OIDC Trusted Publisher) |
+| 12 | Code-scanning alert delta since v0.9.9 | PASS — 0 NEW open HIGH alerts |
+| 13 | Container CVE scan (Trivy) | WARN-SKIP — `trivy` not installed; v0.10.0 made no Dockerfile changes; `release.yml publish-container` rebuilds + cosign-signs at tag (Step 7.5 verified clean) |
+| 14 | Vulnerability aging SLO (`osv-scanner --sbom`) | PASS after F-V100-S1 fix — starlette 1.0.0 → 1.0.1 closed PYSEC-2026-161 / GHSA-86qp-5c8j-p5mr inline; re-scan clean |
+| 15 | License / SCA enforcement | WARN-SKIP — `pip-licenses` not installed; only new third-party dep is `py-ocsf-models` (Apache-2.0) |
+| 16 | Secret-rotation cadence | PASS — `CODECOV_TOKEN` updated 5 days ago (well under 90-day threshold) |
+
+Rows 13/15 degrade gracefully on absent optional tooling — same
+disposition as the prior 24 PROCEED-CLEAN cycles. Zero blocking
+findings. F-V100-S1 + F-V100-M1 each surfaced at this gate and were
+fixed in-place before the tag.
+
+## Step 7 post-tag verification
+
+Per v4 G1. Runs after `release.yml` publishes to PyPI + GHCR.
+
+| Sub-step | Outcome |
+|---|---|
+| 7.1 `release.yml` run | ✅ **success** in 222s (~3:42 tag-to-publish); run id `26321828405` |
+| 7.3 PEP 740 attestation verify (7 wheels) | ✅ **7/7 OK** via `pypi-attestations verify pypi --repository https://github.com/Polycentric-Labs/evidentia "pypi:<wheel-name>"` |
+| 7.5 Cosign container verify | ✅ **VERIFIED** — `cosign verify ghcr.io/polycentric-labs/evidentia:v0.10.0` reports SLSA Provenance v1 signed by `release.yml` via Fulcio + Rekor; image digest `sha256:1eedd6d6652666509921df81388b799c68a351d8cd7db885601225869c8637b8` |
+| 7.5 Docker smoke | ✅ `docker run … version` → `Evidentia v0.10.0 / Python 3.14.5`; `catalog list` returns `89 framework(s)` |
+| 7.6 Published SBOM osv-scan | ✅ **CLEAN** — `evidentia-sbom.cdx.json` from the GitHub Release scanned with `osv-scanner --sbom`; 183 packages; no issues. (Published SBOM is the narrower release-install closure; the local dev SBOM has 225 packages because of `--all-extras` AI/DAST tools that don't ship.) |
+| 7.7 Scorecard | ✅ **success** for `7556f5f` (v0.10.0 commit); 0 open HIGH code-scanning alerts |
+| 7.8 Fresh-venv install smoke | ✅ `python -m venv` + `pip install "evidentia==0.10.0"` → `evidentia version` returns `Evidentia v0.10.0 / Python 3.14.2`; `evidentia catalog list` loads `Loaded catalog 'NIST SP 800-53 Rev 5.2.0 ...': 1196 controls in 20 families` and returns `89 framework(s)` |
+| 7.9 Release notes audit | ✅ CHANGELOG-style summary present (auto-extracted from `[0.10.0]` block); `evidentia-sbom.cdx.json` attached as release asset |
+| 7.10 Memory + audit-log update | this section; plus a fresh entry appended to `MEMORY.md` for v0.10.0 SHIPPED |
+
+**Verdict**: PROCEED-CLEAN confirmed post-tag — **25th consecutive**
+of the v0.7.x → v0.8.x → v0.9.x → v0.10.x line. v0.10.0 SHIPPED.
 
 ## Carry-over disposition
 
