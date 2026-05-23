@@ -14,11 +14,14 @@ looser policies pass explicit values.
 
 from __future__ import annotations
 
+import ipaddress
 import json
+import socket
 import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from evidentia_core.models.finding import SecurityFinding
 from evidentia_core.ocsf import (
@@ -75,6 +78,7 @@ def collect_ocsf_url(
     *,
     timeout: float = _DEFAULT_TIMEOUT_S,
     max_bytes: int = _DEFAULT_MAX_BYTES,
+    block_private_ips: bool = True,
 ) -> list[SecurityFinding]:
     """Read OCSF JSON from an HTTPS URL.
 
@@ -85,15 +89,26 @@ def collect_ocsf_url(
     - ``timeout`` (default 10s) is enforced on both connect and read.
     - ``max_bytes`` (default 50 MB) caps the response body; anything
       larger raises :class:`OCSFIngestError` mid-stream.
+    - **``block_private_ips`` (default True, v0.10.2 F-V101-L1
+      close-out)** — pre-resolves the URL's host and rejects RFC1918
+      (10/8, 172.16/12, 192.168/16), link-local (169.254/16 — covers
+      AWS / GCP / Azure instance-metadata endpoints), loopback
+      (127/8 + ::1), multicast, reserved, and unspecified ranges
+      BEFORE opening the socket. Operators ingesting from trusted
+      internal endpoints can flip to ``False`` (also via the
+      ``--allow-private-ips`` CLI flag).
 
     Prefer :func:`collect_ocsf_file` whenever the OCSF output can be
-    written to disk first — URL mode is a real SSRF / DoS surface and
-    is best reserved for trusted endpoints behind your own perimeter.
+    written to disk first — URL mode carries a real SSRF / DoS
+    surface and is best reserved for trusted endpoints.
     """
     if not url.lower().startswith("https://"):
         raise OCSFIngestError(
             f"OCSF URL ingest is HTTPS-only; got: {url[:60]}"
         )
+
+    if block_private_ips:
+        _refuse_private_host(url)
 
     # NoRedirectHandler refuses every 3xx — see the policy note above.
     opener = urllib.request.build_opener(_NoRedirectHandler())
@@ -107,6 +122,54 @@ def collect_ocsf_url(
 
     raw = body.decode("utf-8", errors="strict")
     return _convert_ocsf_payload(raw, source=url)
+
+
+def _refuse_private_host(url: str) -> None:
+    """Refuse the request if the URL's host resolves to a private IP.
+
+    Closes F-V101-L1 (v0.10.2). Resolves the hostname via
+    :func:`socket.getaddrinfo` (covers IPv4 + IPv6 + literal IPs +
+    DNS-based bypass attempts that return private-range addresses),
+    walks every returned address, and raises if ANY of them falls
+    into a non-public range. The "any address" check matters because
+    a malicious DNS record can return multiple addresses and rely on
+    the client picking the public one — we reject the entire host
+    if any record points internal.
+
+    Ranges considered non-public: ``is_private`` (RFC1918), ``is_loopback``,
+    ``is_link_local`` (covers cloud-provider metadata services),
+    ``is_multicast``, ``is_reserved``, ``is_unspecified``.
+    """
+    host = urlparse(url).hostname
+    if not host:
+        raise OCSFIngestError(f"OCSF URL missing hostname: {url[:60]}")
+    try:
+        addrinfos = socket.getaddrinfo(host, None)
+    except socket.gaierror as exc:
+        raise OCSFIngestError(
+            f"OCSF URL hostname resolution failed for {host!r}: {exc}"
+        ) from exc
+    for _family, _type, _proto, _canon, sockaddr in addrinfos:
+        ip_str = sockaddr[0]
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            continue
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_multicast
+            or ip.is_reserved
+            or ip.is_unspecified
+        ):
+            raise OCSFIngestError(
+                f"OCSF URL host {host!r} resolves to {ip_str} — "
+                "private / loopback / link-local / multicast / reserved / "
+                "unspecified address rejected per SSRF policy. Pass "
+                "--allow-private-ips (CLI) or block_private_ips=False "
+                "(library) to override for trusted internal endpoints."
+            )
 
 
 class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):

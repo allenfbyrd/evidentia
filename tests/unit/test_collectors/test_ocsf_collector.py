@@ -111,6 +111,63 @@ def test_collect_url_rejects_ftp_and_other_schemes() -> None:
             collect_ocsf_url(url)
 
 
+# v0.10.2 — block_private_ips parameter (closes F-V101-L1)
+
+
+def test_block_private_ips_rejects_aws_metadata_endpoint() -> None:
+    """Default block_private_ips=True rejects the AWS metadata 169.254.169.254
+    BEFORE opening any connection. The literal-IP-as-host avoids DNS."""
+    with pytest.raises(OCSFIngestError) as exc:
+        collect_ocsf_url("https://169.254.169.254/latest/meta-data/")
+    assert "169.254" in str(exc.value)
+    assert "link-local" in str(exc.value) or "private" in str(exc.value)
+
+
+def test_block_private_ips_rejects_rfc1918_addresses() -> None:
+    """RFC1918 ranges (10/8, 172.16/12, 192.168/16) are all rejected."""
+    for url in (
+        "https://10.0.0.1/api",
+        "https://172.16.0.1/api",
+        "https://192.168.1.1/api",
+    ):
+        with pytest.raises(OCSFIngestError) as exc:
+            collect_ocsf_url(url)
+        assert "private" in str(exc.value) or "loopback" in str(exc.value) or "link-local" in str(exc.value)
+
+
+def test_block_private_ips_rejects_loopback() -> None:
+    """Loopback (127.0.0.1, ::1) is rejected — covers `localhost`-via-DNS."""
+    with pytest.raises(OCSFIngestError) as exc:
+        collect_ocsf_url("https://127.0.0.1:8080/api")
+    assert "127.0.0.1" in str(exc.value) or "loopback" in str(exc.value)
+
+
+def test_allow_private_ips_bypasses_check() -> None:
+    """Setting block_private_ips=False bypasses the private-IP check entirely,
+    so the URL fetch proceeds (and fails on connection refusal here, which
+    is the expected non-private-IP-check error path)."""
+    # When the check is bypassed, the request proceeds to the actual fetch.
+    # 127.0.0.1:1 has no listener, so urlopen raises URLError → wrapped in
+    # OCSFIngestError. The KEY assertion: the error is NOT about the
+    # private-IP policy — proving the check was skipped.
+    with pytest.raises(OCSFIngestError) as exc:
+        collect_ocsf_url(
+            "https://127.0.0.1:1/api",
+            block_private_ips=False,
+            timeout=1.0,
+        )
+    assert "private" not in str(exc.value)
+    assert "loopback" not in str(exc.value)
+    assert "fetch failed" in str(exc.value)
+
+
+def test_block_private_ips_rejects_missing_hostname() -> None:
+    """URL with no hostname (parsing edge case) is rejected with a clear message."""
+    with pytest.raises(OCSFIngestError) as exc:
+        collect_ocsf_url("https://")
+    assert "missing hostname" in str(exc.value) or "HTTPS-only" in str(exc.value)
+
+
 def test_collect_file_does_not_trust_unmapped_block_by_default(
     tmp_path: Path,
 ) -> None:

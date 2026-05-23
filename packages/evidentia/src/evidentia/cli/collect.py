@@ -1179,6 +1179,19 @@ def collect_ocsf(
         "--url-max-bytes",
         help="HTTP response body cap in bytes (URL mode only). Default 50 MB.",
     ),
+    block_private_ips: bool = typer.Option(
+        True,
+        "--block-private-ips/--allow-private-ips",
+        help=(
+            "(URL mode only, v0.10.2 F-V101-L1 close-out) Reject URLs that "
+            "resolve to RFC1918 / link-local / loopback / multicast / "
+            "reserved ranges before opening the connection. Default True — "
+            "closes the SSRF surface that could otherwise expose AWS / "
+            "GCP / Azure instance-metadata endpoints (169.254.169.254) or "
+            "internal services. Use --allow-private-ips to override for "
+            "trusted internal endpoints."
+        ),
+    ),
 ) -> None:
     """Ingest OCSF Compliance / Detection Finding JSON (v0.10.1).
 
@@ -1215,6 +1228,7 @@ def collect_ocsf(
                 input_source,
                 timeout=url_timeout,
                 max_bytes=url_max_bytes,
+                block_private_ips=block_private_ips,
             )
         else:
             findings = collect_ocsf_file(input_source)
