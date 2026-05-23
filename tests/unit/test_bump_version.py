@@ -46,57 +46,71 @@ def bump() -> Any:
 
 
 class TestBumpPinRange:
+    """v0.10.1 — every call passes the workspace allowlist as the third
+    argument (`packages=[...]`) to close F-V100-M1. The regex and
+    replacement template now embed the package-name capture group, so
+    pin assertions include the workspace package prefix (e.g.
+    ``evidentia-core>=0.7.0,<0.8.0`` rather than the bare range)."""
+
+    # Single-element allowlist used across tests — keeps the regex
+    # generation deterministic without conflating with the F-V100-M1
+    # behavior, which is covered in detail by
+    # tests/unit/test_scripts/test_bump_version.py.
+    PKGS = ["evidentia-core"]
+
     def test_same_minor_patch_bump_tightens_lower_bound(
         self, bump: Any
     ) -> None:
         """v0.7.12 P0.5 closure: same-minor patch bumps tighten the
         lower bound to the target patch version, not the minor's .0.
         """
-        cur_re, tgt = bump.bump_pin_range("0.7.11", "0.7.12")
-        # Replacement is the canonical tight pin
-        assert tgt == ">=0.7.12,<0.8.0"
+        cur_re, tgt = bump.bump_pin_range("0.7.11", "0.7.12", self.PKGS)
+        # Replacement is the canonical tight pin with the package name
+        # preserved via the `\g<name>` back-reference (v0.10.1).
+        assert tgt == r"\g<name>>=0.7.12,<0.8.0"
         # Pattern matches both legacy loose pins AND already-tightened
-        # pins from a prior post-fix patch
+        # pins from a prior post-fix patch — but now requires the
+        # workspace package prefix.
         regex = re.compile(cur_re)
-        assert regex.fullmatch(">=0.7.0,<0.8.0")  # legacy loose
-        assert regex.fullmatch(">=0.7.10,<0.8.0")  # tightened earlier
-        assert regex.fullmatch(">=0.7.11,<0.8.0")  # tightened to current
+        assert regex.fullmatch("evidentia-core>=0.7.0,<0.8.0")
+        assert regex.fullmatch("evidentia-core>=0.7.10,<0.8.0")
+        assert regex.fullmatch("evidentia-core>=0.7.11,<0.8.0")
         # Hot-fix versions also flow through (X.Y.Z.W form)
-        assert regex.fullmatch(">=0.7.7.1,<0.8.0")
+        assert regex.fullmatch("evidentia-core>=0.7.7.1,<0.8.0")
 
     def test_cross_minor_bump_replaces_full_range(
         self, bump: Any
     ) -> None:
         """v0.7.X -> v0.8.0 promotes the upper bound + tightens the
         lower bound to the target."""
-        cur_re, tgt = bump.bump_pin_range("0.7.12", "0.8.0")
-        assert tgt == ">=0.8.0,<0.9.0"
+        cur_re, tgt = bump.bump_pin_range("0.7.12", "0.8.0", self.PKGS)
+        assert tgt == r"\g<name>>=0.8.0,<0.9.0"
         regex = re.compile(cur_re)
-        assert regex.fullmatch(">=0.7.12,<0.8.0")
-        assert regex.fullmatch(">=0.7.0,<0.8.0")
+        assert regex.fullmatch("evidentia-core>=0.7.12,<0.8.0")
+        assert regex.fullmatch("evidentia-core>=0.7.0,<0.8.0")
         # Doesn't match the new range (avoids no-op rewrite loops)
-        assert not regex.fullmatch(">=0.8.0,<0.9.0")
+        assert not regex.fullmatch("evidentia-core>=0.8.0,<0.9.0")
 
     def test_pin_pattern_does_not_match_unrelated_versions(
         self, bump: Any
     ) -> None:
         """The regex is anchored to the current major.minor; pins
         from other minors are NOT rewritten by accident."""
-        cur_re, _ = bump.bump_pin_range("0.7.11", "0.7.12")
+        cur_re, _ = bump.bump_pin_range("0.7.11", "0.7.12", self.PKGS)
         regex = re.compile(cur_re)
-        assert not regex.fullmatch(">=0.6.0,<0.7.0")
-        assert not regex.fullmatch(">=0.8.0,<0.9.0")
-        assert not regex.fullmatch(">=1.0.0,<2.0.0")
+        assert not regex.fullmatch("evidentia-core>=0.6.0,<0.7.0")
+        assert not regex.fullmatch("evidentia-core>=0.8.0,<0.9.0")
+        assert not regex.fullmatch("evidentia-core>=1.0.0,<2.0.0")
 
     @pytest.mark.parametrize(
         "current, target, expected_target_pin",
         [
-            ("0.7.11", "0.7.12", ">=0.7.12,<0.8.0"),
-            ("0.7.0", "0.7.1", ">=0.7.1,<0.8.0"),
-            ("0.7.12", "0.8.0", ">=0.8.0,<0.9.0"),
-            ("0.8.0", "0.9.0", ">=0.9.0,<0.10.0"),
+            ("0.7.11", "0.7.12", r"\g<name>>=0.7.12,<0.8.0"),
+            ("0.7.0", "0.7.1", r"\g<name>>=0.7.1,<0.8.0"),
+            ("0.7.12", "0.8.0", r"\g<name>>=0.8.0,<0.9.0"),
+            ("0.8.0", "0.9.0", r"\g<name>>=0.9.0,<0.10.0"),
             # Major bump (hypothetical v1.0.0)
-            ("0.9.5", "1.0.0", ">=1.0.0,<1.1.0"),
+            ("0.9.5", "1.0.0", r"\g<name>>=1.0.0,<1.1.0"),
         ],
     )
     def test_target_pin_uses_full_target_version_as_lower_bound(
@@ -110,7 +124,7 @@ class TestBumpPinRange:
         not the minor's `.0`. This is the closure of the v0.7.11
         propagation foot-gun.
         """
-        _, tgt = bump.bump_pin_range(current, target)
+        _, tgt = bump.bump_pin_range(current, target, self.PKGS)
         assert tgt == expected_target_pin
 
 
