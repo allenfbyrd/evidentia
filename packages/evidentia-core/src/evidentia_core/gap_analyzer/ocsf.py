@@ -25,7 +25,6 @@ Each :class:`ControlGap` becomes one OCSF Compliance Finding:
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Any
 
 from evidentia_core.models.common import current_version
@@ -179,17 +178,3 @@ def _gap_to_ocsf_finding(
 
 
 __all__ = ["OCSFMappingError", "gap_report_to_ocsf_array"]
-
-
-def _ensure_module_loaded_at_import_time() -> None:
-    """No-op anchor for the module-level docstring; the real OCSF
-    library load happens lazily at function call time so test-time
-    `[ocsf]`-extra-absent paths return a clean OCSFMappingError
-    instead of an ImportError on the module import itself.
-
-    Existing for symmetry with the sibling sarif.py module which has
-    no external library dependency. Removing this docstring would
-    not change behavior; it's kept as the single-line anchor for the
-    docstring that documents the lazy-load policy.
-    """
-    _ = datetime.now(tz=UTC)  # never executes

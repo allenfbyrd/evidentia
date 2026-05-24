@@ -13,6 +13,72 @@
 
 ---
 
+## Re-validation snapshot — 2026-05-24 (v0.10.4 PRE-TAG) — first run under skill v5.1
+
+v0.10.4 closes the **OCSF symmetry loop** (v0.10.0 SARIF emit + v0.10.1 OCSF
+ingest + v0.10.4 OCSF emit) on `evidentia gap analyze`, lands the polish
+items from v0.10.3 `/code-review`, ships the CHANGELOG-presence pre-tag CI
+gate (lesson from v0.10.3 move-tag re-fire), and stages the v0.10.5 Phase B
+audit synthesis as forward direction. Per skill v5.1 §4.5 patch-release
+allowance, all unchanged subsystems are REUSED from the v0.10.0 → v0.10.3
+matrices; the section below covers only the new + modified surfaces.
+
+**Step 4.1 — `/security-review-scoped` invocation #2**: SKIPPED per the
+[security-review-scoped-wrapper.md "When the wrapper isn't needed"](../C:/Users/allen/.claude/skills/pre-release-review/references/security-review-scoped-wrapper.md)
+patch-release shortcut. Rationale: the v0.10.3..HEAD diff is entirely
+within one subsystem (gap_analyzer / collectors output + a thin MCP
+wrapper); the Step 3 builtin invocation #1 already covered the only
+touched subsystem with a PROCEED-CLEAN verdict. Logged for audit trail.
+
+**New public surfaces**:
+
+| # | Surface | Layer | Notes |
+|---|---|---|---|
+| 1 | `evidentia gap analyze --format ocsf` | CLI | Symmetric counterpart to v0.10.0 SARIF emit + v0.10.1 OCSF ingest. Closes the integration-survey.md §3 row 15 ("Splunk/Datadog/Elastic ingest OCSF natively"). Output is a JSON array of OCSF Compliance Findings (class_uid 2003). |
+| 2 | `evidentia_core.gap_analyzer.ocsf.gap_report_to_ocsf_array(report)` | Library | Maps `GapReport` → `list[ComplianceFinding]`. Embeds `gap.model_dump(mode="json")` under `unmapped["evidentia"]["gap"]` for round-trip fidelity (mirrors v0.10.0 SecurityFinding pattern). |
+| 3 | `verify_signed_artifact` MCP tool (#13) | MCP | Thin wrapper exposing `verify_ar_file` to Claude clients. Path-gated via `validate_within(candidate, --allow-root)`. Auto-routed through CIMD scope gate (no per-tool exception list — confirmed at server.py:135). Returns SignedToolOutput envelope per v0.9.8 wrap_signed_output convention. |
+| 4 | `OutputFormat = Literal[..., "ocsf"]` extension | Library (additive) | Append-only addition to the frozen `OutputFormat` literal per `docs/api-stability.md` §3 (additive-optional). No breaking change. |
+| 5 | `scripts/run_osv_scan.py` | Build tooling | NEW. Reads the project's CycloneDX SBOM, runs `osv-scanner` over it, fails CI on any HIGH+ finding. Subprocess uses list-form args (no shell=True); stdlib only (subprocess + shutil + tomllib + pathlib + argparse). |
+| 6 | `verify-changelog.yml` PR-time gate | CI | Lesson from v0.10.3 move-tag re-fire. Gates CHANGELOG `[X.Y.Z]` block presence keyed off `pyproject.toml [project].version`. Per v0.10.4 P5. |
+
+**Modified surfaces** (additive only):
+- `evidentia_core.gap_analyzer.reporter.export_report()` — added `format="ocsf"` dispatch branch (delegates to `gap_report_to_ocsf_array`)
+- `evidentia_core.catalogs.loader._load_catalog_data()` — error-message polish for no-extension paths (operator-experience improvement only)
+- `scripts/catalogs/regenerate_manifest.py` — `framework_id` collision guard (defensive; would catch contributor who forgets to delete the JSON when converting to YAML)
+
+**Adversarial-probe taxonomy** (focused on `--format ocsf`):
+
+| # | Vector | `--format ocsf` |
+|---|---|---|
+| 1 | Minimal positive | ✅ `tests/fixtures/sample-inventory.yaml` → 106 well-formed OCSF Compliance Findings against nist-csf-2.0 |
+| 2 | Empty inventory | ✅ Rejected with clear `ValueError("Invalid Evidentia YAML: expected a mapping with 'controls' key")` at input-validation layer (before reaching OCSF emit) |
+| 3 | Oversized inventory (2k items) | ⚠️ Masked by input-validation rejection (YAML probe used `inventory:` instead of `controls:`); not actually exercised. **v0.10.5 follow-on**: re-probe with valid 2k-control inventory to confirm OCSF emit scales. |
+| 4 | Malformed YAML (truncated mid-document) | ✅ Rejected with `ScannerError` carrying line + column |
+| 5 | Read-only output target | ⚠️ Masked by input-validation rejection (same probe shape bug). **v0.10.5 follow-on**: re-probe. |
+| 6 | Concurrent invocation (4 writers, same target) | ⚠️ Masked by input-validation rejection (same). **v0.10.5 follow-on**: re-probe. |
+| 7 | Round-trip JSON validity (`json.loads` on the output) | ✅ All emitted output parses cleanly (smoke confirmed via Python) |
+| 8 | Trust boundary (untrusted ingest of self-emitted output) | ✅ N/A — gap emit is one-way (no `gap_from_ocsf` exists; documented in code-review L5 deferred to v0.10.5) |
+
+**Vectors not applicable**: SSRF (no URL input on the emit path; only the v0.10.1 OCSF ingest URL mode has the surface, already hardened by `--block-private-ips` in v0.10.2).
+
+**DAST (Step 4.4)**: SKIPPED with rationale logged — `schemathesis` + `playwright` missing from local tool inventory per Step 1 pre-flight; v0.10.4 doesn't touch the FastAPI REST surface or the React UI surface (diff is CLI + MCP + library only), so DAST adds no marginal coverage this cycle. Per the per-run JSON's `tool_availability.degradation_notes`. Will install + run DAST when the next minor touches REST/UI.
+
+**Test count + source-file trajectory**: 3369 tests pass / 17 skipped /
+268 source files / mypy strict 0 issues across 268 source files (7
+packages); ruff clean. **+14 tests** vs the v0.10.3 baseline (3355 / 14
+to 3369 / 17) across 4 new test files (test_yaml_loader.py +
+test_ocsf_emit.py + test_ocsf_round_trip.py + test_poam_ocsf_round_trip.py)
++ 1 extended (test_mcp/test_server.py).
+
+**Step 4 disposition**: **PROCEED-CLEAN**. 0 CRITICAL / 0 HIGH carried
+into Step 5. 4 fix-now items queued for Step 5.A batch (CR-V104-1 through
+CR-V104-4 per the Step 3 findings summary in the per-run JSON). 6
+medium-class items deferred to v0.10.5 polish bucket (catalog choke-point
+extension, deprecation-comment refresh, enum_value duplicate cleanup,
+private-import promotion, 2 test-coverage gaps).
+
+---
+
 ## Re-validation snapshot — 2026-05-23 (v0.10.3 PRE-TAG)
 
 v0.10.3 lowers the contributor barrier for new framework catalogs

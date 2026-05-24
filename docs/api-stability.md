@@ -454,6 +454,7 @@ Frozen tool surface (as of v0.9.7):
 | `collect_ocsf` | v0.10.2 | OCSF ingestion (file mode only — URL ingest deliberately omitted to harden out the F-V101-L1 SSRF surface) |
 | `tprm_vendor_list` | v0.10.2 | List vendors from the local TPRM store (read-only) |
 | `poam_list` | v0.10.2 | List POA&Ms from the local store (read-only) |
+| `verify_signed_artifact` | v0.10.4 | Verify an Evidentia signed-artifact bundle (`*.ar`); wraps `verify_ar_file` with `validate_within(--allow-root)` path-gating and the standard SignedToolOutput envelope. Returns the OSCAL-bound verification report. |
 
 Tool *parameter names* are frozen. Tool *descriptions* may be
 refined for clarity without constituting a breaking change.
@@ -495,3 +496,4 @@ cycle.
 | **NORMATIVE** | **2026-05-22** | **v0.10.0: `models/finding.py` joins the frozen-models table (`SecurityFinding`, `FindingStatus`, `ComplianceStatus`) following its additive OCSF-alignment evolution. New `evidentia_core.ocsf` library entry point (`finding_to_ocsf` / `finding_from_ocsf` / `OCSFMappingError`) added to §5. SARIF is a new `evidentia gap` output format — non-breaking per §3. See [ocsf-mapping.md](ocsf-mapping.md).** |
 | **NORMATIVE** | **2026-05-23** | **v0.10.1: `finding_from_ocsf` gains an additive `trust_unmapped: bool = True` keyword-only parameter (closes F-V100-L1 from the v0.10.0 review). Non-breaking under §1 — additive optional parameter with default. See [ocsf-mapping.md §5.1](ocsf-mapping.md).** |
 | **NORMATIVE** | **2026-05-23** | **v0.10.2: 4 new MCP tools added (`gap_analyze_sarif`, `collect_ocsf`, `tprm_vendor_list`, `poam_list`) per the MCP-as-backend theme. Append-only per the §MCP tool contract — non-breaking for existing AI clients; the 8 prior tools stay frozen.** |
+| **NORMATIVE** | **2026-05-24** | **v0.10.4: (a) `OutputFormat` Literal extended with `"ocsf"` (additive-optional per §3) — `evidentia gap analyze --format ocsf` emits OCSF Compliance Findings (class_uid 2003), the symmetric counterpart to v0.10.0 SARIF emit + v0.10.1 OCSF ingest; (b) 13th MCP tool `verify_signed_artifact` added (append-only per §MCP tool contract); (c) `evidentia_core.gap_analyzer.ocsf.gap_report_to_ocsf_array` new public helper. No removals, no renames, no breaking changes. Reviewed under `/pre-release-review` skill v5.1 (first ship under v5.1).** |

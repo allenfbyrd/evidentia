@@ -68,6 +68,20 @@ def test_load_catalog_data_rejects_unsupported_extension(tmp_path: Path) -> None
         _load_catalog_data(path)
 
 
+def test_load_catalog_data_rejects_no_extension(tmp_path: Path) -> None:
+    """Operator drag-and-drops a catalog file without an extension —
+    the loader should refuse with a clear, self-resolving error that
+    names the case and tells the operator the fix (rename to
+    .yaml / .yml / .json). v0.10.4 P2 polish landed the explicit
+    branch; this test guards against future-contributor regression
+    that would remove the defensive arm.
+    """
+    path = tmp_path / "no_extension_here"
+    path.write_text("framework_id: 'x'\ncontrols: []\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="has no file extension"):
+        _load_catalog_data(path)
+
+
 def test_load_catalog_data_rejects_non_mapping_yaml(tmp_path: Path) -> None:
     """A YAML file whose root is a list (or scalar) is rejected with
     a clear error — catalogs MUST be mappings."""

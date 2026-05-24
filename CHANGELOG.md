@@ -7,7 +7,140 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.10.4 development branch._
+_No changes yet on the v0.10.5 development branch._
+
+## [0.10.4] - 2026-05-24
+
+**Theme**: *OCSF symmetry loop closed + v0.10.3 polish landed + Phase B
+audit-synthesis staged for v0.10.5*. First ship reviewed under
+`/pre-release-review` skill v5.1 (previous v0.10.x cycles ran under v4).
+Patch bump (v0.10.3 → v0.10.4) — closes the v0.10.3 `/code-review`
+polish queue, ships the symmetric counterpart to v0.10.0 SARIF emit +
+v0.10.1 OCSF ingest, and lands an MCP wrapper for the `verify_ar_file`
+signed-artifact verification surface. Phase B audit findings staged into
+`docs/v0.10.5-plan.md` as forward direction; no v0.10.4 implementation
+changes from Phase B.
+
+### Added
+
+- **`evidentia gap analyze --format ocsf`**: gap analysis output now
+  emits as an OCSF Compliance Finding (class_uid 2003) JSON array
+  alongside the existing `json` / `csv` / `markdown` / `oscal-ar` /
+  `sarif` formats. Closes the `integration-survey.md` §3 row 15 — gap
+  output flows into SIEMs / data lakes / OCSF-aware tooling natively
+  (Splunk / Datadog / Elastic all ingest OCSF). Each `ControlGap`
+  becomes one Compliance Finding; full gap JSON preserved under
+  `unmapped["evidentia"]["gap"]` for round-trip fidelity (mirrors the
+  v0.10.0 `SecurityFinding` unmapped block on the collector path).
+  New `evidentia_core.gap_analyzer.ocsf.gap_report_to_ocsf_array`
+  library helper; promoted to `docs/api-stability.md` MCP / public-API
+  contract.
+- **13th MCP tool `verify_signed_artifact`**: thin MCP wrapper exposing
+  `evidentia_core.signing.verify_ar_file` to Claude clients (Claude
+  Desktop, Claude Code, custom MCP clients). Path-gated via
+  `validate_within(--allow-root)` mirroring the v0.8.2 F-V81-S1 pattern.
+  Auto-routed through the CIMD scope gate per the v0.8.5 global wrapper
+  (no per-tool exception list). Returns the standard
+  `SignedToolOutput` envelope per the v0.9.8 wrap convention. Append-only
+  per `docs/api-stability.md` §MCP tool contract — non-breaking.
+- **CHANGELOG-presence pre-tag CI gate** (`.github/workflows/verify-changelog.yml`):
+  PR-time gate that fails if `pyproject.toml [project].version` references
+  an `X.Y.Z` for which no `## [X.Y.Z]` block exists in this file. Lesson
+  from the v0.10.3 move-tag re-fire (where CHANGELOG was missing at
+  first-tag time and required a same-version move-tag). The gate works
+  as designed on this very release: the `[0.10.4]` block authored above
+  is what unblocks the next version-bump.
+- **`scripts/run_osv_scan.py`**: stdlib-only Python helper that runs
+  `osv-scanner` against the project's CycloneDX SBOM and fails on any
+  HIGH+ finding. CI-callable; mirrors the supply-chain hygiene pattern
+  from v0.9.9 + v0.10.x.
+
+### Changed
+
+- **`evidentia_core.catalogs.loader._load_catalog_data` error-message
+  polish (v0.10.3 `/code-review` P2)**: when the operator hands the
+  loader a path with no file extension (drag-and-drop or scripted file),
+  the error now names the case explicitly and tells the operator the
+  fix — rename to `.yaml` / `.yml` / `.json`. Previous error reported
+  `''` as the suffix, which was opaque.
+- **`evidentia_core.catalogs.loader` module docstring choke-point note
+  (v0.10.3 `/code-review` P1)**: explicitly documents that ALL catalog
+  loaders MUST go through `_load_catalog_data` — no sibling `json.loads`
+  or `yaml.safe_load` calls elsewhere. Hardens the choke point against
+  future-contributor drift. Cross-referenced by the
+  `test_no_sibling_json_loads_or_yaml_safe_load_in_catalogs_module` lint
+  test that asserts the invariant at CI time.
+- **`scripts/catalogs/regenerate_manifest.py` framework_id collision
+  guard (v0.10.3 `/code-review` P3)**: after `scan_dir` builds its
+  `entries` list, the scanner asserts no two entries share the same
+  `framework_id`. Defensive guard against the failure mode where a
+  contributor converts a `.json` catalog to `.yaml` but forgets to
+  delete the old `.json` — both would otherwise land in the manifest.
+
+### Fixed
+
+- **Dead `_ensure_module_loaded_at_import_time` removed from
+  `evidentia_core.gap_analyzer.ocsf`** (skill v5.1 prototype run finding):
+  the placeholder function (carrying only `_ = datetime.now(tz=UTC)`)
+  was added during initial scaffolding as a putative anchor for the
+  module-level docstring; the module already has its own docstring
+  documenting the lazy-load policy. Removed alongside the otherwise-
+  unused `datetime` + `UTC` imports.
+
+### Test coverage
+
+- **`test_load_catalog_data_rejects_no_extension` (NEW)**: covers the
+  v0.10.4 P2 polish branch (path with empty suffix) so a future
+  contributor cannot silently remove the defensive `if suffix == ""`
+  arm without test failure.
+- **+14 tests vs v0.10.3 baseline** (3355 → 3369): test_yaml_loader.py
+  (NEW), test_ocsf_emit.py (NEW), test_ocsf_round_trip.py (NEW),
+  test_poam_ocsf_round_trip.py (NEW), test_mcp/test_server.py (extended).
+
+### Documentation
+
+- **`docs/positioning-and-value.md`**: §5.5 adds ComplianceCow MCP +
+  AWS OSCAL MCP rows; §5.6.A adds Snyk AI Trust Platform + Knostic +
+  2021.AI GRACE Governance; §11.2.A.1 extends academic citations from
+  3 to 11 (Cilla Ugarte 2604.13767, DFAH v2 2601.15322v2, Gilda &
+  Gilda 2601.21116, Parasuraman & Manzey 2010, Goddard 2012,
+  AgenticSCR 2601.19138, Li & Storhaug 2604.01437, Aghajani ICSE
+  2020). §16 version-history row added for v0.10.4.
+- **`docs/integration-survey.md`**: new §8 — 4 first-of-its-kind OSS
+  artifacts (OSPS Baseline OSCAL conversion, OpenVEX emit, CISA SbD
+  Pledge SELFATTEST, SLSA VSA emit) + FedRAMP 20x KSI posture +
+  ComplianceCow MCP / AWS OSCAL MCP cross-references. §9 Sources
+  extended with 11 new URLs.
+- **`docs/v0.10.5-plan.md` (NEW)**: 7-phase OSS first-mover artifacts
+  cycle. Locks 4 RF decisions surfaced by the Phase B audit.
+- **`docs/v1.0-transition.md`**: OpenSSF Best Practices Badge Gold
+  acceptance gate revised — Gold is structurally unreachable solo per
+  bestpractices.dev/en/criteria/2 ("at least two unassociated
+  significant contributors"); revised v1.0 gate = Silver + OSPS
+  Baseline Maturity 2 + declared Gold honest-gap.
+- **`docs/ROADMAP.md`**: v0.10.5 / v0.10.6 / v0.11 / v1.1+ sections
+  inserted before the existing v1.0 reserved block. v0.11 schedules
+  KSI emission, DORA emitter, AI Profile catalog, EU AI Act × ISO 42001
+  crosswalk, OpenVEX publish, VSA emit, DORA-metrics extractor, arXiv
+  preprint.
+- **`docs/capability-matrix.md`**: new 2026-05-24 v0.10.4 PRE-TAG
+  snapshot.
+- **`docs/api-stability.md`**: `verify_signed_artifact` row added to the
+  MCP tool table; revision-history row for v0.10.4 (`OutputFormat`
+  literal extension + new MCP tool + new public library helper, all
+  additive-only).
+
+### Operational note
+
+This is the **first Evidentia ship under `/pre-release-review` skill
+v5.1**. v0.10.0 → v0.10.3 ran under v4. v5.1 adds Guideline #12 (push
+gate requires fresh per-run JSON < 4h + verbatim bypass phrase),
+project-shape detection, the `/security-review-scoped` wrapper, doc-
+inventory iteration, and the 19-row pre-push gate. This run produced 5
+skill-iteration findings (SF-1 datetime deprecation, SF-2 Windows-
+incompatible trigger-script shell, SF-3 Evidentia test on deprecated
+flag, SF-4 direct-push workflow docs gap, SF-5 missing probe templates)
+— logged for the v5.1.x iteration cycle in the parallel session.
 
 ## [0.10.3] - 2026-05-23
 
