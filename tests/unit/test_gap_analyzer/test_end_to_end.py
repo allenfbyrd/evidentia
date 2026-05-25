@@ -129,6 +129,9 @@ def test_cross_framework_value_populated():
     ("markdown", "md"),
     ("oscal-ar", "json"),
     ("sarif", "sarif"),
+    # v0.10.5 Phase 7 + Phase 8 — gap-output format expansions
+    ("ocsf-detection", "json"),
+    ("cyclonedx-vex", "json"),
 ])
 def test_export_all_formats(tmp_path, fmt, ext):
     inv = load_inventory(FIXTURES / "sample-inventory.yaml")
@@ -145,4 +148,9 @@ def test_export_all_formats(tmp_path, fmt, ext):
     # JSON-based outputs should be parseable
     if ext in ("json", "sarif"):
         data = json.loads(result.read_text(encoding="utf-8"))
-        assert isinstance(data, dict)
+        # OCSF emits (compliance + detection) produce JSON arrays of
+        # finding records; everything else produces JSON objects.
+        if fmt in ("ocsf", "ocsf-detection"):
+            assert isinstance(data, list)
+        else:
+            assert isinstance(data, dict)

@@ -48,7 +48,11 @@ def analyze(
     format: str = typer.Option(
         "json",
         "--format",
-        help="Output format: json, csv, markdown, oscal-ar, sarif, ocsf.",
+        help=(
+            "Output format: json, csv, markdown, oscal-ar, sarif, ocsf, "
+            "ocsf-detection (v0.10.5 — OCSF class_uid 2004, SIEM-target), "
+            "cyclonedx-vex (v0.10.5 — CycloneDX 1.6 VEX, supply-chain)."
+        ),
     ),
     show_efficiency_opportunities: bool = typer.Option(
         True,

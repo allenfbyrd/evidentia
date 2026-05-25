@@ -7,8 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+**Theme**: *v0.10.5 batch — output-format expansion (OCSF Detection
+Finding + CycloneDX VEX emit) + workspace refactor (`evidentia-eval`
+package extraction) + collector idempotency hardening + first-mover
+OSS positioning artifacts*. Patch bump (v0.10.4 → v0.10.5).
+
 ### Added
 
+- **`evidentia gap analyze --format ocsf-detection`** (Phase 7): gap
+  analysis output emits as an OCSF Detection Finding (`class_uid` 2004)
+  JSON array. The OCSF ecosystem's actual production traffic is on
+  Detection Finding 2004 — Prowler and AWS Security Hub emit 2004
+  natively, and major SIEMs (Splunk / Elastic / Microsoft Sentinel /
+  Datadog) wired their ingest pipelines to it. Compliance Finding 2003
+  (the v0.10.4 default `--format ocsf` emit) is the semantically
+  correct class for control pass/fail evidence and remains the default
+  for OCSF-aware GRC tooling; `--format ocsf-detection` is the
+  SIEM-target alternative. Detection Finding has no native `compliance`
+  object, so framework + control_id rides in `finding_info.types[]` as
+  a stable `<framework>/<control_id>` identifier (mirroring the SARIF
+  `rule_id` shape); full gap JSON preserved under
+  `unmapped["evidentia"]["gap"]` for round-trip fidelity. New
+  `evidentia_core.gap_analyzer.ocsf_detection.gap_report_to_ocsf_detection_array`
+  library helper.
+- **`evidentia gap analyze --format cyclonedx-vex`** (Phase 8): gap
+  analysis output emits as a CycloneDX 1.6 VEX document. Federal
+  supply-chain mandates (EO 14028, SEC 2026 supply-chain enforcement)
+  are driving CycloneDX VEX adoption; CycloneDX is already used in
+  Evidentia's release-time SBOM emit, so VEX is an additive surface
+  over the existing supply-chain artifact stack. Each `ControlGap`
+  becomes one CycloneDX `vulnerability` entry; `analysis.state` is
+  derived from the gap's `implementation_status` + `GapStatus`
+  (`implemented` → `resolved`; `missing` + `OPEN` → `exploitable`;
+  `missing` + `IN_PROGRESS` → `in_triage`; `missing` + `REMEDIATED` →
+  `resolved`; `missing` + `ACCEPTED` → `not_affected` with
+  `code_not_reachable` justification; `partial` / `planned` →
+  `in_triage`; `not_applicable` → `not_affected` with `code_not_present`
+  justification). Composable with the release-time SBOM via standard
+  CycloneDX merge tooling. New
+  `evidentia_core.gap_analyzer.vex.gap_report_to_cyclonedx_vex` library
+  helper.
+- **`OutputFormat` Literal extension**: extended additively per
+  `docs/api-stability.md` §3 to include `"ocsf-detection"` +
+  `"cyclonedx-vex"`. Existing emits (`json` / `csv` / `markdown` /
+  `oscal-ar` / `sarif` / `ocsf`) unchanged. No breaking changes.
 - **New workspace package `evidentia-eval`** (8th package): the DFAH
   determinism + faithfulness harness moves out of `evidentia-ai/eval/`
   to its own pip-installable package with its own optional extra
@@ -105,6 +147,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   adding `evidentia-eval = { workspace = true }` to the workspace
   root pyproject.toml automatically includes it in the bump path
   (no script edit needed).
+### Test coverage
+
+- **`tests/unit/test_gap_analyzer/test_ocsf_detection_emit.py` (NEW)**:
+  10 tests covering the adversarial-probe taxonomy from the v0.10.4
+  capability-matrix shape (Vectors 1 / 2 / 4 / 7) — minimal positive
+  (each gap becomes one Detection Finding), severity mapping,
+  GapStatus → OCSF StatusID mapping, empty inventory, unmapped block
+  round-trip fidelity, end-to-end via `export_report` dispatch.
+- **`tests/unit/test_gap_analyzer/test_vex_emit.py` (NEW)**: 21 tests
+  covering the same adversarial-probe shape for CycloneDX VEX — VEX
+  envelope, severity mapping, recommendation flow, every state-mapping
+  rule in the Phase 8 state-derivation table, justification handling
+  (only emitted on `not_affected`), empty inventory, end-to-end via
+  `export_report` dispatch, deterministic `serialNumber`, schema
+  sanity check.
+- **`tests/unit/test_gap_analyzer/test_end_to_end.py::test_export_all_formats`
+  extended**: parameterized end-to-end smoke test now covers the new
+  `ocsf-detection` + `cyclonedx-vex` formats alongside the existing
+  json / csv / markdown / oscal-ar / sarif coverage.
+
+### Documentation
+
+- **`docs/ocsf-mapping.md`**: new §7.B documents the v0.10.5 Detection
+  Finding emit — `ControlGap` → Detection Finding field map, the
+  `types[]` strategy for framework + control_id, rationale for the
+  two-emit shape (GRC-target Compliance Finding 2003 vs SIEM-target
+  Detection Finding 2004), API examples.
+- **`docs/api-stability.md`**: revision-history row added for v0.10.5
+  Phases 7+8 (`OutputFormat` literal extension + two new library
+  entry points, all additive-only). §5 library entry points section
+  extended with the new `gap_report_to_*` helpers.
+- **`docs/integration-survey.md`**: row 15 (Splunk / Datadog) updated
+  to reflect the v0.10.5 Detection Finding path (production-traffic-
+  compatible with Splunk / Elastic / Sentinel / Datadog ingest); new
+  row 16 added for CycloneDX VEX emit; "Beyond the original sequence"
+  section gains two new SHIPPED entries.
 
 ## [0.10.4] - 2026-05-24
 

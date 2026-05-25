@@ -240,6 +240,17 @@ from evidentia_core.ocsf import (
     finding_to_ocsf, finding_from_ocsf, OCSFMappingError,
 )
 
+# v0.10.4+ Gap-report OCSF Compliance Finding array emit (needs [ocsf] extra)
+from evidentia_core.gap_analyzer.ocsf import gap_report_to_ocsf_array
+
+# v0.10.5+ Gap-report OCSF Detection Finding array emit (needs [ocsf] extra)
+from evidentia_core.gap_analyzer.ocsf_detection import (
+    gap_report_to_ocsf_detection_array,
+)
+
+# v0.10.5+ Gap-report CycloneDX 1.6 VEX emit (no extra required)
+from evidentia_core.gap_analyzer.vex import gap_report_to_cyclonedx_vex
+
 # AI features (production runtime)
 from evidentia_ai.risk_statements import RiskStatementGenerator
 
@@ -504,4 +515,6 @@ cycle.
 | **NORMATIVE** | **2026-05-23** | **v0.10.1: `finding_from_ocsf` gains an additive `trust_unmapped: bool = True` keyword-only parameter (closes F-V100-L1 from the v0.10.0 review). Non-breaking under §1 — additive optional parameter with default. See [ocsf-mapping.md §5.1](ocsf-mapping.md).** |
 | **NORMATIVE** | **2026-05-23** | **v0.10.2: 4 new MCP tools added (`gap_analyze_sarif`, `collect_ocsf`, `tprm_vendor_list`, `poam_list`) per the MCP-as-backend theme. Append-only per the §MCP tool contract — non-breaking for existing AI clients; the 8 prior tools stay frozen.** |
 | **NORMATIVE** | **2026-05-24** | **v0.10.4: (a) `OutputFormat` Literal extended with `"ocsf"` (additive-optional per §3) — `evidentia gap analyze --format ocsf` emits OCSF Compliance Findings (class_uid 2003), the symmetric counterpart to v0.10.0 SARIF emit + v0.10.1 OCSF ingest; (b) 13th MCP tool `verify_signed_artifact` added (append-only per §MCP tool contract); (c) `evidentia_core.gap_analyzer.ocsf.gap_report_to_ocsf_array` new public helper. No removals, no renames, no breaking changes. Reviewed under `/pre-release-review` skill v5.1 (first ship under v5.1).** |
-| **NORMATIVE** | **2026-05-25** | **v0.10.5 P9: DFAH harness extracted from `evidentia_ai.eval.*` to a dedicated `evidentia-eval` workspace package (8th package). Public API moves from `evidentia_ai.eval` to `evidentia_eval` (same symbols, same signatures). The `evidentia_ai.eval.*` path is preserved as a deprecation shim through v0.11.x with a `DeprecationWarning` at import time; removal scheduled for v0.12.0 (a documented breaking change with a 2-minor-version migration window per §1). The `evidentia-ai[eval-faithfulness]` extra now proxies to `evidentia-eval[faithfulness-semantic]` — same packages, new home. Rationale: air-gap installs of the production risk-statement runtime no longer transitively pull the dev-time eval stack.** |
+| **NORMATIVE** | **2026-05-25** | **v0.10.5 Phases 7+8: `OutputFormat` Literal further extended with `"ocsf-detection"` + `"cyclonedx-vex"` (additive-optional per §3). `evidentia gap analyze --format ocsf-detection` emits OCSF Detection Findings (class_uid 2004) — SIEM-target counterpart to v0.10.4 Compliance Finding emit (Splunk / Elastic / Sentinel / Datadog ingest 2004 natively). `evidentia gap analyze --format cyclonedx-vex` emits CycloneDX 1.6 VEX — the supply-chain VEX surface complementing the release-time CycloneDX SBOM emit. Two new library entry points: `evidentia_core.gap_analyzer.ocsf_detection.gap_report_to_ocsf_detection_array` + `evidentia_core.gap_analyzer.vex.gap_report_to_cyclonedx_vex`. No removals, no renames, no breaking changes.** |
+| **NORMATIVE** | **2026-05-25** | **v0.10.5 Phase 9: DFAH harness extracted from `evidentia_ai.eval.*` to a dedicated `evidentia-eval` workspace package (8th package). Public API moves from `evidentia_ai.eval` to `evidentia_eval` (same symbols, same signatures). The `evidentia_ai.eval.*` path is preserved as a deprecation shim through v0.11.x with a `DeprecationWarning` at import time; removal scheduled for v0.12.0 (a documented breaking change with a 2-minor-version migration window per §1). The `evidentia-ai[eval-faithfulness]` extra now proxies to `evidentia-eval[faithfulness-semantic]` — same packages, new home. Rationale: air-gap installs of the production risk-statement runtime no longer transitively pull the dev-time eval stack.** |
+| **NORMATIVE** | **2026-05-25** | **v0.10.5 Phase 10: Collector idempotency hardening. New `evidentia_core.models.common.deterministic_finding_id(source_system, source_finding_id)` helper computes a UUID v5 from natural keys under the pinned `NAMESPACE_EVIDENTIA_FINDING` namespace. A new `@model_validator(mode="before")` on `SecurityFinding` runs the derivation when no explicit `id=` is supplied AND both `source_system` + `source_finding_id` are present at construction. Effect: two `collect()` calls against an unchanged source produce findings with byte-identical `id` values across runs. Additive-only; explicit `id=` always wins, OCSF round-trip via `unmapped["evidentia"]` unchanged, pre-v0.10.5 OSCAL AR documents continue to load. See [docs/collector-idempotency-audit.md](collector-idempotency-audit.md).** |

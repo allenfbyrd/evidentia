@@ -74,7 +74,8 @@ noted.
 | 12 | **MLflow / Hugging Face model cards** | AI-governance evidence: model provenance/cards as NIST AI RMF Map/Measure evidence | MLflow registry API; HF model-card YAML | Med (AI moat) | Med | ⚠️ **Partial v0.9.x** — `AISystem` + `AISystemClassification` + Annex IV registry exists; MLflow / HF Hub direct ingest not yet wired |
 | 13 | **OPA / Rego policy bundles** | Express control checks as Rego; consume OPA decision logs as evidence | OPA decision API; decision-log JSON | Med | Med | ❌ — not yet; v0.11+ candidate |
 | 14 | **ServiceNow IRM / Archer** | Enterprise GRC system-of-record interchange | ServiceNow Table API; Archer REST | Med (enterprise) | High | ❌ — not yet; v1.1 enterprise-tier candidate |
-| 15 | **Splunk / Datadog export** | Push compliance posture as events for SIEM dashboards | Splunk HEC; Datadog Events API | Low–Med | Low | ✅ **v0.10.4** — `evidentia gap analyze --format ocsf` emits OCSF Compliance Finding array; SIEM-ready (Splunk/Datadog/Elastic all ingest OCSF) |
+| 15 | **Splunk / Datadog / Elastic / Sentinel export** | Push compliance posture as events for SIEM dashboards | Splunk HEC; Datadog Events API; OCSF Detection Finding 2004 (the production-traffic SIEM class) | Low–Med | Low | ✅ **v0.10.4 + v0.10.5** — v0.10.4 shipped `--format ocsf` (OCSF Compliance Finding 2003, GRC-target); v0.10.5 Phase 7 adds `--format ocsf-detection` (OCSF Detection Finding 2004, SIEM-target) so gap output flows into SIEM ingest pipelines natively — Splunk / Elastic / Sentinel / Datadog all consume 2004 as production traffic |
+| 16 | **CycloneDX VEX emit** | Vulnerability-exploitability statements alongside the release-time SBOM; consumable by Dependency-Track and other CycloneDX-aware tooling. Federal supply-chain mandate alignment (EO 14028, SEC 2026 supply-chain enforcement) | CycloneDX 1.6 VEX JSON | Med (federal) | Low | ✅ **v0.10.5** — `evidentia gap analyze --format cyclonedx-vex` emits CycloneDX 1.6 VEX with each `ControlGap` becoming one `vulnerability` entry; `analysis.state` mapped from `implementation_status` + `GapStatus` (exploitable / in_triage / resolved / not_affected); composable with the release-time SBOM via standard CycloneDX merge tooling |
 
 **Deliberately not prioritized now:** OneTrust, AuditBoard/Optro,
 Hyperproof, Anecdotes — closed partner programs, enterprise-sales-gated
@@ -247,6 +248,13 @@ costs almost nothing.
 - **`evidentia gap analyze --format ocsf`** (the symmetric counterpart
   to the v0.10.0 SARIF emit + the v0.10.1 OCSF ingest) — gap output
   flows into SIEMs / data lakes / OCSF-aware tooling. ✅ SHIPPED v0.10.4.
+- **`evidentia gap analyze --format ocsf-detection`** (the SIEM-target
+  OCSF emit — `class_uid` 2004) — production-traffic-compatible with
+  Splunk / Elastic / Sentinel / Datadog ingest pipelines.
+  ✅ SHIPPED v0.10.5 Phase 7.
+- **`evidentia gap analyze --format cyclonedx-vex`** (CycloneDX 1.6 VEX
+  emit) — supply-chain VEX surface complementing the existing CycloneDX
+  SBOM emit. ✅ SHIPPED v0.10.5 Phase 8.
 - **F-V101-L1 SSRF hardening** (`--block-private-ips` on OCSF URL
   mode) — defense-in-depth on the ingest collector. ✅ SHIPPED v0.10.2.
 - **YAML-format catalog support** (the §4.4 deliverable) — catalog

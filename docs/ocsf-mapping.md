@@ -288,6 +288,76 @@ input source (Prowler, AWS Security Hub) is third-party and not
 Evidentia-produced. Operators who produce their own Detection Finding
 round-trip artifacts can flip to `True` for lossless reconstruction.
 
+## 7.B. Detection Finding emit — `evidentia gap analyze --format ocsf-detection` (v0.10.5)
+
+v0.10.5 Phase 7 adds the **SIEM-target emit** counterpart to v0.10.4's
+`--format ocsf` (Compliance Finding 2003). The Detection Finding emit
+renders each `ControlGap` as an OCSF Detection Finding (`class_uid`
+2004) so gap output flows natively into SIEMs whose production-traffic
+schema is 2004 — Splunk, Elastic, Microsoft Sentinel, Datadog.
+
+**Why two OCSF emits?** Compliance Finding 2003 is the *semantically
+correct* class for control pass/fail evidence and remains Evidentia's
+default OCSF emit for GRC-target tooling (Security Lake, RegScale,
+OCSF-aware GRC platforms). Detection Finding 2004 is the OCSF class
+SIEMs have actually wired their ingest pipelines to — Prowler and AWS
+Security Hub emit 2004 natively, so SIEMs landed there as well.
+Operators who need SIEM ingest pick `--format ocsf-detection`;
+operators who need OCSF-aware GRC tooling stay on `--format ocsf`.
+Both emits carry the same gap data with the same severity mappings —
+the only structural difference is the OCSF class.
+
+**`ControlGap` → Detection Finding field map** (`gap_report_to_ocsf_detection_array`):
+
+| `ControlGap` field | Detection Finding location |
+|---|---|
+| `id` | `finding_info.uid` |
+| `framework` + `control_id` | `finding_info.types[]` (as `"<framework>/<control_id>"`) |
+| `control_title` | embedded in `finding_info.title` |
+| `gap_description` | `finding_info.desc`, `message` |
+| `gap_severity` | `severity_id` (same mapping as Compliance Finding) |
+| `status` (`GapStatus`) | `status_id` (OPEN/IN_PROGRESS → New (1); REMEDIATED → Resolved (4); ACCEPTED → Suppressed (3); NOT_APPLICABLE → Other (99)) |
+| `remediation_guidance` | `remediation.desc` (omitted when empty) |
+| `created_at` | `finding_info.first_seen_time_dt`, `last_seen_time_dt`, `time`, `time_dt` |
+| *(whole gap)* | `unmapped["evidentia"]["gap"]` — round-trip fidelity |
+
+**Why `finding_info.types[]` for the framework + control id?** Detection
+Finding has no native `compliance` object, so framework + control_id
+has no native home on the class. The SARIF-style stable identifier
+`<framework>/<control_id>` (which Evidentia's SARIF emit already uses
+as `rule_id`) is the closest semantic match for OCSF's `types[]` list,
+which describes the kind of finding. SIEM filters that key off finding
+type therefore see a stable per-control identifier even when the
+unmapped block is stripped on ingest.
+
+**No `compliance` object → unmapped block is canonical for status.**
+Detection Finding's lack of `compliance.status_id` means the gap's
+`implementation_status` (`missing` / `partial` / `planned` /
+`implemented` / `not_applicable`) round-trips *only* via the
+`unmapped["evidentia"]["gap"]` block. SIEM operators who care about the
+compliance binding read it from the unmapped block; SIEM operators who
+just want findings see the gap description in the standard `message`
+and `finding_info.desc` fields.
+
+**API**:
+
+```python
+from evidentia_core.gap_analyzer.ocsf_detection import (
+    gap_report_to_ocsf_detection_array,
+)
+detection_array = gap_report_to_ocsf_detection_array(report)
+# returns list[dict[str, Any]] — each dict is a valid OCSF Detection Finding
+```
+
+Or use the CLI: `evidentia gap analyze --inventory inv.yaml
+--frameworks nist-csf-2.0 --output gaps.ocsf-detection.json --format
+ocsf-detection`.
+
+Both `gap_report_to_ocsf_array` (Compliance Finding) and
+`gap_report_to_ocsf_detection_array` (Detection Finding) require the
+`[ocsf]` extra (`pip install 'evidentia-core[ocsf]'`); both raise
+`OCSFMappingError` otherwise.
+
 ## 8. Deferred to v0.10.1+
 
 - The third-party **OCSF-ingestion collector** that wires

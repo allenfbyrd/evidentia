@@ -1,12 +1,23 @@
 """Gap analysis report output formatters.
 
-Supports: JSON, CSV, Markdown, OSCAL Assessment Results, SARIF.
+Supports: JSON, CSV, Markdown, OSCAL Assessment Results, SARIF, OCSF
+Compliance Finding, OCSF Detection Finding, CycloneDX VEX.
 
 v0.7.0: the ``oscal-ar`` format optionally accepts a list of
 :class:`SecurityFinding` objects (``findings=``) to embed as hashed
 OSCAL resources, and a ``gpg_key_id`` to produce a detached ASCII-armored
 signature alongside the JSON. See :mod:`evidentia_core.oscal.verify`
 for the corresponding integrity checks.
+
+v0.10.5 Phase 7: ``ocsf-detection`` emits OCSF Detection Finding
+(``class_uid`` 2004) records — the SIEM-target counterpart to v0.10.4's
+``ocsf`` (Compliance Finding 2003). Splunk / Elastic / Microsoft
+Sentinel / Datadog ingest 2004 natively.
+
+v0.10.5 Phase 8: ``cyclonedx-vex`` emits CycloneDX 1.6 VEX — the
+supply-chain VEX surface complementing Evidentia's CycloneDX SBOM emit.
+Federal supply-chain mandates (EO 14028, SEC 2026 supply-chain
+enforcement) drive CycloneDX VEX adoption.
 """
 
 from __future__ import annotations
@@ -23,7 +34,16 @@ if TYPE_CHECKING:
     from evidentia_core.models.finding import SecurityFinding
     from evidentia_core.models.tprm import Vendor
 
-OutputFormat = Literal["json", "csv", "markdown", "oscal-ar", "sarif", "ocsf"]
+OutputFormat = Literal[
+    "json",
+    "csv",
+    "markdown",
+    "oscal-ar",
+    "sarif",
+    "ocsf",
+    "ocsf-detection",
+    "cyclonedx-vex",
+]
 
 
 def export_report(
@@ -48,7 +68,10 @@ def export_report(
     output_path:
         Destination file path.
     format:
-        One of ``json``, ``csv``, ``markdown``, ``oscal-ar``, ``sarif``.
+        One of ``json``, ``csv``, ``markdown``, ``oscal-ar``, ``sarif``,
+        ``ocsf`` (OCSF Compliance Finding 2003, v0.10.4), ``ocsf-detection``
+        (OCSF Detection Finding 2004, v0.10.5 — SIEM-target), or
+        ``cyclonedx-vex`` (CycloneDX 1.6 VEX, v0.10.5 — supply-chain).
     findings:
         Optional :class:`SecurityFinding` list for the ``oscal-ar`` format.
         Each finding becomes a hashed OSCAL back-matter resource and is
@@ -98,6 +121,10 @@ def export_report(
         return _export_sarif(report, path)
     if format == "ocsf":
         return _export_ocsf(report, path)
+    if format == "ocsf-detection":
+        return _export_ocsf_detection(report, path)
+    if format == "cyclonedx-vex":
+        return _export_cyclonedx_vex(report, path)
 
     raise ValueError(f"Unsupported format: {format}")
 
@@ -296,4 +323,56 @@ def _export_ocsf(report: GapAnalysisReport, path: Path) -> Path:
 
     ocsf_array = gap_report_to_ocsf_array(report)
     path.write_text(json.dumps(ocsf_array, indent=2), encoding="utf-8")
+    return path
+
+
+def _export_ocsf_detection(report: GapAnalysisReport, path: Path) -> Path:
+    """Export the gap report as an OCSF Detection Finding JSON array
+    (v0.10.5 Phase 7).
+
+    Each ControlGap becomes one OCSF Detection Finding (``class_uid``
+    2004), the SIEM-target OCSF class. Splunk / Elastic / Microsoft
+    Sentinel / Datadog consume Detection Finding natively as
+    production traffic; Compliance Finding (the v0.10.4 ``ocsf``
+    format) is the semantically correct class for control pass/fail
+    but is under-adopted by SIEM ingest pipelines.
+
+    Operators who want SIEM ingest pick ``--format ocsf-detection``;
+    operators who want OCSF-aware GRC tooling stay on ``--format
+    ocsf``. The two emits carry the same gap data with the same
+    severity mappings — the only structural difference is the OCSF
+    class.
+
+    Requires the ``[ocsf]`` extra (``pip install
+    'evidentia-core[ocsf]'``); raises :class:`OCSFMappingError`
+    otherwise.
+    """
+    from evidentia_core.gap_analyzer.ocsf_detection import (
+        gap_report_to_ocsf_detection_array,
+    )
+
+    detection_array = gap_report_to_ocsf_detection_array(report)
+    path.write_text(json.dumps(detection_array, indent=2), encoding="utf-8")
+    return path
+
+
+def _export_cyclonedx_vex(report: GapAnalysisReport, path: Path) -> Path:
+    """Export the gap report as a CycloneDX 1.6 VEX document
+    (v0.10.5 Phase 8).
+
+    Each ControlGap becomes one CycloneDX ``vulnerability`` entry
+    with the analysis state mapped from the gap's ``implementation_status``
+    and ``status`` (GapStatus). Federal supply-chain mandates
+    (EO 14028, SEC 2026 supply-chain enforcement) are driving
+    CycloneDX VEX adoption — Dependency-Track and other CycloneDX-
+    aware tooling consume this surface directly.
+
+    CycloneDX is already used in Evidentia's SBOM emit (the release
+    workflow ships ``evidentia-sbom.cdx.json``), so VEX is an additive
+    surface over the existing supply-chain artifact stack.
+    """
+    from evidentia_core.gap_analyzer.vex import gap_report_to_cyclonedx_vex
+
+    vex_doc = gap_report_to_cyclonedx_vex(report)
+    path.write_text(json.dumps(vex_doc, indent=2), encoding="utf-8")
     return path
