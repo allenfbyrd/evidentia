@@ -74,7 +74,7 @@ def test_extract_claims_real_llm_produces_claims() -> None:
     token count) rather than exact-match strings — different
     LLM models produce different splits.
     """
-    from evidentia_ai.eval.claim_extraction import extract_claims
+    from evidentia_eval.claim_extraction import extract_claims
 
     # 3-claim risk-statement input. Whatever model the operator
     # runs against should split this into roughly 3 atomic
@@ -110,7 +110,7 @@ def test_extract_claims_empty_input_returns_empty_list_no_llm_call() -> None:
     Inverted skip: this single test is allowed even without
     the env var (it's effectively a unit test in disguise).
     """
-    from evidentia_ai.eval.claim_extraction import extract_claims
+    from evidentia_eval.claim_extraction import extract_claims
 
     assert extract_claims("") == []
     assert extract_claims("   ") == []
@@ -133,13 +133,13 @@ def test_dfa_harness_check_faithfulness_end_to_end_against_corpus() -> None:
     extract_claims fires once per sample and burns a small token
     budget. ~4 LLM calls total (one per sample's modal output).
     """
-    from evidentia_ai.eval import (
-        DFAHarness,
-        EvalSample,
-    )
     from evidentia_core.audit.provenance import (
         GenerationContext,
         compute_prompt_hash,
+    )
+    from evidentia_eval import (
+        DFAHarness,
+        EvalSample,
     )
 
     corpus_path = Path("tests/data/dfah-calibration/corpus.jsonl")
@@ -236,13 +236,13 @@ def test_dfa_harness_score_distribution_trend() -> None:
     is fundamentally broken (LLM extraction returning the wrong
     claims, scorer inverted, etc.).
     """
-    from evidentia_ai.eval import (
-        DFAHarness,
-        EvalSample,
-    )
     from evidentia_core.audit.provenance import (
         GenerationContext,
         compute_prompt_hash,
+    )
+    from evidentia_eval import (
+        DFAHarness,
+        EvalSample,
     )
 
     corpus_path = Path("tests/data/dfah-calibration/corpus.jsonl")

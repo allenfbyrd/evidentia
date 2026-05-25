@@ -1,8 +1,8 @@
 """DFAHarness.run(check_faithfulness=True) wiring tests (v0.8.4 P1).
 
 Covers the v0.8.4 P1 wiring that brings the v0.8.3 standalone
-:func:`evidentia_ai.eval.claim_extraction.extract_claims` +
-:func:`evidentia_ai.eval.faithfulness.faithfulness_score`
+:func:`evidentia_eval.claim_extraction.extract_claims` +
+:func:`evidentia_eval.faithfulness.faithfulness_score`
 together inside the DFAHarness loop.
 
 Tests use mock-injected ``claim_extraction_fn`` +
@@ -17,14 +17,14 @@ from __future__ import annotations
 from collections.abc import Callable
 from unittest import mock
 
-from evidentia_ai.eval.faithfulness import FaithfulnessResult
-from evidentia_ai.eval.harness import (
-    DFAHarness,
-    EvalSample,
-)
 from evidentia_core.audit.provenance import (
     GenerationContext,
     compute_prompt_hash,
+)
+from evidentia_eval.faithfulness import FaithfulnessResult
+from evidentia_eval.harness import (
+    DFAHarness,
+    EvalSample,
 )
 
 
@@ -272,7 +272,7 @@ class TestCheckFaithfulnessAuditEvents:
             generator=_stub_generator, sample_count_per_prompt=1
         )
         with mock.patch(
-            "evidentia_ai.eval.harness._log"
+            "evidentia_eval.harness._log"
         ) as mock_log:
             harness.run(
                 samples=samples,
@@ -312,7 +312,7 @@ class TestCheckFaithfulnessAuditEvents:
             generator=_stub_generator, sample_count_per_prompt=1
         )
         with mock.patch(
-            "evidentia_ai.eval.harness._log"
+            "evidentia_eval.harness._log"
         ) as mock_log:
             harness.run(
                 samples=samples,
@@ -397,7 +397,7 @@ class TestCheckFaithfulnessMethodSelection:
 class TestPromptFaithfulnessResultModel:
     def test_overall_faithful_empty_claims_is_true(self) -> None:
         """Vacuous faithfulness: no claims → overall_faithful=True."""
-        from evidentia_ai.eval.faithfulness import (
+        from evidentia_eval.faithfulness import (
             PromptFaithfulnessResult,
         )
 
@@ -408,7 +408,7 @@ class TestPromptFaithfulnessResultModel:
 
     def test_jsonable_roundtrip(self) -> None:
         """The model serializes + roundtrips for Sigstore-signing."""
-        from evidentia_ai.eval.faithfulness import (
+        from evidentia_eval.faithfulness import (
             PromptFaithfulnessResult,
         )
 

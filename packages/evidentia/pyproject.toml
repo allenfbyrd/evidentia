@@ -19,6 +19,12 @@ classifiers = [
 dependencies = [
     "evidentia-core>=0.10.4,<0.11.0",
     "evidentia-ai>=0.10.4,<0.11.0",
+    # v0.10.5 P9: DFAH eval harness extracted from evidentia-ai.
+    # ``evidentia eval`` CLI verbs live here, so the meta-package
+    # depends on evidentia-eval directly (not via the evidentia-ai
+    # transitive pin) so the verbs work even when the v0.12.0
+    # shim removal eventually trims evidentia-ai's runtime dep.
+    "evidentia-eval>=0.10.4,<0.11.0",
     "evidentia-collectors>=0.10.4,<0.11.0",
     "evidentia-integrations>=0.10.4,<0.11.0",
     "typer>=0.14",
@@ -65,6 +71,7 @@ packages = ["src/evidentia"]
 [tool.uv.sources]
 evidentia-core = { workspace = true }
 evidentia-ai = { workspace = true }
+evidentia-eval = { workspace = true }
 evidentia-collectors = { workspace = true }
 evidentia-integrations = { workspace = true }
 evidentia-api = { workspace = true }

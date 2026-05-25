@@ -13,6 +13,13 @@ members = [
     "packages/evidentia",
     "packages/evidentia-api",
     "packages/evidentia-mcp",
+    # v0.10.5 P9: DFAH eval harness extracted from evidentia-ai
+    # so air-gap installs of the production risk-statement runtime
+    # don't pull the dev-time eval stack (sentence-transformers,
+    # numpy, etc.). The ``evidentia-ai.eval`` import path keeps
+    # working via deprecation shims through v0.11.x; removal in
+    # v0.12.0.
+    "packages/evidentia-eval",
     # v0.7.0: shim-controlbridge-* workspace members removed per the
     # public contract documented in README.md, RENAMED.md, and CHANGELOG.md.
     # The v0.5.1 shim wheels remain on PyPI for installed users (until
@@ -117,6 +124,7 @@ evidentia-integrations = { workspace = true }
 evidentia = { workspace = true }
 evidentia-api = { workspace = true }
 evidentia-mcp = { workspace = true }
+evidentia-eval = { workspace = true }
 
 [tool.ruff]
 target-version = "py312"
@@ -274,6 +282,7 @@ source_pkgs = [
     "evidentia_integrations",
     "evidentia_api",
     "evidentia_mcp",
+    "evidentia_eval",
     "evidentia",
 ]
 omit = [

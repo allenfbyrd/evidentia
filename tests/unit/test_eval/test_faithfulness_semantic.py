@@ -29,7 +29,7 @@ from unittest import mock
 
 import numpy as np
 import pytest
-from evidentia_ai.eval.faithfulness_semantic import (
+from evidentia_eval.faithfulness_semantic import (
     DEFAULT_SEMANTIC_MODEL,
     DEFAULT_SEMANTIC_THRESHOLD,
     SemanticFaithfulnessNotAvailableError,
@@ -44,7 +44,7 @@ def _clear_model_cache() -> None:
     Prevents a mocked model from leaking into other tests +
     keeps the cached-load assertion in the cache test reliable.
     """
-    from evidentia_ai.eval import faithfulness_semantic
+    from evidentia_eval import faithfulness_semantic
 
     faithfulness_semantic._MODEL_CACHE.clear()
 
@@ -90,7 +90,7 @@ class TestFaithfulnessSemanticBasics:
         }
         model = _make_mock_model(embeddings)
         with mock.patch(
-            "evidentia_ai.eval.faithfulness_semantic._import_sentence_transformers",
+            "evidentia_eval.faithfulness_semantic._import_sentence_transformers",
             return_value=_patch_import_returning(model),
         ):
             result = faithfulness_score_semantic(
@@ -104,7 +104,7 @@ class TestFaithfulnessSemanticBasics:
         # Mock isn't actually used (early return); patch anyway
         # for symmetry.
         with mock.patch(
-            "evidentia_ai.eval.faithfulness_semantic._import_sentence_transformers"
+            "evidentia_eval.faithfulness_semantic._import_sentence_transformers"
         ):
             result = faithfulness_score_semantic("claim", [])
         assert result.score == 0.0
@@ -124,7 +124,7 @@ class TestFaithfulnessSemanticBasics:
         }
         model = _make_mock_model(embeddings)
         with mock.patch(
-            "evidentia_ai.eval.faithfulness_semantic._import_sentence_transformers",
+            "evidentia_eval.faithfulness_semantic._import_sentence_transformers",
             return_value=_patch_import_returning(model),
         ):
             result = faithfulness_score_semantic(
@@ -155,7 +155,7 @@ class TestFaithfulnessSemanticBasics:
         embeddings = {"c": [1.0, 0.0], "x": [0.5, 0.5]}
         model = _make_mock_model(embeddings)
         with mock.patch(
-            "evidentia_ai.eval.faithfulness_semantic._import_sentence_transformers",
+            "evidentia_eval.faithfulness_semantic._import_sentence_transformers",
             return_value=_patch_import_returning(model),
         ):
             result = faithfulness_score_semantic("c", ["x"])
@@ -194,7 +194,7 @@ class TestSemanticFaithfulnessThreshold:
         embeddings = {"c": [1.0, 0.0], "x": [0.0, 1.0]}
         model = _make_mock_model(embeddings)
         with mock.patch(
-            "evidentia_ai.eval.faithfulness_semantic._import_sentence_transformers",
+            "evidentia_eval.faithfulness_semantic._import_sentence_transformers",
             return_value=_patch_import_returning(model),
         ):
             result = faithfulness_score_semantic(

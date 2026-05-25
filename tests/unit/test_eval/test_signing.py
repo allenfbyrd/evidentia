@@ -28,8 +28,8 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from evidentia_ai.eval.harness import EvalResult
-from evidentia_ai.eval.signing import (
+from evidentia_eval.harness import EvalResult
+from evidentia_eval.signing import (
     sign_eval_result,
     verify_eval_result,
 )
@@ -59,7 +59,7 @@ class TestSignEvalResult:
         result = _make_eval_result()
         # Mock the Sigstore signer so the test runs without OIDC.
         with mock.patch(
-            "evidentia_ai.eval.signing.sign_file"
+            "evidentia_eval.signing.sign_file"
         ) as mock_sign:
             mock_sign.return_value = output.with_suffix(
                 ".json.sigstore.json"
@@ -84,7 +84,7 @@ class TestSignEvalResult:
         expected_bundle = output.with_suffix(".json.sigstore.json")
 
         with mock.patch(
-            "evidentia_ai.eval.signing.sign_file"
+            "evidentia_eval.signing.sign_file"
         ) as mock_sign:
             mock_sign.return_value = expected_bundle
             _out, bundle_path = sign_eval_result(result, output)
@@ -103,7 +103,7 @@ class TestSignEvalResult:
         result = _make_eval_result()
 
         with mock.patch(
-            "evidentia_ai.eval.signing.sign_file"
+            "evidentia_eval.signing.sign_file"
         ) as mock_sign:
             mock_sign.return_value = explicit_bundle
             _out, bundle_path = sign_eval_result(
@@ -129,13 +129,13 @@ class TestSignEvalResult:
         result = _make_eval_result()
 
         with mock.patch(
-            "evidentia_ai.eval.signing.sign_file"
+            "evidentia_eval.signing.sign_file"
         ) as mock_sign:
             mock_sign.return_value = output.with_suffix(
                 ".json.sigstore.json"
             )
             with mock.patch(
-                "evidentia_ai.eval.signing._log"
+                "evidentia_eval.signing._log"
             ) as mock_log:
                 sign_eval_result(result, output)
 
@@ -160,7 +160,7 @@ class TestVerifyEvalResult:
         output.write_text("{}", encoding="utf-8")
 
         with mock.patch(
-            "evidentia_ai.eval.signing.verify_file"
+            "evidentia_eval.signing.verify_file"
         ) as mock_verify:
             sentinel = mock.MagicMock(valid=True)
             mock_verify.return_value = sentinel
@@ -184,7 +184,7 @@ class TestVerifyEvalResult:
         bundle = tmp_path / "custom.sig"
 
         with mock.patch(
-            "evidentia_ai.eval.signing.verify_file"
+            "evidentia_eval.signing.verify_file"
         ) as mock_verify:
             mock_verify.return_value = mock.MagicMock(valid=True)
             verify_eval_result(

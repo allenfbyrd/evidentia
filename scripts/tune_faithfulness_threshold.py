@@ -153,7 +153,7 @@ def _resolve_score_fn(
     pipeline.
     """
     if method == "jaccard":
-        from evidentia_ai.eval.faithfulness import faithfulness_score
+        from evidentia_eval.faithfulness import faithfulness_score
 
         def jaccard_score(claim: str, clauses: list[str]) -> float:
             return faithfulness_score(claim, clauses).score
@@ -161,7 +161,7 @@ def _resolve_score_fn(
         return jaccard_score
     elif method == "semantic":
         try:
-            from evidentia_ai.eval.faithfulness_semantic import (
+            from evidentia_eval.faithfulness_semantic import (
                 faithfulness_score_semantic,
             )
 

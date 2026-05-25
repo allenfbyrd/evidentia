@@ -1,7 +1,7 @@
 """Unit tests for v0.8.2 §25.2 P3.1 DFAH faithfulness scoring.
 
 Covers the three intrinsic invariants of
-:func:`evidentia_ai.eval.faithfulness.faithfulness_score`:
+:func:`evidentia_eval.faithfulness.faithfulness_score`:
 
 1. **Score range** — output ``score`` always in ``[0.0, 1.0]``.
 2. **Empty source** — empty ``source_clauses`` produces score
@@ -19,7 +19,7 @@ Covers the three intrinsic invariants of
 from __future__ import annotations
 
 import pytest
-from evidentia_ai.eval.faithfulness import (
+from evidentia_eval.faithfulness import (
     DEFAULT_FAITHFULNESS_THRESHOLD,
     FaithfulnessResult,
     faithfulness_score,
@@ -143,7 +143,7 @@ class TestConfidence:
         """Verbatim match → resample stddev low → confidence high.
         Use a fixed seed for deterministic test value.
         """
-        from evidentia_ai.eval.faithfulness import faithfulness_score
+        from evidentia_eval.faithfulness import faithfulness_score
 
         result = faithfulness_score(
             "Account management procedures enforce least privilege",
@@ -203,26 +203,26 @@ class TestResolveThreshold:
     """v0.8.6 P3 framework-aware default threshold resolution."""
 
     def test_known_framework_returns_mapped_threshold(self) -> None:
-        from evidentia_ai.eval.faithfulness import resolve_threshold
+        from evidentia_eval.faithfulness import resolve_threshold
 
         assert resolve_threshold("nist-800-53") == 0.60
         assert resolve_threshold("ffiec-it-handbook") == 0.35
         assert resolve_threshold("iso-27001") == 0.30
 
     def test_unknown_framework_falls_back_to_default(self) -> None:
-        from evidentia_ai.eval.faithfulness import resolve_threshold
+        from evidentia_eval.faithfulness import resolve_threshold
 
         assert resolve_threshold("not-a-framework") == DEFAULT_FAITHFULNESS_THRESHOLD
 
     def test_none_framework_returns_default(self) -> None:
-        from evidentia_ai.eval.faithfulness import resolve_threshold
+        from evidentia_eval.faithfulness import resolve_threshold
 
         assert resolve_threshold(None) == DEFAULT_FAITHFULNESS_THRESHOLD
 
     def test_non_jaccard_method_returns_default(self) -> None:
         """Semantic method has no framework-aware map shipped in
         v0.8.6 — returns the framework-agnostic default."""
-        from evidentia_ai.eval.faithfulness import resolve_threshold
+        from evidentia_eval.faithfulness import resolve_threshold
 
         # Even with a known framework, the non-jaccard method
         # path returns the agnostic default.

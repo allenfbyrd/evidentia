@@ -24,7 +24,11 @@ from pathlib import Path
 
 import pytest
 from evidentia.cli.eval import app as eval_cli_app
-from evidentia_ai.eval import (
+from evidentia_core.audit.provenance import (
+    GenerationContext,
+    compute_prompt_hash,
+)
+from evidentia_eval import (
     DFAHarness,
     EvalResult,
     EvalSample,
@@ -32,10 +36,6 @@ from evidentia_ai.eval import (
     hash_output,
     normalize_for_determinism,
     replay_equivalent,
-)
-from evidentia_core.audit.provenance import (
-    GenerationContext,
-    compute_prompt_hash,
 )
 from typer.testing import CliRunner
 
@@ -686,7 +686,6 @@ class TestRiskDeterminismFaithfulnessCLI:
         """
         from unittest.mock import patch
 
-        from evidentia_ai.eval.faithfulness import FaithfulnessResult
         from evidentia_ai.risk_statements import RiskStatementGenerator
         from evidentia_core.models.risk import (
             ImpactRating,
@@ -695,6 +694,7 @@ class TestRiskDeterminismFaithfulnessCLI:
             RiskStatement,
             RiskTreatment,
         )
+        from evidentia_eval.faithfulness import FaithfulnessResult
 
         gaps_file, ctx_file = self._make_minimal_fixture(tmp_path)
         clauses_file = tmp_path / "clauses.yaml"
@@ -747,11 +747,11 @@ class TestRiskDeterminismFaithfulnessCLI:
 
         with (
             patch(
-                "evidentia_ai.eval.claim_extraction.extract_claims",
+                "evidentia_eval.claim_extraction.extract_claims",
                 side_effect=_mock_extract,
             ),
             patch(
-                "evidentia_ai.eval.faithfulness.faithfulness_score",
+                "evidentia_eval.faithfulness.faithfulness_score",
                 side_effect=_mock_score,
             ),
             patch.object(
@@ -907,7 +907,6 @@ class TestFaithfulnessThresholdMode:
         agnostic. Verified via stdout summary line."""
         from unittest.mock import patch
 
-        from evidentia_ai.eval.faithfulness import FaithfulnessResult
         from evidentia_ai.risk_statements import RiskStatementGenerator
         from evidentia_core.models.risk import (
             ImpactRating,
@@ -916,6 +915,7 @@ class TestFaithfulnessThresholdMode:
             RiskStatement,
             RiskTreatment,
         )
+        from evidentia_eval.faithfulness import FaithfulnessResult
 
         gaps_file, ctx_file = self._make_minimal_fixture(tmp_path)
         clauses_file = tmp_path / "clauses.yaml"
@@ -961,11 +961,11 @@ class TestFaithfulnessThresholdMode:
 
         with (
             patch(
-                "evidentia_ai.eval.claim_extraction.extract_claims",
+                "evidentia_eval.claim_extraction.extract_claims",
                 side_effect=_mock_extract,
             ),
             patch(
-                "evidentia_ai.eval.faithfulness.faithfulness_score",
+                "evidentia_eval.faithfulness.faithfulness_score",
                 side_effect=_mock_score,
             ),
             patch.object(
@@ -1018,7 +1018,7 @@ class TestFaithfulnessThresholdMode:
         DEFAULT_THRESHOLDS_BY_FRAMEWORK_JACCARD map by directly
         invoking resolve_threshold (the CLI's resolution path).
         """
-        from evidentia_ai.eval.faithfulness import resolve_threshold
+        from evidentia_eval.faithfulness import resolve_threshold
 
         # Bare framework identifier from the map.
         assert resolve_threshold("nist-800-53") == 0.60

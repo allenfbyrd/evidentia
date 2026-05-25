@@ -1624,7 +1624,12 @@ publishing approval); (3) `OSPS-CONFORMANCE.md` + machine-readable
 companion + CI gate; (4) `SECURITY.md` + `security.txt` + GitHub
 Security Advisories enablement (separate `gh api` approval); (5)
 `EOL.md` + `docs/verification.md` consumer-side cosign + PEP 740
-recipes; (6) positioning §16 skip-by-reuse note. ~2 weeks scope.
+recipes; (6) positioning §16 skip-by-reuse note; (9) `evidentia-eval`
+workspace package extraction (Kimi audit close-out — DFAH harness
+extracted from `evidentia-ai/eval/` to dedicated 8th package so air-
+gap installs of the production runtime no longer transitively pull
+the dev-time eval stack; `evidentia_ai.eval.*` retained as
+deprecation shim through v0.11.x, removal in v0.12.0). ~2 weeks scope.
 
 ### v0.10.6 — OSPS crosswalks + GitHub collector extension — PLANNED
 

@@ -15,6 +15,7 @@ members = [
     "evidentia-api",
     "evidentia-collectors",
     "evidentia-core",
+    "evidentia-eval",
     "evidentia-integrations",
     "evidentia-mcp",
     "evidentia-workspace",
@@ -954,6 +955,7 @@ dependencies = [
     { name = "evidentia-ai" },
     { name = "evidentia-collectors" },
     { name = "evidentia-core" },
+    { name = "evidentia-eval" },
     { name = "evidentia-integrations" },
     { name = "rich" },
     { name = "typer" },
@@ -985,6 +987,7 @@ requires-dist = [
     { name = "evidentia-core", extras = ["worm-azure"], marker = "extra == 'worm-azure'", editable = "packages/evidentia-core" },
     { name = "evidentia-core", extras = ["worm-gcs"], marker = "extra == 'worm-gcs'", editable = "packages/evidentia-core" },
     { name = "evidentia-core", extras = ["worm-s3"], marker = "extra == 'worm-s3'", editable = "packages/evidentia-core" },
+    { name = "evidentia-eval", editable = "packages/evidentia-eval" },
     { name = "evidentia-integrations", editable = "packages/evidentia-integrations" },
     { name = "evidentia-mcp", marker = "extra == 'mcp'", editable = "packages/evidentia-mcp" },
     { name = "rich", specifier = ">=13.0" },
@@ -998,6 +1001,7 @@ version = "0.10.4"
 source = { editable = "packages/evidentia-ai" }
 dependencies = [
     { name = "evidentia-core" },
+    { name = "evidentia-eval" },
     { name = "instructor" },
     { name = "litellm" },
     { name = "tenacity" },
@@ -1005,17 +1009,16 @@ dependencies = [
 
 [package.optional-dependencies]
 eval-faithfulness = [
-    { name = "numpy" },
-    { name = "sentence-transformers" },
+    { name = "evidentia-eval", extra = ["faithfulness-semantic"] },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "evidentia-core", editable = "packages/evidentia-core" },
+    { name = "evidentia-eval", editable = "packages/evidentia-eval" },
+    { name = "evidentia-eval", extras = ["faithfulness-semantic"], marker = "extra == 'eval-faithfulness'", editable = "packages/evidentia-eval" },
     { name = "instructor", specifier = ">=1.6" },
     { name = "litellm", specifier = ">=1.83.7,<2.0" },
-    { name = "numpy", marker = "extra == 'eval-faithfulness'", specifier = ">=1.26" },
-    { name = "sentence-transformers", marker = "extra == 'eval-faithfulness'", specifier = ">=3.0" },
     { name = "tenacity", specifier = ">=9.0" },
 ]
 provides-extras = ["eval-faithfulness"]
@@ -1188,6 +1191,28 @@ requires-dist = [
     { name = "thefuzz", extras = ["speedup"], specifier = ">=0.22" },
 ]
 provides-extras = ["sigstore", "xlsx", "worm-s3", "worm-azure", "worm-gcs", "ocsf"]
+
+[[package]]
+name = "evidentia-eval"
+version = "0.10.4"
+source = { editable = "packages/evidentia-eval" }
+dependencies = [
+    { name = "evidentia-core" },
+]
+
+[package.optional-dependencies]
+faithfulness-semantic = [
+    { name = "numpy" },
+    { name = "sentence-transformers" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "evidentia-core", editable = "packages/evidentia-core" },
+    { name = "numpy", marker = "extra == 'faithfulness-semantic'", specifier = ">=1.26" },
+    { name = "sentence-transformers", marker = "extra == 'faithfulness-semantic'", specifier = ">=3.0" },
+]
+provides-extras = ["faithfulness-semantic"]
 
 [[package]]
 name = "evidentia-integrations"

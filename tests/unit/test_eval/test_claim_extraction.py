@@ -22,7 +22,7 @@ from __future__ import annotations
 
 from unittest import mock
 
-from evidentia_ai.eval.claim_extraction import (
+from evidentia_eval.claim_extraction import (
     CLAIM_EXTRACTION_PROMPT,
     extract_claims,
 )

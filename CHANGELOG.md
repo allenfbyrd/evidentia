@@ -7,7 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet on the v0.10.5 development branch._
+### Added
+
+- **New workspace package `evidentia-eval`** (8th package): the DFAH
+  determinism + faithfulness harness moves out of `evidentia-ai/eval/`
+  to its own pip-installable package with its own optional extra
+  (`evidentia-eval[faithfulness-semantic]` for the sentence-
+  transformers + numpy path). Public API: `DFAHarness`, `EvalResult`,
+  `EvalSample`, `DeterminismResult`, `ReplayResult`,
+  `FaithfulnessResult`, `PromptFaithfulnessResult`,
+  `faithfulness_score`, `faithfulness_score_semantic`,
+  `extract_claims`, `determinism_score`, `replay_equivalent`,
+  `normalize_for_determinism`, `hash_output`, `sign_eval_result`,
+  `verify_eval_result`. Same symbols, same signatures as the prior
+  `evidentia_ai.eval` location — only the import path changes.
+- **`tests/unit/test_ai/test_lazy_imports.py`**: pins the lazy-import
+  posture of `evidentia_ai`. Asserts via subprocess that
+  `import evidentia_ai`, `import evidentia_ai.risk_statements`, and
+  related production-runtime entry-points do NOT pull torch /
+  transformers / sentence-transformers / evidentia-eval into
+  `sys.modules`. Closes the Kimi engineering audit concern about
+  air-gap installs transitively loading ML deps.
+
+### Changed
+
+- **`evidentia-ai` extra `eval-faithfulness`** now proxies to
+  `evidentia-eval[faithfulness-semantic]`. Existing
+  `pip install evidentia-ai[eval-faithfulness]` invocations continue
+  to pull the same `sentence-transformers >= 3.0` + `numpy >= 1.26`
+  stack — the heavy deps just live on the eval package now. Tracking
+  removal in v0.12.0 when the wider deprecation shim is dropped.
+- **Architecture doc + api-stability doc**: workspace package count
+  updated from 7 to 8; `evidentia-eval` added to the §5 public
+  library entry-points and the §Revision history.
+
+### Deprecated
+
+- **`evidentia_ai.eval.*` import paths** are now deprecation shims
+  that re-export from `evidentia_eval.*` and emit a
+  `DeprecationWarning` at import time. **Removal scheduled for
+  v0.12.0** (2-minor-version migration window). Migration: replace
+  `from evidentia_ai.eval import X` with `from evidentia_eval import X`
+  (or for submodule imports, `from evidentia_ai.eval.harness import Y`
+  with `from evidentia_eval.harness import Y`). Same symbols, same
+  signatures — the rename is mechanical.
+
+### Internal
+
+- **Lazy-import contract**: production runtime entry-points
+  (`evidentia_ai`, `evidentia_ai.risk_statements`,
+  `evidentia_ai.explain`) verified not to pull the eval stack on
+  bare import. Air-gap installs of `evidentia-ai` no longer
+  transitively load `sentence-transformers` / `numpy` / `instructor`
+  (instructor was already lazy; sentence-transformers + numpy
+  remained gated behind a now-moved optional extra).
+- **`bump_version.py` workspace allowlist**: the F-V100-M1 close-out
+  introduced in v0.10.1 reads `[tool.uv.sources]` dynamically;
+  adding `evidentia-eval = { workspace = true }` to the workspace
+  root pyproject.toml automatically includes it in the bump path
+  (no script edit needed).
 
 ## [0.10.4] - 2026-05-24
 

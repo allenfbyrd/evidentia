@@ -240,9 +240,16 @@ from evidentia_core.ocsf import (
     finding_to_ocsf, finding_from_ocsf, OCSFMappingError,
 )
 
-# AI features
+# AI features (production runtime)
 from evidentia_ai.risk_statements import RiskStatementGenerator
-from evidentia_ai.eval import DFAHarness, faithfulness_score
+
+# v0.10.5+ DFAH determinism + faithfulness harness (dev-time;
+# extracted from evidentia_ai.eval to a dedicated workspace
+# package so air-gap installs of the production runtime no
+# longer pull the dev-time eval stack). The
+# evidentia_ai.eval.* path remains as a deprecation shim
+# through v0.11.x; removal scheduled for v0.12.0.
+from evidentia_eval import DFAHarness, faithfulness_score
 
 # Collectors + integrations
 from evidentia_collectors.vendor_risk import (
@@ -497,3 +504,4 @@ cycle.
 | **NORMATIVE** | **2026-05-23** | **v0.10.1: `finding_from_ocsf` gains an additive `trust_unmapped: bool = True` keyword-only parameter (closes F-V100-L1 from the v0.10.0 review). Non-breaking under §1 — additive optional parameter with default. See [ocsf-mapping.md §5.1](ocsf-mapping.md).** |
 | **NORMATIVE** | **2026-05-23** | **v0.10.2: 4 new MCP tools added (`gap_analyze_sarif`, `collect_ocsf`, `tprm_vendor_list`, `poam_list`) per the MCP-as-backend theme. Append-only per the §MCP tool contract — non-breaking for existing AI clients; the 8 prior tools stay frozen.** |
 | **NORMATIVE** | **2026-05-24** | **v0.10.4: (a) `OutputFormat` Literal extended with `"ocsf"` (additive-optional per §3) — `evidentia gap analyze --format ocsf` emits OCSF Compliance Findings (class_uid 2003), the symmetric counterpart to v0.10.0 SARIF emit + v0.10.1 OCSF ingest; (b) 13th MCP tool `verify_signed_artifact` added (append-only per §MCP tool contract); (c) `evidentia_core.gap_analyzer.ocsf.gap_report_to_ocsf_array` new public helper. No removals, no renames, no breaking changes. Reviewed under `/pre-release-review` skill v5.1 (first ship under v5.1).** |
+| **NORMATIVE** | **2026-05-25** | **v0.10.5 P9: DFAH harness extracted from `evidentia_ai.eval.*` to a dedicated `evidentia-eval` workspace package (8th package). Public API moves from `evidentia_ai.eval` to `evidentia_eval` (same symbols, same signatures). The `evidentia_ai.eval.*` path is preserved as a deprecation shim through v0.11.x with a `DeprecationWarning` at import time; removal scheduled for v0.12.0 (a documented breaking change with a 2-minor-version migration window per §1). The `evidentia-ai[eval-faithfulness]` extra now proxies to `evidentia-eval[faithfulness-semantic]` — same packages, new home. Rationale: air-gap installs of the production risk-statement runtime no longer transitively pull the dev-time eval stack.** |

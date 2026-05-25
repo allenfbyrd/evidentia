@@ -1,80 +1,62 @@
-"""DFAH determinism harness — `evidentia eval` (v0.8.0 P0.1).
+"""Deprecated shim — ``evidentia_ai.eval`` moved to ``evidentia_eval`` in v0.10.5 P9.
 
-Decision-Faithfulness Assessment Harness per arXiv 2601.15322.
-Validates that risk-statement generation (or any AI-driven
-artifact production) is auditor-defensibly stable: same input +
-same model + same temperature produces the same output, and a
-re-run with pinned ``(input, model, temperature, prompt_hash,
-run_id)`` is byte-equivalent to the original.
+The DFAH determinism + faithfulness harness was extracted from
+``evidentia-ai`` to a dedicated ``evidentia-eval`` workspace
+package so air-gap installs of the production risk-statement
+runtime no longer pull the dev-time eval stack.
 
-Two metrics ship in v0.8.0:
+Existing code using ``from evidentia_ai.eval import …`` continues
+to work via this shim, which re-exports everything from
+``evidentia_eval``. A :class:`DeprecationWarning` fires at import
+time so test suites + CI logs flag the call site.
 
-- **Decision determinism** — same prompt produces the same
-  normalized output across N samples. The pass rate is the
-  fraction of samples that match the modal output (modulo
-  whitespace + punctuation normalization). Reported as a 0..1
-  score; CI-gateable via
-  ``evidentia eval --fail-on-determinism-rate-below 0.95``.
-- **Replay equivalence** — re-running with a pinned context
-  (``GenerationContext`` instance) produces an output whose
-  SHA-256 hash matches the original. Either the run is replay-
-  equivalent or it isn't — there is no graceful degradation.
+**Removal timeline**: scheduled for **v0.12.0**. Migrate to:
 
-Faithfulness scoring (do generated claims trace back to the
-input control + system context?) is the v0.8.1 follow-up. The
-``AI_EVAL_FAITHFULNESS_VIOLATION`` audit event is reserved
-ahead of time.
+.. code-block:: python
 
-Public API:
+    from evidentia_eval import DFAHarness, EvalSample  # new
 
-- :class:`DFAHarness` — owns the run loop + audit emit.
-- :class:`DeterminismResult` — Pydantic model summarizing one
-  prompt's determinism outcome (modal output + pass rate +
-  per-sample hashes).
-- :class:`ReplayResult` — Pydantic model summarizing replay-
-  equivalence for a single ``GenerationContext`` re-run.
-- :class:`EvalResult` — top-level harness output covering all
-  prompts in one ``run_id``.
-- :func:`normalize_for_determinism` — canonical normalization
-  (whitespace + punctuation) used by the determinism check.
-- :func:`hash_output` — SHA-256 hex of normalized output.
+instead of:
 
-The harness is generator-agnostic: it accepts any callable
-``(prompt: str, context: GenerationContext) -> str`` so the
-same machinery validates risk statements, control
-explanations, future PRT-traced outputs, and any third-party
-plugin's AI-generated artifacts. Unit tests use a deterministic
-fake generator; live operator runs wire in
-``evidentia_ai.risk_statements.RiskStatementGenerator.generate``.
+.. code-block:: python
+
+    from evidentia_ai.eval import DFAHarness, EvalSample  # deprecated
 """
 
 from __future__ import annotations
 
-from evidentia_ai.eval.claim_extraction import (
+import warnings
+
+warnings.warn(
+    "evidentia_ai.eval is deprecated; use evidentia_eval directly. "
+    "This shim will be removed in v0.12.0.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+# Re-export the full public surface. The list mirrors
+# evidentia_eval.__all__ so a wildcard import from the shim is
+# equivalent to a wildcard import from the new location.
+from evidentia_eval import (  # noqa: E402
     CLAIM_EXTRACTION_PROMPT,
-    extract_claims,
-)
-from evidentia_ai.eval.faithfulness import (
     DEFAULT_FAITHFULNESS_THRESHOLD,
-    FaithfulnessResult,
-    PromptFaithfulnessResult,
-    faithfulness_score,
-)
-from evidentia_ai.eval.faithfulness_semantic import (
     DEFAULT_SEMANTIC_MODEL,
     DEFAULT_SEMANTIC_THRESHOLD,
-    SemanticFaithfulnessNotAvailableError,
-    faithfulness_score_semantic,
-)
-from evidentia_ai.eval.harness import DFAHarness, EvalResult, EvalSample
-from evidentia_ai.eval.metrics import (
     DeterminismResult,
+    DFAHarness,
+    EvalResult,
+    EvalSample,
+    FaithfulnessResult,
+    PromptFaithfulnessResult,
     ReplayResult,
+    SemanticFaithfulnessNotAvailableError,
     determinism_score,
+    extract_claims,
+    faithfulness_score,
+    faithfulness_score_semantic,
+    hash_output,
+    normalize_for_determinism,
     replay_equivalent,
-)
-from evidentia_ai.eval.seeds import hash_output, normalize_for_determinism
-from evidentia_ai.eval.signing import (
     sign_eval_result,
     verify_eval_result,
 )

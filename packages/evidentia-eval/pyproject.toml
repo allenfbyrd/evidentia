@@ -1,0 +1,49 @@
+[project]
+name = "evidentia-eval"
+version = "0.10.4"
+description = "DFAH (Decision-Faithfulness Assessment Harness) determinism + faithfulness eval harness for Evidentia — dev-time AI-output quality gates"
+readme = "README.md"
+authors = [{name = "Allen Byrd", email = "allen@allenfbyrd.com"}]
+license = "Apache-2.0"
+requires-python = ">=3.12"
+keywords = ["grc", "compliance", "llm-eval", "dfah", "determinism", "faithfulness", "ai-quality"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "evidentia-core>=0.10.4,<0.11.0",
+]
+
+[project.optional-dependencies]
+# v0.10.5 P9 extraction: the v0.8.3 P1.1 sentence-transformers
+# faithfulness path lives on evidentia-eval now. Same opt-in shape:
+# ~90 MB model download (default all-MiniLM-L6-v2) on first use;
+# cached at ~/.cache/huggingface/. Operators relying on the stdlib
+# Jaccard baseline are unaffected (no extra needed). Heavyweight;
+# intentionally extra-gated.
+faithfulness-semantic = [
+    "sentence-transformers>=3.0",
+    "numpy>=1.26",
+]
+
+[project.urls]
+Homepage = "https://github.com/polycentric-labs/evidentia"
+Repository = "https://github.com/polycentric-labs/evidentia"
+Issues = "https://github.com/polycentric-labs/evidentia/issues"
+Changelog = "https://github.com/polycentric-labs/evidentia/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evidentia_eval"]
+
+[tool.uv.sources]
+evidentia-core = { workspace = true }

@@ -189,15 +189,18 @@ Every architectural and implementation decision in this document traces back to 
 
 ### Principle 1: Composable, Not Monolithic
 
-Each of the five core capabilities is independently installable and usable. A user can `pip install evidentia-core` and use only the gap analyzer without pulling in AI dependencies, evidence collectors, or integration clients. The package structure enforces this:
+Each capability is independently installable and usable. A user can `pip install evidentia-core` and use only the gap analyzer without pulling in AI dependencies, evidence collectors, or integration clients. The package structure enforces this (8 workspace packages as of v0.10.5 P9):
 
 | Package | Depends On | Provides |
 |---|---|---|
 | `evidentia-core` | pydantic, pyyaml, oscal-pydantic | Data models, catalog loading, gap analysis engine |
-| `evidentia-ai` | evidentia-core, litellm, instructor | Risk statement generator, evidence validator, narrative generator |
+| `evidentia-ai` | evidentia-core, evidentia-eval (shim), litellm, instructor | Risk statement generator, evidence validator, narrative generator |
+| `evidentia-eval` | evidentia-core | DFAH determinism + faithfulness harness (dev-time AI-output quality gates). Extracted from `evidentia-ai` in v0.10.5 P9 so air-gap installs of the production runtime no longer pull the dev-time eval stack. |
 | `evidentia-collectors` | evidentia-core, boto3, PyGithub, etc. | Evidence collection agents |
 | `evidentia-integrations` | evidentia-core, jira, servicenow-api | Jira and ServiceNow output clients |
-| `evidentia` (meta-package) | All of the above + typer, fastapi | CLI, REST API, and full installation |
+| `evidentia-api` | evidentia-core, fastapi | REST API layer |
+| `evidentia-mcp` | evidentia-core, evidentia-ai, evidentia-collectors, mcp | Model Context Protocol server |
+| `evidentia` (meta-package) | All of the above + typer | CLI entry-point, full installation |
 
 **Rationale:** GRC tools are adopted incrementally. A security engineer evaluating the tool wants to try gap analysis first, not install AWS SDK dependencies they don't need. Composability also reduces the attack surface — teams that don't use AI features never install LLM libraries.
 
@@ -408,8 +411,14 @@ evidentia (meta-package)
 │   └── thefuzz >= 0.22  (fuzzy string matching for control IDs)
 ├── evidentia-ai
 │   ├── evidentia-core
+│   ├── evidentia-eval (v0.10.5 P9 shim dep; removed in v0.12.0)
 │   ├── litellm >= 1.50
 │   └── instructor >= 1.7
+├── evidentia-eval  (v0.10.5 P9 — dev-time DFAH harness)
+│   ├── evidentia-core
+│   └── [faithfulness-semantic] optional extra:
+│       ├── sentence-transformers >= 3.0
+│       └── numpy >= 1.26
 ├── evidentia-collectors
 │   ├── evidentia-core
 │   ├── boto3 >= 1.35

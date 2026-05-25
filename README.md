@@ -910,7 +910,10 @@ uv sync --all-packages
 ```
 
 This downloads Python 3.12 (if needed), creates a `.venv`, and installs all
-five workspace packages in editable mode.
+8 workspace packages in editable mode (as of v0.10.5: `evidentia-core`,
+`evidentia-ai`, `evidentia-eval`, `evidentia-collectors`,
+`evidentia-integrations`, `evidentia-api`, `evidentia-mcp`, and the
+`evidentia` meta-package).
 
 ### Run the smoke test
 

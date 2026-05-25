@@ -40,11 +40,11 @@ import sys
 from pathlib import Path
 
 import typer
-from evidentia_ai.eval import DFAHarness, EvalSample
 from evidentia_core.audit.provenance import (
     GenerationContext,
     compute_prompt_hash,
 )
+from evidentia_eval import DFAHarness, EvalSample
 
 
 def _resolve_sign(
@@ -228,7 +228,7 @@ def stub_smoke(
         if _resolve_sign(sign, output):
             # v0.8.2 P3.2: sign_eval_result writes the JSON +
             # produces the Sigstore bundle.
-            from evidentia_ai.eval.signing import sign_eval_result
+            from evidentia_eval.signing import sign_eval_result
 
             _, bundle_path = sign_eval_result(result, output)
             typer.echo(
@@ -409,7 +409,7 @@ def risk_determinism(
             "(default) extracts framework from the prompt_id "
             "(format <framework>:<control_id>) + looks up the "
             "v0.8.5-empirical per-framework default via "
-            "evidentia_ai.eval.faithfulness.resolve_threshold(). "
+            "evidentia_eval.faithfulness.resolve_threshold(). "
             "'fixed' uses the framework-agnostic 0.30 default. "
             "Explicit --faithfulness-threshold value always wins."
         ),
@@ -665,7 +665,7 @@ def risk_determinism(
         and check_faithfulness
         and eval_samples
     ):
-        from evidentia_ai.eval.faithfulness import resolve_threshold
+        from evidentia_eval.faithfulness import resolve_threshold
 
         # Extract framework from first sample's prompt_id
         # (canonical <framework>:<control_id> format).
@@ -681,7 +681,7 @@ def risk_determinism(
             f"{framework_for_threshold!r})"
         )
     else:
-        from evidentia_ai.eval.faithfulness import (
+        from evidentia_eval.faithfulness import (
             DEFAULT_FAITHFULNESS_THRESHOLD,
         )
 
@@ -705,7 +705,7 @@ def risk_determinism(
 
     if output is not None:
         if _resolve_sign(sign, output):
-            from evidentia_ai.eval.signing import sign_eval_result
+            from evidentia_eval.signing import sign_eval_result
 
             _, bundle_path = sign_eval_result(result, output)
             typer.echo(
@@ -822,12 +822,12 @@ def verify(
     eval JSON via the v0.7.x ``evidentia oscal sign`` pattern
     instead (or their own out-of-band integrity tooling).
     """
-    from evidentia_ai.eval.signing import verify_eval_result
     from evidentia_core.oscal.sigstore import (
         SigstoreAirGapError,
         SigstoreNotAvailableError,
         SigstoreVerifyError,
     )
+    from evidentia_eval.signing import verify_eval_result
 
     # v0.8.3 F-V82-S2: tighter exception filtering — distinguish
     # infrastructure availability (SigstoreNotAvailableError) +
