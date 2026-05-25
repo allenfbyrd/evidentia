@@ -29,7 +29,7 @@ dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
     "pytest-cov>=5.0",
-    "ruff>=0.15.13",
+    "ruff>=0.15.14",
     "mypy>=2.1.0",
     # v0.3.0: flipped mypy CI job from advisory to strict. types-PyYAML is
     # needed to silence "Library stubs not installed for yaml" across every
@@ -42,7 +42,7 @@ dev = [
     # `boto3` is the runtime dependency (also in evidentia-collectors
     # [aws] extra); having it in dev deps means collector tests run
     # without an extra install step.
-    "boto3>=1.43.12",
+    "boto3>=1.43.14",
     "moto[all]>=5.2.1",
     # v0.7.12 P0: cloud-WORM backend SDKs (gated as evidentia[worm-X]
     # extras for end-users; in dev-deps so the dev/CI venv runs the
@@ -99,7 +99,7 @@ dev = [
     # OpenAPI spec; playwright drives the React UI for end-to-
     # end probing. Both ride in dev-deps so a fresh dev/CI venv
     # can run the DAST suite without separate install steps.
-    "schemathesis>=4.19.0",
+    "schemathesis>=4.20.0",
     "playwright>=1.50",
     # v0.10.0: py-ocsf-models drives the OCSF mapping layer
     # (evidentia_core.ocsf). It is an end-user extra
