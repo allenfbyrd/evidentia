@@ -28,6 +28,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   transformers / sentence-transformers / evidentia-eval into
   `sys.modules`. Closes the Kimi engineering audit concern about
   air-gap installs transitively loading ML deps.
+- **Deterministic `SecurityFinding.id` derivation (v0.10.5 Phase 10 —
+  collector idempotency hardening for the v1.0 API freeze)**. New
+  `evidentia_core.models.common.deterministic_finding_id(source_system,
+  source_finding_id)` helper computes a UUID v5 from natural keys
+  under the pinned `NAMESPACE_EVIDENTIA_FINDING` namespace. A new
+  `@model_validator(mode="before")` on `SecurityFinding` runs the
+  derivation when no explicit `id=` is supplied AND both
+  `source_system` + `source_finding_id` are present at construction.
+  Effect: two `collect()` calls against an unchanged source produce
+  findings with byte-identical `id` values across runs — closes the
+  audit-flagged idempotency gap before v1.0. Additive-only;
+  `docs/api-stability.md` frozen-surface contract preserved (explicit
+  `id=` always wins, OCSF round-trip via `unmapped["evidentia"]`
+  unchanged, pre-v0.10.5 OSCAL AR documents continue to load).
+- **`docs/collector-idempotency-audit.md`** — NORMATIVE per-collector
+  audit covering the 13-collector + 1-ingest-module surface as of
+  v0.10.5. Per-collector PASS/GAP verdicts on cursor model, natural
+  key shape, and finding-identity contract. Refutes the principal-
+  engineer architecture audit's "second-granularity cursor" diagnosis
+  (no collector uses timestamp cursors) and "INSERT ... ON CONFLICT
+  store" diagnosis (no DB-backed findings store exists; OSCAL AR is
+  the canonical sink). Documents the actual gap: random `uuid4()` on
+  `SecurityFinding.id` despite stable `source_finding_id` natural
+  keys. Cross-referenced from `docs/api-stability.md` §"Frozen
+  surfaces" + `docs/threat-model.md` §"Stuck-cursor guards" +
+  `docs/v0.10.5-plan.md` Phase 10.
+- **`tests/unit/test_collectors/test_idempotency.py`** — CI regression
+  test: runs each mockable collector (AWS Config, AWS Security Hub,
+  GitHub repo settings, GitHub Dependabot alerts, Okta, Vanta, Drata,
+  OCSF file ingest) twice against deterministic fixtures and asserts
+  zero net new `SecurityFinding.id` values on the second run. Plus an
+  OSCAL JSON round-trip sanity assertion that the validator's
+  "explicit id wins" branch survives serialize → deserialize.
+- **`tests/unit/test_models/test_finding_idempotency.py`** — model-
+  layer unit tests covering the `deterministic_finding_id` helper
+  (UUID v5 verification, NAMESPACE pinning, NUL-separator collision
+  resistance, empty-input rejection) and the `SecurityFinding`
+  validator (explicit-id wins, falls back to random when natural
+  keys missing, OCSF round-trip preservation).
 
 ### Changed
 

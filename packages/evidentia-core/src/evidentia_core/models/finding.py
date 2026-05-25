@@ -51,6 +51,7 @@ from evidentia_core.models.common import (
     OLIRRelationship,
     Severity,
     current_version,
+    deterministic_finding_id,
     new_id,
     utc_now,
 )
@@ -199,6 +200,66 @@ class SecurityFinding(EvidentiaModel):
     first_observed: datetime = Field(default_factory=utc_now)
     last_observed: datetime = Field(default_factory=utc_now)
     resolved_at: datetime | None = Field(default=None)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _derive_deterministic_id(cls, data: Any) -> Any:
+        """Derive a deterministic ``id`` from natural keys when possible.
+
+        Added v0.10.5 Phase 10 (idempotency hardening for the v1.0 API
+        freeze). When the caller did NOT supply ``id=...`` explicitly
+        AND both ``source_system`` and ``source_finding_id`` are present
+        in the construction kwargs, derive ``id`` via
+        :func:`~evidentia_core.models.common.deterministic_finding_id`.
+
+        Effect: two ``collect()`` calls against an unchanged source
+        produce findings whose ``id`` values are identical. The same
+        OSCAL Assessment Results document re-emitted from a re-run is
+        bit-stable on the identity axis (timestamps still vary).
+
+        Backward-compat:
+
+        - Explicit ``id=`` always wins — operators and ingest paths that
+          set ``id`` directly are unaffected. This includes the OCSF
+          Detection Finding ingest path that sets ``id=info.uid`` from
+          third-party input.
+        - When ``source_finding_id`` is None / empty, no derivation runs
+          and the ``default_factory=new_id`` random UUID v4 is used.
+          This preserves the behaviour of the synthetic-legacy code
+          path in ``_synthetic_legacy_context`` and the migration
+          helper in ``models/migrations/v0_6_legacy.py``.
+
+        Trust boundary: this validator is identity-derivation only. It
+        does NOT validate that ``source_finding_id`` is non-malicious —
+        a hostile collector could deterministically derive an ID that
+        collides with another collector's finding by spoofing both
+        ``source_system`` and ``source_finding_id``. The UUID5 namespace
+        + the NUL-byte separator make accidental collisions impossible;
+        intentional collisions require lying about both natural keys,
+        which is a trust-boundary issue handled upstream by the
+        collector authentication + provenance pipeline (see
+        ``CollectionContext.credential_identity``).
+
+        See: ``docs/collector-idempotency-audit.md`` §4 for the full
+        contract.
+        """
+        if not isinstance(data, dict):
+            return data
+        # Explicit id wins — covers OCSF round-trip + ingest paths.
+        if data.get("id"):
+            return data
+        source_system = data.get("source_system")
+        source_finding_id = data.get("source_finding_id")
+        if (
+            isinstance(source_system, str)
+            and source_system.strip()
+            and isinstance(source_finding_id, str)
+            and source_finding_id.strip()
+        ):
+            data["id"] = deterministic_finding_id(
+                source_system, source_finding_id
+            )
+        return data
 
     @model_validator(mode="before")
     @classmethod

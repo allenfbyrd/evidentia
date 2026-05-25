@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import Enum
-from uuid import uuid4
+from uuid import UUID, uuid4, uuid5
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,6 +17,67 @@ def utc_now() -> datetime:
 def new_id() -> str:
     """Generate a new UUID v4 string."""
     return str(uuid4())
+
+
+# v0.10.5 Phase 10: deterministic finding-ID derivation namespace.
+#
+# Generated once via ``uuid.uuid5(uuid.NAMESPACE_DNS, "finding.evidentia.dev")``
+# and pinned forever. Rotating this UUID would re-key every
+# ``SecurityFinding.id`` ever produced and break every cached OSCAL
+# Assessment Results document, OCSF round-trip, and historical evidence
+# archive. The namespace constant must NEVER change post-v0.10.5; if a
+# future major-version bump introduces an incompatible identity scheme,
+# add a SECOND namespace constant rather than mutating this one.
+#
+# Cited in:
+# - ``docs/collector-idempotency-audit.md`` §4 (the derivation contract).
+# - ``docs/api-stability.md`` §"Frozen surfaces" (the identity guarantee).
+NAMESPACE_EVIDENTIA_FINDING: UUID = UUID("c81bcb44-9b41-5b18-9f10-72b3b9b4d3d6")
+
+
+def deterministic_finding_id(source_system: str, source_finding_id: str) -> str:
+    """Return a deterministic UUID5 string derived from natural keys.
+
+    Two calls with identical ``(source_system, source_finding_id)``
+    arguments produce byte-identical output, so re-running a collector
+    against an unchanged source yields the same
+    :attr:`~evidentia_core.models.finding.SecurityFinding.id` for every
+    logical finding. Added v0.10.5 Phase 10; see
+    :doc:`docs/collector-idempotency-audit </collector-idempotency-audit>`
+    for the per-collector design rationale.
+
+    The payload separator is a NUL byte — illegal in either argument
+    (`source_system` is a short identifier like ``"aws-config"``;
+    ``source_finding_id`` is constructed from natural API IDs that
+    never contain NUL). This guarantees no collision between e.g.
+    ``("aws", "config:bucket")`` and ``("aws-config", "bucket")``.
+
+    Args:
+        source_system: Stable collector identifier (e.g. ``"aws-config"``,
+            ``"github"``, ``"okta"``). MUST be non-empty.
+        source_finding_id: The collector's natural per-finding key
+            (e.g. ``f"{rule_name}:{resource_id}"``, ``f"{slug}:{branch}:{rule}"``,
+            a native source UID like a GitHub alert number). MUST be non-empty.
+
+    Returns:
+        The canonical-string form of a UUID v5 (e.g.
+        ``"a3b2c1d0-...".``). Matches the format of :func:`new_id` for
+        drop-in compatibility everywhere ``SecurityFinding.id`` is
+        consumed.
+
+    Raises:
+        ValueError: if either argument is empty / whitespace-only.
+
+    Example:
+        >>> deterministic_finding_id("aws-config", "s3-public-read:bucket-one")
+        '... a stable UUID v5 string ...'
+    """
+    if not source_system or not source_system.strip():
+        raise ValueError("source_system must be a non-empty string")
+    if not source_finding_id or not source_finding_id.strip():
+        raise ValueError("source_finding_id must be a non-empty string")
+    payload = f"{source_system}\x00{source_finding_id}"
+    return str(uuid5(NAMESPACE_EVIDENTIA_FINDING, payload))
 
 
 def current_version() -> str:
