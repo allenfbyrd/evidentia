@@ -7,10 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-**Theme**: *v0.10.5 batch — output-format expansion (OCSF Detection
+_No changes yet on the v0.10.6 development branch._
+
+## [0.10.5] - 2026-05-25
+
+**Theme**: *v0.10.5 — output-format expansion (OCSF Detection
 Finding + CycloneDX VEX emit) + workspace refactor (`evidentia-eval`
-package extraction) + collector idempotency hardening + first-mover
-OSS positioning artifacts*. Patch bump (v0.10.4 → v0.10.5).
+package extraction) + collector idempotency hardening for the v1.0
+API freeze + positioning rewrite (no metaphors; EU AI Act delay) +
+commercial-validation foundation (design-partner program draft)*.
+Patch bump (v0.10.4 → v0.10.5).
+
+**Release summary**: Six commits between v0.10.4 (tagged 2026-05-24)
+and this release; all six landed within ~24 hours of the prior tag
+on the same `main` branch. **3,440 tests pass / 17 skipped / 3,457
+collected across 278 source files (was 268 v0.10.4); mypy strict
+0/0; ruff clean.** Workspace now ships **8 PyPI packages** (was 7;
+`evidentia-eval` added in Phase 9). The 2026-05-24 v0.10.5 plan
+targeted Phases 1-5 (OSPS Baseline catalog + OSCAL conversion +
+OSPS-CONFORMANCE.md + SECURITY.md refresh + EOL.md +
+verification-recipe) as the "OSS first-mover artifacts" theme; a
+2026-05-25 full-sweep research pass redirected scope to Phases 7-12
+(output-format expansion + workspace refactor + idempotency + EU AI
+Act delay + design-partner program). Phases 1-5 deferred to v0.10.6
+without scope loss — see [`docs/v0.10.5-plan.md`](docs/v0.10.5-plan.md)
+§0/§0.A for the full plan-vs-actual reconciliation.
+
+**Cross-links**: [`docs/positioning-and-value.md`](docs/positioning-and-value.md)
+§10 (no-metaphor rewrite) + §8.1 (EU AI Act Annex III deferred to
+2027-12-02 per Digital Omnibus political agreement of 2026-05-07);
+[`docs/v1.0-transition.md`](docs/v1.0-transition.md) §"Acceptance
+gates for v1.0" (Gold honest-gap now tied to SOC 2 Type I
+segregation-of-duties); [`docs/design-partner-program.md`](docs/design-partner-program.md)
+v0 draft; [`docs/ocsf-mapping.md`](docs/ocsf-mapping.md) §7.B
+(Detection Finding emit); [`docs/collector-idempotency-audit.md`](docs/collector-idempotency-audit.md)
+NORMATIVE per-collector audit.
 
 ### Added
 

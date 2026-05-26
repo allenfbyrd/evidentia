@@ -157,6 +157,46 @@ Evidentia is built on four principles:
 
 ### Recent releases
 
+**v0.10.5 (May 2026)** — *Output-format expansion (OCSF Detection
+Finding + CycloneDX VEX) + workspace refactor (`evidentia-eval`
+package extraction) + collector idempotency hardening for the v1.0
+API freeze + positioning rewrite + design-partner program draft*.
+Patch on v0.10.4 (released ~24 hours prior). Two new `evidentia gap
+analyze` output formats: **`--format ocsf-detection`** emits OCSF
+Detection Finding (`class_uid` 2004) JSON arrays — the SIEM-target
+counterpart to v0.10.4's Compliance Finding 2003; Splunk / Elastic /
+Microsoft Sentinel / Datadog ingest 2004 natively as production
+traffic. **`--format cyclonedx-vex`** emits CycloneDX 1.6 VEX
+documents, complementing the existing release-time CycloneDX SBOM
+emit. `OutputFormat` Literal extended additively; existing emits
+(`json` / `csv` / `markdown` / `oscal-ar` / `sarif` / `ocsf`)
+unchanged. **New 8th workspace package `evidentia-eval`**: the DFAH
+determinism + faithfulness harness moves out of `evidentia-ai/eval/`
+to its own pip-installable package, making the air-gap clean
+install posture a hard contract (the production runtime no longer
+transitively loads `sentence-transformers` / `numpy`); deprecation
+shim through v0.11.x, removal in v0.12.0. **Collector idempotency
+hardening (Phase 10)**: deterministic `SecurityFinding.id`
+derivation from `(source_system, source_finding_id)` natural keys
+via UUID v5 + pinned namespace — closes the principal-engineer-
+audit-flagged gap that two `collect()` runs against an unchanged
+source produced random `uuid4` ids; additive-only, OCSF round-trip
+preserved. **Positioning rewrite (Phase 11)**: §10 rewritten with
+no metaphors (direct enumerated claims only until reference
+customers exist); EU AI Act Annex III date corrected from
+2026-08-02 → 2027-12-02 per Digital Omnibus 2026-05-07 political
+agreement; v1.0 acceptance gates rewritten (OpenSSF Gold honest-gap
+tied to SOC 2 Type I segregation-of-duties). **Design-partner
+program draft (Phase 12)**: 6-8 week fixed-fee "Evidentia CMMC +
+FedRAMP Readiness Accelerator" engagement at $25K-$75K tiered
+pricing; 9 open questions queued for review. Phases 1-5 of the
+2026-05-24 v0.10.5 draft (OSPS Baseline catalog + OSCAL conversion
++ OSPS-CONFORMANCE.md + SECURITY.md refresh + EOL.md +
+verification-recipe) deferred to v0.10.6 without scope loss.
+**3,440 tests passing / 17 skipped / 3,457 collected across 278
+source files; mypy strict 0/0; ruff clean.** PyPI: 8 packages at
+0.10.5 (was 7; `evidentia-eval` added).
+
 **v0.10.2 (May 2026)** — *MCP-as-backend tool surface expansion +
 GRC Engineering Club marketplace plugin (staged) + close v0.10.1
 F-V101-L1 SSRF surface*. Third release of the v0.10.x line on the
