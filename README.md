@@ -193,7 +193,7 @@ pricing; 9 open questions queued for review. Phases 1-5 of the
 2026-05-24 v0.10.5 draft (OSPS Baseline catalog + OSCAL conversion
 + OSPS-CONFORMANCE.md + SECURITY.md refresh + EOL.md +
 verification-recipe) deferred to v0.10.6 without scope loss.
-**3,440 tests passing / 17 skipped / 3,457 collected across 278
+**3,443 tests passing / 14 skipped / 3,457 collected across 278
 source files; mypy strict 0/0; ruff clean.** PyPI: 8 packages at
 0.10.5 (was 7; `evidentia-eval` added).
 

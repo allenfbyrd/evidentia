@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No changes yet on the v0.10.6 development branch._
 
-## [0.10.5] - 2026-05-25
+## [0.10.5] - 2026-05-26
 
 **Theme**: *v0.10.5 — output-format expansion (OCSF Detection
 Finding + CycloneDX VEX emit) + workspace refactor (`evidentia-eval`
@@ -18,9 +18,9 @@ API freeze + positioning rewrite (no metaphors; EU AI Act delay) +
 commercial-validation foundation (design-partner program draft)*.
 Patch bump (v0.10.4 → v0.10.5).
 
-**Release summary**: Six commits between v0.10.4 (tagged 2026-05-24)
-and this release; all six landed within ~24 hours of the prior tag
-on the same `main` branch. **3,440 tests pass / 17 skipped / 3,457
+**Release summary**: Six cycle commits authored 2026-05-25 between
+v0.10.4 (tagged 2026-05-24) and this 2026-05-26 tag, all on the
+same `main` branch. **3,443 tests pass / 14 skipped / 3,457
 collected across 278 source files (was 268 v0.10.4); mypy strict
 0/0; ruff clean.** Workspace now ships **8 PyPI packages** (was 7;
 `evidentia-eval` added in Phase 9). The 2026-05-24 v0.10.5 plan
