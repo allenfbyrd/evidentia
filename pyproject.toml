@@ -115,6 +115,20 @@ dev = [
     # the extra — same pattern as boto3 / azure / gcs above.
     "py-ocsf-models>=0.9.0,<0.10.0",
 ]
+docs = [
+    # v0.10.7: in-repo wiki at docs/wiki/ rendered via Material for MkDocs.
+    # Stack chosen per Phase 2 plan §Deliverable 2 (Stream C OSS wiki
+    # research): verified canonical Python OSS users are pydantic, uv,
+    # ruff, and compliance-trestle. mkdocstrings auto-generates API
+    # reference from package docstrings (verified canonical user:
+    # pydantic itself).
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.27",
+    # mkdocs-redirects: keeps old docs/<flat-file>.md paths resolving
+    # while the wiki migration is in progress (per Stream C's
+    # parallel-tree migration strategy).
+    "mkdocs-redirects>=1.2",
+]
 
 [tool.uv.sources]
 evidentia-core = { workspace = true }

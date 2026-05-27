@@ -1,0 +1,125 @@
+# Evidentia in-repo wiki build config.
+#
+# Authored 2026-05-27 during the Phase 2 README + wiki + pre-push-gate
+# cycle planning. Stack: Material for MkDocs + mkdocstrings + redirects.
+# Source-of-truth: docs/wiki/. Renders to a static site that lives
+# alongside the repo (github.io / readthedocs / similar) once the
+# wiki is content-complete.
+
+site_name: Evidentia
+site_description: "Open-source compliance-as-code: gap analysis, evidence collection, OSCAL emit."
+site_url: https://polycentric-labs.github.io/evidentia/
+site_author: Polycentric Labs
+repo_url: https://github.com/Polycentric-Labs/evidentia
+repo_name: Polycentric-Labs/evidentia
+edit_uri: edit/main/docs/wiki/
+copyright: Copyright &copy; 2026 Polycentric Labs
+
+docs_dir: docs/wiki
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - packages/evidentia-core/src
+            - packages/evidentia-ai/src
+            - packages/evidentia-api/src
+            - packages/evidentia-collectors/src
+            - packages/evidentia-eval/src
+            - packages/evidentia-integrations/src
+            - packages/evidentia-mcp/src
+            - packages/evidentia/src
+          options:
+            docstring_style: google
+            members_order: source
+            show_signature_annotations: true
+            show_source: false
+  - redirects:
+      redirect_maps:
+        # Old flat-file paths -> new wiki paths. Populated as the
+        # migration progresses; each redirect entry is added when
+        # a docs/<flat>.md file is consolidated into docs/wiki/.
+        # 'old.md: wiki/path.md' format.
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - 1-getting-started/index.md
+      - Quickstart: 1-getting-started/quickstart.md
+      # - Installation: 1-getting-started/installation.md   # TODO v0.10.7+
+      # - First collection: 1-getting-started/first-collection.md   # TODO
+  - Guides:
+      - 2-guides/index.md
+      # Per-page TODOs land in v0.10.7+ as the wiki fills in.
+  - Concepts:
+      - 3-concepts/index.md
+      - Architecture: 3-concepts/architecture.md
+      # - Data model: 3-concepts/data-model.md   # TODO
+  - Reference:
+      - 4-reference/index.md
+      # API reference auto-gen via mkdocstrings; pages land v0.10.7+.
+  - Compliance:
+      - 5-compliance/index.md
+      - OSPS Baseline mapping: 5-compliance/osps-baseline-mapping.md
+      # Other framework + compliance pages land v0.10.7+.
+  - Project:
+      - 6-project/index.md
+      # Mirror pages land via mkdocs-include-markdown-plugin (v0.10.7+).
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Polycentric-Labs/evidentia
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/evidentia/
