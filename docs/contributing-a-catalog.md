@@ -100,8 +100,15 @@ the size spectrum the YAML format is intended to serve.
 
 ## Other tier conventions
 
-- **`tier: A`** — public-domain control text (US federal, NIST,
-  CISA). Catalog bundles full control bodies.
+- **`tier: A`** — verbatim-redistributable control text. Two
+  sub-categories:
+  - **Public-domain works** (US federal, NIST, CISA, FedRAMP).
+  - **Permissive-licensed works** (Apache-2.0, MIT, CC-BY) where
+    the upstream license explicitly permits verbatim redistribution.
+    The catalog's `license_terms` field MUST cite the upstream
+    license; the source URL pins the upstream commit/version so the
+    chain-of-custody is auditable.
+  Catalog bundles full control bodies in both cases.
 - **`tier: B`** — copyrighted but licensed for embedded distribution
   (rare).
 - **`tier: C`** — copyrighted; only IDs + titles bundled. Control
@@ -112,6 +119,34 @@ the size spectrum the YAML format is intended to serve.
 
 See `ATTRIBUTION.md` for the redistribution rationale per tier.
 
+## OSCAL sidecar artifacts (v0.10.6+)
+
+A bundled catalog MAY ship a companion OSCAL Catalog 1.2.1
+serialization alongside the Evidentia-format YAML, named
+`<framework-id>.oscal.json` (or `.oscal.yaml`). Worked example:
+the OpenSSF OSPS Baseline ships three Evidentia per-maturity YAMLs
+(`osps-baseline-m{1,2,3}.yaml`) plus one OSCAL serialization
+(`osps-baseline.oscal.json`) covering the full 41-control surface.
+
+OSCAL sidecars are **downstream-consumption artifacts**, not
+framework-manifest entries. The `scripts/catalogs/regenerate_manifest.py`
+scanner skips any file matching `*.oscal.json` / `*.oscal.yaml` so
+they don't register as separate frameworks. Validation: the OSCAL
+JSON MUST validate against `trestle.oscal.catalog.Catalog` (Trestle
+4.0.3+ pydantic models) or `oscal-cli validate`. Authoring guidance:
+
+- Top-level: `{"catalog": {"uuid": "<stable UUID v5>", "metadata": {...}, "groups": [...]}}`
+- Each upstream family → one OSCAL `group` with `class: "family"`.
+- Each control → one OSCAL `control` with lowercase hyphenated `id`
+  (e.g. `osps-ac-01`) and uppercase `class` preserving the canonical
+  upstream ID (e.g. `OSPS-AC-01`).
+- Per-control `props`: include a `maturity-level` prop where the
+  upstream framework declares one (OSPS Baseline does).
+- `parts`: a `statement` part for the control objective + per-
+  assessment-requirement `objective` parts (with `applicability`
+  prop) + an optional `guidance` part holding upstream crosswalk
+  references (informative; treat as self-attested by upstream).
+
 ## Tests + CI
 
 `tests/unit/test_catalogs/test_all_bundled.py` parametrizes a
@@ -121,3 +156,9 @@ catalog itself.
 
 `tests/unit/test_catalogs/test_yaml_loader.py` (v0.10.3+) covers
 the YAML loader paths directly.
+
+`tests/unit/test_catalogs/test_osps_baseline.py` (v0.10.6+) is a
+worked-example test suite for a multi-maturity Tier-A catalog with
+companion OSCAL sidecar. Mirror this pattern when contributing a
+similarly-structured catalog (per-maturity / per-baseline / per-
+profile slices of a single upstream source).

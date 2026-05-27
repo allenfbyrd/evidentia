@@ -59,6 +59,17 @@ def scan_dir(subdir: str) -> list[dict]:
         + list(dir_path.glob("*.yaml"))
         + list(dir_path.glob("*.yml"))
     )
+    # v0.10.6 P1: skip OSCAL-Catalog sidecar artifacts (`*.oscal.json` /
+    # `*.oscal.yaml`). These are downstream-consumption artifacts (e.g.,
+    # `osps-baseline.oscal.json` is the OSCAL Catalog 1.2.1 serialization
+    # of the OSPS Baseline) and are NOT Evidentia framework catalogs —
+    # they don't carry `framework_id` and shouldn't appear as a separate
+    # manifest entry. The companion Evidentia YAMLs (e.g.
+    # `osps-baseline-m1.yaml`) are the manifest-registered entries.
+    candidates = [
+        p for p in candidates
+        if not (p.name.endswith(".oscal.json") or p.name.endswith(".oscal.yaml"))
+    ]
     for path in candidates:
         try:
             text = path.read_text(encoding="utf-8")

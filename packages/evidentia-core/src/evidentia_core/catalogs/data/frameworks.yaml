@@ -398,6 +398,36 @@ frameworks:
   path: international/nz-nzism.json
   source_url: Government Communications Security Bureau (GCSB) — https://nzism.gcsb.govt.nz (Creative Commons BY 4.0)
   refresh: monthly
+- id: osps-baseline-m1
+  name: OpenSSF OSPS Baseline (Maturity Level 1)
+  version: 2026.02.19+m1
+  tier: A
+  category: control
+  path: international/osps-baseline-m1.yaml
+  source_url: OpenSSF OSPS Baseline (https://github.com/ossf/security-baseline/tree/ac6bbec8aecf51dce41f62712745f7949ab6bdeb); pinned at commit ac6bbec8aecf51dce41f62712745f7949ab6bdeb
+  license: Apache License 2.0 (OpenSSF OSPS Baseline). Verbatim redistribution permitted; Tier-A in Evidentia.
+  license_url: https://www.apache.org/licenses/LICENSE-2.0
+  refresh: monthly
+- id: osps-baseline-m2
+  name: OpenSSF OSPS Baseline (Maturity Level 2)
+  version: 2026.02.19+m2
+  tier: A
+  category: control
+  path: international/osps-baseline-m2.yaml
+  source_url: OpenSSF OSPS Baseline (https://github.com/ossf/security-baseline/tree/ac6bbec8aecf51dce41f62712745f7949ab6bdeb); pinned at commit ac6bbec8aecf51dce41f62712745f7949ab6bdeb
+  license: Apache License 2.0 (OpenSSF OSPS Baseline). Verbatim redistribution permitted; Tier-A in Evidentia.
+  license_url: https://www.apache.org/licenses/LICENSE-2.0
+  refresh: monthly
+- id: osps-baseline-m3
+  name: OpenSSF OSPS Baseline (Maturity Level 3)
+  version: 2026.02.19+m3
+  tier: A
+  category: control
+  path: international/osps-baseline-m3.yaml
+  source_url: OpenSSF OSPS Baseline (https://github.com/ossf/security-baseline/tree/ac6bbec8aecf51dce41f62712745f7949ab6bdeb); pinned at commit ac6bbec8aecf51dce41f62712745f7949ab6bdeb
+  license: Apache License 2.0 (OpenSSF OSPS Baseline). Verbatim redistribution permitted; Tier-A in Evidentia.
+  license_url: https://www.apache.org/licenses/LICENSE-2.0
+  refresh: monthly
 - id: uk-cyber-essentials
   name: UK Cyber Essentials
   version: Montpellier (Apr 2025)
