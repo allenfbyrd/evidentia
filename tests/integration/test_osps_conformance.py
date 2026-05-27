@@ -116,11 +116,32 @@ def test_osps_conformance_md_has_first_mover_claim() -> None:
     Guards against silent removal of the first-mover statement, which
     is the load-bearing positioning claim of v0.10.6 Phase 3 per
     docs/v0.10.6-plan.md §11.2.A.1.
+
+    The count-substring assertion is tightened to ``total_count: 0`` —
+    if a future contributor changes the count to a non-zero value
+    (e.g., another project ships a copycat artifact) without updating
+    the surrounding "first public open-source project" narrative, this
+    assertion fails so the doc + narrative get reconciled in the same
+    commit.
     """
     doc = (REPO_ROOT / "OSPS-CONFORMANCE.md").read_text(encoding="utf-8")
     assert "First-mover claim" in doc
     assert "filename:OSPS-CONFORMANCE.md" in doc
-    assert "0" in doc  # the search-result count (preserved as written)
+    # Tight phrase: the exact gh-api search-result count that backs the
+    # "first public open-source project" claim. Asserting on the full
+    # phrase (not just the character "0") means an honest update of
+    # the count to a non-zero value will fail this test, prompting
+    # the contributor to also revise the first-mover narrative.
+    assert "returned `total_count: 0`" in doc
+    # Flatten the markdown blockquote into one line so the narrative
+    # clause survives line-wrapping. The first-mover paragraph is a
+    # blockquote, so each continuation line starts with "> "; we strip
+    # those prefixes + collapse whitespace before checking the
+    # logical phrase.
+    import re as _re
+    doc_flat = _re.sub(r"\s*>\s*", " ", doc)
+    doc_flat = " ".join(doc_flat.split())
+    assert "first public open-source project" in doc_flat
 
 
 def test_osps_conformance_md_lists_known_honest_gaps() -> None:

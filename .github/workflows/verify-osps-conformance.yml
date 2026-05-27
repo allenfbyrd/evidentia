@@ -20,20 +20,19 @@
 name: verify-osps-conformance
 
 on:
+  # No `paths:` filter on push/PR — the workflow runs on every push and
+  # every PR. The previous paths-filter (limited to OSPS-CONFORMANCE.md +
+  # the workflow/validator/companion files) undermined the doc's PR-time
+  # link-rot detection guarantee: a PR that deletes or renames any of
+  # the 17 evidence-referenced files (SECURITY.md, LICENSE, etc.) would
+  # NOT trigger this workflow, so link rot could land on main and only
+  # the weekly cron would catch it. Cost of removing the filter: ~20s
+  # per run; benefit: honors the doc's "catches regression PRs before
+  # merge" contract.
   push:
     branches: [main]
-    paths:
-      - "OSPS-CONFORMANCE.md"
-      - "scripts/validate_osps_conformance_yaml.py"
-      - ".github/workflows/verify-osps-conformance.yml"
-      - ".local/pre-release-review/osps-conformance.yaml"  # tracked-when-materialized
   pull_request:
     branches: [main]
-    paths:
-      - "OSPS-CONFORMANCE.md"
-      - "scripts/validate_osps_conformance_yaml.py"
-      - ".github/workflows/verify-osps-conformance.yml"
-      - ".local/pre-release-review/osps-conformance.yaml"
   schedule:
     # Weekly Monday 03:00 UTC — catches link rot from out-of-band
     # repo changes (e.g., a file rename that doesn't go through PR
@@ -123,11 +122,22 @@ jobs:
           # /commits/main URLs — each has a corresponding API form
           # that returns true 404 on missing resources.
           #
-          # URL shapes that DON'T match any translation rule fall
-          # through to the original gh-api-on-html-URL behavior with
-          # a workflow annotation noting the unverified shape, so the
-          # gate remains best-effort for novel URL forms rather than
-          # silently passing them.
+          # URL shapes that DON'T match any translation rule are
+          # treated as HARD FAILURES (not warnings). This forces every
+          # URL shape used in OSPS-CONFORMANCE.md to have an explicit
+          # translation entry here — the previous ::warning::-and-pass
+          # fallback re-introduced the SF-2 failure mode (gh api
+          # against the HTML URL 200-OKs from GitHub's renderer even
+          # when the underlying resource is missing). New URL shapes
+          # MUST be added to translate_url() before they're cited as
+          # evidence.
+          #
+          # TODO(v0.10.7): extract this embedded Python (translate_url
+          # + regex table) to scripts/verify_osps_conformance.py so it
+          # can be unit-tested directly (Issue #2 from the C3 review).
+          # The current shape — Python source embedded in YAML as a
+          # heredoc — blocks pytest coverage of the URL-translation
+          # logic.
           html_blob_re = re.compile(
               rf"^https?://github\.com/{re.escape(OWNER_REPO)}/blob/main/(.+)$"
           )
@@ -139,6 +149,9 @@ jobs:
           )
           html_commits_re = re.compile(
               rf"^https?://github\.com/{re.escape(OWNER_REPO)}/commits/([^/?#]+)$"
+          )
+          html_security_advisories_re = re.compile(
+              rf"^https?://github\.com/{re.escape(OWNER_REPO)}/security/advisories/?$"
           )
           html_repo_root_re = re.compile(
               rf"^https?://github\.com/{re.escape(OWNER_REPO)}/?$"
@@ -185,29 +198,53 @@ jobs:
                       f"repos/{OWNER_REPO}/branches/{ref}",
                       "commits-ref",
                   )
+              if html_security_advisories_re.match(url):
+                  # The /security/advisories listing page maps to the
+                  # REST endpoint that lists published advisories.
+                  # The endpoint returns a JSON array (possibly empty
+                  # — Evidentia has zero published advisories at
+                  # v0.10.6, which is fine; OSPS-VM-04.01's evidence
+                  # is "endpoint exists", not "has advisories"). A
+                  # missing-repo or missing-feature scenario returns
+                  # 404 here, which is the gate we want.
+                  return (
+                      f"repos/{OWNER_REPO}/security-advisories",
+                      "security-advisories",
+                  )
               if html_repo_root_re.match(url):
                   return (f"repos/{OWNER_REPO}", "repo-root")
-              # No translation rule matched. Fall back to the
-              # original URL — gh api will route through the HTML
-              # renderer, and the response status is best-effort.
-              # Surface as an annotation so future URL shapes are
-              # visible in CI output.
+              # No translation rule matched. Hard-fail: log the URL
+              # so a contributor can add an explicit translation
+              # before the next push/PR. We do NOT fall through to
+              # gh-api-on-the-HTML-URL — that path 200-OKs from
+              # GitHub's HTML renderer for missing resources (the
+              # SF-2 failure mode this gate exists to close).
               return (url, "unmapped")
 
           url_pattern = re.compile(r"\[[^\]]*\]\((https?://[^\s\)]+)\)")
           failures: list[tuple[str, str]] = []
+          unmapped: list[tuple[str, str]] = []
           checked = 0
           for control_id, evidence_cell in claims:
               for url in url_pattern.findall(evidence_cell):
                   checked += 1
                   api_endpoint, shape = translate_url(url)
                   if shape == "unmapped":
+                      # Hard-fail: an unmapped URL shape means the
+                      # gh-api-on-HTML-URL fallback would 200-OK from
+                      # GitHub's renderer even for missing resources
+                      # (SF-2 regression). Surface as an error +
+                      # collect; we exit non-zero after the loop so
+                      # all unmapped shapes are visible in one run.
+                      unmapped.append((control_id, url))
                       print(
-                          f"::warning::Unmapped URL shape for {control_id}: "
-                          f"{url}. Falling back to direct gh-api on the "
-                          f"HTML URL (best-effort 404 detection).",
+                          f"::error::Unmapped URL shape for {control_id}: "
+                          f"{url}. Add an explicit translation rule to "
+                          f"translate_url() in this workflow before "
+                          f"citing this URL shape as evidence.",
                           file=sys.stderr,
                       )
+                      continue
                   # `gh api` routes through GitHub's REST API for
                   # the translated endpoint. We look for HTTP 404
                   # explicitly (any 2xx/3xx = pass). The `-i` flag
@@ -251,6 +288,17 @@ jobs:
               print(
                   f"::error::{len(failures)} of {checked} evidence link(s) returned HTTP 404. "
                   f"Update OSPS-CONFORMANCE.md before the next release.",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          if unmapped:
+              print(
+                  f"::error::{len(unmapped)} of {checked} evidence URL(s) had no "
+                  f"translation rule in translate_url(). Each unmapped shape is a "
+                  f"silent-PASS hazard (gh api against the HTML URL 200-OKs from "
+                  f"GitHub's renderer even for missing resources — SF-2). Add "
+                  f"explicit translation entries before the next push/PR.",
                   file=sys.stderr,
               )
               sys.exit(1)
