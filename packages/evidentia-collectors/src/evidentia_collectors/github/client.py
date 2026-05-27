@@ -196,3 +196,116 @@ class GitHubClient:
             f"/repos/{owner}/{repo}/contents/{path}",
             expected_status={404},
         )
+
+    # ── v0.10.6 additive surface (OSPS extension) ───────────────────
+
+    def list_releases(self, owner: str, repo: str) -> list[dict[str, Any]]:
+        """Return the repository's releases list.
+
+        Added v0.10.6 for the OSPS-BR-06.01 (signed/attested releases)
+        helper in ``evidentia_collectors.github.osps``. Returns an empty
+        list on 404 (repo has no releases yet) rather than raising,
+        which lets the helper map "no releases" to
+        :class:`ComplianceStatus.NOT_APPLICABLE`.
+
+        GitHub paginates releases at 30/page by default. The helper
+        callsite only needs the most recent N releases (where the
+        signing convention is verified), so we read the first page only;
+        upgrade to cursor pagination if a future callsite needs more.
+        """
+        response = self.request(
+            "GET",
+            f"/repos/{owner}/{repo}/releases",
+            params={"per_page": 30},
+            expected_status={404},
+        )
+        if not isinstance(response, list):
+            return []
+        return [item for item in response if isinstance(item, dict)]
+
+    def are_vulnerability_alerts_enabled(
+        self, owner: str, repo: str
+    ) -> bool:
+        """Return True iff Dependabot vulnerability alerts are enabled.
+
+        Added v0.10.6 for the OSPS-VM-05.03 helper. GitHub's
+        ``GET /repos/{owner}/{repo}/vulnerability-alerts`` endpoint
+        returns 204 if enabled, 404 if disabled (no body in either case).
+        Any other status code is treated as "indeterminate" and surfaced
+        upward as a :class:`GitHubApiError` so callers can flag
+        :class:`ComplianceStatus.UNKNOWN`.
+        """
+        try:
+            response = self._http.request(
+                "GET", f"/repos/{owner}/{repo}/vulnerability-alerts"
+            )
+        except httpx.HTTPError as e:
+            raise GitHubApiError(
+                f"vulnerability-alerts probe failed: {e}", status_code=0
+            ) from e
+        if response.status_code == 204:
+            return True
+        if response.status_code == 404:
+            return False
+        excerpt = response.text[:200]
+        raise GitHubApiError(
+            f"GET /repos/{owner}/{repo}/vulnerability-alerts",
+            status_code=response.status_code,
+            body_excerpt=excerpt,
+        )
+
+    def is_code_scanning_enabled(self, owner: str, repo: str) -> bool:
+        """Return True iff code-scanning is enabled for the repo.
+
+        Added v0.10.6 for the OSPS-VM-06.02 helper. We probe
+        ``GET /repos/{owner}/{repo}/code-scanning/alerts?per_page=1`` —
+        a 200 means the feature is enabled and the operator has API
+        access; 403 / 404 mean either disabled or no permission, both of
+        which are functionally "not enabled" from an external-audit
+        perspective. We collapse them to ``False`` rather than splitting
+        into UNKNOWN, because the OSPS-VM-06.02 control evaluates
+        observable enablement, not the operator's permission scope.
+        """
+        try:
+            response = self._http.request(
+                "GET",
+                f"/repos/{owner}/{repo}/code-scanning/alerts",
+                params={"per_page": 1},
+            )
+        except httpx.HTTPError as e:
+            raise GitHubApiError(
+                f"code-scanning probe failed: {e}", status_code=0
+            ) from e
+        if 200 <= response.status_code < 300:
+            return True
+        if response.status_code in {403, 404}:
+            return False
+        excerpt = response.text[:200]
+        raise GitHubApiError(
+            f"GET /repos/{owner}/{repo}/code-scanning/alerts",
+            status_code=response.status_code,
+            body_excerpt=excerpt,
+        )
+
+    def list_security_advisories(
+        self, owner: str, repo: str
+    ) -> list[dict[str, Any]]:
+        """Return published repository security advisories.
+
+        Added v0.10.6 for the OSPS-VM-04.01 helper. The endpoint
+        ``GET /repos/{owner}/{repo}/security-advisories`` returns the
+        list of repository-level GHSAs (private + public depending on
+        token scope). A 404 (advisories feature unavailable on the
+        plan or repo) returns an empty list, which the helper interprets
+        as "no advisories yet, but the feature surface is intact" — we
+        leave the PASS/FAIL judgement to the helper.
+        """
+        response = self.request(
+            "GET",
+            f"/repos/{owner}/{repo}/security-advisories",
+            params={"per_page": 30},
+            expected_status={404},
+        )
+        if not isinstance(response, list):
+            return []
+        return [item for item in response if isinstance(item, dict)]
