@@ -45,9 +45,9 @@ integration line into AI clients**: 4 new MCP tools
 `poam_list`) expand the §MCP tool contract from 8 → 12; a
 GRC Engineering Club marketplace plugin is staged in-repo
 (`marketplace/grc-engineering-suite/plugins/evidentia/` —
-generalist OSS scope per the **first concrete v0.10.x OSS-vs-paid
-scope decision**, with persona-tied skills reserved for a future
-Pro / Federal commercial tier); and F-V101-L1 (the v0.10.1
+generalist OSS scope per the **first concrete v0.10.x plugin
+scope decision**, with persona-tied workflows kept out of scope
+for the OSS plugin); and F-V101-L1 (the v0.10.1
 SSRF surface on `collect ocsf` URL mode) is closed via a new
 default-on `--block-private-ips` flag. Per the v1.0 master-plan
 resequencing (2026-05-21), the v0.9.x and v0.10.x lines iterate as

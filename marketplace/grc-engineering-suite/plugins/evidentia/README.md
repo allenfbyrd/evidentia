@@ -20,9 +20,10 @@ step requiring explicit approval.
   upstream marketplace `plugin.json` schema (cross-checked against
   `grc-auditor`'s manifest).
 - **Two OSS commands** (`commands/`) — generalist GRC engineer
-  workflows; persona-tied commands (TPRM / federal / model-risk)
-  are intentionally reserved for the future Evidentia Pro / Federal
-  commercial tier per the v0.10.2 scope decision:
+  workflows. Persona-tied commands (TPRM / federal / model-risk
+  specialists) are out of scope for this OSS plugin per the
+  v0.10.2 scope decision; the plugin keeps a generalist
+  GRC-engineer surface:
   - `gap-analyze-sarif` — gap analysis + SARIF 2.1.0 for a CI gate.
   - `ingest-ocsf` — Prowler / AWS Security Hub OCSF ingestion +
     optional framework crosswalk.
