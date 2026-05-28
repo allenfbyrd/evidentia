@@ -27,6 +27,7 @@ on:
         required: false
         type: string
 
+# JUSTIFIED: bot opens an issue when upstream catalog drift is detected
 permissions:
   contents: read
   issues: write

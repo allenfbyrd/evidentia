@@ -29,6 +29,7 @@ on:
       - 'examples/meridian-fintech-v2/**'
   workflow_dispatch:
 
+# JUSTIFIED: composite-action smoke test posts PR comments with the smoke results
 permissions:
   contents: read
   pull-requests: write  # composite action posts a sticky PR comment

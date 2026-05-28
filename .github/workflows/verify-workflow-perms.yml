@@ -1,0 +1,58 @@
+# Blocking least-privilege gate for .github/workflows/*.yml permissions.
+#
+# v0.10.7 (D4.3) — promotes scripts/audit_workflow_permissions.py from
+# advisory (v0.10.6) to a blocking CI check. Runs the audit with
+# `--strict`: the build fails (exit 2) if any workflow's top-level
+# `permissions:` block grants a `write` scope WITHOUT a justifying
+# `# JUSTIFIED: <reason>` comment on the line immediately above the
+# top-level `permissions:` key. JUSTIFIED workflows (a bot that opens
+# an issue, a composite-action smoke test that posts a PR comment) are
+# accepted exceptions and do NOT fail the gate.
+#
+# Closes OSPS-AC-04.01/02 (audit existence + least-privilege
+# enforcement).
+#
+# Action pinning: every `uses:` line is pinned to a full commit SHA
+# (not a tag) to pre-empt the OpenSSF Scorecard PinnedDependencies
+# regression the C7 hardening phase cleans up across all workflows.
+# Comments after each SHA carry the resolved tag for human review. The
+# SHAs match the repo-wide pins already used in verify-changelog.yml /
+# catalog-refresh.yml (actions/checkout, astral-sh/setup-uv).
+#
+# This workflow itself audits as OK: its top-level permissions are
+# read-only (`contents: read`) — the audit job needs no write scope.
+
+name: verify-workflow-perms
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Allow manual re-runs from the Actions UI for diagnostic purposes.
+  workflow_dispatch:
+
+# Read-only defaults — the audit job has no write surface.
+permissions:
+  contents: read
+
+jobs:
+  audit-permissions:
+    name: Audit workflow permissions (strict)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Sync workspace
+        run: uv sync --all-packages
+
+      - name: Audit workflow permissions (--strict)
+        run: uv run --no-sync python scripts/audit_workflow_permissions.py --strict

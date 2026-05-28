@@ -199,6 +199,13 @@ uvx twine check dist/*
 # `brew install osv-scanner`). This is the SAME shared script CI's
 # `osv-scan` job runs — gate and CI stay in lockstep by construction.
 uv run --no-sync python scripts/run_osv_scan.py
+# v0.10.7 — workflow least-privilege gate. Fails (exit 2) if any
+# .github/workflows/*.yml grants a top-level `write` scope without a
+# `# JUSTIFIED: <reason>` comment on the line above its `permissions:`
+# key. JUSTIFIED workflows (issue-opening bot, PR-comment smoke tests)
+# are accepted exceptions. Same `--strict` check CI's
+# `verify-workflow-perms.yml` job runs — gate and CI stay in lockstep.
+uv run --no-sync python scripts/audit_workflow_permissions.py --strict
 ```
 
 **For releases that touch `Dockerfile` or
@@ -234,6 +241,12 @@ Acceptance:
       re-validation date. CI's `osv-scan` job runs the identical
       shared script (gate-fidelity: CI and this checklist run one
       check, not two).
+- [ ] (v0.10.7+) `scripts/audit_workflow_permissions.py --strict`:
+      exit 0 (`STRICT: PASS`). Any workflow with a top-level `write`
+      scope must carry a `# JUSTIFIED: <reason>` comment above its
+      `permissions:` key, else the gate fails. CI's
+      `verify-workflow-perms.yml` job runs the identical `--strict`
+      check (gate-fidelity: CI and this checklist run one check).
 - [ ] (If Dockerfile / container-build.yml touched) local
       `docker build` succeeds; in-image `evidentia version` and
       `evidentia catalog list` return expected output

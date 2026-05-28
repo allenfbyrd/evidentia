@@ -87,9 +87,11 @@ PHRASE_CONFIG_PATH = Path("private/check-docs-health-patterns.yaml")
 # skip in find_code_block_ranges handles ``` blocks; this catches inline
 # `code` cases on a per-line basis).
 CROSS_LINK_LINE_ALLOWLIST: dict[str, set[int]] = {
-    # release-checklist line 271 illustrates the link syntax to check
-    # for: "every `[link](other.md)` points at an existing file".
-    "docs/release-checklist.md": {271},
+    # release-checklist line 284 illustrates the link syntax to check
+    # for: "every `[link](other.md)` points at an existing file". (Line
+    # shifted from 271 -> 284 in v0.10.7 D4.4 when the Step 5 test-gate
+    # block gained the audit_workflow_permissions.py --strict check.)
+    "docs/release-checklist.md": {284},
 }
 
 # Files exempt from cross-link broken-target FAILs:
