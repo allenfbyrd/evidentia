@@ -168,6 +168,8 @@ def extract_entries_by_standard(
     if standards is None:
         standards = STANDARD_TARGETS
     out: dict[str, list[tuple[str, str, str]]] = {key: [] for key in standards}
+    # Ordering contract: family_docs MUST be built in OSPS_FAMILIES order —
+    # output byte-stability depends on iterating families in that fixed order.
     for doc in family_docs.values():
         for control in doc.get("controls") or []:
             control_id = str(control["id"]).strip()
@@ -326,6 +328,10 @@ def load_family_docs(
             cache.mkdir(parents=True, exist_ok=True)
             path.write_text(raw, encoding="utf-8")
         docs[family] = yaml.safe_load(path.read_text(encoding="utf-8"))
+    # Ordering contract (byte-stability): docs is built by iterating
+    # OSPS_FAMILIES, so its key order equals OSPS_FAMILIES. The downstream
+    # extractor relies on this — guard it here cheaply rather than trust it.
+    assert list(docs) == list(OSPS_FAMILIES)
     return docs
 
 
@@ -383,6 +389,30 @@ def _diff_summary(expected: str, actual: str, name: str) -> str:
     return f"  {name}: content differs only in trailing bytes / EOL"
 
 
+def _compare(regenerated: dict[str, str], committed_dir: Path) -> list[str]:
+    """Compare regenerated crosswalk bytes against the committed copies.
+
+    ``regenerated`` is ``{filename: serialized_json}`` (the output of
+    :func:`build_all_crosswalks`). Returns an ordered list of per-file
+    drift summaries (one entry per drifted/missing file); an empty list
+    means every regenerated file matches its committed copy byte-for-byte.
+
+    Pure (no network, no writes): only reads the committed files under
+    ``committed_dir``. This is the comparison the ``--check`` CLI mode
+    builds on.
+    """
+    drift: list[str] = []
+    for name, content in sorted(regenerated.items()):
+        committed_path = committed_dir / name
+        if not committed_path.exists():
+            drift.append(f"  {name}: committed file missing")
+            continue
+        committed = committed_path.read_text(encoding="utf-8")
+        if committed != content:
+            drift.append(_diff_summary(committed, content, name))
+    return drift
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -426,15 +456,8 @@ def main(argv: list[str] | None = None) -> int:
     generated = build_all_crosswalks(family_docs, commit_sha)
 
     if args.check:
-        drift: list[str] = []
-        for name, content in sorted(generated.items()):
-            committed_path = MAPPINGS_DIR / name
-            if not committed_path.exists():
-                drift.append(f"  {name}: committed file missing")
-                continue
-            committed = committed_path.read_text(encoding="utf-8")
-            if committed != content:
-                drift.append(_diff_summary(committed, content, name))
+        # --check always compares against the in-tree committed files.
+        drift = _compare(generated, MAPPINGS_DIR)
         if drift:
             print(
                 "DRIFT: regenerated OSPS crosswalks differ from committed:",
