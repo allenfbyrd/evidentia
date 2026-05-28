@@ -39,12 +39,24 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:  # pragma: no cover - repo targets >=3.12
+    tomllib = None  # type: ignore[assignment]
+
 ZERO_SHA = "0" * 40
 
-# The 8 workspace packages (per the v0.10.7 plan + pyproject [tool.uv.sources]).
-# evidentia-workspace (the virtual root) is intentionally included so a root
-# meta-package bump also counts as a workspace bump.
-WORKSPACE_PACKAGES: frozenset[str] = frozenset(
+# Fallback workspace-package set, used ONLY when the root pyproject.toml
+# cannot be read/parsed (so the check degrades rather than crashing). The
+# authoritative set is derived at import time from
+# ``[tool.uv.workspace].members`` + the root ``[project].name`` (see
+# :func:`parse_workspace_packages`). This literal MUST stay in sync with
+# that parsed set; ``tests/unit/test_pre_push_checks`` asserts the equality
+# so the suite fails loud the moment a workspace package is added without
+# updating this fallback. ``evidentia-workspace`` (the virtual root) is the
+# root ``[project].name`` — not a ``members`` entry — and is intentionally
+# included so a root meta-package bump also counts as a workspace bump.
+_FALLBACK_WORKSPACE_PACKAGES: frozenset[str] = frozenset(
     {
         "evidentia",
         "evidentia-ai",
@@ -57,6 +69,103 @@ WORKSPACE_PACKAGES: frozenset[str] = frozenset(
         "evidentia-workspace",
     }
 )
+
+_MEMBERS_RE = re.compile(r"members\s*=\s*\[(.*?)\]", re.DOTALL)
+_MEMBER_ITEM_RE = re.compile(r'"([^"]+)"')
+_PROJECT_NAME_RE = re.compile(r'^name\s*=\s*"([^"]+)"', re.MULTILINE)
+
+
+def parse_workspace_packages(repo_root: Path) -> frozenset[str] | None:
+    """Derive the workspace-package name set from the root ``pyproject.toml``.
+
+    The source of truth is ``[tool.uv.workspace].members`` (a literal list of
+    directory paths such as ``"packages/evidentia-core"``); each package name
+    is the basename of its member path (``packages/evidentia-core`` ->
+    ``evidentia-core``). Any glob entry (e.g. ``packages/*``) is expanded
+    against the filesystem so a future glob-style member list still resolves.
+    The root ``[project].name`` (the virtual workspace root, e.g.
+    ``evidentia-workspace``) is added so a root meta-package bump also counts
+    as a workspace bump — mirroring :data:`_FALLBACK_WORKSPACE_PACKAGES`.
+
+    Returns ``None`` when the file is missing/unreadable or has no members,
+    signalling the caller to fall back to :data:`_FALLBACK_WORKSPACE_PACKAGES`.
+    Prefers ``tomllib`` and falls back to a line-oriented regex parse if the
+    stdlib module is unavailable.
+    """
+    pyproject = repo_root / "pyproject.toml"
+    try:
+        text = pyproject.read_text(encoding="utf-8")
+    except OSError:
+        return None
+
+    members: list[str] = []
+    project_name: str | None = None
+    if tomllib is not None:
+        try:
+            data = tomllib.loads(text)
+        except tomllib.TOMLDecodeError:
+            data = None
+        if data is not None:
+            raw_members = data.get("tool", {}).get("uv", {}).get("workspace", {}).get("members")
+            if isinstance(raw_members, list):
+                members = [m for m in raw_members if isinstance(m, str)]
+            raw_name = data.get("project", {}).get("name")
+            if isinstance(raw_name, str):
+                project_name = raw_name
+
+    if not members:
+        # tomllib unavailable or parse failed: regex-extract the members list.
+        m = _MEMBERS_RE.search(text)
+        if m:
+            members = _MEMBER_ITEM_RE.findall(m.group(1))
+    if project_name is None:
+        nm = _PROJECT_NAME_RE.search(text)
+        if nm:
+            project_name = nm.group(1)
+
+    if not members:
+        return None
+
+    names: set[str] = set()
+    for member in members:
+        member = member.strip()
+        if not member:
+            continue
+        if "*" in member or "?" in member or "[" in member:
+            # Glob-style member: expand against the filesystem and take the
+            # basename of each matched directory.
+            for match in sorted(repo_root.glob(member)):
+                if match.is_dir():
+                    names.add(match.name)
+            continue
+        names.add(Path(member).name)
+
+    if not names:
+        return None
+    if project_name:
+        names.add(project_name)
+    return frozenset(names)
+
+
+def _resolve_workspace_packages() -> frozenset[str]:
+    """Resolve the authoritative workspace set at import time (with fallback)."""
+    proc = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode == 0:
+        parsed = parse_workspace_packages(Path(proc.stdout.strip()))
+        if parsed is not None:
+            return parsed
+    return _FALLBACK_WORKSPACE_PACKAGES
+
+
+# Authoritative workspace-package set: parsed from [tool.uv.workspace].members
+# in the root pyproject.toml, with :data:`_FALLBACK_WORKSPACE_PACKAGES` used
+# only if that read/parse fails.
+WORKSPACE_PACKAGES: frozenset[str] = _resolve_workspace_packages()
 
 _NAME_RE = re.compile(r'^name\s*=\s*"([^"]+)"')
 _VERSION_RE = re.compile(r'^version\s*=\s*"([^"]+)"')

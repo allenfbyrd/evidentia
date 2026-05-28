@@ -165,3 +165,67 @@ def test_combined_bump_plus_drift_is_the_block_condition(mod: Any) -> None:
     assert mod.workspace_bumped(base, tip)  # truthy -> a bump happened
     assert mod.third_party_drift(base, tip)  # truthy -> third-party moved
     # Orchestrator BLOCKs iff both are truthy.
+
+
+# ---------------------------------------------------------------------------
+# Anti-rot floor: the hardcoded fallback set MUST equal the set parsed from
+# [tool.uv.workspace].members in the root pyproject.toml. If a 9th workspace
+# package is added without updating the fallback literal, this fails loud —
+# closing the silent-rot footgun even on the read-failure fallback path.
+# ---------------------------------------------------------------------------
+
+
+def test_parse_workspace_packages_matches_repo_members(mod: Any) -> None:
+    """Parsed members + root project name == the current authoritative set."""
+    parsed = mod.parse_workspace_packages(REPO_ROOT)
+    assert parsed is not None, "root pyproject.toml [tool.uv.workspace].members must parse"
+    # Source-of-truth members (8 packages) + the virtual root [project].name.
+    assert parsed == {
+        "evidentia",
+        "evidentia-ai",
+        "evidentia-api",
+        "evidentia-collectors",
+        "evidentia-core",
+        "evidentia-eval",
+        "evidentia-integrations",
+        "evidentia-mcp",
+        "evidentia-workspace",
+    }
+
+
+def test_fallback_equals_parsed_members(mod: Any) -> None:
+    """The hardcoded fallback MUST equal the parsed members (no silent rot).
+
+    This is the floor requirement: the moment a workspace package is added to
+    ``[tool.uv.workspace].members`` without updating
+    ``_FALLBACK_WORKSPACE_PACKAGES``, this assertion fails — so the
+    read-failure fallback can never silently misclassify a new package's bump
+    as a third-party pin.
+    """
+    parsed = mod.parse_workspace_packages(REPO_ROOT)
+    assert parsed is not None
+    assert parsed == mod._FALLBACK_WORKSPACE_PACKAGES
+
+
+def test_module_workspace_packages_resolves_to_parsed(mod: Any) -> None:
+    """The module-global authoritative set equals the parsed members on this repo."""
+    parsed = mod.parse_workspace_packages(REPO_ROOT)
+    assert parsed is not None
+    assert parsed == mod.WORKSPACE_PACKAGES
+
+
+def test_parse_workspace_packages_handles_glob_members(mod: Any, tmp_path: Path) -> None:
+    """A glob-style member entry (e.g. ``packages/*``) expands against the FS."""
+    (tmp_path / "packages" / "pkg-a").mkdir(parents=True)
+    (tmp_path / "packages" / "pkg-b").mkdir(parents=True)
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "root-pkg"\n\n[tool.uv.workspace]\nmembers = ["packages/*"]\n',
+        encoding="utf-8",
+    )
+    parsed = mod.parse_workspace_packages(tmp_path)
+    assert parsed == {"pkg-a", "pkg-b", "root-pkg"}
+
+
+def test_parse_workspace_packages_returns_none_when_missing(mod: Any, tmp_path: Path) -> None:
+    """No pyproject.toml -> None so the caller uses the hardcoded fallback."""
+    assert mod.parse_workspace_packages(tmp_path) is None
