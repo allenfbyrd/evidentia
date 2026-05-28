@@ -1,0 +1,300 @@
+#!/usr/bin/env bash
+# .githooks/pre-push — Pre-push Gate Layer 2 (blocking) orchestrator.
+#
+# Evidentia v0.10.7 Phase D5. Hand-rolled to match the existing
+# .githooks/commit-msg pattern. This repo sets
+# `git config core.hooksPath .githooks` (see scripts/setup-githooks.sh),
+# which makes git IGNORE .git/hooks/ — so the pre-commit framework's
+# pre-push stage would never fire here. The hook is therefore implemented
+# directly. See docs/pre-push-gate.md §"Why hand-rolled, not pre-commit".
+#
+# Activation (one-time per clone):
+#   bash scripts/setup-githooks.sh        # sets hooksPath + chmod's hooks
+#
+# git invokes a pre-push hook with:
+#   $1 = remote name (e.g. "origin")
+#   $2 = remote URL
+#   stdin lines: "<local_ref> <local_sha> <remote_ref> <remote_sha>"
+# The push range is <remote_sha>..<local_sha>. We read stdin to find the
+# widest range, but fall back to origin/main..HEAD when stdin parsing is
+# unreliable (Windows git-bash) or the remote side is a new branch.
+#
+# Layer 2 checks (all BLOCK on failure unless noted):
+#   1. check_action_pins          (SKIP-with-nag if pinact missing)
+#   2. check_secrets              (NEVER prints the secret value)
+#   3. check_changelog_present
+#   4. check_docs_health  (--strict; reused)
+#   5. check_workflow_perms (audit_workflow_permissions.py --strict; reused)
+#   6. check_uv_lock_pin_drift
+#   7. check_osps_crosswalk_drift (only when OSPS files are in range)
+#
+# All checks run before the hook exits, so the operator sees every
+# failure at once.
+#
+# Bypass (rare; requires a reason; logged):
+#   EVIDENTIA_ALLOW_PRE_PUSH_BYPASS=1 \
+#   EVIDENTIA_PRE_PUSH_BYPASS_REASON="why" git push ...
+# or, when a terminal is attached, the hook prompts for the reason on
+# /dev/tty. A JSONL row is appended to .local/hooks/pre-push-bypass.log
+# (the .local/ dir is gitignored). Bypass is refused if non-interactive
+# and no reason env var is set.
+
+set -uo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "${REPO_ROOT}"
+
+SCRIPTS_DIR="${REPO_ROOT}/scripts/pre_push"
+ZERO_SHA="0000000000000000000000000000000000000000"
+
+# ---------------------------------------------------------------------------
+# Helpers.
+# ---------------------------------------------------------------------------
+
+# Prefer `uv run python` (matches the rest of the repo's tooling); fall
+# back to plain python.
+run_py() {
+    if command -v uv >/dev/null 2>&1; then
+        uv run python "$@"
+    else
+        python "$@"
+    fi
+}
+
+iso_utc_now() {
+    # Cross-platform UTC ISO-8601. GNU date supports -u; fall back to python.
+    if date -u +"%Y-%m-%dT%H:%M:%SZ" >/dev/null 2>&1; then
+        date -u +"%Y-%m-%dT%H:%M:%SZ"
+    else
+        run_py -c 'import datetime; print(datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))'
+    fi
+}
+
+current_branch() {
+    git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "(unknown)"
+}
+
+git_user() {
+    local u
+    u="$(git config user.name 2>/dev/null || true)"
+    if [ -z "${u}" ]; then
+        u="${USER:-${USERNAME:-unknown}}"
+    fi
+    printf '%s' "${u}"
+}
+
+# JSON-string-escape a value (backslash, double-quote, control chars).
+json_escape() {
+    run_py -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"
+}
+
+# ---------------------------------------------------------------------------
+# Bypass handling.
+# ---------------------------------------------------------------------------
+
+maybe_bypass() {
+    if [ -z "${EVIDENTIA_ALLOW_PRE_PUSH_BYPASS:-}" ]; then
+        return 1  # not bypassing
+    fi
+
+    local reason=""
+    if [ -n "${EVIDENTIA_PRE_PUSH_BYPASS_REASON:-}" ]; then
+        reason="${EVIDENTIA_PRE_PUSH_BYPASS_REASON}"
+    else
+        # Try to prompt on the controlling terminal. /dev/tty can exist as
+        # a node on Windows git-bash yet not be openable when no terminal
+        # is attached, so attempt the open inside a subshell with errors
+        # suppressed and fall back to "no reason" cleanly (no noisy
+        # "/dev/tty: No such device" lines). Only attempt when a terminal
+        # is plausibly attached (stderr is a tty).
+        if [ -t 2 ]; then
+            if { printf 'pre-push: bypass requested. Enter a reason (required): ' > /dev/tty; } 2>/dev/null; then
+                IFS= read -r reason < /dev/tty 2>/dev/null || reason=""
+            fi
+        fi
+    fi
+
+    reason="${reason#"${reason%%[![:space:]]*}"}"  # ltrim
+    reason="${reason%"${reason##*[![:space:]]}"}"   # rtrim
+    if [ -z "${reason}" ]; then
+        echo "pre-push: BYPASS REFUSED — a non-empty reason is required." >&2
+        echo "  Set EVIDENTIA_PRE_PUSH_BYPASS_REASON=\"...\" or run with a terminal attached." >&2
+        exit 1
+    fi
+
+    local log_dir="${REPO_ROOT}/.local/hooks"
+    local log_file="${log_dir}/pre-push-bypass.log"
+    mkdir -p "${log_dir}"
+
+    local ts user branch head
+    ts="$(iso_utc_now)"
+    user="$(git_user)"
+    branch="$(current_branch)"
+    head="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+
+    # Build the JSONL row with each value individually escaped.
+    {
+        printf '{"timestamp": %s, "user": %s, "branch": %s, "reason": %s, "head": %s}\n' \
+            "$(json_escape "${ts}")" \
+            "$(json_escape "${user}")" \
+            "$(json_escape "${branch}")" \
+            "$(json_escape "${reason}")" \
+            "$(json_escape "${head}")"
+    } >> "${log_file}"
+
+    echo "pre-push: BYPASS ACTIVE — gate skipped. Logged to ${log_file}." >&2
+    echo "  reason: ${reason}" >&2
+    exit 0
+}
+
+maybe_bypass || true
+
+# ---------------------------------------------------------------------------
+# Resolve the push range from stdin, with a robust fallback.
+# ---------------------------------------------------------------------------
+#
+# Read all stdin lines; pick a (base, tip) range. For a normal push of an
+# existing branch the remote_sha is a real commit. For a new branch the
+# remote_sha is all-zeros — diff against origin/main if it exists. For a
+# delete (local_sha all-zeros) skip the gate entirely.
+
+RANGE_BASE=""
+RANGE_TIP=""
+saw_nondelete=0
+all_deletes=1
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [ -z "${local_ref:-}" ] && continue
+    if [ "${local_sha}" = "${ZERO_SHA}" ]; then
+        # Branch deletion — nothing to scan for this ref.
+        continue
+    fi
+    all_deletes=0
+    saw_nondelete=1
+    RANGE_TIP="${local_sha}"
+    if [ "${remote_sha}" != "${ZERO_SHA}" ]; then
+        RANGE_BASE="${remote_sha}"
+    fi
+done
+
+if [ "${saw_nondelete}" -eq 0 ] && [ "${all_deletes}" -eq 1 ]; then
+    # stdin was empty (some Windows git-bash invocations) OR all refs were
+    # deletes. If stdin gave us nothing at all, fall through to the
+    # HEAD-based fallback; if it was genuinely all-deletes, there's nothing
+    # to check.
+    if [ -t 0 ]; then
+        : # no stdin attached; fall through to fallback below
+    fi
+fi
+
+# Fallbacks for base/tip when stdin was unhelpful.
+if [ -z "${RANGE_TIP}" ]; then
+    RANGE_TIP="$(git rev-parse HEAD 2>/dev/null || echo "")"
+fi
+if [ -z "${RANGE_BASE}" ]; then
+    if git rev-parse --verify --quiet "origin/main^{commit}" >/dev/null 2>&1; then
+        RANGE_BASE="origin/main"
+    fi
+fi
+
+# If we still have no tip, there's nothing to push/scan.
+if [ -z "${RANGE_TIP}" ]; then
+    echo "pre-push: no commits to scan; passing."
+    exit 0
+fi
+
+echo "=============================================================="
+echo "Evidentia pre-push gate (Layer 2, blocking)"
+if [ -n "${RANGE_BASE}" ]; then
+    echo "  range: ${RANGE_BASE}..${RANGE_TIP}"
+else
+    echo "  range: (no base — new history) tip ${RANGE_TIP}"
+fi
+echo "=============================================================="
+
+# List of files changed in range (used for the OSPS range-gate). Empty
+# base => compare against the empty tree so a brand-new branch lists all.
+range_files() {
+    if [ -n "${RANGE_BASE}" ]; then
+        git diff --name-only --diff-filter=ACMR "${RANGE_BASE}" "${RANGE_TIP}" 2>/dev/null || true
+    else
+        git diff --name-only --diff-filter=ACMR \
+            4b825dc642cb6eb9a060e54bf8d69288fbee4904 "${RANGE_TIP}" 2>/dev/null || true
+    fi
+}
+
+CHANGED_FILES="$(range_files)"
+
+# ---------------------------------------------------------------------------
+# Run each check. Collect failures; run all before exiting.
+# ---------------------------------------------------------------------------
+
+declare -a FAILURES=()
+
+# $1 = human label; remaining args = command. A non-zero exit is a BLOCK.
+run_check() {
+    local label="$1"
+    shift
+    echo
+    echo "--- ${label} ---"
+    if "$@"; then
+        return 0
+    fi
+    FAILURES+=("${label}")
+    return 1
+}
+
+# 1. action pins (SKIP-with-nag if pinact missing — script returns 0 then).
+run_check "check_action_pins" bash "${SCRIPTS_DIR}/check_action_pins.sh" || true
+
+# 2. secrets (never echoes the secret value).
+run_check "check_secrets" bash "${SCRIPTS_DIR}/check_secrets.sh" "${RANGE_BASE}" "${RANGE_TIP}" || true
+
+# 3. changelog presence on version bump.
+run_check "check_changelog_present" \
+    run_py "${SCRIPTS_DIR}/check_changelog_present.py" "${RANGE_BASE}" "${RANGE_TIP}" || true
+
+# 4. docs health (reused; --strict exits 2 on FAIL).
+run_check "check_docs_health" \
+    run_py "${REPO_ROOT}/scripts/check_docs_health.py" --strict || true
+
+# 5. workflow permissions (reused; --strict exits 2 on FAIL).
+run_check "check_workflow_perms" \
+    run_py "${REPO_ROOT}/scripts/audit_workflow_permissions.py" --strict || true
+
+# 6. uv.lock third-party pin drift on workspace bump.
+run_check "check_uv_lock_pin_drift" \
+    run_py "${SCRIPTS_DIR}/check_uv_lock_pin_drift.py" "${RANGE_BASE}" "${RANGE_TIP}" || true
+
+# 7. OSPS crosswalk drift — only when OSPS files are in the push range.
+if printf '%s\n' "${CHANGED_FILES}" | grep -Eq 'mappings/osps-baseline_.*\.json$|/_osps_upstream\.py$'; then
+    run_check "check_osps_crosswalk_drift" \
+        run_py "${REPO_ROOT}/scripts/catalogs/gen_osps_crosswalks.py" --check || true
+else
+    echo
+    echo "--- check_osps_crosswalk_drift ---"
+    echo "SKIP check_osps_crosswalk_drift (no OSPS mapping/_osps_upstream files in range)"
+fi
+
+# ---------------------------------------------------------------------------
+# Verdict.
+# ---------------------------------------------------------------------------
+echo
+echo "=============================================================="
+if [ "${#FAILURES[@]}" -gt 0 ]; then
+    echo "PRE-PUSH GATE: BLOCKED by ${#FAILURES[@]} failing check(s):"
+    for f in "${FAILURES[@]}"; do
+        echo "  - ${f}"
+    done
+    echo
+    echo "Fix the issues above and re-push. To bypass in an emergency (logged):"
+    echo "  EVIDENTIA_ALLOW_PRE_PUSH_BYPASS=1 \\"
+    echo "  EVIDENTIA_PRE_PUSH_BYPASS_REASON=\"<reason>\" git push ..."
+    echo "See docs/pre-push-gate.md."
+    echo "=============================================================="
+    exit 1
+fi
+
+echo "PRE-PUSH GATE: PASS — all Layer 2 checks green."
+echo "=============================================================="
+exit 0
