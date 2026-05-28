@@ -55,12 +55,19 @@ inner call returns a finding with
 the indeterminate items flagged, rather than an aborted run with no
 evidence. Endpoint-specific 404s (e.g., branch-not-protected) are
 **signal**, not errors, and the underlying ``GitHubClient`` methods
-already return ``None`` / empty list in those cases.
+already return ``None`` / empty list in those cases. The same asymmetry
+applies to the multi-path file probes (CONTRIBUTING / LICENSE /
+dependency-manifest / SECURITY.md): :func:`_file_present_at_any`
+distinguishes a clean all-404 (the file is genuinely **absent** → FAIL)
+from an all-/any-5xx failure with no hit (we **don't know** → UNKNOWN);
+the latter must not masquerade as a definitive absence.
 """
 
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
+from enum import Enum
 from typing import Any
 
 from evidentia_core.audit.provenance import CollectionContext
@@ -309,27 +316,76 @@ def _unknown_finding(
     )
 
 
+class _FileProbeOutcome(Enum):
+    """Tristate verdict for a multi-path file-existence probe."""
+
+    #: A candidate path returned 200 — the file is present.
+    PRESENT = "present"
+    #: Every candidate returned a clean 404 — the file is absent.
+    ABSENT = "absent"
+    #: At least one candidate failed with a 5xx / network error and no
+    #: candidate was found — we genuinely don't know whether the file
+    #: exists (the failed probe could have held it).
+    INDETERMINATE = "indeterminate"
+
+
+@dataclass(frozen=True)
+class _FileProbeResult:
+    """Result of :func:`_file_present_at_any`.
+
+    Carries the tristate ``outcome`` plus the found ``path`` (set iff
+    ``outcome`` is :attr:`_FileProbeOutcome.PRESENT`) and the last probe
+    ``error`` (set iff ``outcome`` is
+    :attr:`_FileProbeOutcome.INDETERMINATE`, for the UNKNOWN finding's
+    description).
+    """
+
+    outcome: _FileProbeOutcome
+    path: str | None = None
+    error: GitHubApiError | None = None
+
+
 def _file_present_at_any(
     client: GitHubClient,
     owner: str,
     repo: str,
     candidate_paths: tuple[str, ...],
-) -> str | None:
-    """Return the first ``candidate_paths`` entry the repo contains.
+) -> _FileProbeResult:
+    """Probe ``candidate_paths`` and return a tristate presence verdict.
 
-    Tries each path via :meth:`GitHubClient.get_contents`. Any
-    :class:`GitHubApiError` from an individual probe is swallowed
-    (treat as "not at this path"); callers that want the
-    "indeterminate" outcome should call ``get_contents`` directly.
+    Tries each path via :meth:`GitHubClient.get_contents`, which returns
+    ``None`` on a 404 (the path is genuinely absent) and raises
+    :class:`GitHubApiError` on a 5xx / network failure. The verdict is:
+
+    - :attr:`_FileProbeOutcome.PRESENT` — a candidate returned a non-None
+      body (HTTP 200). The matching ``path`` is carried on the result and
+      short-circuits the remaining probes.
+    - :attr:`_FileProbeOutcome.ABSENT` — *every* candidate returned a
+      clean 404 (``None``). The file is honestly absent at all paths.
+    - :attr:`_FileProbeOutcome.INDETERMINATE` — no candidate was found
+      **and** at least one probe failed with a 5xx / network error. A
+      server error is "we don't know", not "absent": the failed probe
+      could have held the file. The last such error is carried on the
+      result so the caller can surface a
+      :class:`ComplianceStatus.UNKNOWN` finding instead of a dishonest
+      FAIL (v0.10.6 C6 reviewer Important #2).
     """
+    last_error: GitHubApiError | None = None
     for path in candidate_paths:
         try:
             result = client.get_contents(owner, repo, path)
-        except GitHubApiError:
+        except GitHubApiError as e:
+            last_error = e
             continue
         if result is not None:
-            return path
-    return None
+            return _FileProbeResult(
+                outcome=_FileProbeOutcome.PRESENT, path=path
+            )
+    if last_error is not None:
+        return _FileProbeResult(
+            outcome=_FileProbeOutcome.INDETERMINATE, error=last_error
+        )
+    return _FileProbeResult(outcome=_FileProbeOutcome.ABSENT)
 
 
 # ─── Helpers ───────────────────────────────────────────────────────────
@@ -734,8 +790,8 @@ def populate_osps_gv_03_01(
         "CONTRIBUTING.rst",
         "CONTRIBUTING",
     )
-    found = _file_present_at_any(client, owner, repo, candidate_paths)
-    if found:
+    probe = _file_present_at_any(client, owner, repo, candidate_paths)
+    if probe.outcome is _FileProbeOutcome.PRESENT:
         return _make_finding(
             owner=owner,
             repo=repo,
@@ -743,7 +799,7 @@ def populate_osps_gv_03_01(
             scope=None,
             title=(
                 f"OSPS-GV-03.01 PASS: CONTRIBUTING present at "
-                f"{found!r} in {owner}/{repo}"
+                f"{probe.path!r} in {owner}/{repo}"
             ),
             description=(
                 "Contribution guide located. OSPS-GV-03.01 evidence "
@@ -756,7 +812,16 @@ def populate_osps_gv_03_01(
                     "CONTRIBUTING file present at a well-known path.",
                 ),
             ],
-            raw={"path": found},
+            raw={"path": probe.path},
+        )
+    if probe.outcome is _FileProbeOutcome.INDETERMINATE:
+        return _unknown_finding(
+            owner=owner,
+            repo=repo,
+            control_id="OSPS-GV-03.01",
+            reason="CONTRIBUTING probe failed",
+            error=probe.error or GitHubApiError("probe failed", status_code=0),
+            justification="Contribution-guide presence could not be read.",
         )
     return _make_finding(
         owner=owner,
@@ -902,19 +967,19 @@ def populate_osps_le_03_01(
         "LICENSE.rst",
         "LICENSES",
     )
-    found = _file_present_at_any(client, owner, repo, candidate_paths)
-    if found:
+    probe = _file_present_at_any(client, owner, repo, candidate_paths)
+    if probe.outcome is _FileProbeOutcome.PRESENT:
         return _make_finding(
             owner=owner,
             repo=repo,
             control_id="OSPS-LE-03.01",
             scope=None,
             title=(
-                f"OSPS-LE-03.01 PASS: license file at {found!r} in "
+                f"OSPS-LE-03.01 PASS: license file at {probe.path!r} in "
                 f"{owner}/{repo}"
             ),
             description=(
-                f"LICENSE in the well-known location {found!r}."
+                f"LICENSE in the well-known location {probe.path!r}."
             ),
             status=ComplianceStatus.PASS,
             mappings=[
@@ -923,7 +988,17 @@ def populate_osps_le_03_01(
                     "License file at a well-known location.",
                 ),
             ],
-            raw={"path": found},
+            raw={"path": probe.path},
+        )
+
+    if probe.outcome is _FileProbeOutcome.INDETERMINATE:
+        return _unknown_finding(
+            owner=owner,
+            repo=repo,
+            control_id="OSPS-LE-03.01",
+            reason="LICENSE-file probe failed",
+            error=probe.error or GitHubApiError("probe failed", status_code=0),
+            justification="License-file presence could not be read.",
         )
 
     return _make_finding(
@@ -1063,19 +1138,19 @@ def populate_osps_qa_02_01(
         "Pipfile",
         "uv.lock",
     )
-    found = _file_present_at_any(client, owner, repo, candidate_paths)
-    if found:
+    probe = _file_present_at_any(client, owner, repo, candidate_paths)
+    if probe.outcome is _FileProbeOutcome.PRESENT:
         return _make_finding(
             owner=owner,
             repo=repo,
             control_id="OSPS-QA-02.01",
             scope=None,
             title=(
-                f"OSPS-QA-02.01 PASS: dependency manifest {found!r} in "
+                f"OSPS-QA-02.01 PASS: dependency manifest {probe.path!r} in "
                 f"{owner}/{repo}"
             ),
             description=(
-                f"Detected dependency manifest at {found!r}; OSPS-QA-02.01 "
+                f"Detected dependency manifest at {probe.path!r}; OSPS-QA-02.01 "
                 "evidence is satisfied for direct dependencies."
             ),
             status=ComplianceStatus.PASS,
@@ -1085,7 +1160,17 @@ def populate_osps_qa_02_01(
                     "Dependency manifest present at repo root.",
                 ),
             ],
-            raw={"path": found},
+            raw={"path": probe.path},
+        )
+
+    if probe.outcome is _FileProbeOutcome.INDETERMINATE:
+        return _unknown_finding(
+            owner=owner,
+            repo=repo,
+            control_id="OSPS-QA-02.01",
+            reason="Dependency-manifest probe failed",
+            error=probe.error or GitHubApiError("probe failed", status_code=0),
+            justification="Dependency-manifest presence could not be read.",
         )
 
     return _make_finding(
@@ -1225,15 +1310,15 @@ def populate_osps_vm_02_01(
         "SECURITY.rst",
         "SECURITY",
     )
-    found = _file_present_at_any(client, owner, repo, candidate_paths)
-    if found:
+    probe = _file_present_at_any(client, owner, repo, candidate_paths)
+    if probe.outcome is _FileProbeOutcome.PRESENT:
         return _make_finding(
             owner=owner,
             repo=repo,
             control_id="OSPS-VM-02.01",
             scope=None,
             title=(
-                f"OSPS-VM-02.01 PASS: security contacts at {found!r} in "
+                f"OSPS-VM-02.01 PASS: security contacts at {probe.path!r} in "
                 f"{owner}/{repo}"
             ),
             description=(
@@ -1252,7 +1337,16 @@ def populate_osps_vm_02_01(
                     relationship=OLIRRelationship.INTERSECTS_WITH,
                 ),
             ],
-            raw={"path": found},
+            raw={"path": probe.path},
+        )
+    if probe.outcome is _FileProbeOutcome.INDETERMINATE:
+        return _unknown_finding(
+            owner=owner,
+            repo=repo,
+            control_id="OSPS-VM-02.01",
+            reason="SECURITY-contacts probe failed",
+            error=probe.error or GitHubApiError("probe failed", status_code=0),
+            justification="Security-contacts file presence could not be read.",
         )
     return _make_finding(
         owner=owner,

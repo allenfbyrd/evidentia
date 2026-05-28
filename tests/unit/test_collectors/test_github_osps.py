@@ -35,6 +35,8 @@ import pytest
 from evidentia_collectors.github.client import GitHubApiError
 from evidentia_collectors.github.osps import (
     OSPS_COVERAGE,
+    _file_present_at_any,
+    _FileProbeOutcome,
     populate_osps_ac_03_01,
     populate_osps_ac_03_02,
     populate_osps_br_06_01,
@@ -757,6 +759,119 @@ class TestOspsHelperErrorPaths:
         gh.get_repo.side_effect = GitHubApiError("boom", status_code=500)
         finding = populate_osps_le_02_01(gh, OWNER, REPO)
         assert finding.compliance_status == ComplianceStatus.UNKNOWN
+
+
+# ── _file_present_at_any tristate (v0.10.7 D3.2) ───────────────────────
+
+
+class TestFilePresentAtAnyTristate:
+    """``_file_present_at_any`` must distinguish *absent* (clean 404 on
+    every candidate → FAIL) from *indeterminate* (a 5xx / network error
+    on a candidate with no hit → UNKNOWN). A transient server error is
+    "we don't know", not "the file is definitively absent"
+    (v0.10.6 C6 reviewer Important #2)."""
+
+    def test_all_404_is_absent(self) -> None:
+        """Every candidate 404s → ABSENT, no carried error."""
+        gh = MagicMock()
+        gh.get_contents.return_value = None  # 404 → None per client contract
+        result = _file_present_at_any(
+            gh, OWNER, REPO, ("SECURITY.md", ".github/SECURITY.md")
+        )
+        assert result.outcome is _FileProbeOutcome.ABSENT
+        assert result.path is None
+        assert result.error is None
+
+    def test_one_200_is_present(self) -> None:
+        """A candidate returns a body (200) → PRESENT with its path, and
+        the probe short-circuits the remaining candidates."""
+        gh = MagicMock()
+        gh.get_contents.side_effect = lambda owner, repo, path: (
+            {"path": "docs/SECURITY.md"}
+            if path == "docs/SECURITY.md"
+            else None
+        )
+        result = _file_present_at_any(
+            gh,
+            OWNER,
+            REPO,
+            ("SECURITY.md", "docs/SECURITY.md", "SECURITY"),
+        )
+        assert result.outcome is _FileProbeOutcome.PRESENT
+        assert result.path == "docs/SECURITY.md"
+        assert result.error is None
+
+    def test_all_5xx_is_indeterminate(self) -> None:
+        """Every candidate 5xx-fails with no hit → INDETERMINATE, and the
+        last error is carried for the UNKNOWN finding's description."""
+        gh = MagicMock()
+        gh.get_contents.side_effect = GitHubApiError(
+            "upstream 503", status_code=503
+        )
+        result = _file_present_at_any(
+            gh, OWNER, REPO, ("LICENSE", "LICENSE.md", "COPYING")
+        )
+        assert result.outcome is _FileProbeOutcome.INDETERMINATE
+        assert result.path is None
+        assert result.error is not None
+        assert result.error.status_code == 503
+
+    def test_mixed_404_and_5xx_is_indeterminate(self) -> None:
+        """A mix of 404s and 5xx (502/503/504) with no hit → still
+        INDETERMINATE: the 5xx candidate could have held the file, so
+        "absent" is not provable. The last 5xx error is carried."""
+        codes = {
+            "CONTRIBUTING.md": 404,
+            ".github/CONTRIBUTING.md": 502,
+            "docs/CONTRIBUTING.md": 404,
+            "CONTRIBUTING.rst": 503,
+            "CONTRIBUTING": 504,
+        }
+
+        def _probe(owner: str, repo: str, path: str) -> dict[str, Any] | None:
+            code = codes[path]
+            if code == 404:
+                return None
+            raise GitHubApiError(f"upstream {code}", status_code=code)
+
+        gh = MagicMock()
+        gh.get_contents.side_effect = _probe
+        result = _file_present_at_any(gh, OWNER, REPO, tuple(codes))
+        assert result.outcome is _FileProbeOutcome.INDETERMINATE
+        assert result.error is not None
+        # Last failing probe in iteration order is the 504.
+        assert result.error.status_code == 504
+
+
+class TestFileProbeHelperEmitsUnknown:
+    """The 4 file-probe helpers (gv/le-03/qa-02/vm-02) must emit a
+    ComplianceStatus.UNKNOWN finding — not a dishonest FAIL — when the
+    contents probe fails with a 5xx on every candidate."""
+
+    def test_gv_03_01_unknown_on_all_5xx(self) -> None:
+        gh = MagicMock()
+        gh.get_contents.side_effect = GitHubApiError("boom", status_code=500)
+        finding = populate_osps_gv_03_01(gh, OWNER, REPO)
+        assert finding.compliance_status == ComplianceStatus.UNKNOWN
+        _assert_osps_finding_shape(
+            finding,
+            control_id="OSPS-GV-03.01",
+            expected_status=ComplianceStatus.UNKNOWN,
+        )
+
+    def test_vm_02_01_unknown_on_all_5xx(self) -> None:
+        gh = MagicMock()
+        gh.get_contents.side_effect = GitHubApiError("boom", status_code=502)
+        finding = populate_osps_vm_02_01(gh, OWNER, REPO)
+        assert finding.compliance_status == ComplianceStatus.UNKNOWN
+
+    def test_le_03_01_still_fail_on_all_404(self) -> None:
+        """Regression guard: a clean all-404 must remain FAIL, not get
+        swept into the new UNKNOWN branch."""
+        gh = MagicMock()
+        gh.get_contents.return_value = None
+        finding = populate_osps_le_03_01(gh, OWNER, REPO)
+        assert finding.compliance_status == ComplianceStatus.FAIL
 
 
 # ── Parametric severity assertion ──────────────────────────────────────
