@@ -4,9 +4,15 @@ Look up CLI verbs, MCP tools, API symbols, configuration options, and bundled ca
 
 ## Pages in this section
 
-- **[CLI](cli.md)** — every CLI verb + flag. Auto-generated via mkdocs-click (if Click) or manually maintained (if Typer) per the upstream tool's convention.
+Every page below is **auto-generated from the live codebase / data** by
+`scripts/wiki/sync_reference.py` (the 5 reference pages) and
+`scripts/wiki/sync_api_docs.py` (the 7 API pages). Each carries a "do not edit
+directly" banner; edit the underlying code/data and re-run the generator. A
+`--check` mode on both scripts (wired into `sync-wiki.yml`) fails on drift.
 
-- **API reference (`api/`)** — auto-generated per workspace package via mkdocstrings:
+- **[CLI](cli.md)** — every CLI command + subcommand + flag, introspected from the live Typer app.
+
+- **API reference (`api/`)** — a concise public-surface index per workspace package (symbols + submodules + a pointer to the live MkDocs API site for full signatures):
   - [`evidentia-core`](api/evidentia-core.md)
   - [`evidentia-ai`](api/evidentia-ai.md)
   - [`evidentia-mcp`](api/evidentia-mcp.md)
@@ -15,16 +21,14 @@ Look up CLI verbs, MCP tools, API symbols, configuration options, and bundled ca
   - [`evidentia-eval`](api/evidentia-eval.md)
   - [`evidentia-integrations`](api/evidentia-integrations.md)
 
-- **[MCP tools](mcp-tools.md)** — the 13 MCP tools + signatures + behavior + append-only versioning rules per [`docs/api-stability.md`](../../api-stability.md) (NORMATIVE).
+- **[MCP tools](mcp-tools.md)** — the MCP tools + signatures + behavior, parsed from the server's `@server.tool()` functions, with the append-only versioning rule per [`docs/api-stability.md`](../../api-stability.md) (NORMATIVE).
 
-- **[Configuration](configuration.md)** — all environment variables + `evidentia.yaml` config file format + RBAC token model.
+- **[Configuration](configuration.md)** — the `evidentia.yaml` schema + every `EVIDENTIA_*` environment variable + the LLM provider keys.
 
-- **[Catalogs](catalogs.md)** — auto-generated table of 92 framework catalogs + family + version + bundled OSCAL availability.
+- **[Catalogs](catalogs.md)** — table of the bundled framework catalogs (the count is computed from the manifest), grouped by family + tier.
 
-- **[Crosswalks](crosswalks.md)** — auto-generated table of 13 crosswalks + source/target frameworks + verification posture + row count.
+- **[Crosswalks](crosswalks.md)** — table of the bundled crosswalks + source/target frameworks + verification posture + mapping-row count (all computed from the mapping files).
 
 ## How to use this section
 
-Reference is symbol-level; use full-text search (or the table of contents in each page) to jump to a specific function, flag, or env var. The catalog + crosswalk tables are sortable + filterable in the rendered MkDocs site.
-
-> **Stub status:** as of v0.10.7, the section structure exists but per-page content is stubs. API reference + catalog/crosswalk tables generate at docs-build time once mkdocs + mkdocstrings + the catalog-render script land.
+Reference is symbol-level; use full-text search (or the table of contents in each page) to jump to a specific command, flag, env var, or symbol. The catalog + crosswalk tables are sortable + filterable in the rendered MkDocs site.

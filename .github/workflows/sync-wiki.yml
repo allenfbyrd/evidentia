@@ -13,12 +13,23 @@
 # contents: write scope authorizes the push to <repo>.wiki.git
 # (same-repo wiki push uses the same token, no PAT needed).
 #
-# Before the wiki push, scripts/wiki/sync_mirrors.py regenerates the 13
-# auto-generated mirror pages (docs/wiki/{6-project,5-compliance}/*) from
-# their canonical sources at the repo root / docs/, so the wiki always
-# pushes mirrors that match canonical HEAD. The mirror generator is
-# stdlib-only (no third-party deps), so it runs under the bare `python`
-# set up below -- no uv / project install needed.
+# Before the wiki push, three generators regenerate the auto-generated wiki
+# pages from their canonical sources so the wiki always pushes content that
+# matches HEAD:
+#   - scripts/wiki/sync_mirrors.py     -> the 13 mirror pages
+#                                         (docs/wiki/{6-project,5-compliance}/*)
+#                                         from repo-root / docs/ canonical docs.
+#                                         Stdlib-only -> runs under bare python.
+#   - scripts/wiki/sync_reference.py   -> the 5 reference pages
+#                                         (docs/wiki/4-reference/{cli,mcp-tools,
+#                                         configuration,catalogs,crosswalks}.md)
+#                                         from the live code/data. The cli page
+#                                         imports the Typer app, so this runs
+#                                         under `uv run` with the project synced.
+#   - scripts/wiki/sync_api_docs.py    -> the 7 per-package API pages
+#                                         (docs/wiki/4-reference/api/*.md) from
+#                                         each package's public surface. Also
+#                                         `uv run` (it reads pyproject + source).
 #
 # First-run prerequisite: Wiki feature must be enabled in
 # Settings -> Features -> Wikis. The sync script gracefully fails
@@ -36,6 +47,8 @@ on:
       - "docs/wiki/**"
       - "scripts/sync_wiki_to_github.py"
       - "scripts/wiki/sync_mirrors.py"
+      - "scripts/wiki/sync_reference.py"
+      - "scripts/wiki/sync_api_docs.py"
       - ".github/workflows/sync-wiki.yml"
   workflow_dispatch:
 
@@ -67,6 +80,28 @@ jobs:
       # script -> runs under the bare python above (no uv needed).
       - name: Refresh wiki mirror pages
         run: python scripts/wiki/sync_mirrors.py
+
+      # The reference + API-docs generators need the project importable
+      # (sync_reference.py introspects the Typer app; both read package
+      # source/pyproject), so install via uv before running them.
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Install workspace
+        run: uv sync --all-packages
+
+      # Regenerate the 5 reference pages (cli / mcp-tools / configuration /
+      # catalogs / crosswalks) from the live code/data.
+      - name: Refresh wiki reference pages
+        run: uv run python scripts/wiki/sync_reference.py
+
+      # Regenerate the 7 per-package API pages from each package's public
+      # surface.
+      - name: Refresh wiki API pages
+        run: uv run python scripts/wiki/sync_api_docs.py
 
       - name: Run wiki sync
         env:
