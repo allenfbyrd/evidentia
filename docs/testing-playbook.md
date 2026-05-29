@@ -61,7 +61,7 @@ distributions.
 ### Pass 2 — manual codebase review (regex-grep based)
 
 ```bash
-# Must return zero hits OUTSIDE CHANGELOG.md, RENAMED.md,
+# Must return zero hits OUTSIDE CHANGELOG.md, docs/archive/RENAMED.md,
 # scripts/_create_shim_packages.py
 grep -ri "controlbridge"
 

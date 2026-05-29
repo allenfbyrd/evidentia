@@ -308,7 +308,7 @@ Per the testing-playbook 3-pass scour pattern:
 
 ```bash
 # Pass 1: stale name references (must only appear in CHANGELOG /
-# RENAMED.md / scripts/_create_shim_packages.py / scripts/_rename_content.py)
+# docs/archive/RENAMED.md / scripts/_create_shim_packages.py / scripts/_rename_content.py)
 grep -ri "controlbridge"
 
 # Pass 2: prior-version mentions (must only appear in CHANGELOG

@@ -211,7 +211,7 @@ The v0.5.0 name collided with `controlbridge.ai` — a live commercial
 SOX 302/404 compliance platform. v0.6.0 renamed the project end-to-end:
 PyPI packages (6 names), GitHub repo, CLI entry point, config file
 (`controlbridge.yaml` → `evidentia.yaml`), frontend npm scope, and
-all docs. No functional changes. See `RENAMED.md` at the repo root for
+all docs. No functional changes. See `docs/archive/RENAMED.md` for
 the full rationale, `CHANGELOG.md § 0.6.0` for the mechanical details,
 and the `standing_rule_github_repo_names.md` memory note for the absolute
 rule protecting the GitHub URL redirect.

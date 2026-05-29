@@ -174,8 +174,11 @@ frozen:
     desc: "Every shipped release block — the canonical historical record."
   - path: "SECURITY.md"
     desc: "Supported-version table + historical CVE-disposition narrative."
-  - path: "RENAMED.md"
-    desc: "ControlBridge→Evidentia rename history (shim removal at v0.7.0)."
+  - path: "docs/archive/RENAMED.md"
+    desc: >-
+      ControlBridge→Evidentia rename history (shim removal at v0.7.0). Archived
+      under docs/archive/ in v0.10.7 E9; also covered by the docs/** glob above,
+      kept here for an explicit per-file record.
   - path: "GOVERNANCE.md"
     desc: "Historical governance narrative referencing release milestones."
   - path: "CONTRIBUTING.md"

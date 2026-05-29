@@ -75,7 +75,7 @@ a vulnerability in Evidentia's own code.
 |---------|--------|--------|
 | **`0.10.6`** | ✅ **Supported** | Latest patch. OSS first-mover artifacts (OSPS Baseline catalog + OSCAL + OSPS-CONFORMANCE.md) + 5 OSPS crosswalks + GitHub OSPS collector extension. 0 CVEs at ship per `docs/security-review-v0.10.6.md`. |
 | `0.10.5` and earlier | ❌ Deprecated | Pre-v1.0 single-supported-patch policy; upgrade to `0.10.6`. |
-| Legacy `controlbridge*` packages | ❌ Yanked from PyPI | Every version of every legacy package was yanked at the v0.6.0 rename. Upgrade path documented in [`RENAMED.md`](https://github.com/Polycentric-Labs/evidentia/blob/main/RENAMED.md). |
+| Legacy `controlbridge*` packages | ❌ Yanked from PyPI | Every version of every legacy package was yanked at the v0.6.0 rename. Upgrade path documented in [`RENAMED.md`](https://github.com/Polycentric-Labs/evidentia/blob/main/docs/archive/RENAMED.md). |
 
 **Read this strictly**: an older patch — even one shipped less than
 24 hours before its successor — is deprecated the moment a successor
