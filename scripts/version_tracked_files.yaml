@@ -1,0 +1,209 @@
+# version_tracked_files.yaml — the single source of truth for where the
+# Evidentia project version (NOT third-party dependency versions) lives.
+#
+# Evidentia v0.10.7 Phase E2. This manifest is the "never-skip-a-version-
+# reference" backbone. TWO scripts read it:
+#
+#   * scripts/bump_version.py            — drives the per-file replacement
+#                                          when bumping (e.g. --to 0.10.8).
+#   * scripts/check_version_consistency.py — (1) verifies every `tracked`
+#                                          file actually holds the current
+#                                          version, and (2) hard-fails on any
+#                                          git-tracked file that contains a
+#                                          project-version literal yet appears
+#                                          in NEITHER `tracked` NOR `frozen`.
+#
+# The source of truth for "the current version" is the
+# packages/evidentia-core/pyproject.toml `version = "X.Y.Z"` field (the same
+# detector bump_version.py has always used).
+#
+# ───────────────────────────────────────────────────────────────────────────
+# SCHEMA
+# ───────────────────────────────────────────────────────────────────────────
+#
+# tracked:
+#   A list of entries. Each entry describes ONE replacement the bumper makes
+#   and ONE coverage assertion the consistency-check makes. Fields:
+#
+#     path:    repo-relative path OR a glob (e.g. "packages/*/pyproject.toml").
+#              Globs expand against the git-tracked file list.
+#     kind:    the replacement strategy (see below). Selects both the regex
+#              the consistency-check uses for COVERAGE and the rewrite the
+#              bumper applies.
+#     desc:    human note (why this file is tracked / what the literal is).
+#
+#   kind values (each maps to tested logic in bump_version.py — the complex
+#   inter-package-pin logic is NOT re-encoded as a raw regex here so the
+#   F-V100-M1 workspace-allowlist guard and the (?!\.\d) hot-fix lookahead
+#   stay in one tested place):
+#
+#     python_version       — `version = "X.Y.Z"` in a pyproject.toml / TOML.
+#                            Uses the (?!\.\d) lookahead (hot-fix X.Y.Z.W safe).
+#     workspace_pins       — inter-package pins `<member>>=X.Y.Z,<M.(m+1).0`.
+#                            Substitution is delegated to bump_pin_range() over
+#                            the [tool.uv.sources] workspace allowlist, so ONLY
+#                            workspace members are touched (third-party pins
+#                            with the same range shape are left alone — the
+#                            F-V100-M1 guard). Coverage for this kind is
+#                            advisory (a file may legitimately carry no
+#                            workspace pins, e.g. evidentia-core itself).
+#     json_version         — `"version": "X.Y.Z"` in a package.json.
+#     pip_extra_pin        — `evidentia[gui]==X.Y.Z` (Dockerfile / requirements.in).
+#                            Coverage is advisory: the literal may legitimately
+#                            lag (docker/requirements.in tracks the last
+#                            *published* release, not the in-prep bump) and the
+#                            Dockerfile carries no such literal at all (it
+#                            installs from docker/requirements.txt).
+#     cff_version          — `version: X.Y.Z` in CITATION.cff (unquoted YAML).
+#     cff_date             — `date-released: 'YYYY-MM-DD'` in CITATION.cff.
+#                            The bumper sets this to the bump date (UTC).
+#                            Coverage does NOT assert the date (it is a date,
+#                            not the version).
+#     readme_container_tag — `ghcr.io/polycentric-labs/evidentia:vX.Y.Z` in
+#                            README.md. TIGHTLY anchored to the container-pull
+#                            line so it can NEVER match the historical release-
+#                            note lines elsewhere in the README.
+#
+# frozen:
+#   An allowlist of paths/globs whose project-version literals are
+#   INTENTIONALLY historical (CHANGELOG entries, dated security-review docs,
+#   per-version plan docs, source-code docstrings like "(v0.7.1)" or "removed
+#   in v0.12.0", test fixtures that hardcode `collector_version="0.7.0"`,
+#   workflow audit-trail comments, generated lockfiles, the marketplace plugin
+#   which versions on its own cadence, etc.). These must NOT be bumped and must
+#   NOT be flagged by the never-skip check. Entries are repo-relative paths or
+#   globs; globs expand against the git-tracked file list.
+#
+# ───────────────────────────────────────────────────────────────────────────
+# Adding a new file that carries the project version?  Add it to `tracked`
+# (with a kind) so the bumper updates it AND the check guards it. If the
+# literal is historical, add it to `frozen` instead. The check will refuse
+# to pass until you classify it one way or the other.
+# ───────────────────────────────────────────────────────────────────────────
+
+tracked:
+  # ── Python packages: version field + inter-package pins ────────────────
+  - path: "packages/*/pyproject.toml"
+    kind: python_version
+    desc: "The [project].version of each of the 8 workspace packages."
+  - path: "packages/*/pyproject.toml"
+    kind: workspace_pins
+    desc: >-
+      Inter-package dependency pins (`evidentia-core>=X.Y.Z,<M.(m+1).0` etc.).
+      Only [tool.uv.sources] workspace members are rewritten — F-V100-M1 guard.
+  - path: "pyproject.toml"
+    kind: python_version
+    desc: "The workspace-root [project].version (evidentia-workspace)."
+  - path: "pyproject.toml"
+    kind: workspace_pins
+    desc: "Root pyproject carries no inter-package pins today; kept for symmetry."
+
+  # ── Web UI package.json ────────────────────────────────────────────────
+  - path: "packages/evidentia-ui/package.json"
+    kind: json_version
+    desc: "The @evidentia/ui frontend package version (kept in lockstep)."
+
+  # ── Container build pins ───────────────────────────────────────────────
+  - path: "Dockerfile"
+    kind: pip_extra_pin
+    desc: >-
+      `evidentia[gui]==X.Y.Z` literal (historically pinned directly; today the
+      image installs from docker/requirements.txt, so this usually matches 0).
+  - path: "docker/requirements.in"
+    kind: pip_extra_pin
+    desc: >-
+      `evidentia[gui]==X.Y.Z` pin compiled into docker/requirements.txt. Tracks
+      the last *published* release; the release-time regeneration re-pins it.
+
+  # ── Citation metadata (NEW in v0.10.7 E2) ──────────────────────────────
+  - path: "CITATION.cff"
+    kind: cff_version
+    desc: "GitHub 'Cite this repository' widget version. NEWLY tracked (E2)."
+  - path: "CITATION.cff"
+    kind: cff_date
+    desc: "`date-released` — set to the bump date (UTC) by the bumper. NEW (E2)."
+
+  # ── README container tag (NEW in v0.10.7 E2) ───────────────────────────
+  - path: "README.md"
+    kind: readme_container_tag
+    desc: >-
+      The `docker pull ghcr.io/polycentric-labs/evidentia:vX.Y.Z` line.
+      Tightly anchored so it does NOT match historical release-note lines.
+      NEWLY tracked (E2) — was previously skipped, drifting to a stale tag.
+
+frozen:
+  # ── Whole historical/prose trees (globs) ───────────────────────────────
+  - path: "docs/**"
+    desc: "Release-note prose, dated security-review docs, per-version plans, runbooks — all historical."
+  - path: "tests/**"
+    desc: "Version literals here are test fixtures + historical docstrings; bumping them would break assertions."
+  - path: "packages/*/src/**"
+    desc: "Source docstrings/comments carry historical version annotations like '(v0.7.1)' / 'removed in v0.12.0'."
+  - path: ".github/**"
+    desc: "Workflow + action + CodeQL audit-trail comments referencing the cycle they were added in."
+  - path: "scripts/**"
+    desc: "Tooling docstrings/comments (incl. this manifest's two reader scripts) carry historical version notes."
+  - path: "marketplace/**"
+    desc: >-
+      The GRC-Engineering marketplace plugin (README + .claude-plugin/plugin.json).
+      FROZEN AT MARKETPLACE CADENCE per the v0.10.7 controller decision: the
+      plugin versions independently of the monorepo release line, so the bumper
+      no longer auto-bumps plugin.json (it previously did only because it is a
+      .json file). It currently reads the same version as the repo, which is fine.
+  - path: "examples/**"
+    desc: "Sample evidentia.yaml configs with 'feature added since vN.M' comments."
+
+  # ── Per-package non-tracked files (siblings of tracked files) ──────────
+  - path: "packages/*/README.md"
+    desc: "Package READMEs carry historical narrative (e.g. evidentia-eval/README.md extraction note)."
+  - path: "packages/evidentia-ui/package-lock.json"
+    desc: "Generated npm lockfile; full of coincidental dependency versions."
+  - path: "packages/evidentia-ui/eslint.config.js"
+    desc: "Historical comments ('v0.7.14 P0.3 ESLint 10 flat-config')."
+  - path: "packages/evidentia-ui/vite.config.ts"
+    desc: "Historical comments ('v0.7.15: tailwindcss v4 plugin')."
+
+  # ── Generated / compiled artifacts ─────────────────────────────────────
+  - path: "uv.lock"
+    desc: "Generated by `uv sync`; regenerated post-bump. Coincidental dep versions + the 8 workspace entries."
+  - path: "docker/requirements.txt"
+    desc: "Hash-pinned compiled output; regenerated at release time by release.yml against PyPI bytes."
+
+  # ── Root-level historical / governance / config files ──────────────────
+  - path: "CHANGELOG.md"
+    desc: "Every shipped release block — the canonical historical record."
+  - path: "SECURITY.md"
+    desc: "Supported-version table + historical CVE-disposition narrative."
+  - path: "RENAMED.md"
+    desc: "ControlBridge→Evidentia rename history (shim removal at v0.7.0)."
+  - path: "GOVERNANCE.md"
+    desc: "Historical governance narrative referencing release milestones."
+  - path: "CONTRIBUTING.md"
+    desc: "Contributor guide with historical version references."
+  - path: "OSPS-CONFORMANCE.md"
+    desc: "OSPS Baseline self-attestation referencing the cycle it was authored in."
+  - path: "EOL.md"
+    desc: "End-of-life policy table listing historical release dates."
+  - path: "Evidentia-Architecture-and-Implementation-Plan.md"
+    desc: "The canonical in-repo architecture plan; references many historical versions."
+  - path: "codecov.yml"
+    desc: "Comment '# commit since v0.7.10'."
+  - path: "mkdocs.yml"
+    desc: "Docs-site config with historical version references."
+  - path: "osv-scanner.toml"
+    desc: "Vuln-allowlist `reason` strings cite the cycle each disposition was made in."
+  - path: ".cursorrules"
+    desc: "Editor-rules file with historical version references."
+  - path: ".yamllint"
+    desc: "Lint config comment referencing the cycle it was added in."
+  - path: ".pre-commit-config.yaml"
+    desc: "Hook config comment referencing the cycle it was added in."
+  - path: ".markdownlint.yaml"
+    desc: "Lint config comment referencing the cycle it was added in."
+  - path: ".githooks/pre-push"
+    desc: "Pre-push gate header cites 'Evidentia v0.10.7 Phase D5' + check provenance."
+  - path: ".devcontainer/devcontainer.json"
+    desc: "Devcontainer config comment referencing the cycle it was added in."
+
+  # ── This manifest's own reader scripts live under scripts/** (above) ───
+  #    so no separate entry is needed for scripts/version_tracked_files.yaml.
