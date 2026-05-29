@@ -24,6 +24,15 @@ carries a ``kind`` that selects one of the replacement strategies below:
                                                        bump date, UTC)
   - readme_container_tag ghcr.io/.../evidentia:vX.Y.Z (README container line)
 
+**v0.10.7 anchors overlay**: the manifest also supports an optional
+``anchors:`` list. Each anchor force-sets the project-version literal on a
+SPECIFIC line (identified by a literal ``line_contains`` substring) inside an
+otherwise-``frozen`` file, leaving that file's historical literals alone. The
+force-set runs even when ``current == target`` (so a drifted "Latest release"
+line is fixable on any invocation), preserves a leading ``v``, and touches
+ONLY the X.Y.Z(.W) numeric on the anchored line. See
+``scripts/version_tracked_files.yaml`` for the schema + semantics.
+
 Skips lockfiles (uv.lock, package-lock.json) - those are regenerated
 by `uv sync --all-packages` after running this script. (Lockfiles are
 also listed in the manifest's ``frozen:`` section.)
@@ -56,6 +65,19 @@ import yaml
 # precedent: same-day patches that need to ride atop a tagged minor +
 # don't earn a fresh patch number).
 VERSION_RE = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?")
+
+# Anchor overlay (v0.10.7): the project-version literal AS IT APPEARS on an
+# anchored line, capturing an optional leading ``v`` so it can be preserved
+# on rewrite. Deliberately mirrors the project-version family +
+# boundary guards in check_version_consistency.PROJECT_VERSION_RE (minor >= 7,
+# optional 4th hot-fix segment, ``(?<![\w.])`` / ``(?![\w])`` guards) so the
+# bumper's force-set and the gate's coverage check see the EXACT same set of
+# literals. Group ``v`` holds the optional ``v`` prefix; the numeric body is
+# everything after it. Used to FORCE-SET (not cur->target match) the version
+# on an anchored line regardless of its prior value.
+ANCHOR_VERSION_RE = re.compile(
+    r"(?<![\w.])(?P<v>v?)0\.(?:[7-9]|[1-9][0-9])\.\d+(?:\.\d+)?(?![\w])"
+)
 
 # The declarative manifest that lists every file carrying the project
 # version (the ``tracked:`` section the bumper drives off) plus the
@@ -186,11 +208,16 @@ def bump_pin_range(
 
 
 def load_manifest(path: Path | None = None) -> dict[str, list[dict[str, str]]]:
-    """Load ``version_tracked_files.yaml`` -> {"tracked": [...], "frozen": [...]}.
+    """Load the manifest -> {"tracked": [...], "frozen": [...], "anchors": [...]}.
 
     Both ``scripts/bump_version.py`` and
     ``scripts/check_version_consistency.py`` read this one file so the
     bumper and the never-skip gate can never drift.
+
+    ``anchors`` is an OPTIONAL line-scoped overlay (default ``[]``): each entry
+    force-sets the project-version literal on a specific live line inside an
+    otherwise-``frozen`` file. See the manifest's SCHEMA header for the full
+    contract.
     """
     p = path or MANIFEST_PATH
     if not p.exists():
@@ -198,9 +225,16 @@ def load_manifest(path: Path | None = None) -> dict[str, list[dict[str, str]]]:
     data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
     tracked = data.get("tracked") or []
     frozen = data.get("frozen") or []
-    if not isinstance(tracked, list) or not isinstance(frozen, list):
-        sys.exit(f"Malformed manifest {p}: 'tracked'/'frozen' must be lists")
-    return {"tracked": tracked, "frozen": frozen}
+    anchors = data.get("anchors") or []
+    if (
+        not isinstance(tracked, list)
+        or not isinstance(frozen, list)
+        or not isinstance(anchors, list)
+    ):
+        sys.exit(
+            f"Malformed manifest {p}: 'tracked'/'frozen'/'anchors' must be lists"
+        )
+    return {"tracked": tracked, "frozen": frozen, "anchors": anchors}
 
 
 def expand_manifest_path(spec: str, all_tracked: list[Path]) -> list[Path]:
@@ -275,6 +309,123 @@ def replacements_for_kind(
     sys.exit(f"Unknown manifest kind {kind!r} (fix version_tracked_files.yaml)")
 
 
+# ── Anchor overlay (v0.10.7) ───────────────────────────────────────────────
+
+
+def force_set_anchor_line(line: str, target: str) -> tuple[str, int]:
+    """Force-set every project-version literal on a single anchored line.
+
+    Each match of :data:`ANCHOR_VERSION_RE` (X.Y.Z(.W) with the project-family
+    boundary guards, optionally ``v``-prefixed) has its numeric body replaced
+    with ``target``, regardless of the literal's prior value (so a stale
+    ``v0.10.6`` becomes ``v<target>``). A leading ``v`` is PRESERVED. Only the
+    matched version token is rewritten; surrounding text is untouched.
+
+    Returns ``(new_line, n_substitutions)``. ``n_substitutions == 0`` means the
+    line carried no project-version literal — a misconfigured anchor, surfaced
+    by the callers as a hard error.
+    """
+
+    def _repl(m: re.Match[str]) -> str:
+        return f"{m.group('v')}{target}"
+
+    return ANCHOR_VERSION_RE.subn(_repl, line)
+
+
+def classified_paths(
+    manifest: dict[str, list[dict[str, str]]], all_tracked: list[Path]
+) -> set[str]:
+    """POSIX paths classified by the manifest's ``tracked`` + ``frozen`` specs.
+
+    Used by the anchor overlay to enforce that an anchor file is ALSO
+    never-skip-classified (an anchor is a coverage overlay, not a substitute
+    for classification). Mirrors the union the never-skip gate builds.
+    """
+    classified: set[str] = set()
+    for spec in {e["path"] for e in manifest["tracked"]} | {
+        e["path"] for e in manifest["frozen"]
+    }:
+        for p in expand_manifest_path(spec, all_tracked):
+            classified.add(p.as_posix())
+    return classified
+
+
+def apply_anchors(
+    manifest: dict[str, list[dict[str, str]]],
+    target: str,
+    all_tracked: list[Path],
+    file_text: dict[Path, str],
+    file_subs: dict[Path, int],
+) -> None:
+    """Force-set the version on every anchored line (the ``anchors:`` overlay).
+
+    For each anchor entry, locate every line in ``path`` that contains the
+    literal ``line_contains`` substring and force-set its project-version
+    literal(s) to ``target`` (preserving a leading ``v``). Mutates the shared
+    ``file_text`` / ``file_subs`` accumulators in place so the caller's output
+    aggregation and write-back treat anchored files exactly like tracked ones.
+
+    Runs unconditionally — even when ``current == target`` — so a drifted
+    anchored line is fixed on any invocation.
+
+    Misconfiguration is a HARD ERROR (``SystemExit``):
+      * ``path`` matches no git-tracked file;
+      * ``line_contains`` matches 0 lines in the file;
+      * a matched (anchored) line contains NO project-version literal;
+      * the anchor's file is in NEITHER ``tracked`` NOR ``frozen``.
+    """
+    anchors = manifest.get("anchors") or []
+    if not anchors:
+        return
+    classified = classified_paths(manifest, all_tracked)
+
+    for entry in anchors:
+        spec = entry["path"]
+        marker = entry["line_contains"]
+        matched_files = expand_manifest_path(spec, all_tracked)
+        if not matched_files:
+            sys.exit(
+                f"anchor path {spec!r} matched no git-tracked file — fix the "
+                f"path in scripts/version_tracked_files.yaml"
+            )
+        for p in matched_files:
+            posix = p.as_posix()
+            if posix not in classified:
+                sys.exit(
+                    f"anchor file {posix} is in NEITHER tracked NOR frozen — an "
+                    f"anchor is a coverage overlay, not a substitute for "
+                    f"never-skip classification; also classify it in "
+                    f"scripts/version_tracked_files.yaml"
+                )
+            if p not in file_text:
+                try:
+                    file_text[p] = p.read_text(encoding="utf-8")
+                except OSError as exc:
+                    sys.exit(f"cannot read anchor file {posix}: {exc}")
+            lines = file_text[p].splitlines(keepends=True)
+            marked = [i for i, ln in enumerate(lines) if marker in ln]
+            if not marked:
+                sys.exit(
+                    f"anchor marker {marker!r} matched 0 lines in {posix} — fix "
+                    f"the line_contains substring in "
+                    f"scripts/version_tracked_files.yaml"
+                )
+            subs_here = 0
+            for i in marked:
+                new_line, n = force_set_anchor_line(lines[i], target)
+                if n == 0:
+                    sys.exit(
+                        f"anchor line in {posix} containing {marker!r} carries no "
+                        f"project-version literal to set — fix the anchor in "
+                        f"scripts/version_tracked_files.yaml"
+                    )
+                lines[i] = new_line
+                subs_here += n
+            file_text[p] = "".join(lines)
+            if subs_here:
+                file_subs[p] = file_subs.get(p, 0) + subs_here
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -313,7 +464,14 @@ def main() -> int:
     current = args.frm or detect_current_version()
     if not VERSION_RE.fullmatch(current):
         sys.exit(f"--from must be X.Y.Z, got {current!r}")
-    if current == args.to:
+
+    # Whether the cur->target `tracked` substitutions run. They are no-ops
+    # when current == target (the cur_re half can't match the new value), so
+    # they are SKIPPED in that case. Anchors, by contrast, FORCE-SET their
+    # line regardless and therefore run unconditionally below — so a drifted
+    # "Latest release" line is fixable even on a same-version invocation.
+    do_tracked_subs = current != args.to
+    if not do_tracked_subs:
         if args.regenerate_requirements:
             # v0.8.3 G4: allow --regenerate-requirements to fire
             # even when the version doesn't change. Operators may
@@ -323,12 +481,19 @@ def main() -> int:
             # but proceed to the regeneration block below.
             print(
                 f"Already at {args.to} — skipping version "
-                "substitutions; proceeding with "
-                "--regenerate-requirements."
+                "substitutions; will still force-set anchors + proceed "
+                "with --regenerate-requirements."
             )
         else:
-            print(f"Already at {args.to} - nothing to do.")
-            return 0
+            # v0.10.7 anchor overlay: even "already at X" must still
+            # force-set anchored lines (a drifted live-version line in a
+            # frozen file is fixable on any invocation). The tracked
+            # substitutions stay skipped (no-ops); the anchor + write-back
+            # path below runs, then we return.
+            print(
+                f"Already at {args.to} — skipping version substitutions; "
+                "force-setting anchors only."
+            )
 
     # v0.10.1 F-V100-M1 fix: read the workspace allowlist BEFORE
     # building substitution patterns; refuse to over-bump third-party
@@ -352,14 +517,17 @@ def main() -> int:
     # release date.
     bump_date = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
 
-    print(f"Bump plan: {current} -> {args.to}")
-    print(pin_msg)
-    print()
+    if do_tracked_subs:
+        print(f"Bump plan: {current} -> {args.to}")
+        print(pin_msg)
+        print()
 
     # v0.10.7 E3: drive the replacements off the manifest's `tracked:`
     # section instead of a hardcoded file-type allowlist. Each entry maps a
     # path/glob + a kind to one or more (regex, replacement) pairs. Lockfiles
-    # are skipped here AND listed in the manifest `frozen:` section.
+    # are skipped here AND listed in the manifest `frozen:` section. The
+    # `anchors:` overlay (force-set live-version lines in frozen files) runs
+    # afterwards and shares the same per-file accumulators + write-back.
     manifest = load_manifest()
     all_tracked = tracked_files()
 
@@ -370,30 +538,34 @@ def main() -> int:
     file_text: dict[Path, str] = {}
     LOCKFILES = {"uv.lock", "package-lock.json"}
 
-    for entry in manifest["tracked"]:
-        spec = entry["path"]
-        kind = entry["kind"]
-        pairs = replacements_for_kind(
-            kind, current, args.to, packages=packages, bump_date=bump_date
-        )
-        if not pairs:
-            continue
-        for p in expand_manifest_path(spec, all_tracked):
-            if p.name in LOCKFILES:
+    if do_tracked_subs:
+        for entry in manifest["tracked"]:
+            spec = entry["path"]
+            kind = entry["kind"]
+            pairs = replacements_for_kind(
+                kind, current, args.to, packages=packages, bump_date=bump_date
+            )
+            if not pairs:
                 continue
-            if p not in file_text:
-                try:
-                    file_text[p] = p.read_text(encoding="utf-8")
-                except OSError:
+            for p in expand_manifest_path(spec, all_tracked):
+                if p.name in LOCKFILES:
                     continue
-            new_text = file_text[p]
-            subs_here = 0
-            for pattern, new in pairs:
-                new_text, n = re.subn(pattern, new, new_text)
-                subs_here += n
-            if subs_here:
-                file_text[p] = new_text
-                file_subs[p] = file_subs.get(p, 0) + subs_here
+                if p not in file_text:
+                    try:
+                        file_text[p] = p.read_text(encoding="utf-8")
+                    except OSError:
+                        continue
+                new_text = file_text[p]
+                subs_here = 0
+                for pattern, new in pairs:
+                    new_text, n = re.subn(pattern, new, new_text)
+                    subs_here += n
+                if subs_here:
+                    file_text[p] = new_text
+                    file_subs[p] = file_subs.get(p, 0) + subs_here
+
+    # v0.10.7 anchor overlay — runs unconditionally (even at cur == target).
+    apply_anchors(manifest, args.to, all_tracked, file_text, file_subs)
 
     files_changed = 0
     total_subs = 0

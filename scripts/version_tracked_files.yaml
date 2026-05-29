@@ -74,11 +74,60 @@
 #   NOT be flagged by the never-skip check. Entries are repo-relative paths or
 #   globs; globs expand against the git-tracked file list.
 #
+# anchors:
+#   A line-scoped OVERLAY for files that are otherwise `frozen` WHOLESALE yet
+#   still carry ONE (or a few) LIVE "current version" claim(s) that MUST track
+#   the release. The motivating case: a doc whose body is full of historical
+#   version literals (so the whole file is `frozen`, exempting it from
+#   never-skip) but which ALSO has a "Latest release: vX.Y.Z" line that goes
+#   silently stale because the file's frozen membership suppresses every check.
+#   An anchor re-arms exactly that one live line WITHOUT un-freezing the file's
+#   historical literals. Fields:
+#
+#     path:          repo-relative path OR a glob. Globs expand against the
+#                    git-tracked file list.
+#     line_contains: a LITERAL substring (not a regex) that uniquely identifies
+#                    the live-version line(s). EVERY line in the file containing
+#                    this substring is an "anchored line".
+#     desc:          human note (why this live line must track the release).
+#
+#   Semantics:
+#     * BUMP (bump_version.py): on each anchored line, the project-version
+#       literal is FORCE-SET to the target — regardless of the line's prior
+#       value (so a stale 0.10.6 becomes 0.10.7 even though the normal
+#       cur->target replacement would not have matched 0.10.6). A leading `v`
+#       is preserved (`:v0.10.6` -> `:v0.10.7`). Only the X.Y.Z(.W) numeric on
+#       the anchored line is touched; other text on the line is untouched. The
+#       force-set runs even when current == target, so a drifted anchor is
+#       fixable on any invocation.
+#     * COVERAGE (check_version_consistency.py): each anchored line MUST contain
+#       the CURRENT version. An anchored line showing an old version is a HARD
+#       FAIL (this is the safeguard the wholesale `frozen` membership defeats).
+#       Anchors are ALWAYS coverage-required.
+#     * MISCONFIG GUARDS (both tools): an anchor whose `path` matches no
+#       git-tracked file, whose `line_contains` matches 0 lines, or whose
+#       anchored line carries NO project-version literal is a HARD FAIL.
+#     * CLASSIFICATION: an anchor is an OVERLAY, not a substitute for never-skip
+#       classification. An anchor's file MUST ALSO appear in `tracked` OR
+#       `frozen` (so never-skip already classifies it). An anchor file in
+#       NEITHER is a HARD FAIL.
+#
+#   Example (illustrative — DO NOT uncomment without a real live-in-frozen line):
+#     anchors:
+#       - path: "SECURITY.md"
+#         line_contains: "Latest patched release:"
+#         desc: >-
+#           SECURITY.md is frozen wholesale (its CVE-disposition narrative cites
+#           historical versions), but the "Latest patched release: vX.Y.Z" line
+#           is a LIVE claim that must track each ship.
+#
 # ───────────────────────────────────────────────────────────────────────────
 # Adding a new file that carries the project version?  Add it to `tracked`
 # (with a kind) so the bumper updates it AND the check guards it. If the
-# literal is historical, add it to `frozen` instead. The check will refuse
-# to pass until you classify it one way or the other.
+# literal is historical, add it to `frozen` instead. If the file is historical
+# WHOLESALE but holds one live "current version" line, keep it in `frozen` AND
+# add an `anchors` overlay for that line. The check will refuse to pass until
+# you classify each project-version literal one way or another.
 # ───────────────────────────────────────────────────────────────────────────
 
 tracked:
@@ -226,3 +275,11 @@ frozen:
 
   # ── This manifest's own reader scripts live under scripts/** (above) ───
   #    so no separate entry is needed for scripts/version_tracked_files.yaml.
+
+# anchors:
+#   Line-scoped overlays for live "current version" lines inside files that
+#   are `frozen` wholesale. See the SCHEMA header above for full semantics +
+#   an illustrative example. Empty for now — no live-in-frozen line is
+#   currently anchored. (SECURITY.md's stale "Latest patch" line is a known
+#   candidate, handled as a SEPARATE task; do NOT add it here speculatively.)
+anchors: []

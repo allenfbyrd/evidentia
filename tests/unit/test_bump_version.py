@@ -15,7 +15,9 @@ unit-tested in isolation.
 from __future__ import annotations
 
 import importlib.util
+import os
 import re
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any, ClassVar
 
@@ -40,6 +42,21 @@ def _load_bump_module() -> Any:
 @pytest.fixture
 def bump() -> Any:
     return _load_bump_module()
+
+
+@pytest.fixture
+def chdir_tmp(tmp_path: Path) -> Iterator[Path]:
+    """Run the test body with CWD set to a temp dir (restored afterwards).
+
+    Anchor processing reads files via paths relative to the process CWD, so
+    the synthetic-manifest anchor tests build a tiny temp "repo" + chdir into
+    it (mirrors tests/unit/test_check_version_consistency.py)."""
+    prev = Path.cwd()
+    os.chdir(tmp_path)
+    try:
+        yield tmp_path
+    finally:
+        os.chdir(prev)
 
 
 # ── bump_pin_range ─────────────────────────────────────────────────
@@ -339,3 +356,255 @@ class TestRealManifest:
         assert "marketplace/**" in frozen_paths
         assert "CITATION.cff" not in frozen_paths
         assert "README.md" not in frozen_paths
+
+    def test_anchors_key_present_and_empty(self, bump: Any) -> None:
+        """The real manifest exposes an ``anchors`` key (default []). It is
+        intentionally EMPTY for now — no live-in-frozen line is anchored yet
+        (the SECURITY.md candidate is a separate task)."""
+        manifest = bump.load_manifest()
+        assert "anchors" in manifest
+        assert manifest["anchors"] == []
+
+
+# ── v0.10.7: anchor overlay (force-set live-version lines in frozen files) ──
+
+
+class TestForceSetAnchorLine:
+    """The line-level force-set primitive: rewrites EVERY project-version
+    literal on a single line to the target, preserving a leading ``v`` and
+    touching nothing else on the line."""
+
+    def test_force_sets_stale_version(self, bump: Any) -> None:
+        line, n = bump.force_set_anchor_line(
+            "Latest patched release: 0.10.6 (see CHANGELOG)\n", "0.10.7"
+        )
+        assert n == 1
+        assert line == "Latest patched release: 0.10.7 (see CHANGELOG)\n"
+
+    def test_preserves_leading_v(self, bump: Any) -> None:
+        line, n = bump.force_set_anchor_line(
+            "image: ghcr.io/x/evidentia:v0.10.6\n", "0.10.8"
+        )
+        assert n == 1
+        assert line == "image: ghcr.io/x/evidentia:v0.10.8\n"
+
+    def test_no_version_literal_reports_zero(self, bump: Any) -> None:
+        """A line with no project-version literal yields 0 subs (the caller
+        treats that as a misconfigured anchor)."""
+        line, n = bump.force_set_anchor_line("no version here at all\n", "0.10.7")
+        assert n == 0
+        assert line == "no version here at all\n"
+
+    def test_sub_010_dep_versions_below_floor_untouched(self, bump: Any) -> None:
+        """Third-party dep versions below the 0.7 family floor are NOT matched
+        (so a marker line that happens to mention a 0.6.x dep is left alone if
+        it carries no real project version)."""
+        line, n = bump.force_set_anchor_line("uses annotated-types 0.6.0\n", "0.10.7")
+        assert n == 0
+        assert line == "uses annotated-types 0.6.0\n"
+
+    def test_already_current_is_idempotent(self, bump: Any) -> None:
+        """Force-setting a line already at the target rewrites it to the same
+        value (1 sub, no change) — idempotent."""
+        line, n = bump.force_set_anchor_line("Latest: v0.10.7\n", "0.10.7")
+        assert n == 1
+        assert line == "Latest: v0.10.7\n"
+
+
+def _patch_tracked(
+    bump: Any, monkeypatch: pytest.MonkeyPatch, tracked: list[str]
+) -> None:
+    """Make the bump module's tracked_files() return a controlled list so the
+    anchor tests need no real git."""
+    monkeypatch.setattr(bump, "tracked_files", lambda: [Path(p) for p in tracked])
+
+
+class TestApplyAnchors:
+    """``apply_anchors`` force-sets anchored lines into the shared
+    file_text/file_subs accumulators, with the four misconfiguration guards."""
+
+    def test_force_sets_stale_line_leaves_historical_literal(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The motivating case: a frozen file whose live 'Latest' line is stale
+        gets bumped while a historical literal on a DIFFERENT line is left as
+        is."""
+        (chdir_tmp / "SECURITY.md").write_text(
+            "Latest patched release: 0.10.6\n"  # live line — should bump
+            "\n"
+            "## CVE-2026-0001 (fixed in 0.9.3)\n",  # historical — untouched
+            encoding="utf-8",
+        )
+        _patch_tracked(bump, monkeypatch, ["SECURITY.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "SECURITY.md"}],
+            "anchors": [
+                {"path": "SECURITY.md", "line_contains": "Latest patched release:"}
+            ],
+        }
+        file_text: dict[Path, str] = {}
+        file_subs: dict[Path, int] = {}
+        bump.apply_anchors(
+            manifest, "0.10.7", bump.tracked_files(), file_text, file_subs
+        )
+        out = file_text[Path("SECURITY.md")]
+        assert "Latest patched release: 0.10.7" in out
+        # Historical CVE literal on another line is untouched.
+        assert "CVE-2026-0001 (fixed in 0.9.3)" in out
+        assert file_subs[Path("SECURITY.md")] == 1
+
+    def test_runs_when_current_equals_target(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Force-set still fixes a stale anchored line even when target ==
+        current project version (the cur==target invocation path)."""
+        # target 0.10.7 == 'current', but the anchored line shows 0.10.6.
+        (chdir_tmp / "SECURITY.md").write_text(
+            "Latest: 0.10.6\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["SECURITY.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "SECURITY.md"}],
+            "anchors": [{"path": "SECURITY.md", "line_contains": "Latest:"}],
+        }
+        file_text: dict[Path, str] = {}
+        file_subs: dict[Path, int] = {}
+        bump.apply_anchors(
+            manifest, "0.10.7", bump.tracked_files(), file_text, file_subs
+        )
+        assert file_text[Path("SECURITY.md")] == "Latest: 0.10.7\n"
+
+    def test_v_prefix_preserved(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        (chdir_tmp / "README.md").write_text(
+            "Pinned image tag: :v0.10.6 here\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["README.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "README.md"}],
+            "anchors": [{"path": "README.md", "line_contains": "Pinned image tag:"}],
+        }
+        file_text: dict[Path, str] = {}
+        file_subs: dict[Path, int] = {}
+        bump.apply_anchors(
+            manifest, "0.10.8", bump.tracked_files(), file_text, file_subs
+        )
+        assert file_text[Path("README.md")] == "Pinned image tag: :v0.10.8 here\n"
+
+    def test_multi_line_marker_bumps_all(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A marker matching 2 lines bumps BOTH anchored lines."""
+        (chdir_tmp / "doc.md").write_text(
+            "Current release: 0.10.6\n"
+            "intervening line with no marker and old 0.9.0 ref\n"
+            "Current release: v0.10.5\n",
+            encoding="utf-8",
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md", "line_contains": "Current release:"}],
+        }
+        file_text: dict[Path, str] = {}
+        file_subs: dict[Path, int] = {}
+        bump.apply_anchors(
+            manifest, "0.10.7", bump.tracked_files(), file_text, file_subs
+        )
+        out = file_text[Path("doc.md")]
+        assert out == (
+            "Current release: 0.10.7\n"
+            "intervening line with no marker and old 0.9.0 ref\n"
+            "Current release: v0.10.7\n"
+        )
+        # Two anchored lines bumped.
+        assert file_subs[Path("doc.md")] == 2
+
+    def test_empty_anchors_is_noop(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _patch_tracked(bump, monkeypatch, ["x.md"])
+        manifest: dict[str, list[dict[str, str]]] = {
+            "tracked": [],
+            "frozen": [],
+            "anchors": [],
+        }
+        file_text: dict[Path, str] = {}
+        file_subs: dict[Path, int] = {}
+        bump.apply_anchors(
+            manifest, "0.10.7", bump.tracked_files(), file_text, file_subs
+        )
+        assert file_text == {}
+        assert file_subs == {}
+
+    # ── misconfiguration guards (each is a hard SystemExit) ───────────────
+
+    def test_guard_path_matches_no_file(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _patch_tracked(bump, monkeypatch, ["other.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "missing.md"}],
+            "anchors": [{"path": "missing.md", "line_contains": "x"}],
+        }
+        with pytest.raises(SystemExit, match="matched no git-tracked file"):
+            bump.apply_anchors(
+                manifest, "0.10.7", bump.tracked_files(), {}, {}
+            )
+
+    def test_guard_marker_matches_zero_lines(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        (chdir_tmp / "doc.md").write_text("no marker line here\n", encoding="utf-8")
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md", "line_contains": "Latest release:"}],
+        }
+        with pytest.raises(SystemExit, match="matched 0 lines"):
+            bump.apply_anchors(
+                manifest, "0.10.7", bump.tracked_files(), {}, {}
+            )
+
+    def test_guard_anchored_line_has_no_version(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        (chdir_tmp / "doc.md").write_text(
+            "Latest release: TBD\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md", "line_contains": "Latest release:"}],
+        }
+        with pytest.raises(SystemExit, match="no project-version literal"):
+            bump.apply_anchors(
+                manifest, "0.10.7", bump.tracked_files(), {}, {}
+            )
+
+    def test_guard_unclassified_file(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An anchor file in NEITHER tracked NOR frozen hard-fails — an anchor
+        is an overlay, not a substitute for never-skip classification."""
+        (chdir_tmp / "doc.md").write_text(
+            "Latest release: 0.10.6\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest: dict[str, list[dict[str, str]]] = {
+            "tracked": [],
+            "frozen": [],  # doc.md is NOT classified
+            "anchors": [{"path": "doc.md", "line_contains": "Latest release:"}],
+        }
+        with pytest.raises(SystemExit, match="NEITHER tracked NOR frozen"):
+            bump.apply_anchors(
+                manifest, "0.10.7", bump.tracked_files(), {}, {}
+            )

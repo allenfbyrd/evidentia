@@ -17,6 +17,16 @@ invariants against the working tree / HEAD:
      ``frozen`` is a HARD FAIL: a new version reference appeared that nobody
      classified, so the next bump would silently skip it.
 
+  3. ANCHORS — for each ``anchors`` overlay entry, assert that every anchored
+     line (a line in ``path`` containing the literal ``line_contains``
+     substring) holds the CURRENT version. This re-arms a LIVE "current
+     version" line that lives inside a file which is ``frozen`` WHOLESALE
+     (the frozen membership exempts the whole file from never-skip, so a
+     drifted live line would otherwise go uncaught). Anchors are ALWAYS
+     coverage-required, with misconfiguration guards (path matches no file,
+     marker matches 0 lines, anchored line has no version literal, anchor
+     file unclassified).
+
 The "current version" source of truth is
 ``packages/evidentia-core/pyproject.toml``'s ``version`` field — the same
 detector the bumper uses.
@@ -27,8 +37,9 @@ The per-``kind`` COVERAGE patterns are obtained from
 gate and the bumper can never use divergent patterns.
 
 Exit codes:
-    0 — PASS (coverage holds + no unclassified literal)
-    1 — FAIL (a tracked file is stale, OR an unclassified literal exists)
+    0 — PASS (coverage holds + no unclassified literal + anchors current)
+    1 — FAIL (a tracked file is stale, an unclassified literal exists, OR an
+        anchored line is stale / misconfigured)
     2 — usage / IO error
 
 Usage:
@@ -187,6 +198,88 @@ def check_never_skip(
     return failures
 
 
+def check_anchors(
+    bump: Any, manifest: dict[str, list[dict[str, str]]], current: str
+) -> list[str]:
+    """Assert every anchored line holds the CURRENT version (the overlay gate).
+
+    For each ``anchors`` entry, every line in ``path`` containing the literal
+    ``line_contains`` substring is an "anchored line" and MUST hold ``current``
+    (optionally ``v``-prefixed). A stale anchored line is a HARD FAIL — this is
+    the safeguard the file's wholesale ``frozen`` membership defeats.
+
+    Returns a list of human-readable failure strings (empty == pass). Covers
+    the four misconfiguration cases as failures too:
+      * ``path`` matches no git-tracked file;
+      * ``line_contains`` matches 0 lines;
+      * an anchored line carries NO project-version literal;
+      * the anchor's file is in NEITHER ``tracked`` NOR ``frozen``.
+    """
+    anchors = manifest.get("anchors") or []
+    if not anchors:
+        return []
+    failures: list[str] = []
+    all_tracked = bump.tracked_files()
+    classified = bump.classified_paths(manifest, all_tracked)
+    cur_re = re.escape(current)
+    # The current literal AS IT APPEARS on an anchored line: the project-family
+    # boundary guards + an optional ``v`` prefix, anchored to THIS version. Not
+    # followed by ``.digit`` so a 3-segment current does not spuriously match a
+    # 4-segment hot-fix literal on the same line.
+    current_re = re.compile(rf"(?<![\w.])v?{cur_re}(?!\.\d)(?![\w])")
+
+    for entry in anchors:
+        spec = entry["path"]
+        marker = entry["line_contains"]
+        matched_files = bump.expand_manifest_path(spec, all_tracked)
+        if not matched_files:
+            failures.append(
+                f"anchor path '{spec}' matched no git-tracked file — fix the "
+                f"path in scripts/version_tracked_files.yaml"
+            )
+            continue
+        for p in matched_files:
+            posix = p.as_posix()
+            if posix not in classified:
+                failures.append(
+                    f"anchor file {posix} is in NEITHER tracked NOR frozen — an "
+                    f"anchor is a coverage overlay, not a substitute for "
+                    f"never-skip classification; also classify it in "
+                    f"scripts/version_tracked_files.yaml"
+                )
+                continue
+            try:
+                lines = p.read_text(encoding="utf-8").splitlines()
+            except OSError as exc:
+                failures.append(f"cannot read anchor file {posix}: {exc}")
+                continue
+            marked = [ln for ln in lines if marker in ln]
+            if not marked:
+                failures.append(
+                    f"anchor marker '{marker}' matched 0 lines in {posix} — fix "
+                    f"the line_contains substring in "
+                    f"scripts/version_tracked_files.yaml"
+                )
+                continue
+            for ln in marked:
+                if not bump.ANCHOR_VERSION_RE.search(ln):
+                    failures.append(
+                        f"anchor line in {posix} containing '{marker}' carries "
+                        f"no project-version literal — fix the anchor in "
+                        f"scripts/version_tracked_files.yaml"
+                    )
+                    continue
+                if not current_re.search(ln):
+                    found_m = bump.ANCHOR_VERSION_RE.search(ln)
+                    found = found_m.group(0) if found_m else "?"
+                    failures.append(
+                        f"anchor stale in {posix}: line containing '{marker}' "
+                        f"shows {found} not {current}; run "
+                        f"scripts/bump_version.py"
+                    )
+    return failures
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -200,7 +293,8 @@ def main(argv: list[str] | None = None) -> int:
 
     coverage_failures = check_coverage(bump, manifest, current)
     never_skip_failures = check_never_skip(bump, manifest)
-    all_failures = coverage_failures + never_skip_failures
+    anchor_failures = check_anchors(bump, manifest, current)
+    all_failures = coverage_failures + never_skip_failures + anchor_failures
 
     if args.json:
         report = {
@@ -208,6 +302,7 @@ def main(argv: list[str] | None = None) -> int:
             "ok": not all_failures,
             "coverage_failures": coverage_failures,
             "never_skip_failures": never_skip_failures,
+            "anchor_failures": anchor_failures,
         }
         print(json.dumps(report, indent=2))
         return 0 if not all_failures else 1
@@ -215,7 +310,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"check_version_consistency: current project version = {current}")
     print(
         f"  manifest: {len(manifest['tracked'])} tracked entr(ies), "
-        f"{len(manifest['frozen'])} frozen entr(ies)"
+        f"{len(manifest['frozen'])} frozen entr(ies), "
+        f"{len(manifest.get('anchors') or [])} anchor entr(ies)"
     )
 
     if coverage_failures:
@@ -233,6 +329,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  - {f}")
     else:
         print("  never-skip: PASS — no unclassified project-version literal.")
+
+    if anchor_failures:
+        print()
+        print(f"ANCHOR FAILURES ({len(anchor_failures)}):")
+        for f in anchor_failures:
+            print(f"  - {f}")
+    else:
+        print("  anchors: PASS — every anchored live-version line is current.")
 
     print()
     if all_failures:
