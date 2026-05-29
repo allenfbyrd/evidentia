@@ -83,8 +83,7 @@ Full 5-minute walk-through: [Quickstart wiki page](https://github.com/Polycentri
 | Evidence collectors | 14 |
 | MCP tools | 13 |
 | OSCAL serializations | 1 (OpenSSF OSPS Baseline; more on the v0.11+ roadmap) |
-| Test suite | 3,536 tests (mypy strict 0/0 across 279 source files; ruff clean) |
-| Consecutive PROCEED-CLEAN releases | 19 (v0.7.x → v0.10.x line) |
+| Test suite | 3,700+ tests; mypy strict; ruff clean |
 
 ## Documentation
 

@@ -322,13 +322,20 @@ class TestRealManifest:
         }
 
     def test_citation_and_readme_are_tracked(self, bump: Any) -> None:
-        """The two NEW v0.10.7 E2 targets are present in tracked (not frozen)."""
+        """The NEW v0.10.7 tracked targets are present in tracked (not frozen)."""
         manifest = bump.load_manifest()
         tracked_paths = {e["path"] for e in manifest["tracked"]}
         frozen_paths = {e["path"] for e in manifest["frozen"]}
         assert "CITATION.cff" in tracked_paths
         assert "README.md" in tracked_paths
-        # Marketplace is FROZEN at marketplace cadence (controller decision).
+        # Marketplace plugin.json is TRACKED — it mirrors the evidentia-mcp
+        # release per the plugin's own "tracks the release line" design. The
+        # rest of the marketplace tree stays frozen for its historical literals
+        # (the v0.10.2-marketplace.md doc-link + the scope-decision citation).
+        assert (
+            "marketplace/grc-engineering-suite/plugins/evidentia/"
+            ".claude-plugin/plugin.json" in tracked_paths
+        )
         assert "marketplace/**" in frozen_paths
         assert "CITATION.cff" not in frozen_paths
         assert "README.md" not in frozen_paths

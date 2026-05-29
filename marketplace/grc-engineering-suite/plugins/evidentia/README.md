@@ -3,7 +3,7 @@
 > Open-source plugin for the [GRC Engineering Club's Claude Code
 > marketplace](https://github.com/GRCEngClub/claude-grc-engineering).
 > Wraps [Evidentia](https://github.com/Polycentric-Labs/evidentia)'s
-> 12 MCP tools so AI clients (Claude Desktop, Claude Code) can drive
+> 13 MCP tools so AI clients (Claude Desktop, Claude Code) can drive
 > gap analysis, SARIF CI-gate output, OCSF ingestion, TPRM, and
 > POA&M end-to-end without leaving the chat.
 
@@ -36,9 +36,9 @@ Claude Desktop config:
 
 ```bash
 # Install
-pip install 'evidentia[gui]==0.10.2'      # CLI + UI
-pip install 'evidentia-mcp==0.10.2'        # MCP server entry point
-pip install 'evidentia-collectors[ocsf]==0.10.2'  # for ingest-ocsf
+pip install 'evidentia[gui]'               # CLI + UI
+pip install 'evidentia-mcp'                # MCP server entry point
+pip install 'evidentia-collectors[ocsf]'   # for ingest-ocsf
 
 # Register the MCP server. Example Claude Desktop config snippet:
 {
@@ -62,8 +62,10 @@ MIT; the per-plugin license is what governs the plugin code.)
 
 ## Versioning
 
-This plugin tracks the Evidentia release line — v0.10.2 of the
-plugin pairs with v0.10.2 of `evidentia-mcp`. The 12 MCP tool names
+This plugin tracks the Evidentia release line: each plugin release
+pairs with the same-numbered `evidentia-mcp` release, and the
+plugin's `.claude-plugin/plugin.json` version mirrors the
+`evidentia-mcp` version it targets. The 13 MCP tool names
 are frozen per [Evidentia's `api-stability.md` §MCP tool
 contract](https://github.com/Polycentric-Labs/evidentia/blob/main/docs/api-stability.md),
 so plugin commands stay compatible with future Evidentia minor
