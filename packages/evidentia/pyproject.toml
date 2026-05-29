@@ -67,6 +67,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/evidentia"]
+# Ship the bundled example data files (non-.py) so a fresh
+# `pip install evidentia` user can run the quickstart with zero setup.
+# Resolved at runtime via `importlib.resources.files("evidentia.examples")`.
+# Explicit so inclusion does not silently depend on VCS-tracking state.
+artifacts = ["src/evidentia/examples/*.yaml"]
 
 [tool.uv.sources]
 evidentia-core = { workspace = true }

@@ -1,0 +1,152 @@
+# Evidentia sample control inventory — starting template.
+#
+# This file ships INSIDE the installed `evidentia` package so a fresh
+# `pip install evidentia` user can run the quickstart with zero setup.
+# Locate it from Python with:
+#
+#     from importlib.resources import files
+#     path = files("evidentia.examples") / "sample-inventory.yaml"
+#
+# Then run a gap analysis against a bundled framework:
+#
+#     evidentia gap analyze \
+#         --inventory <path-to-this-file> \
+#         --frameworks nist-800-53-rev5-moderate \
+#         --output gap-report.json
+#
+# WHAT THIS IS
+# ------------
+# A control *inventory* describes what your organization actually does
+# today ("what do we have?"). The gap analyzer compares it against a
+# framework catalog ("what does the framework require?") and reports the
+# gaps. This is NOT an evidence directory — `--inventory` takes a single
+# YAML, CSV, or JSON file in this shape.
+#
+# SCHEMA
+# ------
+#   organization          : str   — shown in report headers.
+#   controls[]            : list  — one entry per control you implement.
+#     id                  : str   — control ID, matching framework IDs
+#                                   (e.g. AC-2, SC-13, CC6.1).
+#     title               : str   — optional human-readable title.
+#     status              : enum  — implemented | partially_implemented |
+#                                   planned | not_implemented |
+#                                   not_applicable.
+#     implementation_notes: str   — optional free text.
+#     owner               : str   — optional responsible team/person.
+#
+# To scope the report to a specific system/product, pass
+# `--system-name "My Platform"` on the command line (the YAML loader does
+# not read a `system_name:` key). Likewise `--organization` overrides the
+# `organization:` value below.
+#
+# The control IDs below are all drawn from the bundled
+# `nist-800-53-rev5-moderate` catalog so this template produces a
+# meaningful report out of the box. Replace these with YOUR controls,
+# then re-run the command above.
+
+organization: "Example Organization"
+controls:
+  # --- Access Control (AC) ---
+  - id: AC-2
+    title: "Account Management"
+    status: implemented
+    implementation_notes: "Accounts provisioned via SSO; quarterly access reviews."
+    owner: "IAM Team"
+
+  - id: AC-3
+    title: "Access Enforcement"
+    status: implemented
+    implementation_notes: "Role-based access control enforced in production."
+    owner: "IAM Team"
+
+  - id: AC-6
+    title: "Least Privilege"
+    status: partially_implemented
+    implementation_notes: "Time-bound production access; standing-access cleanup in progress."
+    owner: "Platform Engineering"
+
+  # --- Audit and Accountability (AU) ---
+  - id: AU-2
+    title: "Event Logging"
+    status: implemented
+    implementation_notes: "Security-relevant events logged to centralized store."
+    owner: "Security"
+
+  - id: AU-6
+    title: "Audit Record Review, Analysis, and Reporting"
+    status: planned
+    implementation_notes: "Automated log analysis scheduled for next quarter."
+    owner: "Security"
+
+  - id: AU-12
+    title: "Audit Record Generation"
+    status: implemented
+    implementation_notes: "Application and infrastructure components emit audit records."
+    owner: "Platform Engineering"
+
+  # --- Identification and Authentication (IA) ---
+  - id: IA-2
+    title: "Identification and Authentication (Organizational Users)"
+    status: implemented
+    implementation_notes: "MFA enforced on all employee accounts."
+    owner: "IAM Team"
+
+  - id: IA-5
+    title: "Authenticator Management"
+    status: implemented
+    implementation_notes: "Password policy enforced; hardware keys for privileged users."
+    owner: "IAM Team"
+
+  # --- System and Communications Protection (SC) ---
+  - id: SC-7
+    title: "Boundary Protection"
+    status: partially_implemented
+    implementation_notes: "Perimeter firewalls in place; internal segmentation maturing."
+    owner: "Network Security"
+
+  - id: SC-13
+    title: "Cryptographic Protection"
+    status: implemented
+    implementation_notes: "TLS 1.2+ in transit; AES-256 at rest."
+    owner: "Platform Engineering"
+
+  # --- Configuration Management (CM) ---
+  - id: CM-2
+    title: "Baseline Configuration"
+    status: implemented
+    implementation_notes: "Infrastructure-as-code baselines tracked in version control."
+    owner: "Platform Engineering"
+
+  - id: CM-6
+    title: "Configuration Settings"
+    status: partially_implemented
+    implementation_notes: "Hardening guides applied to most images; full coverage in progress."
+    owner: "Platform Engineering"
+
+  # --- Contingency Planning (CP) ---
+  - id: CP-9
+    title: "System Backup"
+    status: implemented
+    implementation_notes: "Automated daily backups with periodic restore tests."
+    owner: "SRE"
+
+  - id: CP-10
+    title: "System Recovery and Reconstitution"
+    status: planned
+    implementation_notes: "Disaster-recovery runbook drafted; tabletop exercise pending."
+    owner: "SRE"
+
+  # --- Risk Assessment (RA) ---
+  - id: RA-5
+    title: "Vulnerability Monitoring and Scanning"
+    status: implemented
+    implementation_notes: "Continuous dependency and container scanning in CI."
+    owner: "Security"
+
+  # --- System and Information Integrity (SI) ---
+  - id: SI-4
+    title: "System Monitoring"
+    status: not_implemented
+    implementation_notes: "Centralized intrusion-detection tooling not yet deployed."
+    owner: "Security"
