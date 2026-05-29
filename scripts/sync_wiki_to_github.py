@@ -71,6 +71,7 @@ ACRONYM_FIXUPS: dict[str, str] = {
     r"\bVex\b": "VEX",
     r"\bSbom\b": "SBOM",
     r"\bIa\b": "IA",
+    r"\bAi\b": "AI",
     r"\bSso\b": "SSO",
     r"\bRest\b": "REST",
 }
@@ -105,6 +106,14 @@ def wiki_flat_name(path: Path) -> str:
 
     if len(parts) == 2:
         return to_titlecase(parts[1].removesuffix(".md"))
+
+    if len(parts) == 3:
+        # Nested subsection (e.g. the per-package API pages under
+        # 4-reference/api/). GitHub Wiki is flat, so join the
+        # subdirectory + leaf into a distinct, collision-free name:
+        # 4-reference/api/evidentia-core.md -> Api-Evidentia-Core.
+        joined = "-".join(parts[1:]).removesuffix(".md")
+        return to_titlecase(joined)
 
     raise ValueError(f"Unexpected wiki path depth: {path}")
 

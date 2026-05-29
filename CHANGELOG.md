@@ -37,6 +37,7 @@ _No changes yet on the v0.10.8 development branch._
 - `audit_workflow_permissions.py` — `yaml.safe_load` `None`-result guard so an empty workflow file no longer raises `AttributeError`. See commit `f1c41a0`.
 - `check_uv_lock_pin_drift` (pre-push hook) reads the workspace-member allowlist from `pyproject.toml` rather than a hardcoded list, so a new workspace package can't silently evade the third-party-pin-drift check (the v0.10.0 F-V100-M1 pattern). See commit `50ed380`.
 - `check_secrets` (pre-push hook) now value-precisely allowlists the canonical AWS documentation example keys (`AKIAIOSFODNN7EXAMPLE` / `AKIAI44QH8DHBEXAMPLE`), so security docs that teach about AWS keys no longer false-positive the AWS access-key scan; a real `AKIA`+16 token in the same file still blocks (detection intact).
+- `sync_wiki_to_github.py` flattener now maps the 3-level `4-reference/api/<pkg>.md` pages onto GitHub's flat wiki namespace (e.g. `API-Evidentia-Core`) instead of raising `ValueError: Unexpected wiki path depth` — the 7 per-package API pages were failing the `sync-wiki` workflow. Adds the flattener's first test coverage.
 
 ### Docs
 
