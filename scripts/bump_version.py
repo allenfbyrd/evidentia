@@ -58,6 +58,7 @@ import subprocess
 import sys
 import tomllib
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -312,6 +313,32 @@ def replacements_for_kind(
 # ── Anchor overlay (v0.10.7) ───────────────────────────────────────────────
 
 
+def _require_anchor_str(entry: dict[str, Any], key: str) -> str:
+    """Return ``entry[key]`` as a ``str`` or ``sys.exit`` with a clean message.
+
+    M-1 hardening: a malformed ``anchors`` entry (a missing or mistyped
+    required key) must surface as a clean, actionable error rather than a raw
+    ``KeyError`` / ``TypeError`` deep in the substring scan. Both the bumper
+    (:func:`apply_anchors`) and the checker
+    (``check_version_consistency.check_anchors``) route their ``path`` /
+    ``line_contains`` reads through this so the validation lives in one place.
+    """
+    if key not in entry:
+        sys.exit(
+            f"malformed anchor entry {entry!r}: missing required {key!r} key — "
+            f"each anchor needs a 'path' and a 'line_contains' (both strings) in "
+            f"scripts/version_tracked_files.yaml"
+        )
+    value = entry[key]
+    if not isinstance(value, str):
+        sys.exit(
+            f"malformed anchor entry {entry!r}: {key!r} must be a string, got "
+            f"{type(value).__name__} — fix it in "
+            f"scripts/version_tracked_files.yaml"
+        )
+    return value
+
+
 def force_set_anchor_line(line: str, target: str) -> tuple[str, int]:
     """Force-set every project-version literal on a single anchored line.
 
@@ -319,11 +346,21 @@ def force_set_anchor_line(line: str, target: str) -> tuple[str, int]:
     boundary guards, optionally ``v``-prefixed) has its numeric body replaced
     with ``target``, regardless of the literal's prior value (so a stale
     ``v0.10.6`` becomes ``v<target>``). A leading ``v`` is PRESERVED. Only the
-    matched version token is rewritten; surrounding text is untouched.
+    matched version token within the line string is rewritten; the rest of the
+    line string is byte-for-byte untouched.
+
+    Note: ":func:`apply_anchors` enforces an EXACTLY-ONE-live-literal invariant
+    before calling this (0 or >1 matches are hard errors), so in practice this
+    rewrites a single token. The line endings of the file as a whole are
+    normalized to LF on write-back by ``Path.write_text`` in :func:`main` —
+    shared with the tracked-substitution loop — so the "touches nothing else"
+    guarantee is scoped to LF-newline files (a CRLF file's terminators become
+    LF, exactly as for any tracked file the bumper rewrites).
 
     Returns ``(new_line, n_substitutions)``. ``n_substitutions == 0`` means the
-    line carried no project-version literal — a misconfigured anchor, surfaced
-    by the callers as a hard error.
+    line carried no project-version literal; ``> 1`` means it carried multiple
+    in-family literals — both are misconfigured anchors, surfaced by the callers
+    as hard errors (the exactly-one-live-literal contract).
     """
 
     def _repl(m: re.Match[str]) -> str:
@@ -360,19 +397,34 @@ def apply_anchors(
     """Force-set the version on every anchored line (the ``anchors:`` overlay).
 
     For each anchor entry, locate every line in ``path`` that contains the
-    literal ``line_contains`` substring and force-set its project-version
-    literal(s) to ``target`` (preserving a leading ``v``). Mutates the shared
+    literal ``line_contains`` substring and force-set its SINGLE project-version
+    literal to ``target`` (preserving a leading ``v``). Mutates the shared
     ``file_text`` / ``file_subs`` accumulators in place so the caller's output
     aggregation and write-back treat anchored files exactly like tracked ones.
+    Write-back (in :func:`main`) uses ``Path.write_text``, which normalizes the
+    file's line endings to LF — shared with the tracked-substitution loop — so
+    an anchored CRLF file's terminators become LF exactly as for any tracked
+    file the bumper rewrites; nothing else on the anchored line changes.
 
     Runs unconditionally — even when ``current == target`` — so a drifted
     anchored line is fixed on any invocation.
 
+    **Exactly-one-live-literal contract**: an anchored line must carry EXACTLY
+    ONE in-family project-version literal (matched by :data:`ANCHOR_VERSION_RE`).
+    ``0`` literals or ``> 1`` literals are HARD ERRORS — the latter closes the
+    multi-literal footgun where a second in-family token on the line (a
+    historical project version OR a third-party ``>=0.7`` dependency version)
+    would otherwise be silently rewritten by the force-set.
+
     Misconfiguration is a HARD ERROR (``SystemExit``):
+      * an anchor entry missing the required ``path`` / ``line_contains`` keys,
+        or carrying a non-``str`` value for either (a clean exit, not KeyError);
       * ``path`` matches no git-tracked file;
+      * the anchor's file is in NEITHER ``tracked`` NOR ``frozen``;
       * ``line_contains`` matches 0 lines in the file;
       * a matched (anchored) line contains NO project-version literal;
-      * the anchor's file is in NEITHER ``tracked`` NOR ``frozen``.
+      * a matched (anchored) line contains MORE THAN ONE project-version literal
+        (ambiguous anchor).
     """
     anchors = manifest.get("anchors") or []
     if not anchors:
@@ -380,8 +432,8 @@ def apply_anchors(
     classified = classified_paths(manifest, all_tracked)
 
     for entry in anchors:
-        spec = entry["path"]
-        marker = entry["line_contains"]
+        spec = _require_anchor_str(entry, "path")
+        marker = _require_anchor_str(entry, "line_contains")
         matched_files = expand_manifest_path(spec, all_tracked)
         if not matched_files:
             sys.exit(
@@ -412,13 +464,21 @@ def apply_anchors(
                 )
             subs_here = 0
             for i in marked:
-                new_line, n = force_set_anchor_line(lines[i], target)
-                if n == 0:
+                n_literals = len(ANCHOR_VERSION_RE.findall(lines[i]))
+                if n_literals == 0:
                     sys.exit(
                         f"anchor line in {posix} containing {marker!r} carries no "
                         f"project-version literal to set — fix the anchor in "
                         f"scripts/version_tracked_files.yaml"
                     )
+                if n_literals > 1:
+                    sys.exit(
+                        f"ambiguous anchor: line containing {marker!r} in {posix} "
+                        f"has {n_literals} project-version literals; use a more "
+                        f"specific line_contains so exactly ONE live version is "
+                        f"anchored"
+                    )
+                new_line, n = force_set_anchor_line(lines[i], target)
                 lines[i] = new_line
                 subs_here += n
             file_text[p] = "".join(lines)

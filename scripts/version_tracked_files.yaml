@@ -88,25 +88,48 @@
 #                    git-tracked file list.
 #     line_contains: a LITERAL substring (not a regex) that uniquely identifies
 #                    the live-version line(s). EVERY line in the file containing
-#                    this substring is an "anchored line".
+#                    this substring is an "anchored line". Choose it PRECISELY:
+#                    an anchored line must hold EXACTLY ONE in-family project-
+#                    version literal (see the EXACTLY-ONE rule below), so the
+#                    substring must be specific enough that the matched line
+#                    carries the single live version and no second in-family
+#                    literal (no historical project version, no third-party
+#                    `>=0.7` dependency version, on the same physical line).
 #     desc:          human note (why this live line must track the release).
 #
 #   Semantics:
-#     * BUMP (bump_version.py): on each anchored line, the project-version
+#     * EXACTLY-ONE-LIVE-LITERAL (HARD requirement, both tools): every anchored
+#       line MUST carry EXACTLY ONE in-family project-version literal (the
+#       `0.7.x`..`0.99.x` family the bumper's ANCHOR_VERSION_RE / the checker's
+#       PROJECT_VERSION_RE match). ZERO literals OR MORE THAN ONE literal on an
+#       anchored line is a HARD ERROR in BOTH the bumper and the checker. This
+#       closes the multi-literal footgun: a marker line that also carries a
+#       SECOND in-family literal (a historical project version like
+#       `Latest: v0.10.7 (was v0.10.6)`, OR a third-party dependency version
+#       `>=0.7` on the same line) would otherwise be silently corrupted by the
+#       force-set AND let the checker pass a stale live token. If a line trips
+#       the >1 guard, pick a more specific `line_contains` so exactly ONE live
+#       version is anchored (or split the live claim onto its own line).
+#     * BUMP (bump_version.py): on each anchored line, the SINGLE project-version
 #       literal is FORCE-SET to the target — regardless of the line's prior
 #       value (so a stale 0.10.6 becomes 0.10.7 even though the normal
 #       cur->target replacement would not have matched 0.10.6). A leading `v`
 #       is preserved (`:v0.10.6` -> `:v0.10.7`). Only the X.Y.Z(.W) numeric on
-#       the anchored line is touched; other text on the line is untouched. The
-#       force-set runs even when current == target, so a drifted anchor is
-#       fixable on any invocation.
-#     * COVERAGE (check_version_consistency.py): each anchored line MUST contain
-#       the CURRENT version. An anchored line showing an old version is a HARD
-#       FAIL (this is the safeguard the wholesale `frozen` membership defeats).
-#       Anchors are ALWAYS coverage-required.
-#     * MISCONFIG GUARDS (both tools): an anchor whose `path` matches no
-#       git-tracked file, whose `line_contains` matches 0 lines, or whose
-#       anchored line carries NO project-version literal is a HARD FAIL.
+#       the anchored line is touched; other text on the line is untouched (the
+#       file's line endings are normalized to LF on write-back, shared with the
+#       tracked loop). The force-set runs even when current == target, so a
+#       drifted anchor is fixable on any invocation.
+#     * COVERAGE (check_version_consistency.py): the SINGLE literal on each
+#       anchored line MUST EQUAL the CURRENT version (not merely appear
+#       somewhere on the line). An anchored line showing an old version is a
+#       HARD FAIL (this is the safeguard the wholesale `frozen` membership
+#       defeats). Anchors are ALWAYS coverage-required.
+#     * MISCONFIG GUARDS (both tools): an anchor entry missing/mistyping its
+#       required `path` / `line_contains` keys (clean error, not a raw
+#       KeyError), an anchor whose `path` matches no git-tracked file, whose
+#       `line_contains` matches 0 lines, whose anchored line carries NO project-
+#       version literal, or whose anchored line carries MORE THAN ONE project-
+#       version literal is a HARD FAIL.
 #     * CLASSIFICATION: an anchor is an OVERLAY, not a substitute for never-skip
 #       classification. An anchor's file MUST ALSO appear in `tracked` OR
 #       `frozen` (so never-skip already classifies it). An anchor file in
@@ -119,7 +142,9 @@
 #         desc: >-
 #           SECURITY.md is frozen wholesale (its CVE-disposition narrative cites
 #           historical versions), but the "Latest patched release: vX.Y.Z" line
-#           is a LIVE claim that must track each ship.
+#           is a LIVE claim that must track each ship. The marker is precise
+#           enough that the matched line carries exactly ONE live version (no
+#           "(was vX.Y.Z-1)" tail, no dep pin) per the EXACTLY-ONE rule above.
 #
 # ───────────────────────────────────────────────────────────────────────────
 # Adding a new file that carries the project version?  Add it to `tracked`

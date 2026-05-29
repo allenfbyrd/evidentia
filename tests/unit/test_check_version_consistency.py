@@ -459,6 +459,179 @@ def test_anchor_classified_via_glob(
     assert check.check_anchors(bump, manifest, "0.10.7") == []
 
 
+# ── FIX-1: exactly-one-live-literal invariant on anchored lines ───────────
+
+
+def test_anchor_ambiguous_two_project_literals_historical(
+    check: Any, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An anchored line carrying the current literal AND a second in-family
+    PROJECT literal (a historical project version on the same line) is an
+    ambiguous anchor — a HARD FAIL. The checker must NOT pass merely because
+    the current token appears somewhere on the line."""
+    (chdir_tmp / "doc.md").write_text(
+        "Latest: v0.10.7 (was v0.10.6)\n", encoding="utf-8"
+    )
+    _make_bump_with_tracked(bump, monkeypatch, ["doc.md"], [])
+    manifest = {
+        "tracked": [],
+        "frozen": [{"path": "doc.md"}],
+        "anchors": [{"path": "doc.md", "line_contains": "Latest:"}],
+    }
+    failures = check.check_anchors(bump, manifest, "0.10.7")
+    assert len(failures) == 1
+    assert "ambiguous anchor" in failures[0]
+    assert "Latest:" in failures[0]
+    assert "doc.md" in failures[0]
+    assert "2 project-version literals" in failures[0]
+
+
+def test_anchor_ambiguous_third_party_in_family_literal(
+    check: Any, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An anchored line carrying the current project literal AND a 3rd-party
+    dependency literal in the >=0.7 project family on the SAME line is also
+    ambiguous — a HARD FAIL (otherwise the gate could pass a stale live token
+    that the bumper would have corrupted)."""
+    (chdir_tmp / "doc.md").write_text(
+        "Pinned evidentia 0.10.7 with somedep 0.9.5 today\n", encoding="utf-8"
+    )
+    _make_bump_with_tracked(bump, monkeypatch, ["doc.md"], [])
+    manifest = {
+        "tracked": [],
+        "frozen": [{"path": "doc.md"}],
+        "anchors": [{"path": "doc.md", "line_contains": "Pinned evidentia"}],
+    }
+    failures = check.check_anchors(bump, manifest, "0.10.7")
+    assert len(failures) == 1
+    assert "ambiguous anchor" in failures[0]
+
+
+def test_anchor_single_literal_must_equal_current_not_merely_present(
+    check: Any, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The SINGLE literal on an anchored line must EQUAL current — not merely
+    'current appears somewhere'. A single STALE literal still fails (this is the
+    plain-stale path, retained after the exactly-one tightening)."""
+    (chdir_tmp / "doc.md").write_text(
+        "Latest patched release: v0.10.6\n", encoding="utf-8"
+    )
+    _make_bump_with_tracked(bump, monkeypatch, ["doc.md"], [])
+    manifest = {
+        "tracked": [],
+        "frozen": [{"path": "doc.md"}],
+        "anchors": [{"path": "doc.md", "line_contains": "Latest patched release:"}],
+    }
+    failures = check.check_anchors(bump, manifest, "0.10.7")
+    assert len(failures) == 1
+    assert "shows v0.10.6 not 0.10.7" in failures[0]
+
+
+def test_anchor_single_literal_equal_current_passes(
+    check: Any, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Exactly one live literal equal to current passes (happy path retained)."""
+    (chdir_tmp / "doc.md").write_text(
+        "Latest release tag: v0.10.7\n", encoding="utf-8"
+    )
+    _make_bump_with_tracked(bump, monkeypatch, ["doc.md"], [])
+    manifest = {
+        "tracked": [],
+        "frozen": [{"path": "doc.md"}],
+        "anchors": [{"path": "doc.md", "line_contains": "Latest release tag:"}],
+    }
+    assert check.check_anchors(bump, manifest, "0.10.7") == []
+
+
+# ── FIX-2 (M-1): malformed anchor entry → clean failure string, not KeyError ─
+
+
+def test_anchor_malformed_missing_line_contains_clean_failure(
+    check: Any, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An anchor entry missing ``line_contains`` yields an appended failure
+    string (NOT a raw KeyError)."""
+    (chdir_tmp / "doc.md").write_text("Latest: 0.10.7\n", encoding="utf-8")
+    _make_bump_with_tracked(bump, monkeypatch, ["doc.md"], [])
+    manifest = {
+        "tracked": [],
+        "frozen": [{"path": "doc.md"}],
+        "anchors": [{"path": "doc.md"}],  # line_contains missing
+    }
+    failures = check.check_anchors(bump, manifest, "0.10.7")
+    assert len(failures) == 1
+    assert "line_contains" in failures[0]
+
+
+def test_anchor_malformed_missing_path_clean_failure(
+    check: Any, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An anchor entry missing ``path`` yields an appended failure string (NOT
+    a raw KeyError)."""
+    _make_bump_with_tracked(bump, monkeypatch, ["doc.md"], [])
+    manifest = {
+        "tracked": [],
+        "frozen": [{"path": "doc.md"}],
+        "anchors": [{"line_contains": "Latest:"}],  # path missing
+    }
+    failures = check.check_anchors(bump, manifest, "0.10.7")
+    assert len(failures) == 1
+    assert "path" in failures[0]
+
+
+# ── FIX-3 (M-2): never-skip routes through the shared classified_paths ────
+
+
+def test_never_skip_uses_shared_classified_paths(
+    check: Any, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """check_never_skip routes classification through bump.classified_paths so
+    there is ONE definition of the tracked∪frozen union. We assert that helper
+    is actually consulted by spying on it."""
+    (chdir_tmp / "CHANGELOG.md").write_text(
+        "## [0.7.0]\n", encoding="utf-8"
+    )
+    _make_bump_with_tracked(bump, monkeypatch, ["CHANGELOG.md"], [])
+    manifest = {"tracked": [], "frozen": [{"path": "CHANGELOG.md"}]}
+
+    calls: list[Any] = []
+    real = bump.classified_paths
+
+    def _spy(m: Any, tracked: Any) -> set[str]:
+        calls.append((m, tracked))
+        return real(m, tracked)
+
+    monkeypatch.setattr(bump, "classified_paths", _spy)
+    assert check.check_never_skip(bump, manifest) == []
+    assert calls, "check_never_skip must consult bump.classified_paths"
+
+
+def test_never_skip_classified_set_identical_via_shared_helper(
+    check: Any, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The classified set check_never_skip relies on equals what the shared
+    bump.classified_paths produces for the same manifest + tracked list (the
+    'identical before/after the DRY refactor' guarantee)."""
+    (chdir_tmp / "CHANGELOG.md").write_text("0.7.0\n", encoding="utf-8")
+    (chdir_tmp / "pyproject.toml").write_text(
+        'version = "0.10.7"\n', encoding="utf-8"
+    )
+    tracked = ["CHANGELOG.md", "pyproject.toml", "docs/old.md"]
+    _make_bump_with_tracked(bump, monkeypatch, tracked, [])
+    manifest = {
+        "tracked": [{"path": "pyproject.toml", "kind": "python_version"}],
+        "frozen": [{"path": "CHANGELOG.md"}, {"path": "docs/**"}],
+    }
+    expected = bump.classified_paths(manifest, bump.tracked_files())
+    # docs/old.md is classified by the docs/** glob; both tracked + frozen
+    # literals are present.
+    assert "CHANGELOG.md" in expected
+    assert "pyproject.toml" in expected
+    assert "docs/old.md" in expected
+    # And never-skip passes (every literal-bearing file is classified).
+    assert check.check_never_skip(bump, manifest) == []
+
+
 def test_real_repo_anchor_check_passes(check: Any) -> None:
     """The committed manifest (empty anchors) yields no anchor failures."""
     bump = check._load_bump_module()

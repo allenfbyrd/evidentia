@@ -19,13 +19,17 @@ invariants against the working tree / HEAD:
 
   3. ANCHORS — for each ``anchors`` overlay entry, assert that every anchored
      line (a line in ``path`` containing the literal ``line_contains``
-     substring) holds the CURRENT version. This re-arms a LIVE "current
-     version" line that lives inside a file which is ``frozen`` WHOLESALE
-     (the frozen membership exempts the whole file from never-skip, so a
-     drifted live line would otherwise go uncaught). Anchors are ALWAYS
-     coverage-required, with misconfiguration guards (path matches no file,
-     marker matches 0 lines, anchored line has no version literal, anchor
-     file unclassified).
+     substring) carries EXACTLY ONE in-family project-version literal and that
+     the single literal EQUALS the CURRENT version. This re-arms a LIVE
+     "current version" line that lives inside a file which is ``frozen``
+     WHOLESALE (the frozen membership exempts the whole file from never-skip,
+     so a drifted live line would otherwise go uncaught). Anchors are ALWAYS
+     coverage-required, with misconfiguration guards (malformed entry, path
+     matches no file, marker matches 0 lines, anchored line has 0 OR >1 version
+     literals, anchor file unclassified). The >1 guard closes the multi-literal
+     footgun where a second in-family token on the line (a historical project
+     version or a third-party >=0.7 dependency version) would let the gate pass
+     a stale live token while the bumper silently corrupts the second literal.
 
 The "current version" source of truth is
 ``packages/evidentia-core/pyproject.toml``'s ``version`` field — the same
@@ -154,15 +158,6 @@ def check_coverage(bump: Any, manifest: dict[str, list[dict[str, str]]], current
     return failures
 
 
-def _classify_spec_matchers(
-    manifest: dict[str, list[dict[str, str]]],
-) -> tuple[list[str], list[str]]:
-    """Return (tracked_specs, frozen_specs) as deduplicated path/glob lists."""
-    tracked = sorted({e["path"] for e in manifest["tracked"]})
-    frozen = sorted({e["path"] for e in manifest["frozen"]})
-    return tracked, frozen
-
-
 def check_never_skip(
     bump: Any, manifest: dict[str, list[dict[str, str]]]
 ) -> list[str]:
@@ -170,15 +165,15 @@ def check_never_skip(
     in NEITHER tracked NOR frozen.
 
     Returns a list of failure strings (one per unclassified file).
-    """
-    tracked_specs, frozen_specs = _classify_spec_matchers(manifest)
-    all_tracked = bump.tracked_files()
 
-    # Pre-expand every spec into the concrete set of classified files.
-    classified: set[str] = set()
-    for spec in tracked_specs + frozen_specs:
-        for p in bump.expand_manifest_path(spec, all_tracked):
-            classified.add(p.as_posix())
+    M-2 (DRY): the tracked∪frozen union is built by the shared
+    ``bump.classified_paths`` helper (the SAME one the anchor overlay uses), so
+    there is exactly ONE definition of "the classified set" across both tools —
+    the bumper's ``apply_anchors`` and this gate can never compute it
+    differently.
+    """
+    all_tracked = bump.tracked_files()
+    classified = bump.classified_paths(manifest, all_tracked)
 
     failures: list[str] = []
     for p in all_tracked:
@@ -201,19 +196,28 @@ def check_never_skip(
 def check_anchors(
     bump: Any, manifest: dict[str, list[dict[str, str]]], current: str
 ) -> list[str]:
-    """Assert every anchored line holds the CURRENT version (the overlay gate).
+    """Assert every anchored line holds EXACTLY ONE current-version literal.
 
     For each ``anchors`` entry, every line in ``path`` containing the literal
-    ``line_contains`` substring is an "anchored line" and MUST hold ``current``
-    (optionally ``v``-prefixed). A stale anchored line is a HARD FAIL — this is
-    the safeguard the file's wholesale ``frozen`` membership defeats.
+    ``line_contains`` substring is an "anchored line". The EXACTLY-ONE-live-
+    literal contract requires that line to carry EXACTLY ONE in-family
+    project-version literal (matched by ``bump.ANCHOR_VERSION_RE``) and that the
+    single literal EQUAL ``current`` (optionally ``v``-prefixed). A stale
+    anchored line is a HARD FAIL — this is the safeguard the file's wholesale
+    ``frozen`` membership defeats.
 
-    Returns a list of human-readable failure strings (empty == pass). Covers
-    the four misconfiguration cases as failures too:
+    Returns a list of human-readable failure strings (empty == pass). Covers the
+    misconfiguration cases as failures too:
+      * an anchor entry missing/mistyping ``path`` / ``line_contains`` (a clean
+        appended failure, not a raw KeyError);
       * ``path`` matches no git-tracked file;
+      * the anchor's file is in NEITHER ``tracked`` NOR ``frozen``;
       * ``line_contains`` matches 0 lines;
       * an anchored line carries NO project-version literal;
-      * the anchor's file is in NEITHER ``tracked`` NOR ``frozen``.
+      * an anchored line carries MORE THAN ONE project-version literal
+        (ambiguous anchor — closes the multi-literal footgun where a second
+        in-family token on the line would let the gate pass a stale live token
+        while the bumper silently corrupts the second literal).
     """
     anchors = manifest.get("anchors") or []
     if not anchors:
@@ -221,16 +225,16 @@ def check_anchors(
     failures: list[str] = []
     all_tracked = bump.tracked_files()
     classified = bump.classified_paths(manifest, all_tracked)
-    cur_re = re.escape(current)
-    # The current literal AS IT APPEARS on an anchored line: the project-family
-    # boundary guards + an optional ``v`` prefix, anchored to THIS version. Not
-    # followed by ``.digit`` so a 3-segment current does not spuriously match a
-    # 4-segment hot-fix literal on the same line.
-    current_re = re.compile(rf"(?<![\w.])v?{cur_re}(?!\.\d)(?![\w])")
 
     for entry in anchors:
-        spec = entry["path"]
-        marker = entry["line_contains"]
+        # M-1: validate entry shape up front; a malformed entry becomes a clean
+        # appended failure (the checker accumulates strings; it never exits).
+        try:
+            spec = bump._require_anchor_str(entry, "path")
+            marker = bump._require_anchor_str(entry, "line_contains")
+        except SystemExit as exc:
+            failures.append(str(exc))
+            continue
         matched_files = bump.expand_manifest_path(spec, all_tracked)
         if not matched_files:
             failures.append(
@@ -262,16 +266,29 @@ def check_anchors(
                 )
                 continue
             for ln in marked:
-                if not bump.ANCHOR_VERSION_RE.search(ln):
+                found_all = bump.ANCHOR_VERSION_RE.findall(ln)
+                if len(found_all) == 0:
                     failures.append(
                         f"anchor line in {posix} containing '{marker}' carries "
                         f"no project-version literal — fix the anchor in "
                         f"scripts/version_tracked_files.yaml"
                     )
                     continue
-                if not current_re.search(ln):
-                    found_m = bump.ANCHOR_VERSION_RE.search(ln)
-                    found = found_m.group(0) if found_m else "?"
+                if len(found_all) > 1:
+                    failures.append(
+                        f"ambiguous anchor: line containing '{marker}' in "
+                        f"{posix} has {len(found_all)} project-version literals; "
+                        f"use a more specific line_contains so exactly ONE live "
+                        f"version is anchored"
+                    )
+                    continue
+                # Exactly one literal — it MUST equal current (not merely be
+                # present somewhere on the line). Strip an optional leading ``v``
+                # from the matched token and compare its numeric body.
+                m = bump.ANCHOR_VERSION_RE.search(ln)
+                found = m.group(0) if m else "?"
+                numeric = found[1:] if found.startswith("v") else found
+                if numeric != current:
                     failures.append(
                         f"anchor stale in {posix}: line containing '{marker}' "
                         f"shows {found} not {current}; run "

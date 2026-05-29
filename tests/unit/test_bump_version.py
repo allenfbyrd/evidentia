@@ -608,3 +608,149 @@ class TestApplyAnchors:
             bump.apply_anchors(
                 manifest, "0.10.7", bump.tracked_files(), {}, {}
             )
+
+    # ── FIX-1: exactly-one-live-literal invariant (ambiguity hard-fail) ───
+
+    def test_guard_ambiguous_two_project_literals_historical(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An anchored line carrying the current literal AND a second in-family
+        PROJECT literal (a historical project version on the same line) is an
+        ambiguous anchor — a HARD FAIL. The bumper must NOT silently corrupt the
+        second literal (the multi-literal footgun)."""
+        (chdir_tmp / "doc.md").write_text(
+            "Latest: v0.10.7 (was v0.10.6)\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md", "line_contains": "Latest:"}],
+        }
+        with pytest.raises(SystemExit, match="ambiguous anchor"):
+            bump.apply_anchors(
+                manifest, "0.10.8", bump.tracked_files(), {}, {}
+            )
+
+    def test_guard_ambiguous_third_party_in_family_literal(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An anchored line carrying the current project literal AND a 3rd-party
+        dependency literal that happens to fall in the >=0.7 project family on
+        the SAME line is also ambiguous — a HARD FAIL (the checker could
+        otherwise pass a stale token and the bumper could corrupt the dep pin)."""
+        (chdir_tmp / "doc.md").write_text(
+            "Pinned evidentia 0.10.7 with somedep 0.9.5 today\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md", "line_contains": "Pinned evidentia"}],
+        }
+        with pytest.raises(SystemExit, match="ambiguous anchor"):
+            bump.apply_anchors(
+                manifest, "0.10.8", bump.tracked_files(), {}, {}
+            )
+
+    def test_ambiguous_message_names_marker_file_and_count(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The ambiguity error names the marker, the file, and the literal
+        count so the operator can pick a more specific line_contains."""
+        (chdir_tmp / "doc.md").write_text(
+            "Latest: v0.10.7 (was v0.10.6)\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md", "line_contains": "Latest:"}],
+        }
+        with pytest.raises(SystemExit) as exc:
+            bump.apply_anchors(
+                manifest, "0.10.8", bump.tracked_files(), {}, {}
+            )
+        msg = str(exc.value)
+        assert "ambiguous anchor" in msg
+        assert "Latest:" in msg
+        assert "doc.md" in msg
+        assert "2 project-version literals" in msg
+
+    def test_single_literal_with_v_prefix_still_happy_path(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The exactly-one happy path (a single live literal, v-prefixed) still
+        force-sets correctly — the invariant tightening must not break it."""
+        (chdir_tmp / "doc.md").write_text(
+            "Latest release tag: v0.10.6\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md", "line_contains": "Latest release tag:"}],
+        }
+        file_text: dict[Path, str] = {}
+        file_subs: dict[Path, int] = {}
+        bump.apply_anchors(
+            manifest, "0.10.8", bump.tracked_files(), file_text, file_subs
+        )
+        assert file_text[Path("doc.md")] == "Latest release tag: v0.10.8\n"
+        assert file_subs[Path("doc.md")] == 1
+
+    # ── FIX-2 (M-1): malformed anchor entry → clean error, not KeyError ───
+
+    def test_malformed_anchor_missing_line_contains_clean_exit(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An anchor entry missing the required ``line_contains`` key yields a
+        clean SystemExit (NOT a raw KeyError)."""
+        (chdir_tmp / "doc.md").write_text(
+            "Latest: 0.10.6\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md"}],  # line_contains missing
+        }
+        with pytest.raises(SystemExit, match="line_contains"):
+            bump.apply_anchors(
+                manifest, "0.10.7", bump.tracked_files(), {}, {}
+            )
+
+    def test_malformed_anchor_missing_path_clean_exit(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An anchor entry missing the required ``path`` key yields a clean
+        SystemExit (NOT a raw KeyError)."""
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"line_contains": "Latest:"}],  # path missing
+        }
+        with pytest.raises(SystemExit, match="path"):
+            bump.apply_anchors(
+                manifest, "0.10.7", bump.tracked_files(), {}, {}
+            )
+
+    def test_malformed_anchor_non_str_key_clean_exit(
+        self, bump: Any, chdir_tmp: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An anchor entry whose ``line_contains`` is not a str yields a clean
+        SystemExit (NOT a TypeError deep in the substring scan)."""
+        (chdir_tmp / "doc.md").write_text(
+            "Latest: 0.10.6\n", encoding="utf-8"
+        )
+        _patch_tracked(bump, monkeypatch, ["doc.md"])
+        manifest = {
+            "tracked": [],
+            "frozen": [{"path": "doc.md"}],
+            "anchors": [{"path": "doc.md", "line_contains": 123}],  # not a str
+        }
+        with pytest.raises(SystemExit, match="line_contains"):
+            bump.apply_anchors(
+                manifest, "0.10.7", bump.tracked_files(), {}, {}
+            )
