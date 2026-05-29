@@ -5,13 +5,28 @@ Replaces the deprecated scripts/_bump_version.py (which was hardcoded
 0.5 -> 0.6). This one is general: pass --from X.Y.Z --to A.B.C (or just
 --to A.B.C and it auto-detects current).
 
-Updates three patterns across tracked .toml + .json files:
-  - version = "X.Y.Z"            (pyproject.toml)
-  - "version": "X.Y.Z"           (package.json)
-  - >=X.Y.Z,<X.(Y+1).0           (inter-package pins; widens to next minor)
+**v0.10.7 Phase E3**: the set of files to update + the replacement to make
+in each is now driven by the declarative manifest
+``scripts/version_tracked_files.yaml`` (the ``tracked:`` section) rather
+than a hardcoded list. The same manifest is read by
+``scripts/check_version_consistency.py`` so the bumper and the
+"never-skip-a-version-reference" gate can never drift. Each manifest entry
+carries a ``kind`` that selects one of the replacement strategies below:
+
+  - python_version       version = "X.Y.Z"            (pyproject.toml / TOML)
+  - json_version         "version": "X.Y.Z"           (package.json)
+  - pip_extra_pin        evidentia[gui]==X.Y.Z        (Dockerfile / requirements.in)
+  - workspace_pins       >=X.Y.Z,<X.(Y+1).0           (inter-package pins;
+                                                       workspace members only —
+                                                       the F-V100-M1 guard)
+  - cff_version          version: X.Y.Z               (CITATION.cff, YAML)
+  - cff_date             date-released: 'YYYY-MM-DD'  (CITATION.cff; set to the
+                                                       bump date, UTC)
+  - readme_container_tag ghcr.io/.../evidentia:vX.Y.Z (README container line)
 
 Skips lockfiles (uv.lock, package-lock.json) - those are regenerated
-by `uv sync --all-packages` after running this script.
+by `uv sync --all-packages` after running this script. (Lockfiles are
+also listed in the manifest's ``frozen:`` section.)
 
 Usage:
   ./scripts/bump_version.py --to 0.8.0
@@ -27,16 +42,26 @@ approval per the global protocol.
 from __future__ import annotations
 
 import argparse
+import datetime
+import fnmatch
 import re
 import subprocess
 import sys
 import tomllib
 from pathlib import Path
 
+import yaml
+
 # Matches X.Y.Z and X.Y.Z.W (hot-fix versions per the v0.7.4 / v0.7.7.1
 # precedent: same-day patches that need to ride atop a tagged minor +
 # don't earn a fresh patch number).
 VERSION_RE = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?")
+
+# The declarative manifest that lists every file carrying the project
+# version (the ``tracked:`` section the bumper drives off) plus the
+# allowlist of intentionally-historical literals (``frozen:``). Lives next
+# to this script. v0.10.7 Phase E2/E3.
+MANIFEST_PATH = Path(__file__).resolve().parent / "version_tracked_files.yaml"
 
 
 def workspace_packages(pyproject_path: Path | None = None) -> list[str]:
@@ -157,6 +182,99 @@ def bump_pin_range(
     return cur_range, tgt_range
 
 
+# ── Manifest-driven replacement (v0.10.7 E3) ───────────────────────────────
+
+
+def load_manifest(path: Path | None = None) -> dict[str, list[dict[str, str]]]:
+    """Load ``version_tracked_files.yaml`` -> {"tracked": [...], "frozen": [...]}.
+
+    Both ``scripts/bump_version.py`` and
+    ``scripts/check_version_consistency.py`` read this one file so the
+    bumper and the never-skip gate can never drift.
+    """
+    p = path or MANIFEST_PATH
+    if not p.exists():
+        sys.exit(f"Version manifest not found: {p}")
+    data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    tracked = data.get("tracked") or []
+    frozen = data.get("frozen") or []
+    if not isinstance(tracked, list) or not isinstance(frozen, list):
+        sys.exit(f"Malformed manifest {p}: 'tracked'/'frozen' must be lists")
+    return {"tracked": tracked, "frozen": frozen}
+
+
+def expand_manifest_path(spec: str, all_tracked: list[Path]) -> list[Path]:
+    """Expand a manifest ``path`` (literal or glob) to git-tracked files.
+
+    Uses POSIX-style matching so the manifest's forward-slash globs (e.g.
+    ``packages/*/pyproject.toml``) match regardless of the host OS path
+    separator. ``**`` matches across directory levels.
+    """
+    spec_norm = spec.replace("\\", "/")
+    matches: list[Path] = []
+    for p in all_tracked:
+        posix = p.as_posix()
+        if posix == spec_norm or fnmatch.fnmatch(posix, spec_norm):
+            matches.append(p)
+    return matches
+
+
+def replacements_for_kind(
+    kind: str,
+    current: str,
+    target: str,
+    *,
+    packages: list[str],
+    bump_date: str,
+) -> list[tuple[str, str]]:
+    """Return the (regex, replacement) pairs for a manifest ``kind``.
+
+    The complex inter-package-pin logic (``workspace_pins``) is delegated to
+    :func:`bump_pin_range` so the F-V100-M1 workspace-allowlist guard lives
+    in exactly one tested place. The simple literal kinds reuse the same
+    patterns the pre-E3 hardcoded list used, including the ``(?!\\.\\d)``
+    hot-fix lookahead.
+    """
+    cur_re = re.escape(current)
+    nla = r"(?!\.\d)"  # negative-lookahead: not followed by .digit (X.Y.Z.W safe)
+    if kind == "python_version":
+        return [(rf'version = "{cur_re}"{nla}', f'version = "{target}"')]
+    if kind == "json_version":
+        return [(rf'"version": "{cur_re}"{nla}', f'"version": "{target}"')]
+    if kind == "pip_extra_pin":
+        # v0.7.7.1 trap: the published image must install the NEW version.
+        return [(rf'evidentia\[gui\]=={cur_re}{nla}', f'evidentia[gui]=={target}')]
+    if kind == "workspace_pins":
+        # F-V100-M1: only workspace members from [tool.uv.sources] are
+        # rewritten. Empty allowlist => skip (refuse package-agnostic fallback).
+        if not packages:
+            return []
+        return [bump_pin_range(current, target, packages)]
+    if kind == "cff_version":
+        # CITATION.cff YAML: unquoted `version: X.Y.Z`.
+        return [(rf'version: {cur_re}{nla}', f'version: {target}')]
+    if kind == "cff_date":
+        # CITATION.cff YAML: `date-released: 'YYYY-MM-DD'` -> the bump date.
+        # Matches any single-quoted ISO date so it updates regardless of the
+        # prior value (the date is not the version, so it never matches cur_re).
+        return [
+            (
+                r"date-released: '\d{4}-\d{2}-\d{2}'",
+                f"date-released: '{bump_date}'",
+            )
+        ]
+    if kind == "readme_container_tag":
+        # Tightly anchored to the container-pull line so it can NEVER match
+        # the historical release-note lines elsewhere in the README.
+        return [
+            (
+                rf"ghcr\.io/polycentric-labs/evidentia:v{cur_re}{nla}",
+                f"ghcr.io/polycentric-labs/evidentia:v{target}",
+            )
+        ]
+    sys.exit(f"Unknown manifest kind {kind!r} (fix version_tracked_files.yaml)")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -216,26 +334,7 @@ def main() -> int:
     # building substitution patterns; refuse to over-bump third-party
     # pins that happen to match the inter-package range shape.
     packages = workspace_packages()
-    cur_re = re.escape(current)
-    nla = r"(?!\.\d)"  # negative-lookahead: not followed by .digit
-    replacements: list[tuple[str, str]] = [
-        (rf'version = "{cur_re}"{nla}', f'version = "{args.to}"'),
-        (rf'"version": "{cur_re}"{nla}', f'"version": "{args.to}"'),
-        # v0.7.7.1 trap: Dockerfile pinned to the current release as a
-        # hardcoded literal. Without this replacement, the published
-        # ghcr.io image installs the previous version inside even
-        # though the image is tagged with the new version. Surfaced
-        # by the v0.7.7 pre-release-review Step 7.5 container smoke.
-        (rf'evidentia\[gui\]=={cur_re}{nla}', f'evidentia[gui]=={args.to}'),
-    ]
     if packages:
-        # v0.7.12 P0.5 closure (now v0.10.1 F-V100-M1-safe): tighten
-        # inter-package pin lower bound to the current release version.
-        # The pattern matches ONLY workspace member names from
-        # [tool.uv.sources] — third-party deps with the same range
-        # shape (e.g. py-ocsf-models>=0.9.0,<0.10.0) are left alone.
-        cur_pin_pattern, tgt_pin = bump_pin_range(current, args.to, packages)
-        replacements.append((cur_pin_pattern, tgt_pin))
         pin_msg = (
             f"  Inter-package pins ({len(packages)} workspace pkgs): "
             f"<prior-range-in-{cur_parts_str(current)}> -> "
@@ -248,37 +347,63 @@ def main() -> int:
             "to fall back to package-agnostic regex per F-V100-M1)."
         )
 
+    # v0.10.7 E3: the bump date (UTC) — used for CITATION.cff date-released.
+    # The bump runs at release-prep (≈ tag day), so today's UTC date is the
+    # release date.
+    bump_date = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
+
     print(f"Bump plan: {current} -> {args.to}")
     print(pin_msg)
     print()
 
+    # v0.10.7 E3: drive the replacements off the manifest's `tracked:`
+    # section instead of a hardcoded file-type allowlist. Each entry maps a
+    # path/glob + a kind to one or more (regex, replacement) pairs. Lockfiles
+    # are skipped here AND listed in the manifest `frozen:` section.
+    manifest = load_manifest()
+    all_tracked = tracked_files()
+
+    # Aggregate per concrete file so the output still prints one line per
+    # file even when several manifest entries target the same path (e.g. a
+    # pyproject.toml gets both `python_version` and `workspace_pins`).
+    file_subs: dict[Path, int] = {}
+    file_text: dict[Path, str] = {}
+    LOCKFILES = {"uv.lock", "package-lock.json"}
+
+    for entry in manifest["tracked"]:
+        spec = entry["path"]
+        kind = entry["kind"]
+        pairs = replacements_for_kind(
+            kind, current, args.to, packages=packages, bump_date=bump_date
+        )
+        if not pairs:
+            continue
+        for p in expand_manifest_path(spec, all_tracked):
+            if p.name in LOCKFILES:
+                continue
+            if p not in file_text:
+                try:
+                    file_text[p] = p.read_text(encoding="utf-8")
+                except OSError:
+                    continue
+            new_text = file_text[p]
+            subs_here = 0
+            for pattern, new in pairs:
+                new_text, n = re.subn(pattern, new, new_text)
+                subs_here += n
+            if subs_here:
+                file_text[p] = new_text
+                file_subs[p] = file_subs.get(p, 0) + subs_here
+
     files_changed = 0
     total_subs = 0
-    # File-type allowlist: text-based config files that may carry
-    # version literals or pin ranges. Includes Dockerfile (no
-    # extension) per the v0.7.7.1 hot-fix precedent.
-    text_suffixes = {".toml", ".json"}
-    text_names = {"Dockerfile"}
-    for p in tracked_files():
-        if not (p.suffix.lower() in text_suffixes or p.name in text_names):
-            continue
-        if p.name in {"uv.lock", "package-lock.json"}:
-            continue
-        try:
-            text = p.read_text(encoding="utf-8")
-        except Exception:
-            continue
-        new_text = text
-        file_subs = 0
-        for pattern, new in replacements:
-            new_text, n = re.subn(pattern, new, new_text)
-            file_subs += n
-        if file_subs:
-            print(f"  {p}: {file_subs} substitution(s)")
-            if not args.dry_run:
-                p.write_text(new_text, encoding="utf-8")
-            files_changed += 1
-            total_subs += file_subs
+    for p in sorted(file_subs, key=lambda x: x.as_posix()):
+        n = file_subs[p]
+        print(f"  {p}: {n} substitution(s)")
+        if not args.dry_run:
+            p.write_text(file_text[p], encoding="utf-8")
+        files_changed += 1
+        total_subs += n
 
     print()
     suffix = " [DRY RUN]" if args.dry_run else ""

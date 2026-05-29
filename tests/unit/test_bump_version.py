@@ -144,3 +144,191 @@ class TestCurPartsStr:
         self, bump: Any, version: str, expected: str
     ) -> None:
         assert bump.cur_parts_str(version) == expected
+
+
+# ── v0.10.7 E3: manifest-driven replacement ────────────────────────────
+
+
+def _apply(pairs: list[tuple[str, str]], text: str) -> tuple[str, int]:
+    """Apply (regex, replacement) pairs to text; return (new_text, total_subs)."""
+    total = 0
+    for pattern, repl in pairs:
+        text, n = re.subn(pattern, repl, text)
+        total += n
+    return text, total
+
+
+class TestReplacementsForKind:
+    """Each manifest ``kind`` maps to the correct (regex, replacement) pair(s)
+    and preserves the pre-E3 behavior (incl. the (?!\\.\\d) hot-fix lookahead).
+    """
+
+    PKGS: ClassVar[list[str]] = ["evidentia-core", "evidentia-ai"]
+
+    def test_python_version(self, bump: Any) -> None:
+        pairs = bump.replacements_for_kind(
+            "python_version", "0.10.7", "0.10.8", packages=self.PKGS, bump_date="2026-05-29"
+        )
+        out, n = _apply(pairs, 'version = "0.10.7"\nname = "x"\n')
+        assert n == 1
+        assert 'version = "0.10.8"' in out
+
+    def test_python_version_hotfix_lookahead(self, bump: Any) -> None:
+        """The (?!\\.\\d) lookahead must NOT rewrite a 4-segment hot-fix
+        version when bumping the 3-segment base (e.g. 0.10.7 -> 0.10.8 must
+        leave a stray 0.10.7.1 literal alone)."""
+        pairs = bump.replacements_for_kind(
+            "python_version", "0.10.7", "0.10.8", packages=self.PKGS, bump_date="2026-05-29"
+        )
+        out, n = _apply(pairs, 'version = "0.10.7.1"\n')
+        assert n == 0
+        assert 'version = "0.10.7.1"' in out
+
+    def test_json_version(self, bump: Any) -> None:
+        pairs = bump.replacements_for_kind(
+            "json_version", "0.10.7", "0.10.8", packages=self.PKGS, bump_date="2026-05-29"
+        )
+        out, n = _apply(pairs, '  "version": "0.10.7",\n')
+        assert n == 1
+        assert '"version": "0.10.8"' in out
+
+    def test_pip_extra_pin(self, bump: Any) -> None:
+        pairs = bump.replacements_for_kind(
+            "pip_extra_pin", "0.10.7", "0.10.8", packages=self.PKGS, bump_date="2026-05-29"
+        )
+        out, n = _apply(pairs, "evidentia[gui]==0.10.7\nurllib3>=2.7.0\n")
+        assert n == 1
+        assert "evidentia[gui]==0.10.8" in out
+
+    def test_workspace_pins_delegates_to_bump_pin_range(self, bump: Any) -> None:
+        """workspace_pins reuses bump_pin_range over the allowlist — so a
+        workspace pin moves but a third-party pin with the SAME range shape
+        does not (F-V100-M1 preserved)."""
+        pairs = bump.replacements_for_kind(
+            "workspace_pins", "0.9.9", "0.10.0", packages=["evidentia-core"], bump_date="2026-05-29"
+        )
+        text = (
+            '    "evidentia-core>=0.9.0,<0.10.0",\n'
+            '    "py-ocsf-models>=0.9.0,<0.10.0",\n'
+        )
+        out, n = _apply(pairs, text)
+        assert n == 1
+        assert "evidentia-core>=0.10.0,<0.11.0" in out
+        # Third-party pin UNCHANGED — the F-V100-M1 guard.
+        assert "py-ocsf-models>=0.9.0,<0.10.0" in out
+
+    def test_workspace_pins_empty_allowlist_is_noop(self, bump: Any) -> None:
+        """Empty allowlist => no pairs (refuse package-agnostic fallback)."""
+        pairs = bump.replacements_for_kind(
+            "workspace_pins", "0.9.9", "0.10.0", packages=[], bump_date="2026-05-29"
+        )
+        assert pairs == []
+
+    def test_cff_version(self, bump: Any) -> None:
+        pairs = bump.replacements_for_kind(
+            "cff_version", "0.10.7", "0.10.8", packages=self.PKGS, bump_date="2026-05-29"
+        )
+        out, n = _apply(pairs, "license: Apache-2.0\nversion: 0.10.7\n")
+        assert n == 1
+        assert "version: 0.10.8" in out
+
+    def test_cff_date_set_to_bump_date(self, bump: Any) -> None:
+        """date-released is rewritten to the supplied bump date regardless of
+        its prior value (it is a date, not the version)."""
+        pairs = bump.replacements_for_kind(
+            "cff_date", "0.10.7", "0.10.8", packages=self.PKGS, bump_date="2026-06-01"
+        )
+        out, n = _apply(pairs, "date-released: '2026-05-29'\n")
+        assert n == 1
+        assert "date-released: '2026-06-01'" in out
+
+    def test_readme_container_tag_tight_anchor(self, bump: Any) -> None:
+        """The README container-tag replacement updates the docker-pull line
+        but does NOT touch historical release-note lines that mention an old
+        version WITHOUT the ghcr.io/...:v prefix."""
+        pairs = bump.replacements_for_kind(
+            "readme_container_tag", "0.10.7", "0.10.8", packages=self.PKGS, bump_date="2026-05-29"
+        )
+        readme = (
+            "Container: `docker pull ghcr.io/polycentric-labs/evidentia:v0.10.7` (verified).\n"
+            "\n"
+            "**v0.10.7 (2026-05-29)** — release notes mention v0.10.7 here.\n"
+            "**v0.10.6 (2026-05-27)** — older notes mention v0.10.6 here.\n"
+        )
+        out, n = _apply(pairs, readme)
+        # Exactly ONE substitution — only the container-pull line.
+        assert n == 1
+        assert "evidentia:v0.10.8`" in out
+        # Historical release-note prose untouched.
+        assert "**v0.10.7 (2026-05-29)**" in out
+        assert "**v0.10.6 (2026-05-27)**" in out
+
+    def test_unknown_kind_exits(self, bump: Any) -> None:
+        with pytest.raises(SystemExit):
+            bump.replacements_for_kind(
+                "nonsense_kind", "0.10.7", "0.10.8", packages=self.PKGS, bump_date="2026-05-29"
+            )
+
+
+class TestExpandManifestPath:
+    """Glob/literal path expansion against the git-tracked file list uses
+    POSIX-style matching so forward-slash globs work on any host OS."""
+
+    def test_literal_path(self, bump: Any) -> None:
+        tracked = [Path("README.md"), Path("CITATION.cff"), Path("pyproject.toml")]
+        assert bump.expand_manifest_path("README.md", tracked) == [Path("README.md")]
+
+    def test_single_star_glob(self, bump: Any) -> None:
+        tracked = [
+            Path("packages/evidentia-core/pyproject.toml"),
+            Path("packages/evidentia-ai/pyproject.toml"),
+            Path("packages/evidentia-core/src/x.py"),
+        ]
+        got = bump.expand_manifest_path("packages/*/pyproject.toml", tracked)
+        assert Path("packages/evidentia-core/pyproject.toml") in got
+        assert Path("packages/evidentia-ai/pyproject.toml") in got
+        # src file does NOT match the pyproject glob.
+        assert Path("packages/evidentia-core/src/x.py") not in got
+
+    def test_double_star_glob(self, bump: Any) -> None:
+        tracked = [
+            Path("docs/a.md"),
+            Path("docs/sub/b.md"),
+            Path("README.md"),
+        ]
+        got = bump.expand_manifest_path("docs/**", tracked)
+        assert Path("docs/a.md") in got
+        assert Path("docs/sub/b.md") in got
+        assert Path("README.md") not in got
+
+
+class TestRealManifest:
+    """Sanity checks against the actual committed manifest."""
+
+    def test_manifest_loads_with_expected_kinds(self, bump: Any) -> None:
+        manifest = bump.load_manifest()
+        assert isinstance(manifest["tracked"], list) and manifest["tracked"]
+        assert isinstance(manifest["frozen"], list) and manifest["frozen"]
+        kinds = {e["kind"] for e in manifest["tracked"]}
+        # All seven replacement strategies are exercised by the real manifest.
+        assert kinds == {
+            "python_version",
+            "json_version",
+            "pip_extra_pin",
+            "workspace_pins",
+            "cff_version",
+            "cff_date",
+            "readme_container_tag",
+        }
+
+    def test_citation_and_readme_are_tracked(self, bump: Any) -> None:
+        """The two NEW v0.10.7 E2 targets are present in tracked (not frozen)."""
+        manifest = bump.load_manifest()
+        tracked_paths = {e["path"] for e in manifest["tracked"]}
+        frozen_paths = {e["path"] for e in manifest["frozen"]}
+        assert "CITATION.cff" in tracked_paths
+        assert "README.md" in tracked_paths
+        # Marketplace is FROZEN at marketplace cadence (controller decision).
+        assert "marketplace/**" in frozen_paths
+        assert "CITATION.cff" not in frozen_paths
+        assert "README.md" not in frozen_paths
