@@ -27,6 +27,9 @@
 #   5. check_workflow_perms (audit_workflow_permissions.py --strict; reused)
 #   6. check_uv_lock_pin_drift
 #   7. check_osps_crosswalk_drift (only when OSPS files are in range)
+#   8. check_version_consistency  (v0.10.7 E4 "never-skip-a-version-reference":
+#                                  coverage of tracked files + hard-fail on any
+#                                  unclassified project-version literal; reused)
 #
 # All checks run before the hook exits, so the operator sees every
 # failure at once.
@@ -275,6 +278,14 @@ else
     echo "--- check_osps_crosswalk_drift ---"
     echo "SKIP check_osps_crosswalk_drift (no OSPS mapping/_osps_upstream files in range)"
 fi
+
+# 8. version consistency (v0.10.7 E4): every tracked file holds the current
+#    version + no git-tracked file carries an unclassified project-version
+#    literal. Reads scripts/version_tracked_files.yaml (the same manifest
+#    bump_version.py drives off). Always runs (not range-gated) — a stale
+#    tracked file or an unclassified literal anywhere is a push blocker.
+run_check "check_version_consistency" \
+    run_py "${REPO_ROOT}/scripts/check_version_consistency.py" || true
 
 # ---------------------------------------------------------------------------
 # Verdict.
