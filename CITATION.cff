@@ -22,7 +22,7 @@ authors:
     email: allen@allenfbyrd.com
 abstract: >-
   Evidentia is an open-source GRC (Governance, Risk, and
-  Compliance) tool that ships 82 framework catalogs out of the
+  Compliance) tool that ships 92 framework catalogs out of the
   box (NIST 800-53 Rev 5, FedRAMP, CMMC 2.0, GDPR, SOC 2 TSC,
   and more), runs gap analysis as an embeddable Python library,
   emits cryptographically-signed OSCAL Assessment Results, and
