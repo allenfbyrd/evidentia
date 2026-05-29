@@ -59,7 +59,7 @@ evidentia doctor --check-air-gap
 
 # 5. Run analysis in offline mode
 evidentia --offline gap analyze --inventory my-controls.yaml \
-  --framework nist-800-53-rev5-moderate
+  --frameworks nist-800-53-rev5-moderate --output gap-report.json
 
 # 6. Generate risk statements offline (LLM calls hit Ollama only)
 evidentia --offline risk generate --gap-id GAP-0001 \

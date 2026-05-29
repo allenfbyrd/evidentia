@@ -41,15 +41,24 @@ See the [Getting Started wiki section](https://github.com/Polycentric-Labs/evide
 
 ## Quickstart (60 seconds)
 
+`evidentia gap analyze` is inventory-driven: `--inventory` is the file of controls you *have*; `--frameworks` is the catalogs to measure *against*. A ready-to-run sample inventory ships inside the wheel.
+
 ```bash
 # 1. List bundled framework catalogs
 evidentia catalog list
 
-# 2. Run gap analysis against a framework
-evidentia gap analyze --framework=nist-800-53-rev5 --evidence-dir=./evidence/
+# 2. Locate the bundled sample inventory (maps to nist-800-53-rev5-moderate)
+SAMPLE=$(python -c "import importlib.resources as r; print(r.files('evidentia.examples')/'sample-inventory.yaml')")
 
-# 3. Emit OSCAL Assessment Results
-evidentia gap analyze --framework=nist-800-53-rev5 --evidence-dir=./evidence/ --format=oscal > assessment-results.json
+# 3. Run gap analysis against a framework
+evidentia gap analyze \
+  --inventory "$SAMPLE" --frameworks nist-800-53-rev5-moderate \
+  --output gap-report.json
+
+# 4. Emit OSCAL Assessment Results
+evidentia gap analyze \
+  --inventory "$SAMPLE" --frameworks nist-800-53-rev5-moderate \
+  --output assessment-results.json --format oscal-ar
 ```
 
 Full 5-minute walk-through: [Quickstart wiki page](https://github.com/Polycentric-Labs/evidentia/wiki/Quickstart).

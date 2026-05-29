@@ -31,12 +31,14 @@ pip install "evidentia[gui]"
 
 # 2. Verify the install
 evidentia version
-# expected: Evidentia v0.7.5 (or newer)
+# expected: Evidentia v0.10.6 / Python 3.12.x  (your version may be newer)
 
-# 3. Run gap analysis on the bundled Meridian fintech sample
+# 3. Locate the bundled sample control inventory (ships inside the wheel;
+#    maps to nist-800-53-rev5-moderate) and run gap analysis against it
+SAMPLE=$(python -c "import importlib.resources as r; print(r.files('evidentia.examples')/'sample-inventory.yaml')")
 evidentia gap analyze \
-  --inventory examples/meridian-fintech/my-controls.yaml \
-  --frameworks nist-800-53-rev5-moderate,soc2-tsc \
+  --inventory "$SAMPLE" \
+  --frameworks nist-800-53-rev5-moderate \
   --output report.json \
   --format oscal-ar
 
@@ -44,7 +46,8 @@ evidentia gap analyze \
 python -c "
 import json
 ar = json.load(open('report.json'))['assessment-results']
-print('Findings:', len(ar.get('local-definitions', {}).get('findings', [])))
+findings = ar.get('results', [{}])[0].get('findings', [])
+print('Findings:', len(findings))
 print('Schema:', ar['metadata']['oscal-version'])
 print('Title:', ar['metadata']['title'])
 "
@@ -55,7 +58,7 @@ evidentia oscal verify report.json
 #           embedded evidence or signature)
 ```
 
-That's it. The AR is OSCAL 1.1.2-spec, ready to ingest into any
+That's it. The AR is OSCAL 1.2.1-spec, ready to ingest into any
 OSCAL-compatible audit pipeline (`compliance-trestle`, RegScale,
 oscal-compass, etc.).
 
@@ -82,11 +85,17 @@ no key custody required):
 
 ```bash
 # Install the optional sigstore extra
-pip install "evidentia[sigstore]"
+pip install "evidentia-core[sigstore]"
 
-# Sign the AR (will open a browser for OIDC; returns
-# report.json.sigstore.json next to it)
-evidentia oscal sign report.json
+# Emit + sign the AR in one step (keyless OIDC; opens a browser, then
+# writes report.json plus report.json.sigstore.json next to it)
+SAMPLE=$(python -c "import importlib.resources as r; print(r.files('evidentia.examples')/'sample-inventory.yaml')")
+evidentia gap analyze \
+  --inventory "$SAMPLE" \
+  --frameworks nist-800-53-rev5-moderate \
+  --output report.json \
+  --format oscal-ar \
+  --sign-with-sigstore
 
 # Verify the signature
 evidentia oscal verify --require-signature \
@@ -115,7 +124,7 @@ to `0.0.0.0` only behind a reverse proxy.
 For Docker:
 
 ```bash
-docker run --rm -p 8000:8000 ghcr.io/polycentric-labs/evidentia:v0.7.5
+docker run --rm -p 8000:8000 ghcr.io/polycentric-labs/evidentia:v0.10.6
 ```
 
 The image is cosign-signed + SLSA L3 attested per release. See
