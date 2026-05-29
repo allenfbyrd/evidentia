@@ -39,7 +39,7 @@ Container: `docker pull ghcr.io/polycentric-labs/evidentia:v0.10.7` (cosign keyl
 
 See the [Getting Started wiki section](https://github.com/Polycentric-Labs/evidentia/wiki/Getting-Started) for air-gapped install, virtualenv setup, and full extras matrix.
 
-## Quickstart (60 seconds)
+## Quickstart (60 Seconds)
 
 `evidentia gap analyze` is inventory-driven: `--inventory` is the file of controls you *have*; `--frameworks` is the catalogs to measure *against*. A ready-to-run sample inventory ships inside the wheel.
 
@@ -73,7 +73,7 @@ Full 5-minute walk-through: [Quickstart wiki page](https://github.com/Polycentri
 - **13 MCP tools** — Drive Evidentia from Claude Desktop, Claude Code, Cursor, or any MCP host. Append-only tool contract per [`docs/api-stability.md`](docs/api-stability.md) (NORMATIVE). Signed output envelopes (CIMD) per [`docs/evidence-integrity.md`](docs/evidence-integrity.md).
 - **OSPS Baseline conformance** — First public open-source project shipping self-attestation against the OpenSSF OSPS Baseline ([`OSPS-CONFORMANCE.md`](OSPS-CONFORMANCE.md)) with a CI gate that re-validates every evidence link on push/PR/cron.
 
-## What's in the box
+## What's in the Box
 
 | Surface | Count |
 |---|---|
@@ -95,17 +95,17 @@ Full 5-minute walk-through: [Quickstart wiki page](https://github.com/Polycentri
 - [`docs/verification.md`](docs/verification.md) — consumer-side recipes for PEP 740 + cosign + osv-scanner + SLSA Provenance v1
 - [`EOL.md`](EOL.md) — version support windows + cessation comms policy
 
-## Recent releases
+## Recent Releases
 
-**v0.10.6 (2026-05-27)** — *OSS first-mover artifacts + downstream OSPS crosswalks + hygiene*. OSPS Baseline 3-catalog bundle + first public OSCAL Catalog 1.2.1 serialization. `OSPS-CONFORMANCE.md` self-attestation + `verify-osps-conformance.yml` CI gate. 5 OSPS-Baseline crosswalks (NIST SSDF, CSF 2.0, EU CRA, PCI DSS 4.0, NIST 800-161). GitHub OSPS collector extension (16 populate-helpers). `SECURITY.md` refresh + `EOL.md` + `docs/verification.md`. Scorecard restoration to 6.5+ via `verify-changelog.yml` SHA pins. OSCAL upstream PR to [oscal-club/awesome-oscal#59](https://github.com/oscal-club/awesome-oscal/pull/59). **19th consecutive PROCEED-CLEAN ship.**
+**v0.10.7 (2026-05-29)** — *hygiene + automation-debt close-out + pre-push gate Layer 2*. `scripts/catalogs/gen_osps_crosswalks.py`, deterministic regenerator that rebuilds the 5 OSPS-Baseline crosswalk JSONs byte-for-byte from the pinned upstream YAMLs, with a `--check` drift mode.
 
-**v0.10.5 (2026-05-26)** — *OCSF Detection Finding + CycloneDX VEX + evidentia-eval extraction*. `evidentia gap analyze --format ocsf-detection` (SIEM-target counterpart to v0.10.0's SARIF). `evidentia gap analyze --format cyclonedx-vex` (supply-chain VEX statements). `evidentia-eval` extracted to a standalone workspace package (the 8th Python package; lazy-import contract preserves air-gap install posture). Collector idempotency hardening via UUID v5 deterministic IDs. **3,443 tests.**
+**v0.10.6 (2026-05-27)** — *OSS first-mover artifacts + downstream OSPS crosswalks + post-v0.10.5 hygiene*. OSPS Baseline 3-catalog bundle (Maturity 1/2/3 YAMLs) + first public OSCAL Catalog 1.2.1 serialization; `SECURITY.md` refresh + `.well-known/security.txt` + GHSA private vulnerability reporting enabled; `OSPS-CONFORMANCE.md` self-attestation + `verify-osps-conformance.yml` CI gate.
 
-**v0.10.4 (2026-05-24)** — *OCSF symmetry loop close + CHANGELOG pre-tag CI gate*. `evidentia gap analyze --format ocsf` (Compliance Finding 2003; symmetric counterpart to v0.10.0 SARIF + v0.10.1 OCSF ingest). 13th MCP tool `verify_signed_artifact` (append-only). `verify-changelog.yml` pre-tag CI gate (lesson from the v0.10.3 move-tag re-fire). **3,370 tests; 17th consecutive PROCEED-CLEAN.**
+**v0.10.5 (2026-05-26)** — *output-format expansion (OCSF Detection Finding + CycloneDX VEX emit) + workspace refactor*. **`evidentia gap analyze --format ocsf-detection`**: gap analysis output emits as an OCSF Detection Finding (`class_uid` 2004) JSON array; **`evidentia gap analyze --format cyclonedx-vex`**: gap analysis output emits as a CycloneDX 1.6 VEX document.
 
 Full release history: [`CHANGELOG.md`](CHANGELOG.md) | [GitHub Releases](https://github.com/Polycentric-Labs/evidentia/releases)
 
-## Community + governance
+## Community & Governance
 
 - [`GOVERNANCE.md`](GOVERNANCE.md) — project governance + decision-making
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute (issues, PRs, catalogs)
@@ -113,7 +113,7 @@ Full release history: [`CHANGELOG.md`](CHANGELOG.md) | [GitHub Releases](https:/
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [FAQ (wiki)](https://github.com/Polycentric-Labs/evidentia/wiki/Project) — frequent operator questions
 
-## AI assistance
+## AI Assistance
 
 This project was developed alongside AI platforms.
 
