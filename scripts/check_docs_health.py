@@ -60,10 +60,26 @@ SPECIAL MODE for the commit-msg git hook:
 
     python scripts/check_docs_health.py --check-commit-msg <file>
 
-    Reads the message file, applies the loaded forbidden-phrase set,
-    exits 2 if any pattern matches. If the phrase config is absent,
-    the hook passes silently (no enforcement). The .githooks/commit-msg
-    hook invokes this before letting ``git commit`` complete.
+    Reads the message file and runs TWO checks before letting
+    ``git commit`` complete:
+
+    1. **capitalized-subject** — the commit subject (first non-blank,
+       non-``#`` line) must be capitalized: for a conventional-commit
+       subject (``type(scope)!: description``) the DESCRIPTION must start
+       uppercase; for a non-conventional subject the FIRST WORD must.
+       git-generated subjects (``Merge``/``Revert``/``fixup!``/...) and
+       code-identifier-leading descriptions (containing ``_``/``.`` or
+       backtick-wrapped, e.g. ``check_secrets``) are exempt. This check
+       ALWAYS runs — it does NOT depend on the phrase config.
+
+    2. **forbidden-phrase** — applies the loaded forbidden-phrase set;
+       exits 2 if any pattern matches. If the phrase config is absent,
+       THIS check passes silently (no enforcement) but the cap-check in
+       (1) still runs.
+
+    Exits 2 if either check fails. The .githooks/commit-msg hook invokes
+    this before letting ``git commit`` complete; its env-var bypass
+    short-circuits the whole hook (covering both checks).
 
 Exit codes:
 
@@ -825,25 +841,173 @@ def render_findings_text(result: CheckResult) -> str:
     return "\n".join(lines)
 
 
+# ── Capitalized-subject convention (commit-msg gate) ──────────────────────
+#
+# Git-generated / special subjects that carry their own fixed casing and
+# must never be re-cased.
+_SUBJECT_SPECIAL_PREFIXES = (
+    "Merge ",
+    "Revert ",
+    "fixup! ",
+    "squash! ",
+    "amend! ",
+)
+
+# A conventional-commit subject: `type` or `type(scope)`, optional `!`,
+# then `: ` and the description. Type is lowercase letters (per the repo's
+# convention); scope is anything but `()`.
+_CONVENTIONAL_RE = re.compile(
+    r"^(?P<type>[a-z]+)(?P<scope>\([^)]*\))?(?P<bang>!)?: (?P<desc>.*)$"
+)
+
+# Characters we skip past at the start of a description before locating the
+# first "word": opening backtick / quotes / paren.
+_LEADING_SKIP = "`'\"("
+
+
+def _leading_word_is_code_identifier(text: str) -> bool:
+    """True if the first token of ``text`` is a code identifier we must
+    NOT force-capitalize (capitalizing a symbol would corrupt it).
+
+    A code identifier here means the leading word is backtick-wrapped, or
+    its bare token contains ``_`` or ``.`` (e.g. ``check_secrets``,
+    ``bump_version.py``, ``gap_report_to_oscal_poam()``).
+    """
+    stripped = text.lstrip()
+    if stripped.startswith("`"):
+        return True
+    # The first whitespace-delimited token.
+    token = stripped.split(maxsplit=1)[0] if stripped else ""
+    return "_" in token or "." in token
+
+
+def check_subject_capitalized(subject: str) -> str | None:
+    """Return an error message if ``subject`` violates the capitalized-
+    subject convention, else ``None`` (pass / exempt).
+
+    Rules:
+
+    * git-generated/special subjects (``Merge ``, ``Revert ``, ``fixup! ``,
+      ``squash! ``, ``amend! ``) are exempt.
+    * conventional-commit subjects (``type(scope)!: description``): the
+      DESCRIPTION must start with an uppercase letter.
+    * non-conventional subjects: the FIRST WORD must start uppercase.
+    * a description/subject whose leading word is a code identifier
+      (contains ``_`` or ``.``, or is backtick-wrapped) is exempt —
+      capitalizing a symbol would corrupt it.
+    * a leading non-alpha token (digit/quote/paren) is not flagged; we
+      skip opening ``` ` ``` ``'`` ``"`` ``(`` and only require capitalization
+      when the first real word leads with a lowercase letter.
+    """
+    subject = subject.strip()
+    if not subject:
+        return None
+    if subject.startswith(_SUBJECT_SPECIAL_PREFIXES):
+        return None
+
+    m = _CONVENTIONAL_RE.match(subject)
+    if m is not None:
+        target = m.group("desc")
+        label = "conventional-commit description"
+    else:
+        target = subject
+        label = "commit subject"
+
+    if not target.strip():
+        return None
+
+    # Code-identifier-leading text is exempt (would corrupt the symbol).
+    if _leading_word_is_code_identifier(target):
+        return None
+
+    # Skip opening punctuation to find the first real character.
+    idx = 0
+    while idx < len(target) and target[idx] in _LEADING_SKIP:
+        idx += 1
+    if idx >= len(target):
+        return None
+    first = target[idx]
+
+    # Only alphabetic leading chars are subject to the rule; a leading
+    # digit / symbol is not flagged.
+    if not first.isalpha():
+        return None
+    if first.isupper():
+        return None
+
+    word = target[idx:].split(maxsplit=1)[0]
+    return (
+        f"{label} must start with a capital letter "
+        f"(got {word!r}; capitalize the first word, e.g. {word.capitalize()!r})"
+    )
+
+
+def _subject_from_message(text: str) -> str:
+    """The subject = the first non-blank, non-comment (``#``) line."""
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        if line.startswith("#"):
+            continue
+        return line
+    return ""
+
+
 def run_commit_msg_hook_check(message_file: str) -> int:
-    """Hook mode: read a single message file, apply the phrase set.
+    """Hook mode: read a single message file, enforce the gate.
 
     Invoked by .githooks/commit-msg as
     ``python scripts/check_docs_health.py --check-commit-msg "$1"``.
-    Exits 0 if clean (or if phrase config is absent), 2 if matched.
-    """
-    config, _err = load_phrase_config()
-    if not config.is_loaded:
-        # No config = no enforcement. Silent pass (the audit script's
-        # full run emits the WARN; hook mode stays quiet to avoid
-        # spamming git's commit flow).
-        return 0
 
+    Runs TWO checks, in order:
+
+    1. **capitalized-subject** — ALWAYS runs (independent of the phrase
+       config; the subject convention is public and config-free). Blocks
+       (exit 2) on violation.
+    2. **forbidden-phrase** — only if the private phrase config is loaded;
+       absent config means no phrase enforcement (silent pass for that
+       check, matching the audit script's full-run WARN behavior).
+
+    The ``.githooks/commit-msg`` env-var bypass short-circuits the whole
+    hook before this function runs, so it covers BOTH checks — no separate
+    bypass is needed for the cap-check.
+
+    Exits 0 if clean (or if only the phrase config is absent), 2 if either
+    check fails.
+    """
     try:
         text = Path(message_file).read_text(encoding="utf-8")
     except (UnicodeDecodeError, OSError) as e:
         print(f"check_commit_msg: cannot read {message_file}: {e}", file=sys.stderr)
         return 2
+
+    # ── Check 1: capitalized subject (always runs) ───────────────────────
+    subject = _subject_from_message(text)
+    cap_error = check_subject_capitalized(subject)
+    if cap_error is not None:
+        print(
+            "\n*** commit-msg hook BLOCKED: subject not capitalized ***\n",
+            file=sys.stderr,
+        )
+        print(f"  subject: {subject!r}", file=sys.stderr)
+        print(f"  {cap_error}", file=sys.stderr)
+        print(
+            "\nFix: capitalize the description (conventional commits) or the\n"
+            "first word (non-conventional). Code identifiers (with _ or .) and\n"
+            "git-generated subjects (Merge/Revert/fixup!/...) are exempt.\n"
+            "Bypass (rare; use sparingly): "
+            "EVIDENTIA_ALLOW_PHRASE_BYPASS=1 git commit ...\n",
+            file=sys.stderr,
+        )
+        return 2
+
+    # ── Check 2: forbidden phrase (config-gated) ─────────────────────────
+    config, _err = load_phrase_config()
+    if not config.is_loaded:
+        # No config = no phrase enforcement. Silent pass (the audit
+        # script's full run emits the WARN; hook mode stays quiet to avoid
+        # spamming git's commit flow). The cap-check above already ran.
+        return 0
 
     # Strip git's commented lines (lines starting with # are not part of the message)
     text_no_comments = "\n".join(
