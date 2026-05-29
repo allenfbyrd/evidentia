@@ -342,7 +342,26 @@ gh api repos/polycentric-labs/evidentia/branches/main/protection --jq '{required
 gh search commits --author-email allen@allenfbyrd.com --owner polycentric-labs  # zero hits
 ```
 
-- [ ] Repo About description is current (no stale "Previously: ..." text).
+- [ ] **Repo About description is managed as code** (no stale
+      "Previously: ..." text). The source of truth is
+      [`.github/repo-description.txt`](../.github/repo-description.txt)
+      (single line, no version literal — so it is NOT part of per-version
+      bumping; `.github/**` is in the `frozen` list of
+      [`scripts/version_tracked_files.yaml`](../scripts/version_tracked_files.yaml),
+      so `check_version_consistency.py` does not flag it). Re-assert the
+      live GitHub About from the tracked file each release so the two
+      cannot silently drift:
+
+      ```bash
+      gh repo edit Polycentric-Labs/evidentia \
+        --description "$(cat .github/repo-description.txt)"
+      ```
+
+      This is a **Tier-4 action requiring Allen's approval** (it mutates
+      public GitHub state) — surface the exact command and wait for
+      explicit approval before running it. If the About copy itself needs
+      to change, edit `.github/repo-description.txt` first (in its own
+      commit), then re-assert from the file.
 - [ ] PyPI environment exists.
 - [ ] PyPI Trusted Publisher entries exist for all 6 published packages
       (verify via `https://pypi.org/manage/project/<name>/settings/publishing/`).

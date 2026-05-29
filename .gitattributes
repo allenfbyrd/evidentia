@@ -1,0 +1,4 @@
+# Pin the GitHub About source-of-truth file to LF so a trailing CR can
+# never sneak into `gh repo edit --description "$(cat .github/repo-description.txt)"`
+# on Windows checkouts (core.autocrlf=true). See docs/release-checklist.md Step 7.
+.github/repo-description.txt text eol=lf
