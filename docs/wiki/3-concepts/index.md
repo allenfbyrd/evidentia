@@ -24,4 +24,4 @@ Explanation + the "why" behind Evidentia's design. Read these if you're extendin
 
 After this section, jump to [Reference](../4-reference/) for symbol-level detail or [Compliance](../5-compliance/) for framework-specific material.
 
-> **Stub status:** as of v0.10.7, `architecture.md` is the only detailed concept page; others are stubs to be filled in over upcoming cycles.
+All seven concept pages above are live.

@@ -30,4 +30,4 @@ Task-oriented how-tos. Each page solves a specific operational need.
 
 Jump directly to the page that solves your problem. Each guide is self-contained; cross-references to [Concepts](../3-concepts/) point at the "why" if you need depth.
 
-> **Stub status:** as of v0.10.7, only the section index exists; individual guide pages are stubs to be filled in over upcoming cycles. See the v0.10.7+ ROADMAP for fill-in cadence.
+All eleven guide pages above are live. New guides land here as new operational surfaces ship; see the [ROADMAP](../6-project/roadmap.md) for the forward cadence.

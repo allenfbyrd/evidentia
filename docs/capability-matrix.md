@@ -78,7 +78,7 @@ allowance, all unchanged subsystems are REUSED from the v0.10.0 → v0.10.3
 matrices; the section below covers only the new + modified surfaces.
 
 **Step 4.1 — `/security-review-scoped` invocation #2**: SKIPPED per the
-[security-review-scoped-wrapper.md "When the wrapper isn't needed"](../C:/Users/allen/.claude/skills/pre-release-review/references/security-review-scoped-wrapper.md)
+`security-review-scoped` skill wrapper's "When the wrapper isn't needed"
 patch-release shortcut. Rationale: the v0.10.3..HEAD diff is entirely
 within one subsystem (gap_analyzer / collectors output + a thin MCP
 wrapper); the Step 3 builtin invocation #1 already covered the only
