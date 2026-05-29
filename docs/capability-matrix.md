@@ -1961,6 +1961,23 @@ exercise. Each scenario identifies a persona, goal, Evidentia surfaces
 exercised, and expected outcomes. These serve as the walk-through script
 and acceptance criteria for v0.9.1 + v1.0 gate.
 
+> **Planning shorthand — not runnable command syntax.** This is a
+> v0.9.1-era planning artifact describing scenarios a *hypothetical*
+> federal-SI domain expert would exercise; no real federal-SI
+> walk-through has occurred. The "Evidentia surfaces" column uses
+> abbreviated shorthand (e.g. `gap-analyze`, `--all-frameworks`,
+> `--fail-on-severity`) that does not match the real CLI. For the
+> actual, smoke-tested command surface see
+> [`docs/walkthrough-federal-si.md`](walkthrough-federal-si.md) and
+> the [CLI reference](wiki/4-reference/cli.md). In particular: the
+> verb is `evidentia gap analyze` (space, not hyphen); multi-
+> framework analysis uses repeated/comma-separated `--frameworks`
+> (there is no `--all-frameworks`); CI gating is `gap diff
+> --fail-on-regression` or `eval risk-determinism
+> --fail-on-determinism-rate-below` (there is no `gap analyze
+> --fail-on-severity`); and OSCAL-POA&M emit is the library function
+> `gap_report_to_oscal_poam()` (no dedicated CLI verb).
+
 | # | Persona | Goal | Evidentia surfaces | Expected outcome |
 |---|---------|------|--------------------|------------------|
 | FS-1 | CSP compliance engineer | Prepare monthly ConMon deliverables for the AO | `evidentia conmon check`, `evidentia poam list --status in_progress`, `POST /api/conmon/check`, `GET /api/poam/items` | Overdue + due-soon cadences surfaced; POA&M items with updated status ready for submission |

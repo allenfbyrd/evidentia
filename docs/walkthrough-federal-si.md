@@ -19,14 +19,15 @@ SSDF practice PS.3.1 (cryptographic verification of integrity):
 
 ```bash
 # 1. PyPI PEP 740 attestations (signed by GitHub Actions OIDC
-#    identity `https://github.com/Polycentric-Labs/evidentia`):
+#    identity `https://github.com/Polycentric-Labs/evidentia`).
+#    Substitute the release you are authorizing for X.Y.Z:
 pypi-attestations verify pypi \
   --repository https://github.com/Polycentric-Labs/evidentia \
-  $(pip download evidentia==0.9.4 --no-deps -d ./tmp_verify/ \
+  $(pip download evidentia==X.Y.Z --no-deps -d ./tmp_verify/ \
       && ls ./tmp_verify/)
 
 # 2. Container image (cosign keyless OIDC + SLSA Provenance v1):
-cosign verify ghcr.io/polycentric-labs/evidentia:v0.9.4 \
+cosign verify ghcr.io/polycentric-labs/evidentia:vX.Y.Z \
   --certificate-identity-regexp \
     "https://github.com/Polycentric-Labs/evidentia" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
@@ -110,7 +111,8 @@ is captured at the end ("What this walks-through validates" +
 ```bash
 pip install evidentia
 # Optional: containerized for FedRAMP-High air-gap compatibility
-docker pull ghcr.io/polycentric-labs/evidentia:v0.9.4
+# (substitute the release you are authorizing for vX.Y.Z)
+docker pull ghcr.io/polycentric-labs/evidentia:vX.Y.Z
 ```
 
 ## Step 1 — Confirm catalogs
@@ -315,33 +317,55 @@ emit POA&M items → format as OSCAL 1.1.2 plan-of-action-and-
 milestones → submit to FedRAMP PMO via the RFC-0024-compliant
 machine-readable channel.
 
+> **Step 8 is operator-driven, not smoke-tested.** Steps 2-7 run in
+> CI against the bundled fixtures; Step 8 needs the operator's own
+> control-inventory export, so there is no `inventory.yaml` fixture
+> in `tests/data/walkthrough-federal-si/`. Point `--inventory` at
+> your real inventory (YAML / CSV / JSON) when you run it.
+
 ```bash
 # 1. Gap-analyze the SI's inventory against the FedRAMP Moderate
-#    baseline (the inventory fixture stands in for the SI's real
-#    cloud configuration export):
-evidentia gap-analysis run \
-  --inventory tests/data/walkthrough-federal-si/inventory.yaml \
-  --framework nist-800-53-rev5-moderate \
+#    baseline (substitute your own control-inventory export for the
+#    illustrative path below — there is no bundled inventory fixture):
+evidentia gap analyze \
+  --inventory ./my-controls.yaml \
+  --frameworks nist-800-53-rev5-moderate \
   --output /tmp/walkthrough-gap-report.json
 
-# 2. Create POA&M items from the gap report (one POA&M line per
-#    open finding; severity inherited from the gap classification):
-evidentia poam create-from-gap-report \
-  --gap-report /tmp/walkthrough-gap-report.json \
-  --output /tmp/walkthrough-poam.json
+# 2. Materialize POA&M items from the gap report (one POA&M line per
+#    finding; CRITICAL + HIGH only by default, the FedRAMP POA&M
+#    Template Completion Guide v3.0 auditor-default — pass --all to
+#    materialize every severity). POA&M items persist to the
+#    file-backed POA&M store:
+evidentia poam create --from-gap-report /tmp/walkthrough-gap-report.json
 
-# 3. Emit OSCAL 1.1.2 plan-of-action-and-milestones:
-evidentia poam export-oscal \
-  --input /tmp/walkthrough-poam.json \
-  --output /tmp/walkthrough-poam.oscal.json
+# 3. Emit OSCAL 1.1.2 plan-of-action-and-milestones. This is a
+#    LIBRARY function — gap_report_to_oscal_poam() in
+#    evidentia_core.oscal.poam_exporter — with no dedicated CLI verb
+#    in v0.10.6. It consumes the gap report directly:
+python - <<'PY'
+import json
+from evidentia_core.models import GapAnalysisReport
+from evidentia_core.oscal.poam_exporter import gap_report_to_oscal_poam
 
-# 4. Validate against NIST's OSCAL JSON schema:
-evidentia oscal validate /tmp/walkthrough-poam.oscal.json
+report = GapAnalysisReport.model_validate_json(
+    open("/tmp/walkthrough-gap-report.json").read()
+)
+# Default severity_filter materializes CRITICAL + HIGH; pass your own
+# predicate to widen. embed_back_matter=True adds SHA-256 integrity.
+oscal = gap_report_to_oscal_poam(report)
+with open("/tmp/walkthrough-poam.oscal.json", "w") as fh:
+    json.dump(oscal, fh, indent=2)
+PY
+
+# 4. Verify the OSCAL document's digests (and any detached GPG /
+#    Sigstore signatures) with the integrity verifier:
+evidentia oscal verify /tmp/walkthrough-poam.oscal.json
 ```
 
 **Expected**: a valid OSCAL plan-of-action-and-milestones JSON
 document with SHA-256 back-matter integrity references to every
-source-evidence file. This document is what the SI submits to the
+embedded POA&M record. This document is what the SI submits to the
 3PAO at annual assessment and to the FedRAMP PMO at the monthly
 POA&M cadence (post-RFC-0024 deadline, this is the machine-
 readable submission format).
