@@ -5,7 +5,7 @@ Run BEFORE any version-update push. Invoked by `/pre-release-review`
 Step 5.D.3 in --strict mode (blocks tag if FAIL); also runnable in
 --advisory mode (default) during development.
 
-8 checks total (5 doc + 3 publicly-facing-surface):
+10 checks total (7 doc + 3 publicly-facing-surface):
 
 DOC HEALTH (always runs):
 
@@ -20,23 +20,33 @@ DOC HEALTH (always runs):
 4. **private_path_leak**    — no tracked public .md file links to a
                               ``private/`` path (the gitignored
                               strategy directory).
+5. **readme_header_titlecase** — every README ``##``/``###`` header is
+                              Title Case (stop-words lowercase except
+                              first; acronyms + "Evidentia" preserved).
+                              Added v0.10.7 E5c.
+6. **readme_recent_releases_current** — the README "Recent Releases"
+                              block has exactly 3 entries and its newest
+                              entry's version == the current project
+                              version (replicates
+                              ``gen_readme_releases.py --check``; can't
+                              ship a stale releases list). Added E5c.
 
 PHRASE AUDIT (config-driven; runs only if private config present):
 
-5. **phrase_audit**         — no forbidden phrases (per the project's
+7. **phrase_audit**         — no forbidden phrases (per the project's
                               private phrase config) in tracked public
                               files outside the per-file allowlist.
-6. **commit_msg_audit**     — same forbidden-phrase set, applied to
+8. **commit_msg_audit**     — same forbidden-phrase set, applied to
                               commit messages in the range
                               ``cutoff..HEAD`` (cutoff loaded from
                               config; everything before is allowlisted
                               as immutable history).
-7. **tag_msg_audit**        — same forbidden-phrase set, applied to
+9. **tag_msg_audit**        — same forbidden-phrase set, applied to
                               annotated tag bodies. Tags listed in the
                               config's tag_allowlist are skipped
                               (immutable; force-update would break
                               cosign signatures bound to those SHAs).
-8. **release_body_audit**   — uses ``gh api`` to inspect the latest
+10. **release_body_audit**  — uses ``gh api`` to inspect the latest
                               GitHub Release body. Advisory mode
                               (gracefully WARNs if gh is unauthenticated
                               or returns empty).
@@ -71,6 +81,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 import subprocess
@@ -81,6 +92,42 @@ from pathlib import Path
 
 REPO_ROOT = Path.cwd().resolve()
 PHRASE_CONFIG_PATH = Path("private/check-docs-health-patterns.yaml")
+
+# ── README header Title-Case invariant (v0.10.7 E5c) ───────────────────────
+# Stop-words kept lowercase UNLESS they are the first word of the header.
+# Mirrors the one-time Title-Casing applied in E5b. Conservative on purpose:
+# a tight stop-word set + an acronym/proper-noun allowlist avoid mangling
+# "What is Evidentia?" or acronym-bearing headers.
+#
+# The core set is the E5b-named articles/conjunctions/short-prepositions
+# (a/an/the/of/in/on/for/and/to/vs). It is widened with the standard short
+# function words English title-case also keeps lowercase — notably the
+# copula "is" (so the canonical "What is Evidentia?" header is NOT flagged),
+# plus common short prepositions/conjunctions. Kept deliberately small so an
+# obviously-lowercase PRINCIPAL word (e.g. "new" in "## new thing") still
+# FAILS.
+TITLECASE_STOPWORDS: frozenset[str] = frozenset(
+    {
+        # E5b-named:
+        "a", "an", "the", "of", "in", "on", "for", "and", "to", "vs",
+        # standard title-case lowercase function words:
+        "is", "as", "at", "by", "or", "nor", "but", "via", "with", "from",
+    }
+)
+# Tokens whose exact casing is preserved (acronyms + the project proper noun).
+# Compared case-INSENSITIVELY; the value is the canonical casing to expect.
+TITLECASE_PRESERVE: dict[str, str] = {
+    "ai": "AI",
+    "oscal": "OSCAL",
+    "osps": "OSPS",
+    "cli": "CLI",
+    "mcp": "MCP",
+    "api": "API",
+    "sbom": "SBOM",
+    "grc": "GRC",
+    "oidc": "OIDC",
+    "evidentia": "Evidentia",
+}
 
 # Per-line cross-link allowlist. False-positives that aren't worth the
 # complexity of inline-code-aware regex skipping (the fenced-code-aware
@@ -403,6 +450,158 @@ def check_private_path_leak(md_paths: list[Path], result: CheckResult) -> None:
             ))
 
 
+def _titlecase_violations(header_text: str) -> list[str]:
+    """Return the words in a header that violate the Title-Case rule.
+
+    Rules (mirroring E5b):
+      * The FIRST word is always capitalized (even a stop-word).
+      * Stop-words (TITLECASE_STOPWORDS) after the first word stay lowercase.
+      * Acronyms / the "Evidentia" proper noun (TITLECASE_PRESERVE) must use
+        their canonical casing.
+      * Every other ("principal") word must start with an uppercase letter.
+
+    Conservative to avoid false positives: a token is only flagged when it is
+    UNAMBIGUOUSLY wrong. A token is skipped (never flagged) when its leading
+    alphabetic run is empty (starts with a digit/symbol, e.g. ``(60``) or
+    already contains an uppercase letter somewhere in that run other than the
+    expected position (e.g. ``POA&M``, ``OSCAL/OSPS`` compound tokens).
+    """
+    words = header_text.split()
+    violations: list[str] = []
+    for idx, raw in enumerate(words):
+        # Isolate the leading alphabetic run (handles "Box)", "What's",
+        # "(60" -> empty run -> skipped). We judge casing on that run only.
+        m = re.match(r"^[^\w]*([A-Za-z]+)", raw)
+        if not m:
+            continue  # no leading alpha run (pure digits/symbols) — skip
+        word_alpha = m.group(1)
+        lower = word_alpha.lower()
+
+        # Acronym / proper-noun preservation (case-insensitive key).
+        if lower in TITLECASE_PRESERVE:
+            expected = TITLECASE_PRESERVE[lower]
+            if word_alpha != expected:
+                violations.append(f"{raw!r} (expected {expected})")
+            continue
+
+        # A token whose alpha run has an interior uppercase letter (e.g.
+        # "OSCAL", "VEX", "POA" in "POA&M", a CamelCase compound) is treated
+        # as an intentional special token and skipped — Title-Case only
+        # governs the first-letter of ordinary words.
+        if word_alpha[1:] != word_alpha[1:].lower():
+            continue
+
+        is_first = idx == 0
+        if not is_first and lower in TITLECASE_STOPWORDS:
+            # Stop-word after first position: must be lowercase.
+            if word_alpha[0].isupper():
+                violations.append(f"{raw!r} (stop-word should be lowercase)")
+            continue
+
+        # Principal word (or first word): must start uppercase.
+        if not word_alpha[0].isupper():
+            violations.append(f"{raw!r} (should be capitalized)")
+    return violations
+
+
+def check_readme_header_titlecase(result: CheckResult) -> None:
+    """Every README ``##``/``###`` header must be Title Case (E5c).
+
+    Headers inside fenced code blocks (the quickstart's ``# 1. ...`` bash
+    comments) are skipped via the same fenced-code-aware logic the
+    cross-link check uses.
+    """
+    readme = Path("README.md")
+    if not readme.exists():
+        result.add(Finding(
+            Severity.FAIL, "readme_header_titlecase", "README.md", None,
+            "README.md not found at repo root",
+        ))
+        return
+    try:
+        content = readme.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError) as e:
+        result.add(Finding(
+            Severity.FAIL, "readme_header_titlecase", "README.md", None,
+            f"README.md unreadable: {e}",
+        ))
+        return
+
+    code_ranges = find_code_block_ranges(content)
+    header_re = re.compile(r"^(#{2,3})\s+(.+?)\s*$", re.MULTILINE)
+    for match in header_re.finditer(content):
+        if is_in_code_block(match.start(), code_ranges):
+            continue
+        line = content[: match.start()].count("\n") + 1
+        header_text = match.group(2)
+        violations = _titlecase_violations(header_text)
+        if violations:
+            result.add(Finding(
+                Severity.FAIL, "readme_header_titlecase", "README.md", line,
+                f"header {header_text!r} is not Title Case: "
+                f"{'; '.join(violations)}",
+            ))
+
+
+def check_readme_recent_releases_current(result: CheckResult) -> None:
+    """README Recent-Releases block must be current (E5c).
+
+    Replicates ``gen_readme_releases.py --check``: the block must have
+    exactly 3 entries AND its newest entry's version must equal the current
+    project version. Imports the generator module (stdlib-only sibling) so
+    the assertion logic lives in exactly one place.
+    """
+    gen_path = Path(__file__).resolve().parent / "gen_readme_releases.py"
+    if not gen_path.exists():
+        result.add(Finding(
+            Severity.WARN, "readme_recent_releases_current", "<scripts>", None,
+            "gen_readme_releases.py not found; check skipped",
+        ))
+        return
+    try:
+        mod_name = "gen_readme_releases_for_docs_health"
+        spec = importlib.util.spec_from_file_location(mod_name, gen_path)
+        if spec is None or spec.loader is None:
+            raise ImportError("cannot build import spec")
+        gen = importlib.util.module_from_spec(spec)
+        # Register BEFORE exec so @dataclass(frozen=True) in the module can
+        # resolve its own ``__module__`` via sys.modules (CPython's dataclass
+        # machinery looks the module up there; an unregistered module yields
+        # None and raises AttributeError during class processing).
+        sys.modules[mod_name] = gen
+        spec.loader.exec_module(gen)
+    except (ImportError, OSError, SyntaxError) as e:
+        result.add(Finding(
+            Severity.WARN, "readme_recent_releases_current", "<scripts>", None,
+            f"could not import gen_readme_releases.py: {e}",
+        ))
+        return
+
+    readme = Path("README.md")
+    if not readme.exists():
+        result.add(Finding(
+            Severity.FAIL, "readme_recent_releases_current", "README.md", None,
+            "README.md not found at repo root",
+        ))
+        return
+    try:
+        readme_text = readme.read_text(encoding="utf-8")
+        current = gen.detect_current_version()
+    except (FileNotFoundError, ValueError, OSError) as e:
+        result.add(Finding(
+            Severity.WARN, "readme_recent_releases_current", "README.md", None,
+            f"could not evaluate current version: {e}",
+        ))
+        return
+
+    ok, message = gen.check_readme_current(readme_text, current)
+    if not ok:
+        result.add(Finding(
+            Severity.FAIL, "readme_recent_releases_current", "README.md", None,
+            message,
+        ))
+
+
 def _scan_text_for_forbidden(
     text: str,
     source: str,
@@ -721,6 +920,8 @@ def main() -> int:
     check_cross_link_resolve(md_paths, all_tracked, result)
     check_readme_size_guard(args.readme_max, result)
     check_private_path_leak(md_paths, result)
+    check_readme_header_titlecase(result)
+    check_readme_recent_releases_current(result)
 
     # Phrase-audit checks (config-gated)
     if config.is_loaded:
