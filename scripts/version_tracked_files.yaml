@@ -424,20 +424,19 @@ anchors:
       illustration.
 
   # ── docs/wiki/2-guides/air-gapped-install.md (canonical wiki page) ─────
-  #   Only the version-output line is anchored. The `docker save ... :vX.Y.Z
-  #   -o evidentia-vX.Y.Z.tar` line carries TWO co-live literals (the image
-  #   tag AND the tarball filename) and so cannot be anchored under the
-  #   exactly-one-literal rule without a tarball-name reword (not in WS1-B's
-  #   approved reword set). Anchoring only the `docker pull` tag would desync it
-  #   from that `docker save` line, so the docker save/load block (the pull,
-  #   save, and load lines) is left FROZEN as a unit. FLAGGED for follow-up:
-  #   either reword the tarball filename to a version-agnostic name (e.g.
-  #   `evidentia.tar`) so the save line becomes single-literal and the whole
-  #   block can be anchored, or accept the block stays frozen.
+  #   The tarball filename was reworded version-agnostic (`evidentia.tar`) so the
+  #   `docker pull` + `docker save` container-tag lines are single-literal and
+  #   anchorable (the `docker load -i evidentia.tar` line carries no version).
+  #   The save/load block + the version-output line are all anchored now — zero
+  #   live-drift surface on this page (WS1-D follow-up closure, 2026-05-29).
+  - path: "docs/wiki/2-guides/air-gapped-install.md"
+    line_contains: "evidentia:v"
+    desc: >-
+      The two `ghcr.io/polycentric-labs/evidentia:vX.Y.Z` container lines
+      (`docker pull` + `docker save`). Single in-family literal each (the
+      tarball name is now version-agnostic). LIVE current-release recipe.
   - path: "docs/wiki/2-guides/air-gapped-install.md"
     line_contains: "Evidentia v"
     desc: >-
       The `# → Evidentia vX.Y.Z / Python 3.12.x` post-offline-install verify
-      line. Single in-family literal. LIVE expected-output. (The docker
-      save/load tarball block above is intentionally NOT anchored — see the
-      block comment: its `docker save` line carries two co-live literals.)
+      line. Single in-family literal. LIVE expected-output.

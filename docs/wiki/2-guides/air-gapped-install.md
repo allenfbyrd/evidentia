@@ -38,11 +38,11 @@ Pull the cosign-signed image on the connected host, save it to a tarball, and
 carry the tarball across the air gap:
 
 ```bash
-docker pull ghcr.io/polycentric-labs/evidentia:v0.10.6
-docker save ghcr.io/polycentric-labs/evidentia:v0.10.6 -o evidentia-v0.10.6.tar
+docker pull ghcr.io/polycentric-labs/evidentia:v0.10.7
+docker save ghcr.io/polycentric-labs/evidentia:v0.10.7 -o evidentia.tar
 ```
 
-On the air-gapped host: `docker load -i evidentia-v0.10.6.tar`.
+On the air-gapped host: `docker load -i evidentia.tar`.
 
 ## Step 2 — Transfer and install offline
 
