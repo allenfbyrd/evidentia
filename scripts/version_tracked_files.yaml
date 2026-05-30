@@ -176,6 +176,16 @@ tracked:
   - path: "packages/evidentia-ui/package.json"
     kind: json_version
     desc: "The @evidentia/ui frontend package version (kept in lockstep)."
+  - path: "packages/evidentia-ui/openapi.json"
+    kind: json_version
+    desc: >-
+      The generated FastAPI OpenAPI schema's `info.version` (the ONLY valued
+      `"version": "X.Y.Z"` key — the two `"version": {}` schema-property defs
+      and the historical `since vX` annotations baked into endpoint/model
+      descriptions are NOT matched by json_version). Tracked so `info.version`
+      stays equal to the API version every release; the `openapi-drift` CI gate
+      (test.yml) regenerates + confirms it. Added with the GUI OpenAPI type-gen
+      guardrail (WS2).
 
   # ── Container build pins ───────────────────────────────────────────────
   - path: "Dockerfile"

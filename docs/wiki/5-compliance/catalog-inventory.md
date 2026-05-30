@@ -127,12 +127,13 @@ schema if you are hand-authoring one.
 
 - **Add a new framework**: 3-file PR — see
   [Contributing a catalog](contributing-a-catalog.md).
-- **Pin a catalog version** (so an authoritative-source refresh does not
-  shift your assessment baseline): `evidentia catalog pin <framework>
-  <version>`. Catalog content is a non-frozen surface
+- **Pin a catalog version** (planned): a `catalog pin <framework> <version>`
+  command — so an authoritative-source refresh does not shift your assessment
+  baseline — is planned (not yet available; track it on the roadmap). Catalog
+  content is a non-frozen surface
   ([api-stability.md](../6-project/api-stability.md) §"Bundled catalog
-  content") — it evolves as NIST / ISO / EU sources publish updates, and
-  the pin is the operator escape hatch.
+  content") — it evolves as NIST / ISO / EU sources publish updates, and the
+  pin will be the operator escape hatch.
 
 ## See also
 

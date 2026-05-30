@@ -352,10 +352,8 @@ authoritative sources publish updates (NIST revisions, ISO
 amendments, EU regulation enforcement dates). Catalog content
 changes are patch-level — they don't constitute API breaks.
 
-Operators who need pinned catalog versions use:
-```bash
-evidentia catalog pin <framework> <version>
-```
+Explicit version-pinning — via a planned `catalog pin <framework> <version>`
+command — is on the roadmap (not yet available).
 
 ### Threshold defaults
 
