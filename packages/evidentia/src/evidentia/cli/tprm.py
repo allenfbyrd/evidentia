@@ -34,6 +34,7 @@ from datetime import date
 from pathlib import Path
 
 import typer
+from evidentia_core.models.common import enum_value
 from evidentia_core.models.tprm import (
     CriticalityTier,
     RegulatoryClassification,
@@ -891,6 +892,19 @@ def concentration_report(
 # ── dd-questionnaire generate ──────────────────────────────────────
 
 
+def _enum_value(value: object) -> str | None:
+    """``enum_value`` with ``None`` passthrough for the nullable format field.
+
+    The canonical :func:`evidentia_core.models.common.enum_value` always
+    returns a ``str``; the ingest render needs ``None`` to round-trip a null
+    ``CompletedQuestionnaire.format`` (JSON ``null`` / ``"(unknown)"``).
+    Models set ``use_enum_values=True``, so a parsed ``format`` is a plain
+    ``str`` while a freshly-constructed one is the enum — the canonical
+    helper handles both shapes; this only adds the ``None`` guard.
+    """
+    return None if value is None else enum_value(value)
+
+
 @dd_app.command("generate")
 def dd_questionnaire_generate(
     vendor_id: str = typer.Option(
@@ -1179,11 +1193,7 @@ def dd_questionnaire_ingest(
                         "name": vendor.name,
                     },
                     "questionnaire_id": completed.questionnaire_id,
-                    "format": (
-                        completed.format.value
-                        if completed.format
-                        else None
-                    ),
+                    "format": _enum_value(completed.format),
                     "responses": completed.responses,
                     "ingested_at": completed.ingested_at.isoformat(),
                     "source_path": completed.source_path,
@@ -1206,7 +1216,7 @@ def dd_questionnaire_ingest(
         f"[dim]Questionnaire ID:[/dim] "
         f"{completed.questionnaire_id or '(none)'}  "
         f"[dim]Format:[/dim] "
-        f"{completed.format.value if completed.format else '(unknown)'}"
+        f"{_enum_value(completed.format) or '(unknown)'}"
     )
     console.print(
         f"[dim]Responses:[/dim] {len(completed.responses)} "

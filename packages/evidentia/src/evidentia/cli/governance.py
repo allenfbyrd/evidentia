@@ -52,6 +52,7 @@ from evidentia_core.metric_store import (
     load_metric_by_id,
     save_metric,
 )
+from evidentia_core.models.common import enum_value
 from evidentia_core.workflow_store import (
     InvalidWorkflowIdError,
     delete_workflow,
@@ -790,7 +791,7 @@ def workflow_run(
     save_workflow(wf)
     console.print(
         f"[green]Started[/green] workflow [bold]{wf.name}[/bold] "
-        f"(id: {wf.id}); status: [cyan]{wf.status}[/cyan]"
+        f"(id: {wf.id}); status: [cyan]{enum_value(wf.status)}[/cyan]"
     )
 
 
@@ -847,7 +848,7 @@ def workflow_advance(
     console.print(
         f"[green]Advanced[/green] step {step} of [bold]{wf.name}[/bold] "
         f"to [cyan]{new_status}[/cyan]; workflow status: "
-        f"[cyan]{new_wf.status}[/cyan]"
+        f"[cyan]{enum_value(new_wf.status)}[/cyan]"
     )
 
 

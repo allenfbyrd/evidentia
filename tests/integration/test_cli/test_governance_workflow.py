@@ -71,6 +71,21 @@ class TestWorkflowRun:
         wid = _run_workflow(runner, tmp_path)
         assert wid
 
+    def test_run_status_renders_clean_value(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        """The confirmation line shows the clean status value, not the
+        ``WorkflowStatus.IN_PROGRESS`` enum repr."""
+        template = tmp_path / "wf.yaml"
+        _write_template(template, _THREE_STEP_TEMPLATE)
+        result = runner.invoke(
+            app,
+            ["governance", "workflow", "run", "--template", str(template)],
+        )
+        assert result.exit_code == 0, result.output
+        assert "WorkflowStatus." not in result.output
+        assert "in_progress" in result.output
+
     def test_run_invalid_yaml(
         self, runner: CliRunner, tmp_path: Path
     ) -> None:
@@ -114,6 +129,24 @@ class TestWorkflowAdvance:
         )
         assert result.exit_code == 0
         assert "Advanced" in result.output
+
+    def test_advance_status_renders_clean_value(
+        self, runner: CliRunner, tmp_path: Path
+    ) -> None:
+        """The advance confirmation shows the clean workflow-status value,
+        not the ``WorkflowStatus.<NAME>`` enum repr."""
+        wid = _run_workflow(runner, tmp_path)
+        result = runner.invoke(
+            app,
+            [
+                "governance", "workflow", "advance", wid,
+                "--step", "0",
+                "--new-status", "approved",
+                "--actor", "alice@example.com",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert "WorkflowStatus." not in result.output
 
     def test_advance_invalid_status(
         self, runner: CliRunner, tmp_path: Path
