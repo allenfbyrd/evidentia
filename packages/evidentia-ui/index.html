@@ -2,14 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#2563c9" />
+
+    <!-- Favicons + app icons (files live in public/, served at the web root). -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <title>Evidentia</title>
     <meta
       name="description"
       content="Evidentia — open-source GRC tool for gap analysis, risk statements, and compliance automation."
     />
-    <title>Evidentia</title>
+
+    <!-- Open Graph / social cards. The web UI is localhost-only today, so these
+         activate for a future public deploy (e.g. the MkDocs docs site); swap the
+         relative paths for absolute URLs at that point so scrapers can resolve them. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Evidentia — open-source compliance-as-code" />
+    <meta property="og:description" content="Gap analysis, evidence collection, and OSCAL emit. Apache-2.0." />
+    <meta property="og:image" content="/evidentia-og-1200x630.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Evidentia — open-source compliance-as-code" />
+    <meta name="twitter:description" content="Gap analysis, evidence collection, and OSCAL emit. Apache-2.0." />
+    <meta name="twitter:image" content="/evidentia-og-1200x630.png" />
   </head>
   <body>
     <div id="root"></div>
