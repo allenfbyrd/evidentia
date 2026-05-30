@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
+import { GapExportControl } from "@/components/gap/GapExportControl";
 import { GapTable } from "@/components/gap/GapTable";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -278,19 +279,22 @@ export function GapAnalyzePage() {
 function GapResults({ report }: { report: GapAnalysisReport }) {
   return (
     <section className="space-y-4" aria-labelledby="results-heading">
-      <header className="flex items-center justify-between">
-        <h2 id="results-heading" className="text-xl font-semibold">
-          Results
-        </h2>
-        <div className="flex gap-2">
-          <Badge variant="outline">{report.total_gaps} total gaps</Badge>
-          {report.critical_gaps > 0 && (
-            <Badge variant="critical">{report.critical_gaps} critical</Badge>
-          )}
-          {report.high_gaps > 0 && (
-            <Badge variant="high">{report.high_gaps} high</Badge>
-          )}
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h2 id="results-heading" className="text-xl font-semibold">
+            Results
+          </h2>
+          <div className="flex gap-2">
+            <Badge variant="outline">{report.total_gaps} total gaps</Badge>
+            {report.critical_gaps > 0 && (
+              <Badge variant="critical">{report.critical_gaps} critical</Badge>
+            )}
+            {report.high_gaps > 0 && (
+              <Badge variant="high">{report.high_gaps} high</Badge>
+            )}
+          </div>
         </div>
+        <GapExportControl report={report} />
       </header>
       <div className="grid gap-3 sm:grid-cols-3">
         <MetricCard

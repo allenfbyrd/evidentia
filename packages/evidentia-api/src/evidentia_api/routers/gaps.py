@@ -17,6 +17,7 @@ import tempfile
 from datetime import UTC
 from pathlib import Path
 
+from evidentia_core.gap_analyzer import export_report
 from evidentia_core.gap_analyzer.analyzer import GapAnalyzer
 from evidentia_core.gap_analyzer.inventory import load_inventory
 from evidentia_core.gap_diff import compute_gap_diff
@@ -29,13 +30,36 @@ from evidentia_core.gap_store import (
 )
 from evidentia_core.models.gap import GapAnalysisReport
 from evidentia_core.models.gap_diff import GapDiff
+from evidentia_core.ocsf.finding_mapping import OCSFMappingError
 from evidentia_core.security.paths import (
     PathTraversalError,
     validate_within,
 )
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 
-from evidentia_api.schemas import GapAnalyzeRequest, GapDiffRequest
+from evidentia_api.schemas import (
+    GAP_EXPORT_FORMATS,
+    GapAnalyzeRequest,
+    GapDiffRequest,
+    GapExportRequest,
+)
+
+# Per-format download metadata: (file extension, MIME type). The
+# extension drives the browser's suggested filename; the MIME type
+# sets Content-Type so the browser treats the body correctly. SARIF /
+# OCSF / VEX / OSCAL-AR are all JSON-family payloads but keep their
+# semantic extensions so downstream tooling (GitHub code-scanning,
+# Dependency-Track, SIEM loaders) recognizes them by name.
+_EXPORT_MEDIA: dict[str, tuple[str, str]] = {
+    "json": ("json", "application/json"),
+    "csv": ("csv", "text/csv"),
+    "markdown": ("md", "text/markdown"),
+    "oscal-ar": ("oscal.json", "application/json"),
+    "sarif": ("sarif", "application/sarif+json"),
+    "ocsf": ("ocsf.json", "application/json"),
+    "ocsf-detection": ("ocsf-detection.json", "application/json"),
+    "cyclonedx-vex": ("vex.cdx.json", "application/vnd.cyclonedx+json"),
+}
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -130,6 +154,116 @@ async def analyze(payload: GapAnalyzeRequest) -> GapAnalysisReport:
     finally:
         if tmp_path is not None:
             tmp_path.unlink(missing_ok=True)
+
+
+def _safe_filename_stem(organization: str) -> str:
+    """Derive a filesystem-safe filename stem from an org name.
+
+    Keeps ASCII alphanumerics, dash, and underscore; collapses
+    everything else to a single dash. Prevents header-injection /
+    path characters from a user-controlled organization string
+    landing in the Content-Disposition filename.
+    """
+    cleaned = "".join(
+        ch if (ch.isascii() and (ch.isalnum() or ch in "-_")) else "-"
+        for ch in organization.strip()
+    ).strip("-")
+    # Collapse runs of dashes for readability.
+    while "--" in cleaned:
+        cleaned = cleaned.replace("--", "-")
+    return cleaned or "gap-report"
+
+
+@router.post("/gap/export")
+async def export(payload: GapExportRequest) -> Response:
+    """Export a gap report in an engine-supported format as a download.
+
+    Reuses :func:`evidentia_core.gap_analyzer.export_report` — the exact
+    emitters behind the CLI's ``evidentia gap analyze --format ...`` — so
+    the API never re-implements a serialization. The artifact is returned
+    with a ``Content-Disposition: attachment`` header so the browser saves
+    it directly.
+
+    The report source is either an inline ``report`` body (what the GUI
+    holds after running an analysis) or a ``report_key`` referencing a
+    saved gap-store report. Exactly one must be supplied.
+    """
+    fmt = payload.format
+    if fmt not in GAP_EXPORT_FORMATS:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Unsupported format {fmt!r}. "
+                f"Expected one of: {', '.join(GAP_EXPORT_FORMATS)}."
+            ),
+        )
+
+    if (payload.report is None) == (payload.report_key is None):
+        raise HTTPException(
+            status_code=400,
+            detail="Provide exactly one of 'report' or 'report_key'.",
+        )
+
+    report: GapAnalysisReport
+    if payload.report is not None:
+        report = payload.report
+    else:
+        assert payload.report_key is not None
+        try:
+            loaded = load_report_by_key(payload.report_key)
+        except (InvalidReportKeyError, PathTraversalError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        if loaded is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Report {payload.report_key} not found.",
+            )
+        report = loaded
+
+    extension, media_type = _EXPORT_MEDIA[fmt]
+    filename = f"{_safe_filename_stem(report.organization)}.{extension}"
+
+    # export_report() is path-based — round-trip through a temp file in
+    # the system temp dir, then read the bytes back to return inline.
+    # validate_within is the CodeQL-recognizable barrier confirming the
+    # write target sits inside the temp root.
+    tmp_root = Path(tempfile.gettempdir())
+    fd = tempfile.NamedTemporaryFile(  # noqa: SIM115
+        mode="w", encoding="utf-8", suffix=f".{extension}", delete=False, dir=tmp_root
+    )
+    fd.close()
+    tmp_path = validate_within(Path(fd.name), tmp_root)
+    try:
+        try:
+            export_report(report, tmp_path, format=fmt)  # type: ignore[arg-type]
+        except OCSFMappingError as exc:
+            # Raised by the OCSF emitters when the optional [ocsf] extra
+            # (py-ocsf-models) is not installed on the server. Surface a
+            # 400 with install guidance rather than a 500 — this is an
+            # operator-config issue, not a server fault.
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Format {fmt!r} is unavailable: {exc}. "
+                    "Install the server's [ocsf] extra "
+                    "(pip install 'evidentia-core[ocsf]') to enable "
+                    "OCSF export formats."
+                ),
+            ) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        data = tmp_path.read_bytes()
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+    return Response(
+        content=data,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+        },
+    )
 
 
 @router.get("/gap/reports")

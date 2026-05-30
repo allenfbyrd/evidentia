@@ -6,15 +6,15 @@ React + Vite + TypeScript + shadcn/ui frontend for **Evidentia**. Served by the 
 
 ## Stack
 
-- **React 18** + **TypeScript** (strict mode)
-- **Vite 5** — dev server + production bundler
-- **shadcn/ui** — Radix primitives styled with Tailwind CSS (WCAG 2.1 AA friendly)
+- **React 19** + **TypeScript** (strict mode)
+- **Vite 8** — dev server + production bundler
+- **shadcn/ui** — Radix primitives styled with Tailwind CSS v4 (WCAG 2.1 AA friendly)
+- **Tailwind CSS v4** — CSS-first config via `@tailwindcss/vite`; theme tokens live in `src/index.css` (no `tailwind.config.ts`)
 - **TanStack Query v5** — API cache + mutations
-- **TanStack Table v8** + **TanStack Virtual** — 200–1000-row gap tables
-- **React Router 6** — SPA routing
+- **TanStack Table v8** — sortable / filterable gap tables (comfortable to ~1000 rows)
+- **React Router 7** — SPA routing
 - **Zustand** — onboarding wizard state
 - **React Hook Form** + **Zod** — form validation
-- **Recharts** — severity donut, framework coverage charts
 - **Vitest** + **React Testing Library** — unit + component tests
 - **Playwright** — E2E smoke tests against `evidentia serve`
 
@@ -63,15 +63,14 @@ shadcn/ui is built on Radix UI primitives, which give us WCAG 2.1 AA compliance 
 ```
 packages/evidentia-ui/
 ├── package.json
-├── vite.config.ts            # + test + build config
-├── tailwind.config.ts
+├── vite.config.ts            # + test + build config (incl. @tailwindcss/vite)
 ├── tsconfig.json / tsconfig.node.json
 ├── components.json           # shadcn/ui config
 ├── index.html
 └── src/
     ├── main.tsx              # QueryClient + Router + StrictMode
     ├── App.tsx               # route tree
-    ├── index.css             # Tailwind + shadcn CSS vars
+    ├── index.css             # Tailwind v4 @theme tokens + shadcn CSS vars
     ├── components/
     │   ├── layout/           # AppLayout, Header, Sidebar
     │   ├── ui/               # shadcn/ui primitives (Button, Dialog, etc.)

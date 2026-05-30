@@ -13,8 +13,8 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 /**
- * Frameworks browser — lists all 82 bundled catalogs, filterable by tier
- * + category + free-text search.
+ * Frameworks browser — lists all bundled catalogs (count rendered live
+ * from the API's `total`), filterable by tier + category + free-text search.
  */
 export function FrameworksPage() {
   const [tierFilter, setTierFilter] = useState<string | null>(null);

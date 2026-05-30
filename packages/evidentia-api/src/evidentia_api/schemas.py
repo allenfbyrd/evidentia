@@ -10,7 +10,25 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from evidentia_core.models.gap import GapAnalysisReport
 from pydantic import BaseModel, ConfigDict, Field
+
+# Engine-supported export formats, mirrored from
+# ``evidentia_core.gap_analyzer.reporter.OutputFormat``. Kept as a
+# module constant so the router can validate the requested format
+# against the same set the CLI's ``--format`` honors without importing
+# a private Literal alias. ``console`` / ``github`` are gap-*diff*
+# formats, not gap-*report* formats, so they are intentionally absent.
+GAP_EXPORT_FORMATS: tuple[str, ...] = (
+    "json",
+    "csv",
+    "markdown",
+    "oscal-ar",
+    "sarif",
+    "ocsf",
+    "ocsf-detection",
+    "cyclonedx-vex",
+)
 
 
 class HealthResponse(BaseModel):
@@ -75,6 +93,40 @@ class GapDiffRequest(BaseModel):
 
     base_key: str = Field(description="gap_store SHA-16 key of the base report.")
     head_key: str = Field(description="gap_store SHA-16 key of the head report.")
+
+
+class GapExportRequest(BaseModel):
+    """Body of `POST /api/gap/export`.
+
+    Carries a full :class:`GapAnalysisReport` (the object the UI already
+    holds after `POST /api/gap/analyze`) plus a target ``format``. The
+    endpoint reuses the CLI's :func:`evidentia_core.gap_analyzer.export_report`
+    emitters and streams the serialized artifact back as a download — no
+    re-implementation of any format on the API side.
+
+    ``report_key`` is accepted as an alternative source so a caller can
+    export a report already persisted in the gap store without re-sending
+    the whole body. Exactly one of ``report`` / ``report_key`` must be set.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    format: str = Field(
+        default="json",
+        description=(
+            "One of: " + ", ".join(GAP_EXPORT_FORMATS) + ". "
+            "OCSF formats (ocsf, ocsf-detection) require the server's "
+            "[ocsf] extra; cyclonedx-vex / oscal-ar are always available."
+        ),
+    )
+    report: GapAnalysisReport | None = Field(
+        default=None,
+        description="Inline report to export (as returned by /api/gap/analyze).",
+    )
+    report_key: str | None = Field(
+        default=None,
+        description="gap_store SHA-16 key of a saved report to export instead.",
+    )
 
 
 class RiskGenerateRequest(BaseModel):

@@ -18,9 +18,8 @@ import type { ControlGap } from "@/types/api";
 /**
  * Sortable + filterable gap table powered by TanStack Table.
  *
- * Scales comfortably to 1000 rows without virtualization. Larger
- * reports should add TanStack Virtual (queued for v0.4.2 alongside
- * the Risk Generate page's virtual stream list).
+ * Renders all rows (no row virtualization); comfortable to ~1000 rows.
+ * Virtualization for larger reports is a backlog item, not shipped.
  */
 export function GapTable({ gaps }: { gaps: ControlGap[] }) {
   const [filter, setFilter] = useState("");

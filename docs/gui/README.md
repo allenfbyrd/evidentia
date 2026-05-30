@@ -72,7 +72,7 @@ Click any report in `alpha.2` to drill into a full per-gap view. For now, use `e
 
 ![Frameworks browser](screenshots/frameworks.png)
 
-Browses all 89 bundled catalogs with three filters:
+Browses all 92 bundled catalogs with three filters:
 
 - **Tier** — A (public domain), B (free-restricted), C (licensed), D (government regulation)
 - **Category** — control, technique, vulnerability, obligation
@@ -92,27 +92,40 @@ Results render as a `GapTable` below the form with critical / high
 Reports save to the local gap store automatically and appear on
 the Dashboard.
 
+An **Export** control on the results panel downloads the same report
+in any engine-supported format — JSON, OSCAL Assessment Results,
+SARIF 2.1.0, OCSF Compliance Finding (class_uid 2003), OCSF Detection
+Finding (class_uid 2004), or CycloneDX 1.6 VEX — via
+`POST /api/gap/export`, which reuses the CLI's `export_report`
+emitters. (OCSF formats require the server's `[ocsf]` extra; the
+control surfaces a clear error if it is absent.)
+
 ### Gap Diff `/gap/diff` (v0.7.6 alpha.2)
 
 ![Gap Diff](screenshots/gap-diff.png)
 
-Pick two saved gap reports from the gap-store list (or drag-and-drop
-external reports). Compare runs the same `evidentia gap diff`
-engine that powers the GitHub Action's PR comment. Output:
-opened / closed / severity-up / severity-down / unchanged
-classification per gap, with download-as-markdown and
-download-as-PR-comment buttons.
+Pick two saved gap reports from the gap-store list. Compare runs the
+same `evidentia gap diff` engine that powers the GitHub Action's PR
+comment. Output: opened / closed / severity-up / severity-down /
+unchanged classification per gap, filterable by status.
+
+> Export of the diff itself (markdown / PR-comment artifacts, as the
+> CLI's `evidentia gap diff --format markdown|github` produces) is a
+> backlog item — only gap-analysis *reports* have a UI export today
+> (see Gap Analyze, below).
 
 ### Risk Generate `/risk/generate` (v0.7.6 alpha.2)
 
 ![Risk Generate](screenshots/risk-generate.png)
 
-Wraps the `/api/risks/generate` SSE endpoint. Pick gaps (or run
-batch over a saved report), pick a system context, pick the LLM
-provider (OpenAI / Anthropic / Google / Bedrock / Ollama via
-LiteLLM), and watch risk statements stream in live with per-gap
-progress indicators. Air-gap mode (`--offline`) refuses non-
-loopback LLM endpoints; the Settings page shows current
+Wraps the `/api/risk/generate` SSE endpoint. Pick a saved report,
+provide a system-context path, choose how many top-priority gaps to
+process (top-N), and watch risk statements stream in live with
+per-gap progress indicators. The LLM model/provider is resolved
+server-side from `EVIDENTIA_LLM_MODEL` / `evidentia.yaml` (the
+endpoint accepts an optional model override, but the UI does not yet
+expose a provider/model picker). Air-gap mode (`--offline`) refuses
+non-loopback LLM endpoints; the Settings page shows current
 network-egress posture.
 
 ### Framework detail `/frameworks/:id`
@@ -147,7 +160,7 @@ Evidentia's UI uses [shadcn/ui](https://ui.shadcn.com/) components built on top 
 - ARIA labels and live regions on status indicators
 - Screen-reader announcements for state changes
 - Focus management in dialogs and drawers
-- Sufficient color contrast in both light and dark themes
+- Sufficient color contrast (light theme shipped; a `.dark` token set is defined but not surfaced via a UI toggle)
 
 Remaining a11y gaps are tracked in `docs/gui/a11y.md` (lands in `alpha.2`).
 

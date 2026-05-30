@@ -101,6 +101,128 @@ class TestGapReports:
         assert report_meta["organization"]
 
 
+class TestGapExport:
+    """Coverage for POST /api/gap/export — reuses the CLI emitters."""
+
+    def _analyze(
+        self, api_client: TestClient, meridian_inventory: str
+    ) -> dict:
+        r = api_client.post(
+            "/api/gap/analyze",
+            json={
+                "frameworks": ["soc2-tsc"],
+                "inventory_content": meridian_inventory,
+            },
+        )
+        assert r.status_code == 200, r.text
+        return r.json()
+
+    def test_rejects_unknown_format(
+        self, api_client: TestClient, meridian_inventory: str
+    ) -> None:
+        report = self._analyze(api_client, meridian_inventory)
+        # 'console' is a gap-*diff* format, not a gap-*report* format.
+        r = api_client.post(
+            "/api/gap/export",
+            json={"format": "console", "report": report},
+        )
+        assert r.status_code == 400
+        assert "Unsupported format" in r.json()["detail"]
+
+    def test_requires_exactly_one_source(
+        self, api_client: TestClient, meridian_inventory: str
+    ) -> None:
+        # Neither report nor report_key.
+        r = api_client.post("/api/gap/export", json={"format": "json"})
+        assert r.status_code == 400
+        report = self._analyze(api_client, meridian_inventory)
+        # Both report and report_key.
+        r2 = api_client.post(
+            "/api/gap/export",
+            json={
+                "format": "json",
+                "report": report,
+                "report_key": "0123456789abcdef",
+            },
+        )
+        assert r2.status_code == 400
+
+    def test_inline_json_export_roundtrips(
+        self, api_client: TestClient, meridian_inventory: str
+    ) -> None:
+        report = self._analyze(api_client, meridian_inventory)
+        r = api_client.post(
+            "/api/gap/export",
+            json={"format": "json", "report": report},
+        )
+        assert r.status_code == 200, r.text
+        assert r.headers["content-type"].startswith("application/json")
+        cd = r.headers["content-disposition"]
+        assert cd.startswith("attachment;")
+        assert cd.endswith('.json"')
+        # The exported JSON parses back to a report with the same id.
+        import json
+
+        exported = json.loads(r.content)
+        assert exported["id"] == report["id"]
+        assert exported["organization"] == report["organization"]
+
+    def test_sarif_export_has_sarif_media_type(
+        self, api_client: TestClient, meridian_inventory: str
+    ) -> None:
+        report = self._analyze(api_client, meridian_inventory)
+        r = api_client.post(
+            "/api/gap/export",
+            json={"format": "sarif", "report": report},
+        )
+        assert r.status_code == 200, r.text
+        assert r.headers["content-type"].startswith("application/sarif+json")
+        assert r.headers["content-disposition"].endswith('.sarif"')
+        import json
+
+        sarif = json.loads(r.content)
+        assert sarif.get("version") == "2.1.0"
+
+    def test_export_by_report_key(
+        self, api_client: TestClient, meridian_inventory: str
+    ) -> None:
+        # Analyze persists to the gap store; export by the stored key.
+        self._analyze(api_client, meridian_inventory)
+        reports = api_client.get("/api/gap/reports").json()["reports"]
+        key = reports[0]["key"]
+        r = api_client.post(
+            "/api/gap/export",
+            json={"format": "csv", "report_key": key},
+        )
+        assert r.status_code == 200, r.text
+        assert r.headers["content-type"].startswith("text/csv")
+        # CSV header row is present.
+        assert r.content.split(b"\n", 1)[0].startswith(b"gap_id,")
+
+    def test_export_missing_key_is_404(self, api_client: TestClient) -> None:
+        r = api_client.post(
+            "/api/gap/export",
+            json={"format": "json", "report_key": "0123456789abcdef"},
+        )
+        assert r.status_code == 404
+
+    def test_filename_is_sanitized(
+        self, api_client: TestClient, meridian_inventory: str
+    ) -> None:
+        report = self._analyze(api_client, meridian_inventory)
+        # Inject a hostile organization name with path + header chars.
+        report["organization"] = '../../etc/passwd "evil'
+        r = api_client.post(
+            "/api/gap/export",
+            json={"format": "json", "report": report},
+        )
+        assert r.status_code == 200, r.text
+        cd = r.headers["content-disposition"]
+        # No path separators or quotes leaked into the filename.
+        assert "/" not in cd.split("filename=", 1)[1]
+        assert ".." not in cd
+
+
 class TestGapDiff:
     def test_rejects_invalid_key(self, api_client: TestClient) -> None:
         r = api_client.post(

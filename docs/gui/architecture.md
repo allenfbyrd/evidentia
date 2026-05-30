@@ -62,7 +62,7 @@ All endpoints live under `/api/*`. Interactive docs at `/api/docs`.
 
 | Method | Path | Response | Purpose |
 |---|---|---|---|
-| GET | `/api/frameworks?tier=A&category=control` | `{total, frameworks: [...]}` | List all 89 bundled catalogs |
+| GET | `/api/frameworks?tier=A&category=control` | `{total, frameworks: [...]}` | List all bundled catalogs (count reported live by `total`) |
 | GET | `/api/frameworks/{id}` | `ControlCatalog` | Framework metadata + full control tree |
 | GET | `/api/frameworks/{id}/controls/{control_id}` | `CatalogControl` | Single control detail (normalized ID lookup) |
 
@@ -97,7 +97,7 @@ Routes are declared in `packages/evidentia-ui/src/App.tsx`:
 ```
 /                   HomePage              Welcome + quick-nav cards
 /dashboard          DashboardPage         Historical gap reports + metrics
-/frameworks         FrameworksPage        82-framework browser with filters
+/frameworks         FrameworksPage        Framework browser with filters (live catalog count)
 /frameworks/:id     FrameworkDetailPage   Framework metadata + control list
 /settings           SettingsPage          Config view + LLM status + air-gap
 
@@ -138,8 +138,8 @@ export function FrameworksPage() {
 
 ### Styling
 
-- Tailwind CSS 3 with shadcn/ui's New York preset
-- Theme CSS vars in `src/index.css` (dark mode toggled via `.dark` class — not exposed in UI yet, planned for alpha.2)
+- Tailwind CSS v4 (CSS-first) with shadcn/ui's New York preset — wired via the `@tailwindcss/vite` plugin; there is no `tailwind.config.ts`. Theme tokens live in `src/index.css` `@theme {}` blocks.
+- Theme CSS vars in `src/index.css`. A `.dark` token set is defined for shadcn parity, but the UI ships light-only — there is **no** dark-mode toggle control.
 - Evidentia severity palette: `--severity-critical/high/medium/low/informational` — pairs with `<Badge variant="critical">` / `"high"` / etc.
 
 ## Bundling + release
@@ -162,7 +162,7 @@ shadcn/ui is built on Radix UI primitives, which implement the [WAI-ARIA Authori
 - Keyboard navigation (Tab, arrow keys, Home/End, typeahead)
 - ARIA labels, `aria-live` regions on connection status
 - Focus management in dialogs, menus, comboboxes
-- Color-contrast tokens meeting WCAG 2.1 AA in both light and dark themes
+- Color-contrast tokens meeting WCAG 2.1 AA (light theme shipped; a `.dark` token set is defined but not surfaced via a toggle)
 
 Remaining gaps (automated a11y testing in CI, formal audit) are tracked for alpha.2.
 

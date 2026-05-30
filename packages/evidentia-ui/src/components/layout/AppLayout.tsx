@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS: { to: string; label: string; description: string }[] = [
   { to: "/", label: "Home", description: "Welcome + onboarding" },
   { to: "/dashboard", label: "Dashboard", description: "Saved gap reports" },
-  { to: "/frameworks", label: "Frameworks", description: "82 bundled catalogs" },
+  { to: "/frameworks", label: "Frameworks", description: "92 bundled catalogs" },
   { to: "/gap/analyze", label: "Gap Analyze", description: "Run a gap analysis" },
   { to: "/gap/diff", label: "Gap Diff", description: "Compare two reports" },
   { to: "/risk/generate", label: "Risk Generate", description: "AI risk statements" },
