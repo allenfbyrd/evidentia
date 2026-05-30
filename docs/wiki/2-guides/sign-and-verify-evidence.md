@@ -120,6 +120,28 @@ Signatures attest to a single artifact; the evidence store attests to the
 lineage chain, one JSON file per version (`v1.json`, `v2.json`, ...). Saving a
 new version never overwrites an existing one.
 
+`evidence save` validates the file against the `EvidenceArtifact` schema, so a
+bare/empty YAML errors. The four required fields are `title`, `evidence_type`,
+`source_system`, and `collected_by` (everything else has a sensible default).
+A minimal conforming `artifact.yaml`:
+
+```yaml
+# artifact.yaml — required fields + a couple of common optionals
+title: "MFA enforced on the admin console"
+evidence_type: configuration        # configuration | log | screenshot | policy_document | audit_report | api_response | test_result | attestation | repository_metadata | identity_data
+source_system: okta
+collected_by: jane.doe@example.com
+description: "Okta admin policy requires MFA for all administrators."
+content:
+  policy: require-mfa
+  scope: admins
+control_mappings:
+  - framework: nist-800-53-rev5
+    control_id: IA-2
+    relationship: subset-of         # OLIR relationship (hyphenated): equivalent-to | equal-to | subset-of | superset-of | intersects-with | related-to
+    justification: "Okta MFA policy evidences IA-2 for admins."
+```
+
 ```bash
 # Persist an evidence artifact (new lineage, or a new version of an existing one)
 evidentia evidence save artifact.yaml

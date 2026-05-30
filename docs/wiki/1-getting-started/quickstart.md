@@ -26,7 +26,7 @@ evidentia version
 evidentia catalog list --tier=A
 ```
 
-You'll see ~30 Tier-A (production-grade, verbatim-licensed) frameworks. For this quickstart, we'll use NIST 800-53 Rev 5 Low baseline (~149 controls — small enough to inspect by hand).
+You'll see ~48 Tier-A (production-grade, verbatim-licensed) frameworks. For this quickstart, we'll use NIST 800-53 Rev 5 Low baseline (~149 controls — small enough to inspect by hand).
 
 ## Step 3 — Scaffold an inventory and run gap analysis (60 seconds)
 

@@ -130,7 +130,7 @@ The severity and status crosswalk tables live in `finding_mapping.py` as module 
 
 ## The EventAction enum
 
-Not a "data" model in the schema sense, but `EventAction` (`evidentia_core.audit.events`) is a frozen, **append-only** vocabulary that the audit subsystem emits on every structured-log event. Names follow `evidentia.<namespace>.<verb>` so SIEM operators can filter by prefix (`event.action:evidentia.collect.*`). The enum carries 100 members across namespaces such as `COLLECT_*`, `AUTH_*`, `CONFIG_*`, `SIGN_*` (e.g. `SIGN_GPG_SIGNED`, `SIGN_SIGSTORE_SIGNED`), `VERIFY_*`, `MANIFEST_*`, `AI_*`, `POAM_*`, `CONMON_*`, `EVIDENCE_*`, `RBAC_*`, and `RETENTION_*`. Existing values are never removed or renamed; new values arrive in minor releases. This is what lets a query written against a v0.7.0 audit log stay meaningful against a v0.10.x one.
+Not a "data" model in the schema sense, but `EventAction` (`evidentia_core.audit.events`) is a frozen, **append-only** vocabulary that the audit subsystem emits on every structured-log event. Names follow `evidentia.<namespace>.<verb>` so SIEM operators can filter by prefix (`event.action:evidentia.collect.*`). The enum carries 82 members across namespaces such as `COLLECT_*`, `AUTH_*`, `CONFIG_*`, `SIGN_*` (e.g. `SIGN_GPG_SIGNED`, `SIGN_SIGSTORE_SIGNED`), `VERIFY_*`, `MANIFEST_*`, `AI_*`, `POAM_*`, `CONMON_*`, `EVIDENCE_*`, `RBAC_*`, and `RETENTION_*`. Existing values are never removed or renamed; new values arrive in minor releases. This is what lets a query written against a v0.7.0 audit log stay meaningful against a v0.10.x one.
 
 ## What's frozen versus additive
 
