@@ -644,3 +644,48 @@ def test_real_repo_anchor_check_passes(check: Any) -> None:
     current = bump.detect_current_version()
     assert manifest["anchors"], "anchors should be populated post-WS1-B"
     assert check.check_anchors(bump, manifest, current) == []
+
+
+# ── WS1-C: decisions-documented guard (every entry carries a rationale) ───────
+
+
+def test_decisions_documented_all_with_desc_passes(check: Any) -> None:
+    """Every tracked/frozen/anchor entry carrying a non-empty desc passes."""
+    manifest = {
+        "tracked": [{"path": "a", "kind": "python_version", "desc": "why a"}],
+        "frozen": [{"path": "b", "desc": "why b"}],
+        "anchors": [{"path": "c", "line_contains": "x", "desc": "why c"}],
+    }
+    assert check.check_decisions_documented(manifest) == []
+
+
+def test_decisions_documented_missing_desc_fails(check: Any) -> None:
+    """A manifest entry with no ``desc`` is an undocumented decision — hard fail."""
+    manifest = {
+        "tracked": [{"path": "a", "kind": "python_version"}],  # no desc
+        "frozen": [],
+        "anchors": [],
+    }
+    failures = check.check_decisions_documented(manifest)
+    assert len(failures) == 1
+    assert "undocumented tracked entry 'a'" in failures[0]
+
+
+def test_decisions_documented_empty_desc_fails(check: Any) -> None:
+    """A whitespace-only ``desc`` does not count as documentation."""
+    manifest = {
+        "tracked": [],
+        "frozen": [{"path": "b", "desc": "   "}],
+        "anchors": [],
+    }
+    failures = check.check_decisions_documented(manifest)
+    assert len(failures) == 1
+    assert "undocumented frozen entry 'b'" in failures[0]
+
+
+def test_real_repo_decisions_documented_passes(check: Any) -> None:
+    """Every entry in the committed manifest carries a rationale (no undocumented
+    classification at HEAD)."""
+    bump = check._load_bump_module()
+    manifest = bump.load_manifest()
+    assert check.check_decisions_documented(manifest) == []

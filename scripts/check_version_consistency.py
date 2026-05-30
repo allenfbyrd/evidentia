@@ -297,6 +297,32 @@ def check_anchors(
     return failures
 
 
+def check_decisions_documented(
+    manifest: dict[str, list[dict[str, str]]],
+) -> list[str]:
+    """Every ``tracked`` / ``frozen`` / ``anchor`` entry MUST carry a non-empty
+    ``desc``.
+
+    The ``desc`` is the per-entry decision rationale — the "why" recorded
+    alongside the machine-readable classification (see
+    ``docs/version-decisions.md``). Requiring it means a classification can never
+    be added to the manifest without being documented, so the bumper follows a
+    recorded decision and never silently re-litigates one.
+    """
+    failures: list[str] = []
+    for section in ("tracked", "frozen", "anchors"):
+        for entry in manifest.get(section) or []:
+            path = entry.get("path", "<no-path>")
+            desc = entry.get("desc")
+            if not isinstance(desc, str) or not desc.strip():
+                failures.append(
+                    f"undocumented {section} entry {path!r} — add a non-empty "
+                    f"'desc' rationale in scripts/version_tracked_files.yaml "
+                    f"(see docs/version-decisions.md)"
+                )
+    return failures
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -311,7 +337,13 @@ def main(argv: list[str] | None = None) -> int:
     coverage_failures = check_coverage(bump, manifest, current)
     never_skip_failures = check_never_skip(bump, manifest)
     anchor_failures = check_anchors(bump, manifest, current)
-    all_failures = coverage_failures + never_skip_failures + anchor_failures
+    decisions_failures = check_decisions_documented(manifest)
+    all_failures = (
+        coverage_failures
+        + never_skip_failures
+        + anchor_failures
+        + decisions_failures
+    )
 
     if args.json:
         report = {
@@ -320,6 +352,7 @@ def main(argv: list[str] | None = None) -> int:
             "coverage_failures": coverage_failures,
             "never_skip_failures": never_skip_failures,
             "anchor_failures": anchor_failures,
+            "decisions_failures": decisions_failures,
         }
         print(json.dumps(report, indent=2))
         return 0 if not all_failures else 1
@@ -354,6 +387,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  - {f}")
     else:
         print("  anchors: PASS — every anchored live-version line is current.")
+
+    if decisions_failures:
+        print()
+        print(f"UNDOCUMENTED-DECISION FAILURES ({len(decisions_failures)}):")
+        for f in decisions_failures:
+            print(f"  - {f}")
+    else:
+        print("  decisions: PASS — every manifest entry carries a rationale.")
 
     print()
     if all_failures:
