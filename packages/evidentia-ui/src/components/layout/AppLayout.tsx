@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
-import { Separator } from "@/components/ui/separator";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -104,14 +103,6 @@ export function AppLayout() {
               );
             })}
           </nav>
-          <Separator className="my-6" />
-          <div className="space-y-1 px-3 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">v0.7.6 (alpha.2 wired)</p>
-            <p>Interactive onboarding wizard</p>
-            <p>Gap Analyze + Diff forms</p>
-            <p>Risk Generate (SSE streamed)</p>
-            <p>Settings edit form</p>
-          </div>
         </aside>
 
         <main className="flex-1 min-w-0">

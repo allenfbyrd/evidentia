@@ -92,6 +92,26 @@ _COVERAGE_REQUIRED_KINDS = {
     "readme_container_tag",
 }
 
+# Frontend source globs guarded against a HARDCODED project-version literal.
+# The ``packages/evidentia-ui`` tree is classified ``frozen`` wholesale (its
+# migration-tag + dependency-version COMMENTS carry in-family literals), so the
+# never-skip scan exempts it. But the UI must render the live version from the
+# API (``v{health.version}``); a hardcoded ``vX.Y.Z`` in code/JSX is a staleness
+# bug (it shipped once as a stale ``v0.7.6`` sidebar label). This guard strips
+# comments first (so genuine ``vX.Y.Z``/``vX.Y.Z P...`` migration tags in
+# comments pass) and excludes ``*.test.tsx`` (which mock API payloads).
+_FRONTEND_VERSION_GUARD_GLOBS = (
+    "packages/evidentia-ui/src/*.tsx",
+    "packages/evidentia-ui/src/**/*.tsx",
+)
+_TS_BLOCK_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+_TS_LINE_COMMENT_RE = re.compile(r"//[^\n]*")
+
+
+def _strip_ts_comments(text: str) -> str:
+    """Remove ``/* */`` and ``//`` comments from TS/TSX source."""
+    return _TS_LINE_COMMENT_RE.sub("", _TS_BLOCK_COMMENT_RE.sub("", text))
+
 
 def _load_bump_module() -> Any:
     """Import scripts/bump_version.py as a module (no __init__.py)."""
@@ -323,6 +343,42 @@ def check_decisions_documented(
     return failures
 
 
+def check_frontend_no_hardcoded_version(bump: Any) -> list[str]:
+    """Forbid a hardcoded project-version literal in frontend code / JSX.
+
+    The ``packages/evidentia-ui`` tree is ``frozen`` wholesale (its migration-tag
+    + dependency-version COMMENTS carry in-family literals), so never-skip
+    exempts it. But the UI renders the live version dynamically from the API
+    (``v{health.version}``); a hardcoded ``vX.Y.Z`` in code or JSX text is a
+    staleness bug — it shipped once as a stale ``v0.7.6`` sidebar label. Strip
+    comments first (so genuine ``vX.Y.Z P...`` migration tags in comments pass);
+    exclude ``*.test.tsx`` (which mock API payloads carrying a version).
+
+    Returns a list of human-readable failure strings (empty == pass).
+    """
+    failures: list[str] = []
+    all_tracked = bump.tracked_files()
+    seen: set[str] = set()
+    for glob in _FRONTEND_VERSION_GUARD_GLOBS:
+        for p in bump.expand_manifest_path(glob, all_tracked):
+            posix = p.as_posix()
+            if posix in seen or posix.endswith(".test.tsx"):
+                continue
+            seen.add(posix)
+            try:
+                text = p.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+            m = PROJECT_VERSION_RE.search(_strip_ts_comments(text))
+            if m is not None:
+                failures.append(
+                    f"hardcoded project-version literal {m.group(0)!r} in "
+                    f"frontend file {posix} — the UI must render the version "
+                    f"dynamically (e.g. health.version), never hardcode it"
+                )
+    return failures
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -338,11 +394,13 @@ def main(argv: list[str] | None = None) -> int:
     never_skip_failures = check_never_skip(bump, manifest)
     anchor_failures = check_anchors(bump, manifest, current)
     decisions_failures = check_decisions_documented(manifest)
+    frontend_failures = check_frontend_no_hardcoded_version(bump)
     all_failures = (
         coverage_failures
         + never_skip_failures
         + anchor_failures
         + decisions_failures
+        + frontend_failures
     )
 
     if args.json:
@@ -353,6 +411,7 @@ def main(argv: list[str] | None = None) -> int:
             "never_skip_failures": never_skip_failures,
             "anchor_failures": anchor_failures,
             "decisions_failures": decisions_failures,
+            "frontend_failures": frontend_failures,
         }
         print(json.dumps(report, indent=2))
         return 0 if not all_failures else 1
@@ -395,6 +454,16 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  - {f}")
     else:
         print("  decisions: PASS — every manifest entry carries a rationale.")
+
+    if frontend_failures:
+        print()
+        print(f"FRONTEND-VERSION FAILURES ({len(frontend_failures)}):")
+        for f in frontend_failures:
+            print(f"  - {f}")
+    else:
+        print(
+            "  frontend: PASS — no hardcoded project-version literal in the UI."
+        )
 
     print()
     if all_failures:
