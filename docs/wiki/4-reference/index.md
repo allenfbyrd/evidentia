@@ -4,11 +4,13 @@ Look up CLI verbs, MCP tools, API symbols, configuration options, and bundled ca
 
 ## Pages in this section
 
-Every page below is **auto-generated from the live codebase / data** by
-`scripts/wiki/sync_reference.py` (the 5 reference pages) and
-`scripts/wiki/sync_api_docs.py` (the 7 API pages). Each carries a "do not edit
-directly" banner; edit the underlying code/data and re-run the generator. A
-`--check` mode on both scripts (wired into `sync-wiki.yml`) fails on drift.
+Most pages below are **auto-generated from the live codebase / data** by
+`scripts/wiki/sync_reference.py` (the 5 auto-generated reference pages) and
+`scripts/wiki/sync_api_docs.py` (the 7 API pages); each carries a "do not edit
+directly" banner — edit the underlying code/data and re-run the generator, and a
+`--check` mode on both scripts (wired into `sync-wiki.yml`) fails on drift. The
+**Inventory + system-context** page below is hand-authored: its field tables are
+sourced from the Pydantic models, with example files from `evidentia init`.
 
 - **[CLI](cli.md)** — every CLI command + subcommand + flag, introspected from the live Typer app.
 
@@ -28,6 +30,8 @@ directly" banner; edit the underlying code/data and re-run the generator. A
 - **[Catalogs](catalogs.md)** — table of the bundled framework catalogs (the count is computed from the manifest), grouped by family + tier.
 
 - **[Crosswalks](crosswalks.md)** — table of the bundled crosswalks + source/target frameworks + verification posture + mapping-row count (all computed from the mapping files).
+
+- **[Inventory + system-context](inventory-and-system-context.md)** — hand-authored schema reference for the input files `evidentia init` produces and `gap analyze` consumes (`evidentia.yaml`, `system-context.yaml`, `my-controls.yaml`).
 
 ## How to use this section
 

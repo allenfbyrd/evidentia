@@ -16,6 +16,16 @@ Task-oriented how-tos. Each page solves a specific operational need.
 
 - **[Manage POA&M](manage-poam.md)** — POA&M data model + 5-state lifecycle; CLI verbs; OSCAL POA&M emit; integration patterns (Jira, ServiceNow, etc.).
 
+- **[Generate and quantify risk](generate-and-quantify-risk.md)** — qualitative NIST SP 800-30 risk statements (LLM-backed) + deterministic FAIR / Monte-Carlo quantification (`risk generate` / `risk quantify`).
+
+- **[Manage third-party risk](manage-third-party-risk.md)** — vendor inventory, concentration-risk reporting, and CAIQ / SIG due-diligence questionnaires (`tprm`).
+
+- **[Manage model risk](manage-model-risk.md)** — SR 11-7 / OCC 2026-13a model inventory, model documentation, and validation reports (`model-risk`).
+
+- **[Governance metrics and workflows](governance-metrics-and-workflows.md)** — KRI / KPI / KGI metrics, Effective Challenge, Three-Lines reporting, and process-as-code workflows (`governance`).
+
+- **[AI governance](ai-governance.md)** — EU AI Act risk-tier classification + NIST AI RMF system inventory, FIPS-199 + OMB impact leveling (`ai-gov`).
+
 - **[CONMON deployment](conmon-deployment.md)** — CONMON cadence library + CLI; 7 bundled federal cadences; daemon vs read-only deployment patterns.
 
 - **[Sign and verify evidence](sign-and-verify-evidence.md)** — signing + verifying evidence and MCP tool output (`SignedToolOutput` Sigstore keyless) and OSCAL documents (GPG detached); the verification recipe; the append-only / WORM evidence store. (CIMD is the separate OAuth client-scope mechanism, not a signing primitive.)
@@ -26,8 +36,12 @@ Task-oriented how-tos. Each page solves a specific operational need.
 
 - **[OSPS self-assessment](osps-self-assessment.md)** — walk through [`OSPS-CONFORMANCE.md`](../../../OSPS-CONFORMANCE.md) + the `verify-osps-conformance.yml` CI gate; how to fork the pattern for your own project.
 
+- **[MCP client setup](mcp-client-setup.md)** — run the Evidentia MCP server and wire its 13 tools into Claude Desktop / Claude Code / Cursor (`mcp`).
+
+- **[Serve the web UI](serve-the-web-ui.md)** — launch the local browser UI for gap analysis + the 8-format gap-export control (`evidentia serve`).
+
 ## How to use this section
 
 Jump directly to the page that solves your problem. Each guide is self-contained; cross-references to [Concepts](../3-concepts/) point at the "why" if you need depth.
 
-All eleven guide pages above are live. New guides land here as new operational surfaces ship; see the [ROADMAP](../6-project/roadmap.md) for the forward cadence.
+All eighteen guide pages above are live. New guides land here as new operational surfaces ship; see the [ROADMAP](../6-project/roadmap.md) for the forward cadence.
