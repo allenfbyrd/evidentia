@@ -304,7 +304,140 @@ frozen:
 # anchors:
 #   Line-scoped overlays for live "current version" lines inside files that
 #   are `frozen` wholesale. See the SCHEMA header above for full semantics +
-#   an illustrative example. Empty for now — no live-in-frozen line is
-#   currently anchored. (SECURITY.md's stale "Latest patch" line is a known
-#   candidate, handled as a SEPARATE task; do NOT add it here speculatively.)
-anchors: []
+#   an illustrative example.
+#
+#   These re-arm every LIVE "this is the current release" example that lives in
+#   an otherwise-historical (frozen) file so it auto-tracks each ship instead of
+#   silently going stale (the SECURITY.md / docker pin drift that motivated the
+#   mechanism). Each marker is chosen to be VERSION-AGNOSTIC (it does not embed
+#   the current literal) so it keeps matching across future bumps, and to land
+#   on lines that carry EXACTLY ONE in-family project-version literal per the
+#   EXACTLY-ONE rule in the SCHEMA header.
+#
+#   NOTE on mirrors: the wiki "mirror" pages under docs/wiki/6-project/ are
+#   GENERATED from these canonical sources by scripts/wiki/sync_mirrors.py (the
+#   --check drift gate is wired into sync-wiki.yml). We anchor the SOURCE
+#   (SECURITY.md, docs/ROADMAP.md, docs/verification.md); the corresponding
+#   mirrors (6-project/security.md, /roadmap.md, /verification.md) inherit the
+#   new literal on the next `sync_mirrors.py` run and are deliberately NOT
+#   anchored here. The standalone wiki pages below (1-getting-started/*,
+#   2-guides/air-gapped-install.md, 6-project/versioning.md) are NOT mirrors —
+#   they are canonical themselves; versioning.md carries no live end-version
+#   after its WS1-B reword, so it needs no anchor.
+anchors:
+  # ── SECURITY.md (frozen wholesale) ─────────────────────────────────────
+  - path: "SECURITY.md"
+    line_contains: "Latest patch"
+    desc: >-
+      Supported-versions table row 1 ("| **`X.Y.Z`** | Supported | Latest
+      patch. ..."). The live "currently supported patch" claim. Reworded in
+      WS1-B so the row carries exactly ONE in-family literal (the
+      `docs/security-review-*.md` glob has no version); the deprecated row no
+      longer says "Latest patch", so this marker is single-line.
+  - path: "SECURITY.md"
+    line_contains: "py3-none-any.whl"
+    desc: >-
+      The `pypi-attestations verify pypi "pypi:evidentia-X.Y.Z-py3-none-any.whl"`
+      example in the "Verify a release wheel" block — a LIVE verification recipe
+      that must name the current wheel. Single in-family literal on the line.
+
+  # ── docs/ROADMAP.md (frozen via docs/**) ───────────────────────────────
+  - path: "docs/ROADMAP.md"
+    line_contains: "Last updated:"
+    desc: >-
+      The "**Last updated: vX.Y.Z (...).**" banner on line 3 — a LIVE "this
+      roadmap reflects release X" claim. Already current; anchoring locks it so
+      it can never drift behind a ship. (Mirrored to 6-project/roadmap.md by
+      sync_mirrors.py — the mirror is not anchored.)
+
+  # ── docker/requirements.in (also `tracked` as pip_extra_pin) ───────────
+  - path: "docker/requirements.in"
+    line_contains: "evidentia[gui]=="
+    desc: >-
+      The `evidentia[gui]==X.Y.Z` pin compiled into docker/requirements.txt.
+      The pip_extra_pin `tracked` kind treats its coverage as advisory (the pin
+      legitimately lags the in-prep bump), so the literal had drifted 14 patches
+      behind (0.9.1). This anchor FORCE-REFRESHES it to the current release on
+      every bump, closing the lag. Single in-family literal on the line.
+
+  # ── docs/verification.md (SOURCE of the 6-project/verification.md mirror)
+  - path: "docs/verification.md"
+    line_contains: "py3-none-any.whl"
+    desc: >-
+      The three PEP 740 wheel-name examples (the single-wheel verify line, its
+      "OK:" expected-output line, and the per-release sweep `"pypi:${pkg}-..."`
+      line). Each carries exactly ONE in-family literal. LIVE recipes naming the
+      current wheels.
+  - path: "docs/verification.md"
+    line_contains: "evidentia:v"
+    desc: >-
+      The two `cosign verify ... ghcr.io/polycentric-labs/evidentia:vX.Y.Z`
+      container lines (verify + verify-attestation). Single in-family literal
+      each. The "container image at `...evidentia`" prose line (no `:v` tag) is
+      NOT matched. LIVE container-verification recipes.
+  - path: "docs/verification.md"
+    line_contains: "@refs/tags/v"
+    desc: >-
+      The two `--certificate-identity-regexp "...release.yml@refs/tags/vX.Y.Z"`
+      lines — the cosign identity regex must name the current tag. Single
+      in-family literal each.
+  - path: "docs/verification.md"
+    line_contains: "gh release download v"
+    desc: >-
+      The `gh release download vX.Y.Z --pattern ...` SBOM-download example —
+      a LIVE recipe that must name the current release tag. Single literal.
+
+  # ── docs/wiki/1-getting-started/quickstart.md (canonical wiki page) ────
+  - path: "docs/wiki/1-getting-started/quickstart.md"
+    line_contains: "Evidentia v"
+    desc: >-
+      The `# → Evidentia vX.Y.Z / Python 3.12.x` version-output example. Single
+      in-family literal (the Python 3.12 is below-family). LIVE expected-output.
+  - path: "docs/wiki/1-getting-started/quickstart.md"
+    line_contains: "py3-none-any.whl"
+    desc: >-
+      The PEP 740 verify line + its "OK:" expected-output line in Step 5. Each
+      single-literal. LIVE artifact-chain verification recipe.
+  - path: "docs/wiki/1-getting-started/quickstart.md"
+    line_contains: "evidentia:v"
+    desc: >-
+      The `cosign verify ... evidentia:vX.Y.Z` container line. Single literal.
+      (The adjacent `--certificate-identity-regexp '...@refs/tags/v.*'` line
+      uses a wildcard `v.*` — no in-family literal — so it is NOT matched.)
+
+  # ── docs/wiki/1-getting-started/installation.md (canonical wiki page) ──
+  - path: "docs/wiki/1-getting-started/installation.md"
+    line_contains: "Evidentia v"
+    desc: >-
+      The two `# → Evidentia vX.Y.Z / Python 3.12.x` version-output examples
+      (PyPI-install verify + container-run verify). Single in-family literal
+      each. LIVE expected-output.
+  - path: "docs/wiki/1-getting-started/installation.md"
+    line_contains: "evidentia:v"
+    desc: >-
+      The four `ghcr.io/polycentric-labs/evidentia:vX.Y.Z` container lines
+      (docker pull, docker run, the mounted-run continuation, and cosign
+      verify). Single in-family literal each. NOTE: the
+      `evidentia-core>=X.Y.Z,<X.(Y+1).0` resolver-pin EXAMPLE further down
+      carries TWO in-family literals and is `evidentia-core>` (not `evidentia:v`)
+      — it is intentionally NOT matched and stays frozen as a historical pin
+      illustration.
+
+  # ── docs/wiki/2-guides/air-gapped-install.md (canonical wiki page) ─────
+  #   Only the version-output line is anchored. The `docker save ... :vX.Y.Z
+  #   -o evidentia-vX.Y.Z.tar` line carries TWO co-live literals (the image
+  #   tag AND the tarball filename) and so cannot be anchored under the
+  #   exactly-one-literal rule without a tarball-name reword (not in WS1-B's
+  #   approved reword set). Anchoring only the `docker pull` tag would desync it
+  #   from that `docker save` line, so the docker save/load block (the pull,
+  #   save, and load lines) is left FROZEN as a unit. FLAGGED for follow-up:
+  #   either reword the tarball filename to a version-agnostic name (e.g.
+  #   `evidentia.tar`) so the save line becomes single-literal and the whole
+  #   block can be anchored, or accept the block stays frozen.
+  - path: "docs/wiki/2-guides/air-gapped-install.md"
+    line_contains: "Evidentia v"
+    desc: >-
+      The `# → Evidentia vX.Y.Z / Python 3.12.x` post-offline-install verify
+      line. Single in-family literal. LIVE expected-output. (The docker
+      save/load tarball block above is intentionally NOT anchored — see the
+      block comment: its `docker save` line carries two co-live literals.)

@@ -33,8 +33,8 @@ between a minor and a patch bump is made per release, not formulaically:
   continuation of 0.9.x patches.
 - **Patch bump** (`0.X.Y → 0.X.(Y+1)`) — hardening, bug fixes, doc work,
   and supply-chain polish *on the same feature surface*. Most 0.10.x
-  releases (0.10.1 through 0.10.7) are patches: they consolidate,
-  harden, and document the 0.10.0 feature surface.
+  releases are patches: they consolidate, harden, and document the
+  0.10.0 feature surface.
 
 **2. The API-stability contract binds from 0.9.7 onward.** Although
 Evidentia is pre-1.0, the

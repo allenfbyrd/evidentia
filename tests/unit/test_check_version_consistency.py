@@ -633,8 +633,14 @@ def test_never_skip_classified_set_identical_via_shared_helper(
 
 
 def test_real_repo_anchor_check_passes(check: Any) -> None:
-    """The committed manifest (empty anchors) yields no anchor failures."""
+    """The committed manifest's POPULATED anchors yield no anchor failures.
+
+    Post-WS1-B the manifest anchors every live "current version" example inside
+    an otherwise-frozen file; this is the live proof that each anchored line
+    carries exactly one in-family literal equal to the current version (no
+    stale/ambiguous/0-literal anchor at HEAD)."""
     bump = check._load_bump_module()
     manifest = bump.load_manifest()
     current = bump.detect_current_version()
+    assert manifest["anchors"], "anchors should be populated post-WS1-B"
     assert check.check_anchors(bump, manifest, current) == []

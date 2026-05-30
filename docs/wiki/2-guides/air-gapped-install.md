@@ -54,7 +54,7 @@ index disabled so pip never reaches for the network:
 python -m venv .venv && source .venv/bin/activate   # or .venv\Scripts\activate on Windows
 pip install --no-index --find-links ./evidentia-wheelhouse evidentia
 evidentia version
-# → Evidentia v0.10.6 / Python 3.12.x
+# → Evidentia v0.10.7 / Python 3.12.x
 ```
 
 ## Step 3 — Validate the air-gap posture

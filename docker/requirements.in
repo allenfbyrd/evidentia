@@ -1,2 +1,2 @@
-evidentia[gui]==0.9.1
+evidentia[gui]==0.10.7
 urllib3>=2.7.0

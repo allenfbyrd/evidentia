@@ -357,13 +357,35 @@ class TestRealManifest:
         assert "CITATION.cff" not in frozen_paths
         assert "README.md" not in frozen_paths
 
-    def test_anchors_key_present_and_empty(self, bump: Any) -> None:
-        """The real manifest exposes an ``anchors`` key (default []). It is
-        intentionally EMPTY for now — no live-in-frozen line is anchored yet
-        (the SECURITY.md candidate is a separate task)."""
+    def test_anchors_key_present_and_populated(self, bump: Any) -> None:
+        """The real manifest exposes an ``anchors`` key that is now POPULATED
+        (WS1-B): every LIVE "current version" example inside an otherwise-frozen
+        file is anchored so it auto-tracks each ship. Each entry must be a
+        well-formed mapping carrying the required ``path`` + ``line_contains``
+        string keys, and every anchored file must ALSO be classified in
+        ``tracked`` or ``frozen`` (an anchor is a coverage overlay, not a
+        substitute for never-skip classification)."""
         manifest = bump.load_manifest()
         assert "anchors" in manifest
-        assert manifest["anchors"] == []
+        anchors = manifest["anchors"]
+        assert isinstance(anchors, list)
+        assert anchors, "anchors should be populated post-WS1-B (was [])"
+        for entry in anchors:
+            assert isinstance(entry, dict)
+            assert isinstance(entry.get("path"), str) and entry["path"]
+            assert (
+                isinstance(entry.get("line_contains"), str) and entry["line_contains"]
+            )
+        # Every anchor file is also never-skip-classified (tracked ∪ frozen).
+        all_tracked = bump.tracked_files()
+        classified = bump.classified_paths(manifest, all_tracked)
+        for entry in anchors:
+            matched = bump.expand_manifest_path(entry["path"], all_tracked)
+            assert matched, f"anchor path {entry['path']!r} matched no tracked file"
+            for p in matched:
+                assert p.as_posix() in classified, (
+                    f"anchor file {p.as_posix()} is neither tracked nor frozen"
+                )
 
 
 # ── v0.10.7: anchor overlay (force-set live-version lines in frozen files) ──
