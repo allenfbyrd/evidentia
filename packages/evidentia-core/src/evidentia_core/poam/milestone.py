@@ -19,9 +19,90 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import date, timedelta
+from typing import TYPE_CHECKING
 
 from evidentia_core.models.gap import Milestone, POAMState
 from evidentia_core.poam.state import derive_overdue
+
+if TYPE_CHECKING:
+    from evidentia_core.models.gap import ControlGap
+
+
+class MilestoneNotFoundError(ValueError):
+    """Raised when no milestone matches the given id (full or prefix).
+
+    Subclasses :class:`ValueError` so existing ``except ValueError``
+    handlers keep working — mirrors the
+    :class:`evidentia_core.poam_store.InvalidPoamIdError` idiom.
+    """
+
+
+class AmbiguousMilestoneIdError(ValueError):
+    """Raised when a milestone-id PREFIX matches more than one milestone.
+
+    The operator passed too few characters to disambiguate; the
+    message tells them to use more. Subclasses :class:`ValueError`
+    for the same reason as :class:`MilestoneNotFoundError`.
+    """
+
+
+def resolve_milestone_id(item: ControlGap, partial: str) -> str:
+    """Resolve a milestone id (full UUID or unique prefix) to its full id.
+
+    The CLI displays an 8-char milestone-id prefix in ``poam show``,
+    ``poam milestone add``, and ``poam calendar`` output (``(3f70eae3)``).
+    Operators copy that prefix and pass it back to ``poam milestone
+    update``; this resolver lets a unique prefix round-trip to the
+    full UUID so the displayed id is actually usable.
+
+    Resolution order (within ``item.poam_milestones`` only):
+
+      1. **Exact full-id match** wins (``m.id == partial``) — the
+         pre-existing behaviour, unchanged.
+      2. Otherwise, if ``partial`` is a prefix of EXACTLY ONE
+         milestone's id, resolve to that milestone's full id.
+      3. A prefix matching MULTIPLE milestones raises
+         :class:`AmbiguousMilestoneIdError`.
+      4. A prefix matching NONE raises :class:`MilestoneNotFoundError`.
+
+    Args:
+        item: The POA&M item (``ControlGap``) whose ``poam_milestones``
+            collection scopes the lookup. Prefix uniqueness is judged
+            within this item only — two different POA&M items may carry
+            milestones sharing a prefix without ambiguity.
+        partial: The full UUID or a leading substring of one.
+
+    Returns:
+        The full milestone id (``Milestone.id``) of the single match.
+
+    Raises:
+        AmbiguousMilestoneIdError: ``partial`` is a prefix of two or
+            more milestones on ``item``.
+        MilestoneNotFoundError: ``partial`` matches no milestone on
+            ``item`` (neither exact nor prefix).
+    """
+    # Exact full-id match takes precedence so a complete UUID always
+    # resolves to itself even in the (UUID-length-impossible but
+    # contract-defined) case where it is also a strict prefix of
+    # another id.
+    for milestone in item.poam_milestones:
+        if milestone.id == partial:
+            return milestone.id
+
+    prefix_matches = [
+        milestone for milestone in item.poam_milestones
+        if milestone.id.startswith(partial)
+    ]
+    if len(prefix_matches) == 1:
+        return prefix_matches[0].id
+    if len(prefix_matches) > 1:
+        raise AmbiguousMilestoneIdError(
+            f"ambiguous milestone id {partial!r} matches "
+            f"{len(prefix_matches)} milestones; use more characters"
+        )
+    raise MilestoneNotFoundError(
+        f"No milestone {partial!r} on POA&M {item.id!r}."
+    )
 
 
 def sort_milestones_by_target_date(
@@ -149,8 +230,11 @@ def derive_attention_state(
 
 
 __all__ = [
+    "AmbiguousMilestoneIdError",
+    "MilestoneNotFoundError",
     "derive_attention_state",
     "group_milestones_by_state",
+    "resolve_milestone_id",
     "sort_milestones_by_target_date",
     "upcoming_milestones",
 ]

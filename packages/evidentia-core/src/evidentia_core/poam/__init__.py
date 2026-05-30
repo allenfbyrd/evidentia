@@ -38,8 +38,11 @@ env-var override.
 from __future__ import annotations
 
 from evidentia_core.poam.milestone import (
+    AmbiguousMilestoneIdError,
+    MilestoneNotFoundError,
     derive_attention_state,
     group_milestones_by_state,
+    resolve_milestone_id,
     sort_milestones_by_target_date,
     upcoming_milestones,
 )
@@ -52,10 +55,13 @@ from evidentia_core.poam.state import (
 
 __all__ = [
     "TERMINAL_STATES",
+    "AmbiguousMilestoneIdError",
+    "MilestoneNotFoundError",
     "derive_attention_state",
     "derive_overdue",
     "group_milestones_by_state",
     "is_valid_transition",
+    "resolve_milestone_id",
     "sort_milestones_by_target_date",
     "upcoming_milestones",
     "valid_next_states",

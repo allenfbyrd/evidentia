@@ -71,7 +71,12 @@ from evidentia_core.models.gap import (
     Milestone,
     POAMState,
 )
-from evidentia_core.poam.milestone import derive_attention_state
+from evidentia_core.poam.milestone import (
+    AmbiguousMilestoneIdError,
+    MilestoneNotFoundError,
+    derive_attention_state,
+    resolve_milestone_id,
+)
 from evidentia_core.poam.state import is_valid_transition
 from evidentia_core.poam_store import (
     InvalidPoamIdError,
@@ -690,18 +695,31 @@ def milestone_update(
         help="Set or replace the evidence reference.",
     ),
 ) -> None:
-    """Update an existing milestone. Backward state transitions blocked."""
+    """Update an existing milestone. Backward state transitions blocked.
+
+    The ``milestone_id`` argument accepts either the full milestone
+    UUID or a unique leading prefix of it — including the 8-char
+    prefix that ``poam show`` / ``poam milestone add`` / ``poam
+    calendar`` display in ``(3f70eae3)`` form. A prefix matching more
+    than one milestone is rejected with an "ambiguous" error; a prefix
+    matching none is rejected as not-found.
+    """
     poam = _load_poam_or_exit(poam_id)
-    target_ms: Milestone | None = next(
-        (m for m in poam.poam_milestones if m.id == milestone_id),
-        None,
+    try:
+        resolved_id = resolve_milestone_id(poam, milestone_id)
+    except AmbiguousMilestoneIdError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    except MilestoneNotFoundError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+    # Pin the local handle to the canonical full id so every downstream
+    # display (`milestone_id[:8]`) + audit payload reflects the real
+    # milestone, not the (possibly truncated) string the operator typed.
+    milestone_id = resolved_id
+    target_ms = next(
+        m for m in poam.poam_milestones if m.id == milestone_id
     )
-    if target_ms is None:
-        console.print(
-            f"[red]Error:[/red] No milestone {milestone_id!r} on "
-            f"POA&M {poam_id!r}."
-        )
-        raise typer.Exit(code=1)
 
     prior_state = POAMState(target_ms.status)
     changed: list[str] = []

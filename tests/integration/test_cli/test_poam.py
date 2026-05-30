@@ -451,6 +451,178 @@ class TestMilestoneUpdate:
         )
         assert result.exit_code == 1
 
+    def test_update_accepts_full_uuid(self, runner: CliRunner) -> None:
+        gap = _make_gap("AC-2", GapSeverity.HIGH)
+        gap.poam_milestones.append(
+            Milestone(target_date=date(2026, 6, 30), description="phase 1")
+        )
+        save_poam(gap)
+        ms_id = gap.poam_milestones[0].id
+        result = runner.invoke(
+            app,
+            [
+                "poam",
+                "milestone",
+                "update",
+                gap.id,
+                ms_id,  # full UUID
+                "--status",
+                "in_progress",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        show = runner.invoke(app, ["poam", "show", gap.id, "--json"])
+        body = json.loads(show.output)
+        assert body["poam_milestones"][0]["status"] == "in_progress"
+
+    def test_update_accepts_displayed_eight_char_prefix(
+        self, runner: CliRunner
+    ) -> None:
+        """The 8-char prefix the CLI shows the operator must work."""
+        gap = _make_gap("AC-2", GapSeverity.HIGH)
+        gap.poam_milestones.append(
+            Milestone(target_date=date(2026, 6, 30), description="phase 1")
+        )
+        save_poam(gap)
+        ms_prefix = gap.poam_milestones[0].id[:8]
+        result = runner.invoke(
+            app,
+            [
+                "poam",
+                "milestone",
+                "update",
+                gap.id,
+                ms_prefix,  # what the CLI displayed in `(<prefix>)`
+                "--status",
+                "in_progress",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        show = runner.invoke(app, ["poam", "show", gap.id, "--json"])
+        body = json.loads(show.output)
+        assert body["poam_milestones"][0]["status"] == "in_progress"
+
+    def test_prefix_updates_the_right_milestone(
+        self, runner: CliRunner
+    ) -> None:
+        gap = _make_gap("AC-2", GapSeverity.HIGH)
+        gap.poam_milestones.append(
+            Milestone(target_date=date(2026, 6, 30), description="phase 1")
+        )
+        gap.poam_milestones.append(
+            Milestone(target_date=date(2026, 7, 31), description="phase 2")
+        )
+        save_poam(gap)
+        target = gap.poam_milestones[1]  # phase 2
+        result = runner.invoke(
+            app,
+            [
+                "poam",
+                "milestone",
+                "update",
+                gap.id,
+                target.id[:8],
+                "--status",
+                "in_progress",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        show = runner.invoke(app, ["poam", "show", gap.id, "--json"])
+        body = json.loads(show.output)
+        statuses = {
+            m["description"]: m["status"] for m in body["poam_milestones"]
+        }
+        assert statuses["phase 2"] == "in_progress"
+        assert statuses["phase 1"] == "planned"
+
+    def test_ambiguous_prefix_errors_clearly(
+        self, runner: CliRunner
+    ) -> None:
+        gap = _make_gap("AC-2", GapSeverity.HIGH)
+        # Two milestones sharing the same 8-char prefix.
+        gap.poam_milestones.append(
+            Milestone(
+                id="3f70eae3-0000-4000-8000-000000000001",
+                target_date=date(2026, 6, 30),
+                description="phase 1",
+            )
+        )
+        gap.poam_milestones.append(
+            Milestone(
+                id="3f70eae3-1111-4000-8000-000000000002",
+                target_date=date(2026, 7, 31),
+                description="phase 2",
+            )
+        )
+        save_poam(gap)
+        result = runner.invoke(
+            app,
+            [
+                "poam",
+                "milestone",
+                "update",
+                gap.id,
+                "3f70eae3",
+                "--status",
+                "in_progress",
+            ],
+        )
+        assert result.exit_code == 1
+        # Rich soft-wraps console output at the terminal width, so
+        # collapse whitespace before substring-matching the message.
+        flat = " ".join(result.output.split())
+        assert "ambiguous milestone id '3f70eae3' matches 2 milestones" in flat
+        assert "use more characters" in flat
+
+    def test_add_then_update_displayed_prefix_round_trip(
+        self, runner: CliRunner
+    ) -> None:
+        """End-to-end: add a milestone, scrape the prefix the CLI
+        printed, feed it back to `milestone update`."""
+        gap = _make_gap("AC-2", GapSeverity.HIGH)
+        save_poam(gap)
+        add = runner.invoke(
+            app,
+            [
+                "poam",
+                "milestone",
+                "add",
+                gap.id,
+                "--target-date",
+                "2026-06-30",
+                "--description",
+                "Deliver Okta integration",
+            ],
+        )
+        assert add.exit_code == 0, add.output
+        # `Added milestone <8-char> to POA&M ...` — pull the prefix the
+        # operator would actually copy off the screen. Collapse Rich's
+        # soft-wrap whitespace first so the scrape is width-independent.
+        import re
+
+        flat_add = " ".join(add.output.split())
+        match = re.search(r"Added milestone (\S+) to POA&M", flat_add)
+        assert match is not None, add.output
+        displayed_prefix = match.group(1)
+        assert len(displayed_prefix) == 8
+
+        upd = runner.invoke(
+            app,
+            [
+                "poam",
+                "milestone",
+                "update",
+                gap.id,
+                displayed_prefix,
+                "--status",
+                "in_progress",
+            ],
+        )
+        assert upd.exit_code == 0, upd.output
+        show = runner.invoke(app, ["poam", "show", gap.id, "--json"])
+        body = json.loads(show.output)
+        assert body["poam_milestones"][0]["status"] == "in_progress"
+
 
 # ── delete ─────────────────────────────────────────────────────────
 
