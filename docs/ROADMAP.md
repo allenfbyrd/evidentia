@@ -4,9 +4,9 @@
 
 This roadmap synthesizes community feedback with the architecture plan
 at the project root. Versions v0.3.0 through v0.7.16 + v0.8.0-v0.8.7
-+ v0.9.0-v0.9.9 + v0.10.0 + v0.10.1 have shipped; v0.10.2 ships now
-(third release of the v0.10.x line in a single calendar day —
-2026-05-23: v0.10.0 + v0.10.1 + v0.10.2). **v0.9.0 opened the
++ v0.9.0-v0.9.9 + v0.10.0-v0.10.6 have shipped; v0.10.7 ships now
+(the web-console refresh + gap-export + last hygiene cycle of the
+v0.10.x line, before the v0.11 federal-compliance theme). **v0.9.0 opened the
 v0.9.x "federal compliance" line** with POA&M + CONMON read-only
 library; v0.9.1 landed the Polycentric Labs org migration; v0.9.2
 added the CONMON REST router + federal corpus + LLM rater + federal
@@ -1665,15 +1665,31 @@ cycle, no LL-V105-1 recurrence risk). 3536 tests pass / 14 skipped /
 `docs/v0.10.6-plan.md` §12). OSCAL upstream contribution PR at
 https://github.com/oscal-club/awesome-oscal/pull/59.
 
-### v0.10.7 — Hygiene + automation-debt + pre-push gate L2 + wiki fill + doc-accuracy sweep — SHIPPED
+### v0.10.7 — Web console (GUI v2) + gap-export, on a hygiene + automation-debt + wiki-fill + doc-accuracy base — SHIPPED
 
-Patch on v0.10.6 (released 2026-05-27). Tag `v0.10.7` (2026-05-29).
-**A hardening, automation-debt, and documentation cycle — no new
-end-user product features.** Closed the v0.10.6 code-quality reviewer
-backlog (Groups A + D) and the 2 deferred Scorecard alerts, added a
-blocking pre-push gate, filled the in-repo wiki tree, and ran a
-doc-wide CLI-example accuracy sweep. Headline shipments:
+Patch on v0.10.6 (released 2026-05-27). Tag `v0.10.7` (2026-05-30).
+**A web-UI + hardening + automation-debt + documentation cycle.** The
+headline end-user change is the web console: a full GUI v2 visual
+refresh plus a real gap-report export/download surface (8 formats).
+The hardening side closed the v0.10.6 code-quality reviewer backlog
+(Groups A + D) and the 2 deferred Scorecard alerts, added a blocking
+pre-push gate (now with never-skip version-anchor + frontend guards),
+filled the in-repo wiki tree, added 7 operator-walkthrough guides,
+fixed two real product bugs (TPRM + governance enum rendering), and
+ran a doc-wide CLI-example accuracy sweep. Headline shipments:
 
+- **Web console (GUI v2)** — full design-system refresh (federal-blue /
+  deep-navy chrome, light/dark, self-hosted IBM Plex + favicons / PWA
+  manifest / OG brand assets, every route + onboarding restyled;
+  presentation-only with all API / SSE / Zustand wiring + accessibility
+  preserved) and a real gap-report **export/download** of all 8 formats,
+  guarded by an OpenAPI → TS type-parity drift-gate. Live-validated
+  across all 8 routes with zero console errors.
+- **7 operator-walkthrough guides + an input-schema reference**, and
+  **two product bug-fixes** — `tprm dd-questionnaire ingest` + the
+  governance workflow `run`/`advance` status output rendered enum
+  fields raw (the models store enums as strings under `use_enum_values`);
+  fixed via the shared `enum_value` helper, TDD, with a sibling audit.
 - **Scorecard delta closed** — `verify-osps-conformance.yml` pip
   install hash-pinned (#123 `PinnedDependenciesID`); `sync-wiki.yml`
   top-level token scope reduced to `read-all` with `contents: write`
