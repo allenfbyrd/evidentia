@@ -1,40 +1,32 @@
 /*
- * v0.7.15 P0.1: Tailwind 3 → 4 migration. CSS-first config replaces
- * tailwind.config.ts. All theme tokens live in `@theme` blocks below;
- * the shadcn/ui new-york preset palette + Evidentia severity colors
- * carry forward unchanged in their visual values, but are now declared
- * as CSS custom properties under `--color-*` namespace per Tailwind 4
- * conventions.
- *
- * `@import "tailwindcss"` replaces the v3 `@tailwind base/components/
- * utilities` triple. v4 includes preflight + utilities + components in
- * the single import.
- *
- * `tw-animate-css` replaces the v3-era `tailwindcss-animate` plugin
- * (last v1.0.7; not v4-compatible). Same accordion + keyframe
- * primitives; v4-native plugin surface.
+ * Evidentia web UI — design system ("GUI v2 skin", refreshed 2026-05-30).
+ * Translated from the Claude Design prototype: deep-navy brand chrome (nav rail
+ * + top bar), warm off-white workspace, federal-blue interactive primary, and
+ * the CLI-matched severity palette preserved verbatim. Tailwind v4 CSS-first —
+ * the shadcn/ui tokens live in :root / .dark and are surfaced as Tailwind
+ * utilities via the @theme block, so every shadcn component re-skins from these
+ * values. IBM Plex Sans + Mono are self-hosted (air-gap clean; no external CDN).
  */
 
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Tailwind v4 dark-mode strategy: enable class-based dark mode
- * (matches the v3 `darkMode: ["class"]` config). Without this directive,
- * v4 defaults to media-query dark-mode which doesn't honor `<html
- * class="dark">`. */
+/* Class-based dark mode (matches the prior darkMode: ["class"] convention). */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ── Fonts — IBM Plex, self-hosted woff2 in public/fonts (no external CDN) ── */
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/IBMPlexSans-Regular.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("/fonts/IBMPlexSans-Medium.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("/fonts/IBMPlexSans-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/IBMPlexSans-Bold.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/IBMPlexMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("/fonts/IBMPlexMono-Medium.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-display: swap; src: url("/fonts/IBMPlexMono-SemiBold.woff2") format("woff2"); }
+
 /*
- * shadcn/ui new-york theme customized for Evidentia.
- * Severity palette aligns with the Rich CLI output colors so users who
- * switch between the two see the same visual language.
- *
- * In Tailwind 4, theme tokens are declared in `@theme` blocks. Each
- * `--color-<name>` becomes a Tailwind utility class (`bg-<name>`,
- * `text-<name>`, `border-<name>`, etc.) automatically. The HSL CSS
- * variables (`--<token>`) are kept for the shadcn/ui dark-mode toggle
- * pattern (the `.dark` selector swaps the var values; the @theme tokens
- * reference them via `hsl(var(--<token>))`).
+ * @theme — each --color-<name> becomes Tailwind utilities (bg-<name>,
+ * text-<name>, border-<name>, …). Colors reference the HSL component vars in
+ * :root / .dark via hsl(var(--token)), so toggling .dark swaps the palette.
  */
 @theme {
   --color-background: hsl(var(--background));
@@ -53,100 +45,139 @@
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
   --color-border: hsl(var(--border));
+  --color-border-strong: hsl(var(--border-strong));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  /* Evidentia severity palette — matches the Rich CLI table colors */
+  /* Deep-navy brand chrome — the nav rail + top bar. */
+  --color-chrome: hsl(var(--chrome-bg));
+  --color-chrome-2: hsl(var(--chrome-bg-2));
+  --color-chrome-foreground: hsl(var(--chrome-fg));
+  --color-chrome-muted: hsl(var(--chrome-fg-muted));
+  --color-chrome-border: hsl(var(--chrome-border));
+  --color-chrome-hover: hsl(var(--chrome-hover));
+  --color-chrome-active: hsl(var(--chrome-active-bg));
+  --color-cream: hsl(var(--cream));
+  --color-cream-soft: hsl(var(--cream-soft));
+
+  /* Evidentia severity palette — matches the Rich CLI table colors. */
   --color-severity-critical: hsl(var(--severity-critical));
   --color-severity-high: hsl(var(--severity-high));
   --color-severity-medium: hsl(var(--severity-medium));
   --color-severity-low: hsl(var(--severity-low));
   --color-severity-informational: hsl(var(--severity-informational));
 
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  /* Container utility (Tailwind v4 doesn't ship a built-in container
-   * — we replicate the v3 `theme.container` config here). */
   --container-2xl: 1400px;
 }
 
-/* CSS variable definitions — the shadcn/ui dark-mode swap lives here.
- * Tokens are referenced by the @theme block above via `hsl(var(--*))`,
- * so toggling `.dark` on the document root swaps the entire palette
- * without re-defining `@theme`.
- */
+/* ── Light tokens (default) ──────────────────────────────────────────── */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
+  --background: 40 28% 97.5%;
+  --foreground: 206 38% 13%;
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 206 38% 13%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 186 100% 37%;
+  --popover-foreground: 206 38% 13%;
+  --primary: 214 70% 38%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 186 100% 37%;
-  --radius: 0.5rem;
+  --secondary: 40 22% 96%;
+  --secondary-foreground: 206 38% 13%;
+  --muted: 40 22% 96%;
+  --muted-foreground: 210 11% 44%;
+  --accent: 214 52% 95%;
+  --accent-foreground: 214 70% 30%;
+  --destructive: 0 72% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 158 64% 36%;
+  --warning: 38 92% 45%;
+  --border: 214 22% 89%;
+  --border-strong: 214 18% 80%;
+  --input: 214 20% 85%;
+  --ring: 214 70% 42%;
+  --radius: 0.625rem;
 
-  /* Evidentia severity palette — matches the Rich CLI table colors */
-  --severity-critical: 0 84% 40%;
-  --severity-high: 14 90% 50%;
-  --severity-medium: 38 92% 50%;
-  --severity-low: 200 80% 50%;
-  --severity-informational: 215 16% 47%;
+  /* Deep-navy brand chrome. */
+  --chrome-bg: 206 44% 10%;
+  --chrome-bg-2: 207 46% 7.5%;
+  --chrome-fg: 40 32% 91%;
+  --chrome-fg-muted: 206 16% 64%;
+  --chrome-border: 206 28% 19%;
+  --chrome-hover: 206 34% 16%;
+  --chrome-active-bg: 206 38% 17%;
+  --cream: 40 56% 85%;
+  --cream-soft: 40 50% 90%;
+
+  /* Severity palette — CLI-matched hues (do not alter). */
+  --severity-critical: 0 84% 42%;
+  --severity-high: 14 88% 48%;
+  --severity-medium: 38 92% 47%;
+  --severity-low: 200 78% 44%;
+  --severity-informational: 215 14% 47%;
 }
 
+/* ── Dark tokens (palette ready; toggle not yet wired) ───────────────── */
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 186 100% 45%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 186 100% 45%;
+  --background: 207 36% 8%;
+  --foreground: 40 30% 92%;
+  --card: 206 30% 12%;
+  --card-foreground: 40 30% 92%;
+  --popover: 206 30% 12%;
+  --popover-foreground: 40 30% 92%;
+  --primary: 213 80% 62%;
+  --primary-foreground: 206 50% 7%;
+  --secondary: 206 26% 15.5%;
+  --secondary-foreground: 40 30% 92%;
+  --muted: 206 26% 15.5%;
+  --muted-foreground: 206 14% 62%;
+  --accent: 213 36% 20%;
+  --accent-foreground: 213 80% 74%;
+  --destructive: 0 74% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 158 56% 50%;
+  --border: 206 22% 20%;
+  --border-strong: 206 20% 27%;
+  --input: 206 22% 23%;
+  --ring: 213 80% 64%;
 
-  --severity-critical: 0 85% 60%;
-  --severity-high: 14 90% 60%;
-  --severity-medium: 38 92% 60%;
-  --severity-low: 200 80% 60%;
-  --severity-informational: 215 16% 60%;
+  /* Chrome — only the surfaces that change in dark; fg/cream inherit. */
+  --chrome-bg: 207 46% 7%;
+  --chrome-bg-2: 208 48% 5%;
+  --chrome-border: 206 26% 17%;
+  --chrome-hover: 206 32% 13%;
+  --chrome-active-bg: 206 36% 15%;
+
+  --severity-critical: 0 78% 58%;
+  --severity-high: 14 86% 60%;
+  --severity-medium: 38 92% 58%;
+  --severity-low: 200 78% 60%;
+  --severity-informational: 215 16% 62%;
 }
 
-/* Tailwind 4 base layer — equivalent to the v3 `@layer base` block.
- * The `@apply` directive carries forward from v3; the `border-border`
- * + `bg-background text-foreground` utilities resolve via the @theme
- * tokens declared above.
- */
+/* ── Base layer ──────────────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.22);
   }
 }
