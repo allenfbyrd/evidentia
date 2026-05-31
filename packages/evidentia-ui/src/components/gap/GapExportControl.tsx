@@ -10,7 +10,6 @@ import {
   type GapExportFormat,
 } from "@/lib/api";
 import { triggerBlobDownload } from "@/lib/download";
-import { cn } from "@/lib/utils";
 import type { GapAnalysisReport } from "@/types/api";
 
 /**
@@ -47,21 +46,18 @@ export function GapExportControl({ report }: { report: GapAnalysisReport }) {
   const activeHint = GAP_EXPORT_FORMATS.find((f) => f.id === format)?.hint;
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-end gap-2">
-        <div className="flex flex-col gap-1">
+    <div className="stack gap-1">
+      <div className="row items-end gap-2">
+        <div className="stack gap-1">
           <Label htmlFor="gap-export-format" className="text-xs">
             Export format
           </Label>
           <select
             id="gap-export-format"
+            className="select"
             value={format}
             onChange={(e) => setFormat(e.target.value as GapExportFormat)}
             disabled={busy}
-            className={cn(
-              "h-9 rounded-md border bg-background px-2 text-sm",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            )}
           >
             {GAP_EXPORT_FORMATS.map((f) => (
               <option key={f.id} value={f.id}>
@@ -77,13 +73,11 @@ export function GapExportControl({ report }: { report: GapAnalysisReport }) {
           onClick={onDownload}
           disabled={busy}
         >
-          <Download className="mr-1.5 h-4 w-4" aria-hidden />
+          <Download className="h-4 w-4" aria-hidden />
           {busy ? "Exporting..." : "Download"}
         </Button>
       </div>
-      {activeHint && (
-        <p className="text-xs text-muted-foreground">{activeHint}</p>
-      )}
+      {activeHint && <p className="text-xs muted">{activeHint}</p>}
       {error && (
         <p role="alert" className="text-xs text-destructive">
           {error}

@@ -1,4 +1,4 @@
-import { Upload } from "lucide-react";
+import { FileUp } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useWizardStore } from "@/lib/wizard-store";
 
@@ -32,39 +31,41 @@ export function UploadForm() {
   };
 
   return (
-    <section aria-labelledby="upload-heading" className="space-y-4">
-      <header className="flex items-start justify-between gap-4">
+    <section aria-labelledby="upload-heading" className="stack-4">
+      <div className="row-between gap-4">
         <div>
-          <h2 id="upload-heading" className="text-2xl font-semibold">
+          <h2 id="upload-heading" className="h2-lg">
             Upload an inventory
           </h2>
-          <p className="mt-1 text-muted-foreground">
+          <p className="page-sub">
             We auto-detect the format based on the file extension.
           </p>
         </div>
-        <Button variant="ghost" onClick={reset}>
+        <Button variant="ghost" size="sm" onClick={reset}>
           Cancel
         </Button>
-      </header>
+      </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Supported formats</CardTitle>
+          <CardTitle className="base">Supported formats</CardTitle>
           <CardDescription>
             YAML / JSON / CSV. OSCAL component definitions and CISO Assistant
-            exports are parsed automatically. CSV expects columns
-            <code className="mx-1 rounded bg-muted px-1">id</code>,
-            <code className="mx-1 rounded bg-muted px-1">title</code>, and
-            <code className="mx-1 rounded bg-muted px-1">status</code>.
+            exports are parsed automatically. CSV expects columns{" "}
+            <code className="kbd">id</code>, <code className="kbd">title</code>,
+            and <code className="kbd">status</code>.
           </CardDescription>
         </CardHeader>
       </Card>
 
-      <div
+      <label
+        htmlFor="inventory-upload"
         className={cn(
-          "rounded-lg border-2 border-dashed p-8 text-center",
-          droppedName ? "border-primary bg-primary/5" : "border-muted-foreground/30",
+          "box dashed stack-2",
+          "block cursor-pointer text-center",
+          droppedName && "border-primary bg-primary/5",
         )}
+        style={{ padding: "2.5rem" }}
         onDragOver={(e) => {
           e.preventDefault();
         }}
@@ -73,13 +74,13 @@ export function UploadForm() {
           handleFiles(e.dataTransfer.files);
         }}
       >
-        <Upload className="mx-auto h-10 w-10 text-muted-foreground" aria-hidden />
-        <p className="mt-3 text-sm font-medium">
-          {droppedName ?? "Drag your inventory file here"}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          or click to browse
-        </p>
+        <FileUp className="icon-card mx-auto h-7 w-7" aria-hidden />
+        <div className="text-sm font-medium">
+          {droppedName ?? "Drop a file here, or click to browse"}
+        </div>
+        <div className="text-xs muted">
+          CSV, YAML, or OSCAL JSON — auto-detected
+        </div>
         <input
           ref={fileInput}
           type="file"
@@ -88,15 +89,7 @@ export function UploadForm() {
           id="inventory-upload"
           onChange={(e) => handleFiles(e.target.files)}
         />
-        <Label
-          htmlFor="inventory-upload"
-          className="mt-4 inline-block cursor-pointer"
-        >
-          <Button asChild size="sm" variant="outline">
-            <span>Choose file</span>
-          </Button>
-        </Label>
-      </div>
+      </label>
 
       {droppedName && (
         <Alert variant="success">
@@ -108,7 +101,10 @@ export function UploadForm() {
         </Alert>
       )}
 
-      <div className="flex justify-end">
+      <div className="row-end gap-2">
+        <Button variant="outline" onClick={reset}>
+          Start over
+        </Button>
         <Button
           asChild
           disabled={!droppedName}

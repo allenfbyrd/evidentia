@@ -21,7 +21,7 @@ import { useWizardStore } from "@/lib/wizard-store";
 export function SampleLoaded() {
   const reset = useWizardStore((s) => s.reset);
   return (
-    <section aria-labelledby="sample-heading" className="space-y-4">
+    <section aria-labelledby="sample-heading" className="stack-4">
       <Alert variant="success">
         <CheckCircle2 className="h-4 w-4" />
         <AlertTitle>Sample scenario selected</AlertTitle>
@@ -33,7 +33,7 @@ export function SampleLoaded() {
 
       <Card>
         <CardHeader>
-          <CardTitle id="sample-heading" className="text-lg">
+          <CardTitle id="sample-heading" className="lg">
             1. Download the sample inventory
           </CardTitle>
           <CardDescription>
@@ -42,7 +42,7 @@ export function SampleLoaded() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <pre className="overflow-auto rounded bg-muted p-3 text-xs">
+          <pre className="block">
             <code>{`curl -o my-controls.yaml \\
   https://raw.githubusercontent.com/polycentric-labs/evidentia/main/examples/meridian-fintech-v2/my-controls.yaml`}</code>
           </pre>
@@ -51,13 +51,13 @@ export function SampleLoaded() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">2. Run gap analysis</CardTitle>
+          <CardTitle className="lg">2. Run gap analysis</CardTitle>
           <CardDescription>
             Analyzes against SOC 2 + NIST 800-53 Moderate + GDPR.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <pre className="overflow-auto rounded bg-muted p-3 text-xs">
+          <pre className="block">
             <code>{`evidentia gap analyze \\
   --inventory my-controls.yaml \\
   --frameworks soc2-tsc,nist-800-53-rev5-moderate,eu-gdpr`}</code>
@@ -67,20 +67,22 @@ export function SampleLoaded() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">3. View results here</CardTitle>
+          <CardTitle className="lg">3. View results here</CardTitle>
           <CardDescription>
             Once the analysis completes, the <strong>Dashboard</strong> page
             will show the new report. From there you can drill into gaps,
             run a Gap Diff, or generate risk statements.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex gap-2">
-          <Button asChild>
-            <Link to="/dashboard">Open dashboard</Link>
-          </Button>
-          <Button variant="outline" onClick={reset}>
-            Start over
-          </Button>
+        <CardContent>
+          <div className="row gap-2">
+            <Button asChild>
+              <Link to="/dashboard">Open dashboard</Link>
+            </Button>
+            <Button variant="outline" onClick={reset}>
+              Start over
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </section>

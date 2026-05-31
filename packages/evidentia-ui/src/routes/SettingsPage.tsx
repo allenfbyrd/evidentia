@@ -50,16 +50,13 @@ export function SettingsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="stack-6">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-muted-foreground">
-          Edit{" "}
-          <code className="rounded bg-muted px-1 py-0.5">
-            evidentia.yaml
-          </code>{" "}
-          here. The server writes the file after validation; your CLI
-          + GUI both pick up the new values immediately.
+        <h1 className="page-title">Settings</h1>
+        <p className="page-sub">
+          Edit <code className="kbd">evidentia.yaml</code> here. The server
+          writes the file after validation; your CLI + GUI both pick up the new
+          values immediately.
         </p>
       </header>
 
@@ -85,14 +82,14 @@ export function SettingsPage() {
         <CardHeader>
           <CardTitle>LLM providers (read-only)</CardTitle>
           <CardDescription>
-            Keys are sourced from environment variables; the browser
-            never sees key values.
+            Keys are sourced from environment variables; the browser never sees
+            key values.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
+        <CardContent className="stack-2 text-sm">
           {llm.data ? (
             Object.entries(llm.data.providers).map(([name, state]) => (
-              <div key={name} className="flex items-center justify-between">
+              <div key={name} className="row-between">
                 <span className="capitalize">{name.replace(/_/g, " ")}</span>
                 {state.configured ? (
                   <Badge>configured via {state.source}</Badge>
@@ -102,20 +99,18 @@ export function SettingsPage() {
               </div>
             ))
           ) : (
-            <span className="text-muted-foreground">Loading...</span>
+            <span className="muted">Loading...</span>
           )}
-          <p className="pt-2 text-xs text-muted-foreground">
+          <p className="pt-2 text-xs muted">
             Active model:{" "}
-            <code className="rounded bg-muted px-1 py-0.5">
-              {llm.data?.configured_model ?? "—"}
-            </code>
+            <code className="kbd">{llm.data?.configured_model ?? "—"}</code>
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="row gap-2">
             Air-gap posture
             {airGap.data?.air_gapped ? (
               <Badge>air-gap ready</Badge>
@@ -127,14 +122,14 @@ export function SettingsPage() {
             Audits configured endpoints without issuing network IO.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
+        <CardContent className="stack-2 text-sm">
           {airGap.data?.checks.map((check) => (
             <div
               key={check.subsystem}
-              className="flex items-start justify-between gap-4"
+              className="row-between items-start gap-4"
             >
               <div>
-                <div className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+                <div className="mono text-xs uppercase tracking-wide muted">
                   {check.subsystem}
                 </div>
                 <div>{check.detail}</div>
@@ -213,63 +208,58 @@ function SettingsForm({ config }: SettingsFormProps) {
           <CardDescription>
             {config.source_path ? (
               <>
-                File:{" "}
-                <code className="rounded bg-muted px-1 py-0.5">
-                  {config.source_path}
-                </code>
+                File: <code className="kbd">{config.source_path}</code>
               </>
             ) : (
               "No evidentia.yaml yet; save will create one in your CWD."
             )}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            <div>
+        <CardContent className="stack-4">
+          <div className="grid grid-2">
+            <div className="stack-2">
               <Label htmlFor="org">Organization</Label>
               <Input
                 id="org"
                 value={organization}
                 onChange={(e) => setOrganization(e.target.value)}
-                className="mt-1"
               />
             </div>
-            <div>
+            <div className="stack-2">
               <Label htmlFor="system">System name</Label>
               <Input
                 id="system"
                 value={systemName}
                 onChange={(e) => setSystemName(e.target.value)}
-                className="mt-1"
               />
             </div>
           </div>
-          <div>
-            <Label htmlFor="frameworks">Default frameworks (comma-separated)</Label>
+          <div className="stack-2">
+            <Label htmlFor="frameworks">
+              Default frameworks (comma-separated)
+            </Label>
             <Input
               id="frameworks"
               value={frameworks}
               onChange={(e) => setFrameworks(e.target.value)}
               placeholder="nist-800-53-rev5-moderate, soc2-tsc"
-              className="mt-1"
             />
-            <p className="mt-1 text-xs text-muted-foreground">
-              CLI <code>--frameworks</code> overrides this list entirely.
-              Warning fires at load time if more than 5 are listed.
+            <p className="text-xs muted">
+              CLI <code className="kbd">--frameworks</code> overrides this list
+              entirely. Warning fires at load time if more than 5 are listed.
             </p>
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <div>
+          <div className="grid grid-2">
+            <div className="stack-2">
               <Label htmlFor="model">LLM model</Label>
               <Input
                 id="model"
                 value={llmModel}
                 onChange={(e) => setLlmModel(e.target.value)}
                 placeholder="gpt-4o (or ollama/llama3 for offline)"
-                className="mt-1"
               />
             </div>
-            <div>
+            <div className="stack-2">
               <Label htmlFor="temp">LLM temperature</Label>
               <Input
                 id="temp"
@@ -280,7 +270,6 @@ function SettingsForm({ config }: SettingsFormProps) {
                 value={llmTemperature}
                 onChange={(e) => setLlmTemperature(e.target.value)}
                 placeholder="0.1"
-                className="mt-1"
               />
             </div>
           </div>
@@ -308,7 +297,7 @@ function SettingsForm({ config }: SettingsFormProps) {
         </Alert>
       )}
 
-      <div className="flex items-center justify-end">
+      <div className="row-end">
         <Button
           onClick={() => saveMutation.mutate()}
           disabled={saveMutation.isPending}

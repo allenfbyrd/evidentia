@@ -1,6 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Layers, ShieldCheck, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { MetricCard, SeverityBar } from "@/components/common/console";
 import { GapExportControl } from "@/components/gap/GapExportControl";
 import { GapTable } from "@/components/gap/GapTable";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -100,34 +102,32 @@ export function GapAnalyzePage() {
     !mutation.isPending;
 
   return (
-    <div className="space-y-6">
+    <div className="stack-6">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Gap Analyze</h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="page-title">Gap Analyze</h1>
+        <p className="page-sub">
           Pick frameworks, provide an inventory, and run{" "}
-          <code className="rounded bg-muted px-1 py-0.5">
-            evidentia gap analyze
-          </code>{" "}
-          from the browser. Results save to the gap store automatically.
+          <code className="kbd">evidentia gap analyze</code> from the browser.
+          Results save to the gap store automatically.
         </p>
       </header>
 
       <form
-        className="space-y-5"
+        className="stack-5"
         onSubmit={(e) => {
           e.preventDefault();
           if (canSubmit) mutation.mutate();
         }}
       >
-        <section className="space-y-3">
-          <h2 className="text-lg font-medium">1. Inventory</h2>
-          <div className="grid gap-3 md:grid-cols-2">
+        <section className="stack-3">
+          <h2 className="section-num">1. Inventory</h2>
+          <div className="grid grid-2">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Upload file</CardTitle>
+                <CardTitle className="base">Upload file</CardTitle>
                 <CardDescription>YAML / JSON / CSV.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="stack-2">
                 <input
                   ref={fileInput}
                   type="file"
@@ -147,16 +147,16 @@ export function GapAnalyzePage() {
                   </Button>
                 </Label>
                 {uploadFile && (
-                  <p className="text-xs text-muted-foreground">
-                    Selected: <code>{uploadFile.name}</code> ({uploadFile.size}{" "}
-                    bytes)
+                  <p className="text-xs muted">
+                    Selected: <code className="kbd">{uploadFile.name}</code> (
+                    {uploadFile.size} bytes)
                   </p>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Or server path</CardTitle>
+                <CardTitle className="base">Or server path</CardTitle>
                 <CardDescription>
                   Absolute path readable by the server process.
                 </CardDescription>
@@ -172,23 +172,23 @@ export function GapAnalyzePage() {
           </div>
         </section>
 
-        <section className="space-y-3">
-          <h2 className="text-lg font-medium">2. Frameworks</h2>
-          <p className="text-sm text-muted-foreground">
+        <section className="stack-3">
+          <h2 className="section-num">2. Frameworks</h2>
+          <p className="text-sm muted">
             Pick one or more. Filter by tier in the{" "}
-            <a href="/frameworks" className="underline">
+            <a href="/frameworks" className="primary-link">
               Frameworks browser
             </a>{" "}
             if you need help picking.
           </p>
-          <div className="max-h-60 overflow-auto rounded-lg border p-3">
+          <div className="box scroll-60">
             {fwQuery.isPending && <p className="text-sm">Loading...</p>}
             {fwQuery.isError && (
               <p className="text-sm text-destructive">
                 Could not load frameworks.
               </p>
             )}
-            <div className="flex flex-wrap gap-2">
+            <div className="row wrap gap-2">
               {fwQuery.data?.frameworks.map((fw) => {
                 const checked = frameworks.has(fw.id);
                 return (
@@ -206,53 +206,47 @@ export function GapAnalyzePage() {
                       }
                       setFrameworks(next);
                     }}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-xs transition-colors",
-                      checked
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "hover:bg-accent",
-                    )}
+                    className={cn("pill", checked && "on")}
                   >
-                    {fw.id}{" "}
-                    <span className="opacity-60">(T{fw.tier})</span>
+                    {fw.id} <span className="dim">(T{fw.tier})</span>
                   </button>
                 );
               })}
             </div>
           </div>
           {frameworks.size > 0 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs muted">
               Selected: {Array.from(frameworks).join(", ")}
             </p>
           )}
         </section>
 
-        <section className="grid gap-3 md:grid-cols-2">
-          <div>
+        <section className="grid grid-2">
+          <div className="stack-2">
             <Label htmlFor="org-override">Organization override (optional)</Label>
             <Input
               id="org-override"
               value={organization}
               onChange={(e) => setOrganization(e.target.value)}
               placeholder="Uses inventory's organization if blank"
-              className="mt-1"
             />
           </div>
-          <div>
-            <Label htmlFor="system-override">System name override (optional)</Label>
+          <div className="stack-2">
+            <Label htmlFor="system-override">
+              System name override (optional)
+            </Label>
             <Input
               id="system-override"
               value={systemName}
               onChange={(e) => setSystemName(e.target.value)}
-              className="mt-1"
             />
           </div>
         </section>
 
-        <div className="flex items-center justify-between border-t pt-4">
-          <p className="text-xs text-muted-foreground">
-            The report will be saved to the local gap store and appear on
-            the Dashboard.
+        <div className="row-between border-t pt-4">
+          <p className="text-xs muted">
+            The report will be saved to the local gap store and appear on the
+            Dashboard.
           </p>
           <Button type="submit" disabled={!canSubmit}>
             {mutation.isPending ? "Running..." : "Run analysis"}
@@ -277,15 +271,19 @@ export function GapAnalyzePage() {
 }
 
 function GapResults({ report }: { report: GapAnalysisReport }) {
+  const coveragePct = Math.round(report.coverage_percentage);
   return (
-    <section className="space-y-4" aria-labelledby="results-heading">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h2 id="results-heading" className="text-xl font-semibold">
+    <section className="stack-5" aria-labelledby="results-heading">
+      <header
+        className="row-between wrap gap-4"
+        style={{ alignItems: "flex-start" }}
+      >
+        <div className="stack-2">
+          <h2 id="results-heading" className="h2-lg">
             Results
           </h2>
-          <div className="flex gap-2">
-            <Badge variant="outline">{report.total_gaps} total gaps</Badge>
+          <div className="row gap-2 wrap">
+            <Badge variant="secondary">{report.total_gaps} total gaps</Badge>
             {report.critical_gaps > 0 && (
               <Badge variant="critical">{report.critical_gaps} critical</Badge>
             )}
@@ -296,49 +294,41 @@ function GapResults({ report }: { report: GapAnalysisReport }) {
         </div>
         <GapExportControl report={report} />
       </header>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-3">
         <MetricCard
+          icon={ShieldCheck}
           label="Coverage"
-          value={`${report.coverage_percentage.toFixed(0)}%`}
-          detail={`${report.total_controls_in_inventory} / ${report.total_controls_required} controls`}
+          value={`${coveragePct}%`}
+          description={`${report.total_controls_in_inventory} / ${report.total_controls_required} controls satisfied`}
+          bar={coveragePct}
         />
         <MetricCard
+          icon={Layers}
           label="Frameworks analyzed"
           value={String(report.frameworks_analyzed.length)}
-          detail={report.frameworks_analyzed.join(", ")}
+          description={report.frameworks_analyzed.join(", ")}
         />
         <MetricCard
+          icon={Sparkles}
           label="Efficiency wins"
           value={String(report.efficiency_opportunities.length)}
-          detail="controls satisfying 3+ frameworks"
+          description="controls satisfying 3+ frameworks"
         />
       </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="base">Severity distribution</CardTitle>
+          <CardDescription>
+            {report.total_gaps} open gaps across{" "}
+            {report.frameworks_analyzed.length} frameworks, by gap severity.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <SeverityBar gaps={report.gaps} />
+        </CardContent>
+      </Card>
       <GapTable gaps={report.gaps} />
     </section>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardDescription className="text-xs uppercase tracking-wide">
-          {label}
-        </CardDescription>
-        <CardTitle className="text-2xl">{value}</CardTitle>
-      </CardHeader>
-      <CardContent className="text-xs text-muted-foreground">
-        {detail}
-      </CardContent>
-    </Card>
   );
 }
 

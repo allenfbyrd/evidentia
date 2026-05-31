@@ -43,14 +43,14 @@ export function WizardForm() {
 
   return (
     <form
-      className="space-y-6"
+      className="stack-6"
       onSubmit={(e) => {
         e.preventDefault();
         if (canSubmit) mutation.mutate();
       }}
     >
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">About your organization</h2>
+      <div className="row-between">
+        <h2 className="h2-lg">About your organization</h2>
         <Button type="button" variant="ghost" size="sm" onClick={reset}>
           Cancel
         </Button>
@@ -67,8 +67,8 @@ export function WizardForm() {
         </Alert>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
+      <div className="grid-2">
+        <div className="stack-2">
           <Label htmlFor="org">Organization name</Label>
           <Input
             id="org"
@@ -76,62 +76,68 @@ export function WizardForm() {
             value={form.organization}
             onChange={(e) => updateForm({ organization: e.target.value })}
             placeholder="Acme Corporation"
-            className="mt-1"
           />
         </div>
-        <div>
+        <div className="stack-2">
           <Label htmlFor="system-name">System / product name (optional)</Label>
           <Input
             id="system-name"
             value={form.system_name}
             onChange={(e) => updateForm({ system_name: e.target.value })}
             placeholder="Acme Customer Portal"
-            className="mt-1"
           />
         </div>
       </div>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Industry</legend>
-        <div className="flex flex-wrap gap-2">
+      <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="label">Industry</legend>
+        <div className="row wrap gap-2">
           {INDUSTRIES.map((opt) => (
-            <Radio
+            <button
               key={opt.value}
-              name="industry"
-              value={opt.value}
-              label={opt.label}
-              checked={form.industry === opt.value}
-              onSelect={() => updateForm({ industry: opt.value })}
-            />
+              type="button"
+              role="radio"
+              aria-checked={form.industry === opt.value}
+              className={cn("seg", form.industry === opt.value && "on")}
+              onClick={() => updateForm({ industry: opt.value })}
+            >
+              {opt.label}
+            </button>
           ))}
         </div>
       </fieldset>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Hosting</legend>
-        <div className="flex flex-wrap gap-2">
+      <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="label">Hosting</legend>
+        <div className="row wrap gap-2">
           {HOSTINGS.map((opt) => (
-            <Radio
+            <button
               key={opt.value}
-              name="hosting"
-              value={opt.value}
-              label={opt.label}
-              checked={form.hosting === opt.value}
-              onSelect={() => updateForm({ hosting: opt.value })}
-            />
+              type="button"
+              role="radio"
+              aria-checked={form.hosting === opt.value}
+              className={cn("seg", form.hosting === opt.value && "on")}
+              onClick={() => updateForm({ hosting: opt.value })}
+            >
+              {opt.label}
+            </button>
           ))}
         </div>
       </fieldset>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Data handled</legend>
-        <div className="flex flex-wrap gap-2">
+      <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="label">Data handled</legend>
+        <div className="row wrap gap-2">
           {DATA_TYPES.map((opt) => (
-            <MultiPill
+            <button
               key={opt.value}
-              label={opt.label}
-              checked={form.data_classification.includes(opt.value)}
-              onToggle={() =>
+              type="button"
+              aria-pressed={form.data_classification.includes(opt.value)}
+              className={cn(
+                "pill",
+                form.data_classification.includes(opt.value) && "on",
+              )}
+              onClick={() =>
                 updateForm({
                   data_classification: toggle(
                     form.data_classification,
@@ -139,22 +145,26 @@ export function WizardForm() {
                   ),
                 })
               }
-            />
+            >
+              {opt.label}
+            </button>
           ))}
         </div>
       </fieldset>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">
-          Regulatory requirements (optional)
-        </legend>
-        <div className="flex flex-wrap gap-2">
+      <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="label">Regulatory requirements (optional)</legend>
+        <div className="row wrap gap-2">
           {REGULATORY_OPTIONS.map((opt) => (
-            <MultiPill
+            <button
               key={opt.value}
-              label={opt.label}
-              checked={form.regulatory_requirements.includes(opt.value)}
-              onToggle={() =>
+              type="button"
+              aria-pressed={form.regulatory_requirements.includes(opt.value)}
+              className={cn(
+                "pill",
+                form.regulatory_requirements.includes(opt.value) && "on",
+              )}
+              onClick={() =>
                 updateForm({
                   regulatory_requirements: toggle(
                     form.regulatory_requirements,
@@ -162,25 +172,26 @@ export function WizardForm() {
                   ),
                 })
               }
-            />
+            >
+              {opt.label}
+            </button>
           ))}
         </div>
       </fieldset>
 
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">
-          Starter control preset
-        </legend>
-        <div className="space-y-1">
+      <fieldset className="stack-2" style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="label">Starter control preset</legend>
+        <div className="stack-2">
           {PRESETS.map((opt) => (
             <label
               key={opt.value}
-              className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors",
-                form.preset === opt.value
-                  ? "border-primary bg-primary/5"
-                  : "hover:bg-accent/50",
-              )}
+              className={cn("select-row", form.preset === opt.value && "on")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                cursor: "pointer",
+              }}
             >
               <input
                 type="radio"
@@ -199,7 +210,7 @@ export function WizardForm() {
         </div>
       </fieldset>
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="row-end gap-3">
         <Button type="button" variant="outline" onClick={reset}>
           Start over
         </Button>
@@ -208,53 +219,6 @@ export function WizardForm() {
         </Button>
       </div>
     </form>
-  );
-}
-
-function Radio(props: {
-  name: string;
-  value: string;
-  label: string;
-  checked: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={props.checked}
-      onClick={props.onSelect}
-      className={cn(
-        "rounded-md border px-3 py-1.5 text-sm transition-colors",
-        props.checked
-          ? "border-primary bg-primary text-primary-foreground"
-          : "hover:bg-accent",
-      )}
-    >
-      {props.label}
-    </button>
-  );
-}
-
-function MultiPill(props: {
-  label: string;
-  checked: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={props.checked}
-      onClick={props.onToggle}
-      className={cn(
-        "rounded-full border px-3 py-1 text-xs transition-colors",
-        props.checked
-          ? "border-primary bg-primary text-primary-foreground"
-          : "hover:bg-accent",
-      )}
-    >
-      {props.label}
-    </button>
   );
 }
 

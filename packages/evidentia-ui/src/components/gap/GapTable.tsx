@@ -21,11 +21,21 @@ import type { ControlGap } from "@/types/api";
  * Renders all rows (no row virtualization); comfortable to ~1000 rows.
  * Virtualization for larger reports is a backlog item, not shipped.
  */
+type Density = "compact" | "default" | "comfortable";
+
+const DENSITY_OPTIONS: readonly [Density, string][] = [
+  ["compact", "Compact"],
+  ["default", "Default"],
+  ["comfortable", "Comfy"],
+];
+
 export function GapTable({ gaps }: { gaps: ControlGap[] }) {
   const [filter, setFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([
     { id: "priority_score", desc: true },
   ]);
+  // Local presentation-only density control (CSS keys off data-density).
+  const [density, setDensity] = useState<Density>("compact");
 
   const columns = useMemo<ColumnDef<ControlGap>[]>(
     () => [
@@ -33,23 +43,21 @@ export function GapTable({ gaps }: { gaps: ControlGap[] }) {
         accessorKey: "framework",
         header: "Framework",
         cell: ({ getValue }) => (
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">
-            {String(getValue())}
-          </code>
+          <code className="kbd">{String(getValue())}</code>
         ),
       },
       {
         accessorKey: "control_id",
         header: "Control",
         cell: ({ getValue }) => (
-          <span className="font-mono text-xs">{String(getValue())}</span>
+          <span className="mono text-xs">{String(getValue())}</span>
         ),
       },
       {
         accessorKey: "control_title",
         header: "Title",
         cell: ({ getValue }) => (
-          <span className="line-clamp-1 text-sm">{String(getValue())}</span>
+          <span className="line-1 text-sm">{String(getValue())}</span>
         ),
       },
       {
@@ -70,7 +78,7 @@ export function GapTable({ gaps }: { gaps: ControlGap[] }) {
         accessorKey: "implementation_effort",
         header: "Effort",
         cell: ({ row }) => (
-          <Badge variant="outline" className="capitalize">
+          <Badge variant="outline" className="cap">
             {row.original.implementation_effort.replace(/_/g, " ")}
           </Badge>
         ),
@@ -79,7 +87,7 @@ export function GapTable({ gaps }: { gaps: ControlGap[] }) {
         accessorKey: "priority_score",
         header: "Priority",
         cell: ({ row }) => (
-          <span className="font-mono text-xs">
+          <span className="mono text-xs tnum">
             {row.original.priority_score.toFixed(2)}
           </span>
         ),
@@ -123,54 +131,76 @@ export function GapTable({ gaps }: { gaps: ControlGap[] }) {
     },
   });
 
+  const filteredRows = table.getFilteredRowModel().rows;
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-4">
+    <div className="stack-3">
+      <div className="row-between gap-4 wrap">
         <Input
           type="search"
           placeholder="Filter by control ID, title, or framework..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="max-w-sm"
+          className="max-sm"
           aria-label="Filter gaps"
         />
-        <span className="text-xs text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} of {gaps.length} rows
-        </span>
+        <div className="row gap-3">
+          <div className="row gap-2" role="radiogroup" aria-label="Row density">
+            <span className="text-xs faint">Density</span>
+            {DENSITY_OPTIONS.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={density === value}
+                className={cn("seg", density === value && "on")}
+                onClick={() => setDensity(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <span className="text-xs muted tnum">
+            {filteredRows.length} of {gaps.length} rows
+          </span>
+        </div>
       </div>
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50">
+      <div className="table-wrap" data-density={density}>
+        <table className="tbl">
+          <thead>
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
-                {hg.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    scope="col"
-                    className={cn(
-                      "px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground",
-                      header.column.getCanSort() && "cursor-pointer select-none",
-                    )}
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext(),
-                    )}
-                    {{
-                      asc: " ▲",
-                      desc: " ▼",
-                    }[header.column.getIsSorted() as string] ?? null}
-                  </th>
-                ))}
+                {hg.headers.map((header) => {
+                  const sorted = header.column.getIsSorted();
+                  return (
+                    <th
+                      key={header.id}
+                      scope="col"
+                      className={cn(
+                        header.column.getCanSort() && "sortable",
+                      )}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                      {sorted ? (
+                        <span className="sortarrow">
+                          {sorted === "desc" ? " ▼" : " ▲"}
+                        </span>
+                      ) : null}
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
-          <tbody className="divide-y">
+          <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="hover:bg-accent/30">
+              <tr key={row.id} data-severity={row.original.gap_severity}>
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-3 py-2">
+                  <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -180,7 +210,8 @@ export function GapTable({ gaps }: { gaps: ControlGap[] }) {
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="p-4 text-center text-sm text-muted-foreground"
+                  className="text-sm muted"
+                  style={{ textAlign: "center", padding: "2rem" }}
                 >
                   No gaps match the current filter.
                 </td>

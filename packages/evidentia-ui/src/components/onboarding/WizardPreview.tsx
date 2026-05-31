@@ -30,13 +30,13 @@ export function WizardPreview() {
   }
 
   return (
-    <section aria-labelledby="preview-heading" className="space-y-6">
-      <header className="flex items-start justify-between gap-4">
+    <section aria-labelledby="preview-heading" className="stack-6">
+      <header className="row-between gap-4">
         <div>
-          <h2 id="preview-heading" className="text-2xl font-semibold">
+          <h2 id="preview-heading" className="h2-lg">
             Your starter files
           </h2>
-          <p className="mt-1 text-muted-foreground">
+          <p className="page-sub">
             Three YAML files tailored to your answers. Copy them into your
             project directory or let the wizard write them on disk.
           </p>
@@ -48,15 +48,15 @@ export function WizardPreview() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Recommended frameworks</CardTitle>
+          <CardTitle className="lg">Recommended frameworks</CardTitle>
           <CardDescription>
             Based on your industry, hosting, data types, and regulatory scope.
             These are suggestions — add or remove any you don't need.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
+        <CardContent className="row wrap gap-2">
           {preview.recommended_frameworks.map((fw) => (
-            <Badge key={fw} variant="secondary" className="text-sm">
+            <Badge key={fw} variant="secondary">
               {fw}
             </Badge>
           ))}
@@ -70,10 +70,7 @@ export function WizardPreview() {
           <TabsTrigger value="context">system-context.yaml</TabsTrigger>
         </TabsList>
         <TabsContent value="evidentia">
-          <YamlCard
-            filename="evidentia.yaml"
-            content={preview.evidentia_yaml}
-          />
+          <YamlCard filename="evidentia.yaml" content={preview.evidentia_yaml} />
         </TabsContent>
         <TabsContent value="controls">
           <YamlCard
@@ -89,7 +86,7 @@ export function WizardPreview() {
         </TabsContent>
       </Tabs>
 
-      <footer className="flex items-center justify-end gap-3 pt-4">
+      <footer className="row-end gap-3 pt-4">
         <Button variant="outline" onClick={reset}>
           Start over
         </Button>
@@ -108,8 +105,8 @@ function YamlCard({ filename, content }: { filename: string; content: string }) 
   };
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between pb-3">
-        <CardTitle className="text-sm font-mono">{filename}</CardTitle>
+      <CardHeader className="row-between pb-3">
+        <CardTitle className="base mono">{filename}</CardTitle>
         <Button
           size="sm"
           variant="outline"
@@ -128,7 +125,7 @@ function YamlCard({ filename, content }: { filename: string; content: string }) 
         </Button>
       </CardHeader>
       <CardContent>
-        <pre className="max-h-96 overflow-auto rounded bg-muted p-3 text-xs">
+        <pre className="block scroll-72">
           <code>{content}</code>
         </pre>
       </CardContent>

@@ -173,12 +173,10 @@ export function RiskGeneratePage() {
   const rowList = Object.values(rows);
 
   return (
-    <div className="space-y-6">
+    <div className="stack-6">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Risk Generate
-        </h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="page-title">Risk Generate</h1>
+        <p className="page-sub">
           AI-generated NIST SP 800-30 risk statements for your top-priority
           gaps. Progress streams live from the server.
         </p>
@@ -189,7 +187,7 @@ export function RiskGeneratePage() {
           <AlertTitle>No reports in the gap store yet</AlertTitle>
           <AlertDescription>
             Run a gap analysis first (from the{" "}
-            <a href="/gap/analyze" className="underline">
+            <a href="/gap/analyze" className="primary underline">
               Gap Analyze
             </a>{" "}
             page) so there's a report to generate risks for.
@@ -200,46 +198,44 @@ export function RiskGeneratePage() {
       {reports.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Configuration</CardTitle>
+            <CardTitle className="base">Configuration</CardTitle>
             <CardDescription>
               Pick the source report + system context. The generator
               fans out concurrently and streams per-gap progress back.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
+          <CardContent className="stack-4">
+            <div className="stack-2">
               <Label>Source report</Label>
-              <div className="mt-1 max-h-44 space-y-1 overflow-auto rounded-md border p-2">
+              <div className="box scroll-44 stack-2">
                 {reports.map((r) => (
                   <button
                     key={r.key}
                     type="button"
                     onClick={() => setReportKey(r.key)}
-                    className={cn(
-                      "block w-full rounded-md border px-3 py-1.5 text-left text-xs transition-colors",
-                      reportKey === r.key
-                        ? "border-primary bg-primary/5"
-                        : "hover:bg-accent/50",
-                    )}
+                    className={cn("select-row", reportKey === r.key && "on")}
                   >
-                    <span className="font-medium">
-                      {r.organization || "(unknown)"}
-                    </span>{" "}
-                    —{" "}
-                    <span className="text-muted-foreground">
-                      {r.total_gaps} gaps, {r.frameworks_analyzed.join(", ")}
+                    <span className="text-xs">
+                      <span className="font-medium">
+                        {r.organization || "(unknown)"}
+                      </span>{" "}
+                      —{" "}
+                      <span className="muted">
+                        {r.total_gaps} gaps, {r.frameworks_analyzed.join(", ")}
+                      </span>
                     </span>
-                    <br />
-                    <code className="rounded bg-muted px-1">{r.key}</code>{" "}
-                    <span className="text-muted-foreground">
-                      {new Date(r.mtime_iso).toLocaleString()}
-                    </span>
+                    <div className="mt-1 text-xs">
+                      <code className="kbd">{r.key}</code>{" "}
+                      <span className="muted">
+                        {new Date(r.mtime_iso).toLocaleString()}
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div>
+            <div className="grid grid-2">
+              <div className="stack-2">
                 <Label htmlFor="context-path">
                   system-context.yaml path (required)
                 </Label>
@@ -248,10 +244,9 @@ export function RiskGeneratePage() {
                   placeholder="/abs/path/to/system-context.yaml"
                   value={contextPath}
                   onChange={(e) => setContextPath(e.target.value)}
-                  className="mt-1"
                 />
               </div>
-              <div>
+              <div className="stack-2">
                 <Label htmlFor="top-n">Top N gaps</Label>
                 <Input
                   id="top-n"
@@ -264,14 +259,13 @@ export function RiskGeneratePage() {
                       Math.max(1, Math.min(50, Number(e.target.value) || 10)),
                     )
                   }
-                  className="mt-1"
                 />
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="text-xs muted">
                   Picks the highest-priority gaps by priority_score.
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2">
+            <div className="row-end gap-2">
               {isStreaming ? (
                 <Button variant="outline" onClick={cancel}>
                   Cancel
@@ -292,7 +286,7 @@ export function RiskGeneratePage() {
       {progress && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Progress</CardTitle>
+            <CardTitle className="base">Progress</CardTitle>
             <CardDescription>
               {progress.current} of {progress.total} complete
             </CardDescription>
@@ -329,13 +323,28 @@ export function RiskGeneratePage() {
       )}
 
       {rowList.length > 0 && (
-        <ul className="divide-y rounded-lg border">
-          {rowList.map((row) => (
-            <li key={row.key} className="flex items-center gap-3 px-4 py-2">
-              <StatusDot status={row.status} />
+        <ul className="reset rounded-lg border">
+          {rowList.map((row, i) => (
+            <li
+              key={row.key}
+              className={cn(
+                "reset row gap-3 px-4 py-2",
+                i > 0 && "border-t",
+              )}
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  "dot-status",
+                  row.status === "done" && "dot-done",
+                  row.status === "generating" && "dot-gen",
+                  row.status === "error" && "dot-err",
+                  row.status === "pending" && "dot-pend",
+                )}
+              />
               <div className="flex-1 text-sm">
                 {row.control_id && (
-                  <span className="font-mono text-xs">
+                  <span className="mono text-xs">
                     {row.framework}:{row.control_id}
                   </span>
                 )}
@@ -353,25 +362,6 @@ export function RiskGeneratePage() {
         </ul>
       )}
     </div>
-  );
-}
-
-function StatusDot({
-  status,
-}: {
-  status: "pending" | "generating" | "done" | "error";
-}) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "inline-block h-2.5 w-2.5 rounded-full",
-        status === "done" && "bg-primary",
-        status === "generating" && "animate-pulse bg-primary/60",
-        status === "error" && "bg-destructive",
-        status === "pending" && "bg-muted-foreground/40",
-      )}
-    />
   );
 }
 

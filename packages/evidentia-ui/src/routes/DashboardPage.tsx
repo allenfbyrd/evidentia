@@ -1,15 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { Database, Layers, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { MetricCard } from "@/components/common/console";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 
 /**
@@ -35,13 +32,13 @@ export function DashboardPage() {
   const latest = reportsQuery.data?.reports[0];
 
   return (
-    <div className="space-y-8">
-      <header className="flex items-end justify-between">
+    <div className="stack-8">
+      <header className="row-between" style={{ alignItems: "flex-end" }}>
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-muted-foreground">
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-sub">
             Gap analysis snapshots stored locally in{" "}
-            <code className="rounded bg-muted px-1 py-0.5">
+            <code className="kbd">
               {reportsQuery.data?.store_dir ?? "gap store"}
             </code>
           </p>
@@ -51,24 +48,26 @@ export function DashboardPage() {
         </Button>
       </header>
 
-      <section
-        className="grid gap-4 sm:grid-cols-3"
-        aria-labelledby="top-metrics"
-      >
+      <section className="grid grid-3" aria-labelledby="top-metrics">
         <h2 id="top-metrics" className="sr-only">
           Top-line metrics
         </h2>
         <MetricCard
+          icon={Layers}
           label="Bundled frameworks"
           value={String(totalFrameworks)}
           description="ready to analyze against"
+          big
         />
         <MetricCard
+          icon={Database}
           label="Saved reports"
           value={String(totalReports)}
           description="in the local gap store"
+          big
         />
         <MetricCard
+          icon={ShieldCheck}
           label="Latest coverage"
           value={
             latest?.coverage_percentage != null
@@ -82,68 +81,79 @@ export function DashboardPage() {
                 }`
               : "no analysis yet"
           }
+          big
         />
       </section>
 
-      <section aria-labelledby="recent-reports" className="space-y-3">
-        <div className="flex items-end justify-between">
-          <h2 id="recent-reports" className="text-xl font-medium">
+      <section aria-labelledby="recent-reports" className="stack-3">
+        <div className="row-between" style={{ alignItems: "flex-end" }}>
+          <h2 id="recent-reports" className="h2">
             Recent reports
           </h2>
+          <Link to="/gap/analyze" className="primary-link text-sm">
+            Run new analysis &rarr;
+          </Link>
         </div>
+
         {reportsQuery.isPending && (
-          <Card>
-            <CardContent className="p-6 text-sm text-muted-foreground">
-              Loading...
-            </CardContent>
-          </Card>
+          <ul className="reset stack-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <li key={i} className="reset">
+                <div className="skel" style={{ height: "5.5rem" }} />
+              </li>
+            ))}
+          </ul>
         )}
+
         {reportsQuery.isError && (
-          <Card className="border-destructive">
-            <CardContent className="p-6 text-sm text-destructive">
-              Could not reach the backend. Is{" "}
-              <code className="rounded bg-muted px-1 py-0.5">
-                evidentia serve
-              </code>{" "}
-              running?
-            </CardContent>
-          </Card>
+          <Alert variant="destructive">
+            <AlertTitle>Could not reach the backend</AlertTitle>
+            <AlertDescription>
+              Is <code className="kbd">evidentia serve</code> running?
+            </AlertDescription>
+          </Alert>
         )}
+
         {reportsQuery.isSuccess && totalReports === 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">No reports yet</CardTitle>
-              <CardDescription>
-                Run{" "}
-                <code className="rounded bg-muted px-1 py-0.5">
-                  evidentia gap analyze
-                </code>{" "}
-                in the terminal to create your first report. The UI will show
-                it here.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+          <div className="empty-state">
+            No reports yet. Run{" "}
+            <code className="kbd">evidentia gap analyze</code> in the terminal to
+            create your first report. The UI will show it here.
+          </div>
         )}
+
         {reportsQuery.isSuccess && totalReports > 0 && (
-          <ul className="space-y-3">
+          <ul className="reset stack-3">
             {reportsQuery.data.reports.slice(0, 10).map((report) => (
-              <li key={report.key}>
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <CardTitle className="text-base">
-                          {report.organization || "(unknown org)"}
-                        </CardTitle>
-                        <CardDescription className="mt-1">
+              <li key={report.key} className="reset">
+                <Card className="card-hover">
+                  <CardContent style={{ padding: "var(--card-pad)" }}>
+                    <div
+                      className="row-between gap-4 wrap"
+                      style={{ alignItems: "flex-start" }}
+                    >
+                      <div className="stack-2" style={{ minWidth: 0 }}>
+                        <div className="row gap-2 wrap">
+                          <span className="card-title base">
+                            {report.organization || "(unknown org)"}
+                          </span>
+                          {report.coverage_percentage != null && (
+                            <Badge variant="secondary">
+                              {report.coverage_percentage.toFixed(0)}% coverage
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm muted" style={{ margin: 0 }}>
                           {new Date(report.mtime_iso).toLocaleString()} &middot;{" "}
                           {report.frameworks_analyzed.join(", ")}
-                        </CardDescription>
+                        </p>
+                        <p className="text-xs faint" style={{ margin: 0 }}>
+                          <code className="kbd">{report.key}</code> &middot;{" "}
+                          {(report.size_bytes / 1024).toFixed(1)} KiB
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">
-                          {report.total_gaps} total gaps
-                        </Badge>
+                      <div className="row gap-2" style={{ flexShrink: 0 }}>
+                        <Badge variant="outline">{report.total_gaps} gaps</Badge>
                         {report.critical_gaps > 0 && (
                           <Badge variant="critical">
                             {report.critical_gaps} critical
@@ -151,12 +161,6 @@ export function DashboardPage() {
                         )}
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-0 text-xs text-muted-foreground">
-                    <code className="rounded bg-muted px-1 py-0.5">
-                      {report.key}
-                    </code>{" "}
-                    &middot; {(report.size_bytes / 1024).toFixed(1)} KiB
                   </CardContent>
                 </Card>
               </li>
@@ -165,29 +169,5 @@ export function DashboardPage() {
         )}
       </section>
     </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  description,
-}: {
-  label: string;
-  value: string;
-  description: string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="space-y-1 pb-2">
-        <CardDescription className="text-xs uppercase tracking-wide">
-          {label}
-        </CardDescription>
-        <CardTitle className="text-3xl">{value}</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0 text-sm text-muted-foreground">
-        {description}
-      </CardContent>
-    </Card>
   );
 }

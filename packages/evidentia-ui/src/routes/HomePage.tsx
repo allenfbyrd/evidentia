@@ -5,6 +5,14 @@ import { SampleLoaded } from "@/components/onboarding/SampleLoaded";
 import { UploadForm } from "@/components/onboarding/UploadForm";
 import { WizardForm } from "@/components/onboarding/WizardForm";
 import { WizardPreview } from "@/components/onboarding/WizardPreview";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useWizardStore } from "@/lib/wizard-store";
 
@@ -31,16 +39,13 @@ export function HomePage() {
   const hasReports = (reportsQuery.data?.total ?? 0) > 0;
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Welcome to Evidentia
-        </h1>
-        <p className="text-muted-foreground">
+    <div className="stack-8">
+      <header className="stack-2">
+        <h1 className="page-title">Welcome to Evidentia</h1>
+        <p className="page-sub">
           Open-source GRC tool for gap analysis, risk statements, and
           compliance automation. The web UI is the accessible counterpart
-          to the <code className="rounded bg-muted px-1 py-0.5">evidentia</code>{" "}
-          CLI.
+          to the <code className="kbd">evidentia</code> CLI.
         </p>
       </header>
 
@@ -52,18 +57,18 @@ export function HomePage() {
       {step === "done" && <DonePanel />}
 
       {hasReports && step === "path-chooser" && (
-        <aside className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
+        <aside className="box muted text-sm">
           You have {reportsQuery.data?.total} saved{" "}
           {reportsQuery.data?.total === 1 ? "report" : "reports"}. Head to
-          the <a href="/dashboard" className="underline underline-offset-2">
+          the{" "}
+          <a href="/dashboard" className="primary-link">
             Dashboard
           </a>{" "}
-          to review, or run a new analysis from the
-          {" "}
-          <a href="/gap/analyze" className="underline underline-offset-2">
+          to review, or run a new analysis from the{" "}
+          <a href="/gap/analyze" className="primary-link">
             Gap Analyze
-          </a>
-          {" "}page.
+          </a>{" "}
+          page.
         </aside>
       )}
     </div>
@@ -73,36 +78,43 @@ export function HomePage() {
 function DonePanel() {
   const reset = useWizardStore((s) => s.reset);
   return (
-    <section className="rounded-lg border bg-card p-6">
-      <h2 className="text-xl font-semibold">Nice. Next steps:</h2>
-      <ul className="mt-3 list-disc space-y-1 pl-6 text-sm">
-        <li>
-          Save the YAMLs in your project root
-          (<code className="rounded bg-muted px-1 py-0.5">evidentia.yaml</code>,
-          <code className="mx-1 rounded bg-muted px-1 py-0.5">my-controls.yaml</code>,
-          <code className="rounded bg-muted px-1 py-0.5">system-context.yaml</code>)
-        </li>
-        <li>
-          Run <code className="rounded bg-muted px-1 py-0.5">
-            evidentia gap analyze
-          </code>
-        </li>
-        <li>
-          Come back to the <a className="underline underline-offset-2" href="/dashboard">Dashboard</a>{" "}
-          to review gaps, or use
-          the <a className="underline underline-offset-2" href="/gap/analyze">Gap Analyze</a>{" "}
-          page to re-run without leaving the browser.
-        </li>
-      </ul>
-      <div className="mt-4">
-        <button
-          type="button"
-          onClick={reset}
-          className="text-sm text-muted-foreground underline underline-offset-2"
-        >
-          Start wizard over
-        </button>
-      </div>
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="lg">Nice. Next steps:</CardTitle>
+        <CardDescription>
+          Save the YAMLs in your project root, run the analysis, and review
+          the results here.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="stack-3">
+        <ul className="reset stack-2 text-sm">
+          <li>
+            Save the YAMLs in your project root (
+            <code className="kbd">evidentia.yaml</code>,{" "}
+            <code className="kbd">my-controls.yaml</code>,{" "}
+            <code className="kbd">system-context.yaml</code>)
+          </li>
+          <li>
+            Run <code className="kbd">evidentia gap analyze</code>
+          </li>
+          <li>
+            Come back to the{" "}
+            <a className="primary-link" href="/dashboard">
+              Dashboard
+            </a>{" "}
+            to review gaps, or use the{" "}
+            <a className="primary-link" href="/gap/analyze">
+              Gap Analyze
+            </a>{" "}
+            page to re-run without leaving the browser.
+          </li>
+        </ul>
+        <div className="row-end">
+          <Button variant="outline" size="sm" onClick={reset}>
+            Start wizard over
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
