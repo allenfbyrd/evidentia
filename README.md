@@ -96,7 +96,7 @@ Full 5-minute walk-through: [Quickstart wiki page](https://github.com/Polycentri
 
 ## Recent Releases
 
-**v0.10.7 (2026-05-29)** — *hygiene + automation-debt close-out + pre-push gate Layer 2*. `scripts/catalogs/gen_osps_crosswalks.py`, deterministic regenerator that rebuilds the 5 OSPS-Baseline crosswalk JSONs byte-for-byte from the pinned upstream YAMLs, with a `--check` drift mode.
+**v0.10.7 (2026-05-30)** — *web console (GUI v2) refresh + gap-report export + hygiene / automation-debt / wiki-fill / doc-accuracy base*. **Web console, GUI v2 visual refresh.** A full design-system pass: federal-blue interactive primary on a warm off-white workspace with deep-navy brand chrome (nav rail + top bar), the CLI-matched severity palette preserved verbatim, self-hosted IBM Plex Sans/Mono + favicons / PWA manifest / Open-Graph brand assets (air-gap clean, no CDN), a wired light/dark toggle (with a no-flash inline theme script), and every route + the onboarding flow restyled.
 
 **v0.10.6 (2026-05-27)** — *OSS first-mover artifacts + downstream OSPS crosswalks + post-v0.10.5 hygiene*. OSPS Baseline 3-catalog bundle (Maturity 1/2/3 YAMLs) + first public OSCAL Catalog 1.2.1 serialization; `SECURITY.md` refresh + `.well-known/security.txt` + GHSA private vulnerability reporting enabled; `OSPS-CONFORMANCE.md` self-attestation + `verify-osps-conformance.yml` CI gate.
 
