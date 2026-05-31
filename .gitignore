@@ -17,11 +17,12 @@ credentials.json
 
 # v0.4.0 — frontend build output lands in the Python package's static
 # directory at wheel-assembly time via the hatchling build hook. The
-# .gitkeep file in static/ is tracked; everything else is regenerated.
-packages/evidentia-api/src/evidentia_api/static/assets/
-packages/evidentia-api/src/evidentia_api/static/index.html
-packages/evidentia-api/src/evidentia_api/static/*.js
-packages/evidentia-api/src/evidentia_api/static/*.css
+# .gitkeep file in static/ is tracked; everything else is regenerated
+# (index.html, assets/, JS/CSS, and the public/ brand assets — favicons,
+# OG cards, app icons, fonts/, logo SVGs, site.webmanifest). Ignore the whole
+# tree except .gitkeep so any build copy stays out of git.
+packages/evidentia-api/src/evidentia_api/static/*
+!packages/evidentia-api/src/evidentia_api/static/.gitkeep
 
 # Python
 __pycache__/
