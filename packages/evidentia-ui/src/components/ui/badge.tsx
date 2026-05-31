@@ -3,34 +3,31 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const badgeVariants = cva(
-  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        // Evidentia severity badges — text color pairs with severity-* CSS vars.
-        critical:
-          "border-transparent bg-[hsl(var(--severity-critical))] text-white",
-        high: "border-transparent bg-[hsl(var(--severity-high))] text-white",
-        medium:
-          "border-transparent bg-[hsl(var(--severity-medium))] text-black",
-        low: "border-transparent bg-[hsl(var(--severity-low))] text-white",
-        informational:
-          "border-transparent bg-[hsl(var(--severity-informational))] text-white",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
+/**
+ * Badge — re-skinned to the GUI v2 design-system classes (see index.css
+ * @layer components). The variant union is unchanged so existing call sites
+ * (incl. `severityBadge()` -> "critical" | "high" | …) keep working; severity
+ * variants render the soft-tint + leading-dot treatment that mirrors the CLI.
+ */
+const badgeVariants = cva("badge", {
+  variants: {
+    variant: {
+      default: "default",
+      secondary: "secondary",
+      destructive: "destructive",
+      outline: "outline",
+      // Severity variants — `.sev` adds the leading dot; hue from --sev-*.
+      critical: "sev critical",
+      high: "sev high",
+      medium: "sev medium",
+      low: "sev low",
+      informational: "sev informational",
     },
   },
-);
+  defaultVariants: {
+    variant: "default",
+  },
+});
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,

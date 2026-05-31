@@ -1,21 +1,35 @@
+import {
+  GitCompare,
+  Home,
+  Layers,
+  LayoutDashboard,
+  Lock,
+  type LucideIcon,
+  Moon,
+  ScanLine,
+  Settings,
+  Sparkles,
+  Sun,
+} from "lucide-react";
 import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
+import { useTheme } from "@/hooks/use-theme";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-type NavMeta = { label: string; description: string; crumb: string };
+type NavMeta = { label: string; description: string; crumb: string; icon: LucideIcon };
 
 /** Route metadata — colocated with the layout so adding a route is one edit. */
 const NAV_META: Record<string, NavMeta> = {
-  "/": { label: "Home", description: "Welcome + onboarding", crumb: "Welcome to Evidentia" },
-  "/dashboard": { label: "Dashboard", description: "Saved gap reports", crumb: "Saved gap reports" },
-  "/frameworks": { label: "Frameworks", description: "92 bundled catalogs", crumb: "Catalog browser" },
-  "/gap/analyze": { label: "Gap Analyze", description: "Run a gap analysis", crumb: "Run a gap analysis" },
-  "/gap/diff": { label: "Gap Diff", description: "Compare two reports", crumb: "Compare two reports" },
-  "/risk/generate": { label: "Risk Generate", description: "AI risk statements", crumb: "AI risk statements" },
-  "/settings": { label: "Settings", description: "Config + LLM + air-gap", crumb: "Configuration" },
+  "/": { label: "Home", description: "Welcome + onboarding", crumb: "Welcome to Evidentia", icon: Home },
+  "/dashboard": { label: "Dashboard", description: "Saved gap reports", crumb: "Saved gap reports", icon: LayoutDashboard },
+  "/frameworks": { label: "Frameworks", description: "92 bundled catalogs", crumb: "Catalog browser", icon: Layers },
+  "/gap/analyze": { label: "Gap Analyze", description: "Run a gap analysis", crumb: "Run a gap analysis", icon: ScanLine },
+  "/gap/diff": { label: "Gap Diff", description: "Compare two reports", crumb: "Compare two reports", icon: GitCompare },
+  "/risk/generate": { label: "Risk Generate", description: "AI risk statements", crumb: "AI risk statements", icon: Sparkles },
+  "/settings": { label: "Settings", description: "Config + LLM + air-gap", crumb: "Configuration", icon: Settings },
 };
 
 /** Grouped navigation rail. */
@@ -41,6 +55,8 @@ function crumbFor(path: string): { label: string; crumb: string } {
 
 export function AppLayout() {
   const { pathname } = useLocation();
+  const { theme, toggle } = useTheme();
+  const dark = theme === "dark";
 
   const { data: health, isError: healthError } = useQuery({
     queryKey: ["health"],
@@ -54,8 +70,15 @@ export function AppLayout() {
     staleTime: 60_000,
   });
 
+  const { data: llm } = useQuery({
+    queryKey: ["llm-status"],
+    queryFn: () => api.llmStatus(),
+    staleTime: 60_000,
+  });
+
   const connected = health?.status === "ok" && !healthError;
   const offline = Boolean(airGap?.air_gapped);
+  const model = llm?.configured_model?.replace(/^.*\//, "");
   const { label: crumbLabel, crumb } = crumbFor(pathname);
 
   return (
@@ -91,12 +114,13 @@ export function AppLayout() {
                 const active = isActive(to, pathname);
                 const m = NAV_META[to];
                 if (!m) return null;
+                const Icon = m.icon;
                 return (
                   <Link
                     key={to}
                     to={to}
                     className={cn(
-                      "relative flex flex-col rounded-md px-2.5 py-2 transition-colors",
+                      "relative flex items-start gap-2.5 rounded-md px-2.5 py-2 transition-colors",
                       active
                         ? "bg-chrome-active text-cream-soft"
                         : "text-[hsl(var(--chrome-fg)/0.82)] hover:bg-chrome-hover hover:text-chrome-foreground",
@@ -109,14 +133,17 @@ export function AppLayout() {
                         aria-hidden
                       />
                     )}
-                    <span className="text-[0.86rem] font-medium">{m.label}</span>
-                    <span
-                      className={cn(
-                        "truncate text-[0.68rem]",
-                        active ? "text-[hsl(var(--chrome-fg)/0.6)]" : "text-chrome-muted",
-                      )}
-                    >
-                      {m.description}
+                    <Icon className="mt-0.5 h-[17px] w-[17px] shrink-0 opacity-90" aria-hidden />
+                    <span className="flex min-w-0 flex-col">
+                      <span className="text-[0.86rem] font-medium">{m.label}</span>
+                      <span
+                        className={cn(
+                          "truncate text-[0.68rem]",
+                          active ? "text-[hsl(var(--chrome-fg)/0.6)]" : "text-chrome-muted",
+                        )}
+                      >
+                        {m.description}
+                      </span>
                     </span>
                   </Link>
                 );
@@ -151,6 +178,17 @@ export function AppLayout() {
               <span className="font-mono text-[0.7rem] text-chrome-foreground">off</span>
             )}
           </div>
+          {model && (
+            <div className="flex items-center justify-between gap-2 text-[0.72rem]">
+              <span className="text-chrome-muted">Model</span>
+              <span
+                className="max-w-[8.5rem] truncate font-mono text-[0.7rem] text-chrome-foreground"
+                title={llm?.configured_model}
+              >
+                {model}
+              </span>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -161,12 +199,13 @@ export function AppLayout() {
             <span className="font-semibold tracking-tight">{crumbLabel}</span>
             <span className="text-[0.8rem] text-muted-foreground">· {crumb}</span>
           </div>
-          <nav className="flex items-center gap-3.5" aria-label="Connection status">
+          <div className="flex items-center gap-3.5">
             {offline && (
               <span
                 className="inline-flex items-center gap-1.5 rounded-full border border-border-strong px-2.5 py-1 text-[0.72rem] text-muted-foreground"
                 title="All subsystems are air-gap ready."
               >
+                <Lock className="h-3 w-3 text-success" aria-hidden />
                 air-gapped
               </span>
             )}
@@ -183,7 +222,16 @@ export function AppLayout() {
               />
               {connected ? "connected" : "disconnected"}
             </span>
-          </nav>
+            <button
+              type="button"
+              onClick={toggle}
+              className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:border-[hsl(var(--primary)/0.4)] hover:bg-accent hover:text-accent-foreground"
+              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+              title="Toggle theme"
+            >
+              {dark ? <Sun className="h-[17px] w-[17px]" aria-hidden /> : <Moon className="h-[17px] w-[17px]" aria-hidden />}
+            </button>
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-[1180px] flex-1 px-8 pb-12 pt-9">
