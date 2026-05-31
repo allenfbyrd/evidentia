@@ -30,6 +30,9 @@
 #   8. check_version_consistency  (v0.10.7 E4 "never-skip-a-version-reference":
 #                                  coverage of tracked files + hard-fail on any
 #                                  unclassified project-version literal; reused)
+#   9. check_commit_signatures    (every commit in the push range must be
+#                                  signed; closes the F-V107-1 unsigned-commit
+#                                  admin-bypass path. Blocks on %G? N/B.)
 #
 # All checks run before the hook exits, so the operator sees every
 # failure at once.
@@ -286,6 +289,13 @@ fi
 #    tracked file or an unclassified literal anywhere is a push blocker.
 run_check "check_version_consistency" \
     run_py "${REPO_ROOT}/scripts/check_version_consistency.py" || true
+
+# 9. commit signatures (v0.10.7 follow-up; closes F-V107-1): every commit in
+#    the push range must be signed. Catches the unsigned-commit path that the
+#    main-branch admin-bypass admitted (eedde81/5f44982/458a94c). Blocks on
+#    %G? == N (none) or B (bad); range-aware via RANGE_BASE..RANGE_TIP.
+run_check "check_commit_signatures" \
+    run_py "${SCRIPTS_DIR}/check_commit_signatures.py" "${RANGE_BASE}" "${RANGE_TIP}" || true
 
 # ---------------------------------------------------------------------------
 # Verdict.
